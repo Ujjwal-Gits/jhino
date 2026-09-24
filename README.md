@@ -37,7 +37,7 @@ Deploy with the Dockerfile and mount a persistent volume at `/data`. The image a
 
 - Everything Jhino writes goes under `/data`: the SQLite database (WAL mode), uploaded apps, files, compressed videos, staging and backups. The rest of the container can be wiped on every redeploy.
 - The app runs as the `node` user (uid 1000). If `/data` is not writable by it, Jhino stops at start and says how to fix it (`chown -R 1000:1000` on the volume).
-- The admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` is created only when the database has no users. Later starts never change it; change the password in the app.
+- The admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` is created only when the database has no users. Later starts never change it. To change the admin's email or password later, run in the container: `node dist/server/admin.js --email new@example.com --password 'a long password'` (it renames the current admin, so its apps stay with it).
 - Health check: `GET /health` returns 200 when the server and database answer.
 - On `SIGTERM` (a redeploy) Jhino stops taking new requests, lets running ones finish (up to 25 seconds), stops a video encode (it resumes on the next start) and closes the database cleanly.
 - Database migrations run at every start and only apply what is new.

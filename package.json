@@ -7,7 +7,8 @@
     "start": "node dist/server/index.js",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit",
     "test": "playwright test",
-    "backup": "node dist/server/backup.js"
+    "backup": "node dist/server/backup.js",
+    "admin": "node dist/server/admin.js"
   },
   "license": "UNLICENSED",
   "description": "Jhino: small apps, real work. Self-hosted home for AI-made HTML apps.",
