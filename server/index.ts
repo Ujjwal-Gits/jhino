@@ -1,0 +1,108 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import Fastify from 'fastify';
+import cookie from '@fastify/cookie';
+import multipart from '@fastify/multipart';
+import fstatic from '@fastify/static';
+import { config, ROOT } from './config.js';
+import { db } from './db.js';
+import { registerAuth, bootstrapAdmin, HttpError } from './auth.js';
+import { registerApps } from './apps.js';
+import { registerData } from './data.js';
+import { registerFiles } from './files.js';
+import { registerBuilder } from './builder.js';
+import { registerActivity } from './activity.js';
+import { registerTrash } from './trash.js';
+import { registerDesk } from './desk.js';
+
+const app = Fastify({
+  logger: { level: config.isProd ? 'info' : 'warn', redact: ['req.headers.cookie', 'req.headers["x-csrf-token"]'] },
+  bodyLimit: 8 * 1024 * 1024,
+  trustProxy: true,
+  forceCloseConnections: true,
+  genReqId: () => Math.random().toString(36).slice(2, 10),
+});
+
+await app.register(cookie);
+await app.register(multipart, { limits: { fileSize: config.limits.uploadBytes, files: 1, fields: 5 } });
+
+app.setErrorHandler((err, req, reply) => {
+  if (err instanceof HttpError) {
+    return reply.code(err.status).send({ error: err.code, message: err.message, ...err.extra });
+  }
+  const e = err as { statusCode?: number; code?: string; message: string };
+  if (e.statusCode && e.statusCode < 500) {
+    const tooBig = e.statusCode === 413 || e.code === 'FST_REQ_FILE_TOO_LARGE';
+    return reply.code(e.statusCode).send({ error: tooBig ? 'TOO_LARGE' : 'BAD_REQUEST', message: tooBig ? 'That file is too large.' : 'The request was not valid.' });
+  }
+  req.log.error(err);
+  const disk = /ENOSPC|SQLITE_FULL/.test(String(e.code) + e.message);
+  return reply.code(500).send({
+    error: disk ? 'DISK_FULL' : 'SERVER_ERROR',
+    message: disk ? 'The server is out of disk space. Nothing was saved.' : `Something went wrong on the server (ref ${req.id}).`,
+  });
+});
+
+// Security headers for the Jhino pages themselves (uploaded apps get their own in /run).
+app.addHook('onSend', async (req, reply) => {
+  if (req.url.startsWith('/run/') || req.url.startsWith('/preview/')) return;
+  reply.header('X-Content-Type-Options', 'nosniff');
+  reply.header('Referrer-Policy', 'same-origin');
+  if (!req.url.startsWith('/api/') && !req.url.startsWith('/_jhino/')) {
+    reply.header('Content-Security-Policy',
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+    reply.header('X-Frame-Options', 'DENY');
+  }
+});
+
+registerAuth(app);
+registerDesk(app);
+registerApps(app);
+registerData(app);
+registerFiles(app);
+registerBuilder(app);
+registerActivity(app);
+registerTrash(app);
+
+// Fonts for built apps. They load from sandboxed (origin "null") frames, so they need CORS.
+const FONTS = path.join(ROOT, 'runtime', 'fonts');
+app.get('/_jhino/fonts/:name', async (req, reply) => {
+  const name = (req.params as { name: string }).name;
+  if (!/^[\w-]+\.woff2$/.test(name) || !fs.existsSync(path.join(FONTS, name))) return reply.code(404).send();
+  reply.header('Content-Type', 'font/woff2').header('Access-Control-Allow-Origin', '*').header('Cache-Control', 'public, max-age=31536000, immutable');
+  return fs.createReadStream(path.join(FONTS, name));
+});
+
+app.get('/api/health', async () => {
+  db.prepare('SELECT 1').get();
+  return { ok: true };
+});
+
+// The built dashboard (npm run build). In development Vite serves it instead.
+const webDir = path.join(ROOT, 'dist', 'web');
+if (fs.existsSync(path.join(webDir, 'index.html'))) {
+  // wildcard: serve whatever is in dist/web now, so a rebuild does not need a restart.
+  await app.register(fstatic, {
+    root: webDir, index: 'index.html', wildcard: true, prefix: '/', cacheControl: false,
+    // Fingerprinted assets never change; the page itself is always fetched fresh.
+    setHeaders: (res, file) => { res.header('Cache-Control', /[\\/]assets[\\/]/.test(file) ? 'public, max-age=31536000, immutable' : 'no-store'); },
+  });
+  app.setNotFoundHandler((req, reply) => {
+    if (req.method !== 'GET' || req.url.startsWith('/api/') || req.url.startsWith('/run/')) {
+      return reply.code(404).send({ error: 'NOT_FOUND', message: 'Not found.' });
+    }
+    reply.header('Cache-Control', 'no-store').type('text/html; charset=utf-8').send(fs.readFileSync(path.join(webDir, 'index.html'), 'utf8'));
+  });
+}
+
+await bootstrapAdmin();
+await app.listen({ port: config.port, host: config.host });
+console.log(`  Jhino is running at ${config.publicUrl || `http://${config.host === '0.0.0.0' ? 'localhost' : config.host}:${config.port}`}`);
+
+const stop = async () => {
+  await app.close();
+  db.close();
+  process.exit(0);
+};
+process.on('SIGINT', stop);
+process.on('SIGTERM', stop);

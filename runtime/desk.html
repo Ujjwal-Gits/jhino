@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>{{TITLE}}</title>
+<!--
+  This file opens a Jhino app. Sign in once; after that it opens straight away on this computer.
+  It needs the internet: everything you and the others change is saved on the Jhino server and shows up
+  for everyone at once, here and on the web.
+-->
+<script type="application/json" id="jhino-config">{{CONFIG}}</script>
+<style>
+  :root {
+    --paper: #ffffff; --paper-2: #f6f5f1; --ink: #16150f; --ink-2: #4a4841; --ink-3: #8a877e;
+    --rule: #e7e5de; --rule-2: #d3d0c6; --accent: #1f6f5c; --ok: #2f7d4f; --warn: #b7791f; --bad: #b3261e;
+    --font: 'JG', 'Helvetica Neue', Arial, sans-serif; --mono: 'JM', ui-monospace, Menlo, Consolas, monospace;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+  button, input { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+
+  .bar { display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 10px 0 14px; border-bottom: 1px solid var(--rule); background: var(--paper); }
+  .mark { width: 26px; height: 26px; border-radius: 6px; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none; }
+  .bar h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sync { display: inline-flex; align-items: center; gap: 7px; font: 12px var(--mono); color: var(--ink-3); white-space: nowrap; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+  .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); }
+  .up { width: 54px; height: 4px; border-radius: 2px; background: var(--rule); overflow: hidden; }
+  .up i { display: block; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); transition: transform 200ms var(--ease); }
+  .icon { width: 34px; height: 34px; border: 0; border-radius: 7px; background: none; display: grid; place-items: center; cursor: pointer; color: var(--ink-2); }
+  .icon:hover { background: var(--paper-2); color: var(--ink); }
+  .icon:focus-visible, .btn:focus-visible, .field input:focus-visible, .menu button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Fixed rows: with the bar hidden (sign-in, solo tab) the page still fills the window. */
+  .bar { grid-row: 1; }
+  .stage { grid-row: 2; position: relative; min-height: 0; }
+  .stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--paper); }
+  body.solo { grid-template-rows: 0 minmax(0, 1fr); }
+
+  .screen { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px 16px; overflow: auto; background: var(--paper); }
+  .card { width: 100%; max-width: 380px; display: grid; gap: 18px; animation: rise 280ms var(--ease) both; }
+  .card .kicker { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-3); }
+  .card h2 { margin: 0; font-size: 26px; line-height: 1.15; letter-spacing: -0.03em; font-weight: 680; }
+  .card p { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+  .field { display: grid; gap: 6px; font-size: 13px; font-weight: 560; color: var(--ink-2); }
+  .field input { height: 42px; border: 1px solid var(--rule-2); border-radius: 8px; padding: 0 12px; background: var(--paper); font-size: 15px; font-weight: 400; color: var(--ink); transition: border-color 140ms var(--ease); }
+  .field input:focus { border-color: var(--ink); outline: none; }
+  .check { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--ink-2); }
+  .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+  .btn { height: 42px; border-radius: 8px; border: 1px solid var(--rule-2); background: var(--paper); padding: 0 16px; font-weight: 600; font-size: 14.5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 140ms var(--ease), transform 140ms var(--ease); }
+  .btn:hover { background: var(--paper-2); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .btn.primary:hover { background: #2c2a23; }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .err { color: var(--bad); font-size: 13.5px; min-height: 0; }
+  .foot { font: 12px var(--mono); color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 12px; overflow-wrap: anywhere; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .spin { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--rule-2); border-top-color: var(--ink); animation: turn .8s linear infinite; }
+
+  .menu { position: fixed; top: 46px; right: 10px; z-index: 20; min-width: 220px; background: var(--paper); border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 10px 30px rgba(22, 21, 15, .12); padding: 5px; display: grid; animation: pop 160ms var(--ease) both; }
+  .menu button { border: 0; background: none; text-align: left; padding: 9px 11px; border-radius: 6px; font-size: 14px; cursor: pointer; }
+  .menu button:hover { background: var(--paper-2); }
+  .menu hr { border: 0; border-top: 1px solid var(--rule); margin: 5px 0; }
+  .menu .who { padding: 8px 11px 6px; font-size: 12.5px; color: var(--ink-3); }
+  .notice { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 12px; background: var(--ink); color: #fff; border-radius: 10px; padding: 8px 8px 8px 14px; font-size: 13.5px; max-width: calc(100% - 24px); }
+  .notice .btn { height: 32px; font-size: 13px; background: #fff; color: var(--ink); border: 0; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 30; background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 9px; font-size: 13.5px; max-width: calc(100vw - 32px); }
+  .toast.bad { background: var(--bad); }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+  @keyframes pop { from { opacity: 0; transform: translateY(4px); } }
+  @keyframes turn { to { transform: rotate(360deg); } }
+  @media (max-width: 560px) { .sync .label { display: none; } .card h2 { font-size: 23px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="bar" id="bar" hidden>
+  <span class="mark" id="mark" aria-hidden="true"></span>
+  <h1 id="name"></h1>
+  <span class="sync" id="sync" role="status" aria-live="polite"></span>
+  <button class="icon" id="more" aria-label="More" aria-haspopup="menu" aria-expanded="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+  </button>
+</header>
+<main class="stage" id="stage"></main>
+<noscript><p style="padding:24px">This file needs JavaScript to open the app.</p></noscript>
+
+<script>
+(function () {
+  'use strict';
+  var C = JSON.parse(document.getElementById('jhino-config').textContent);
+  var SANDBOX = 'allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads';
+  var HOST = (function () { try { return new URL(C.server).host; } catch (e) { return C.server; } })();
+  var STORE = 'jhino.key:' + C.server + ':' + C.appId;
+  var $ = function (id) { return document.getElementById(id); };
+  var stage = $('stage'), bar = $('bar');
+  document.documentElement.style.setProperty('--accent', C.accent || '#1f6f5c');
+
+  // The Jhino fonts, from the server (they allow any origin).
+  var fonts = document.createElement('style');
+  fonts.textContent = "@font-face{font-family:'JG';src:url(" + C.server + "/_jhino/fonts/grotesk.woff2) format('woff2');font-weight:400 900;font-display:swap}" +
+    "@font-face{font-family:'JM';src:url(" + C.server + "/_jhino/fonts/mono-400.woff2) format('woff2');font-weight:400;font-display:swap}";
+  document.head.appendChild(fonts);
+
+  /* ---------- the key: signed in once on this computer ---------- */
+  var memKey = null, key = null;
+  function readKey() { try { return localStorage.getItem(STORE) || memKey; } catch (e) { return memKey; } }
+  function saveKey(k, remember) { memKey = k; try { if (remember) localStorage.setItem(STORE, k); else localStorage.removeItem(STORE); } catch (e) { /* private window: this visit only */ } }
+  function dropKey() { memKey = null; key = null; try { localStorage.removeItem(STORE); } catch (e) { /* ignore */ } }
+
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (k) {
+      if (k === 'text') n.textContent = attrs[k];
+      else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), attrs[k]);
+      else if (attrs[k] !== null && attrs[k] !== undefined && attrs[k] !== false) n.setAttribute(k, attrs[k] === true ? '' : attrs[k]);
+    });
+    (kids || []).forEach(function (c) { if (c) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function toast(text, bad) {
+    var t = el('div', { class: 'toast' + (bad ? ' bad' : ''), role: 'status', text: text });
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 4200);
+  }
+
+  /* ---------- talking to the server ---------- */
+  function request(method, p, body) {
+    var h = { 'x-jhino': '1' };
+    if (key) h.authorization = 'Bearer ' + key;
+    var init = { method: method, headers: h, mode: 'cors', credentials: 'omit', cache: 'no-store' };
+    if (body !== undefined) { h['content-type'] = 'application/json'; init.body = JSON.stringify(body); }
+    return fetch(C.server + p, init).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (data) {
+        if (res.ok) return data || {};
+        var err = { status: res.status, error: (data && data.error) || 'SERVER_ERROR', message: (data && data.message) || 'The server said no (' + res.status + ').', data: data || {} };
+        if (res.status === 401 && key && p.indexOf('/login') < 0) signedOut('Please sign in again to open ' + C.name + '.');
+        throw err;
+      });
+    }, function () { throw { status: 0, error: 'CONNECTION_LOST', message: 'Could not reach ' + HOST + '. Check the internet connection.' }; });
+  }
+  function upload(file, name, onProgress) {
+    return new Promise(function (resolve) {
+      var x = new XMLHttpRequest();
+      x.open('POST', C.server + '/api/apps/' + C.appId + '/files');
+      x.setRequestHeader('x-jhino', '1');
+      x.setRequestHeader('authorization', 'Bearer ' + key);
+      x.upload.onprogress = function (e) { if (e.lengthComputable) onProgress(e.loaded, e.total); };
+      x.onload = function () {
+        var d = null; try { d = JSON.parse(x.responseText); } catch (e) { /* not json */ }
+        if (x.status >= 200 && x.status < 300) resolve(d);
+        else resolve(Object.assign({}, d || {}, { error: (d && d.error) || 'SERVER_ERROR', message: (d && d.message) || 'Upload failed (' + x.status + ').' }));
+      };
+      x.onerror = function () { resolve({ error: 'CONNECTION_LOST', message: 'The upload was interrupted. Check the connection and try again.' }); };
+      var fd = new FormData();
+      fd.append('file', file, name);
+      x.send(fd);
+    });
+  }
+
+  /* ---------- the bridge to the app (the same one the web page uses) ---------- */
+  var frame = null, nonce = null, port = null, buffer = [], pendingScroll = null;
+  var COLLECTION = /^[A-Za-z0-9_-]{1,64}$/, ID = /^[\w-]{1,64}$/;
+  function send(event, data) {
+    var m = { event: event, data: data };
+    if (port) port.postMessage(m); else if (buffer.length < 500) buffer.push(m);
+  }
+  window.addEventListener('message', function (e) {
+    if (!frame || e.source !== frame.contentWindow) return;
+    var d = e.data;
+    if (!d || d.jhino !== 'hello' || d.nonce !== nonce) return;
+    if (port) port.close();
+    var ch = new MessageChannel(), p = ch.port1;
+    port = p;
+    p.onmessage = function (ev) { onPort(p, ev); };
+    var s = pendingScroll; pendingScroll = null;
+    frame.contentWindow.postMessage({ jhino: 'port', nonce: nonce, scroll: s }, '*', [ch.port2]);
+    buffer.splice(0).forEach(function (m) { p.postMessage(m); });
+  });
+  function onPort(p, ev) {
+    var m = ev.data;
+    if (!m || typeof m !== 'object') return;
+    if (typeof m.note === 'string') { onNote(m.note, m.data || {}); return; }
+    if (typeof m.id !== 'number' || typeof m.op !== 'string') return;
+    handle(m.op, m.args && typeof m.args === 'object' ? m.args : {}).then(function (result) { p.postMessage({ re: m.id, result: result }); });
+  }
+  function bad(msg) { return Promise.reject({ error: 'VALIDATION_FAILED', message: msg }); }
+  function handle(op, a) {
+    var base = '/api/apps/' + C.appId;
+    var ids = function (x) { return Array.isArray(x) ? x.filter(function (v) { return typeof v === 'string'; }).slice(0, 500) : []; };
+    var job;
+    switch (op) {
+      case 'kv.set':
+        if (a.ns !== 'ls' && a.ns !== 'ws') { job = bad('Unknown storage.'); break; }
+        job = request('PUT', base + '/kv', { ns: a.ns, scope: a.scope === 'private' ? 'private' : 'shared', key: a.key, value: a.value, baseRev: Number(a.baseRev) || 0 });
+        break;
+      case 'kv.snapshot': job = request('GET', base + '/kv'); break;
+      case 'people': job = request('GET', base + '/people'); break;
+      case 'files.list': job = request('GET', base + '/files'); break;
+      case 'activity.list': {
+        var q = new URLSearchParams();
+        if (a.limit) q.set('limit', String(Math.min(200, Number(a.limit) || 100)));
+        if (a.before) q.set('before', String(Number(a.before) || 0));
+        job = request('GET', base + '/activity?' + q); break;
+      }
+      case 'activity.seen': job = request('POST', base + '/activity/seen', { upTo: Number(a.upTo) || 0 }); break;
+      case 'trash.list': job = request('GET', base + '/trash'); break;
+      case 'trash.restore': job = request('POST', base + '/trash/restore', { ids: ids(a.ids) }); break;
+      case 'trash.purge': job = request('POST', base + '/trash/purge', a.all === true ? { all: true } : { ids: ids(a.ids) }); break;
+      case 'files.delete': job = ID.test(a.id) ? request('DELETE', base + '/files/' + a.id) : bad('Invalid file id.'); break;
+      case 'files.upload': {
+        if (!(a.file instanceof Blob)) { job = bad('Pass a File or Blob.'); break; }
+        var name = typeof a.name === 'string' && a.name ? a.name.slice(0, 200) : 'file', uid = typeof a.uploadId === 'string' ? a.uploadId.slice(0, 40) : '', last = 0;
+        return upload(a.file, name, function (loaded, total) {
+          var t = Date.now();
+          if (t - last > 120 || loaded === total) { last = t; send('upload-progress', { uploadId: uid, loaded: loaded, total: total }); }
+        });
+      }
+      case 'records.list': {
+        if (!COLLECTION.test(a.collection)) { job = bad('Collection names use letters, numbers, - and _.'); break; }
+        var rq = new URLSearchParams();
+        if (a.limit) rq.set('limit', String(Number(a.limit)));
+        if (typeof a.after === 'string') rq.set('after', a.after);
+        job = request('GET', base + '/records/' + a.collection + '?' + rq); break;
+      }
+      case 'records.get': job = COLLECTION.test(a.collection) && ID.test(a.id) ? request('GET', base + '/records/' + a.collection + '/' + a.id) : bad('Invalid record.'); break;
+      case 'records.create': job = COLLECTION.test(a.collection) ? request('POST', base + '/records/' + a.collection, { data: a.data, idempotencyKey: typeof a.idempotencyKey === 'string' ? a.idempotencyKey : undefined }) : bad('Invalid collection.'); break;
+      case 'records.update': job = COLLECTION.test(a.collection) && ID.test(a.id) ? request('PATCH', base + '/records/' + a.collection + '/' + a.id, { data: a.data, expectedRevision: a.expectedRevision }) : bad('Invalid record.'); break;
+      case 'records.delete':
+        job = COLLECTION.test(a.collection) && ID.test(a.id)
+          ? request('DELETE', base + '/records/' + a.collection + '/' + a.id + (a.expectedRevision !== undefined ? '?expectedRevision=' + Number(a.expectedRevision) : ''))
+          : bad('Invalid record.');
+        break;
+      default: return Promise.resolve({ error: 'UNKNOWN', message: 'Unknown request: ' + op });
+    }
+    return job.then(function (r) { return r; }, function (e) { return Object.assign({}, (e && e.data) || {}, { error: (e && e.error) || 'CONNECTION_LOST', message: (e && e.message) || 'Could not reach Jhino.' }); });
+  }
+
+  /* ---------- what the app tells us ---------- */
+  var sync = 'saved', online = true, uploading = null, solo = /^#view\//.test(location.hash);
+  function drawSync() {
+    var s = $('sync');
+    s.textContent = '';
+    if (uploading) {
+      var track = el('span', { class: 'up' }, [el('i', { style: 'transform:scaleX(' + uploading.pct / 100 + ')' })]);
+      s.appendChild(track); s.appendChild(el('span', { class: 'label', text: uploading.pct + '%' }));
+      return;
+    }
+    var state = !online ? ['bad', 'Offline'] : sync === 'saving' ? ['warn', 'Saving'] : sync === 'retry' ? ['warn', 'Retrying'] : ['', 'Saved'];
+    s.appendChild(el('span', { class: 'dot ' + state[0] }));
+    s.appendChild(el('span', { class: 'label', text: state[1] }));
+  }
+  var noticeEl = null;
+  function notice(text, action, fn) {
+    if (noticeEl) noticeEl.remove();
+    noticeEl = text ? el('div', { class: 'notice', role: 'status' }, [el('span', { text: text }), el('button', { class: 'btn', text: action, onclick: function () { notice(null); fn(); } })]) : null;
+    if (noticeEl) stage.appendChild(noticeEl);
+  }
+  var cleanHash = function (h) { return typeof h === 'string' && /^#?[\w/-]{0,160}$/.test(h) ? h.replace(/^#?/, '#') : ''; };
+  function onNote(type, d) {
+    if (type === 'status') { sync = d.state === 'saving' ? 'saving' : d.state === 'retry' ? 'retry' : 'saved'; drawSync(); }
+    else if (type === 'readonly') toast('You can view this app but not change it.');
+    else if (type === 'location') { var h = cleanHash(d.hash); if (!solo) history.replaceState(null, '', h === '#' ? location.pathname : h); }
+    else if (type === 'title') { var t = typeof d.title === 'string' ? d.title.slice(0, 120) : ''; document.title = t ? t + ' · ' + C.name : C.name; }
+    else if (type === 'open-full') { var hf = cleanHash(d.hash); solo = false; document.body.classList.remove('solo'); bar.hidden = false; history.replaceState(null, '', hf === '#' ? location.pathname : hf); launch(hf); }
+    else if (type === 'open-tab') {
+      var ht = cleanHash(d.hash);
+      var w = window.open(location.href.split('#')[0] + (ht && ht !== '#' ? '#view/' + ht.slice(1) : ''), '_blank');
+      if (!w) toast('Your browser blocked the new tab.', true);
+    }
+    else if (type === 'upload') {
+      if (d.done) { uploading = null; if (d.error) toast(String(d.error).slice(0, 160), true); }
+      else uploading = { pct: d.total ? Math.round((d.loaded / d.total) * 100) : 0 };
+      drawSync();
+    }
+    else if (type === 'error') toast(String(d.message || 'A change could not be saved.').slice(0, 200), true);
+    else if (type === 'version-ready') launch(typeof d.hash === 'string' ? d.hash : '', Array.isArray(d.scroll) ? d.scroll : null);
+    else if (type === 'stale') notice('Someone changed this app. It refreshes when you pause.', 'Refresh now', function () { send('refresh-now', {}); });
+    else if (type === 'reloading') { pendingScroll = Array.isArray(d.scroll) ? d.scroll : null; notice(null); }
+  }
+  addEventListener('hashchange', function () { if (/^#[\w/-]{1,160}$/.test(location.hash)) send('navigate', { hash: location.hash }); });
+  addEventListener('beforeunload', function (e) { if (sync !== 'saved' || uploading) { e.preventDefault(); e.returnValue = ''; } });
+
+  /* ---------- live changes from the server ---------- */
+  var streamCtl = null, streamTimer = null;
+  function stream() {
+    if (streamCtl) streamCtl.abort();
+    var ctl = streamCtl = new AbortController();
+    fetch(C.server + '/api/desk/' + C.appId + '/events', { headers: { authorization: 'Bearer ' + key }, signal: ctl.signal, mode: 'cors', credentials: 'omit', cache: 'no-store' })
+      .then(function (res) {
+        if (res.status === 401) { signedOut('Please sign in again to open ' + C.name + '.'); return; }
+        if (!res.ok || !res.body) throw new Error('stream');
+        online = true; drawSync();
+        send('resync', {}); // anything that changed while we were away
+        var reader = res.body.getReader(), dec = new TextDecoder(), buf = '';
+        var pump = function () {
+          return reader.read().then(function (r) {
+            if (r.done) return;
+            buf += dec.decode(r.value, { stream: true });
+            var parts = buf.split('\n\n'); buf = parts.pop();
+            parts.forEach(function (chunk) {
+              var ev = 'message', data = '';
+              chunk.split('\n').forEach(function (line) {
+                if (line.indexOf('event: ') === 0) ev = line.slice(7);
+                else if (line.indexOf('data: ') === 0) data += line.slice(6);
+              });
+              if (data) { try { onServer(ev, JSON.parse(data)); } catch (e) { /* ignore a bad line */ } }
+            });
+            return pump();
+          });
+        };
+        return pump();
+      })
+      .catch(function () { /* dropped: reconnect below */ })
+      .then(function () {
+        if (ctl !== streamCtl || !key) return;
+        online = false; drawSync();
+        clearTimeout(streamTimer);
+        streamTimer = setTimeout(stream, 2500);
+      });
+  }
+  function onServer(event, d) {
+    if (!d || (d.appId && d.appId !== C.appId)) return;
+    if (event === 'kv' || event === 'record' || event === 'file' || event === 'activity' || event === 'trash') send(event, d);
+    else if (event === 'revoked') { stop(); dropKey(); message('Your access was removed', 'The owner removed you from ' + C.name + '. Ask them if you need it again.', [['Sign in with another account', showSignIn]]); }
+    else if (event === 'role-changed') { send('role', { role: d.role }); toast(d.role === 'editor' ? 'You can now edit this app.' : 'You can now only view this app.'); }
+    else if (event === 'app-updated') {
+      if (d.reason === 'trashed') { stop(); message('This app was moved to Trash', 'The owner moved ' + C.name + ' to Trash. It opens again if they restore it.', [['Try again', start]]); return; }
+      if (d.reason === 'version') { send('new-version', { version: d.version }); notice('A new version is ready. It opens when you pause.', 'Open now', function () { launch(location.hash); }); }
+      else if (d.reason === 'settings') notice('App settings changed.', 'Reload', function () { launch(location.hash); });
+    }
+  }
+  function stop() { if (streamCtl) { var c = streamCtl; streamCtl = null; c.abort(); } clearTimeout(streamTimer); frame = null; if (port) { port.close(); port = null; } }
+
+  /* ---------- screens ---------- */
+  function screen(kids) { stop(); bar.hidden = true; notice(null); stage.textContent = ''; stage.appendChild(el('div', { class: 'screen' }, [el('div', { class: 'card' }, kids)])); }
+  function kicker() { return el('div', { class: 'kicker' }, [el('span', { class: 'mark', text: (C.name || 'J').trim().slice(0, 1).toUpperCase() }), el('span', { text: 'Jhino · ' + HOST })]); }
+  function message(title, text, buttons) {
+    screen([kicker(), el('h2', { text: title }), el('p', { text: text }),
+      el('div', { class: 'actions' }, (buttons || []).map(function (b, i) { return el('button', { class: 'btn' + (i === 0 ? ' primary' : ''), text: b[0], onclick: b[1] }); }))]);
+  }
+  function signedOut(why) { dropKey(); showSignIn(why); }
+  function showSignIn(why) {
+    var err = el('p', { class: 'err', role: 'alert', text: typeof why === 'string' ? why : '' });
+    var id = el('input', { name: 'username', autocomplete: 'username', required: true, autocapitalize: 'none', spellcheck: 'false' });
+    var pw = el('input', { name: 'password', type: 'password', autocomplete: 'current-password', required: true });
+    var keep = el('input', { type: 'checkbox', checked: true });
+    var go = el('button', { class: 'btn primary', type: 'submit', text: 'Sign in and open' });
+    var form = el('form', { style: 'display:grid;gap:14px', onsubmit: function (e) {
+      e.preventDefault();
+      go.disabled = true; err.textContent = '';
+      key = null;
+      request('POST', '/api/desk/' + C.appId + '/login', { email: id.value.trim(), password: pw.value }).then(function (r) {
+        key = r.key; saveKey(r.key, keep.checked); start();
+      }, function (e2) { go.disabled = false; err.textContent = e2.message || 'Could not sign in.'; pw.select(); });
+    } }, [
+      el('label', { class: 'field' }, ['Sign-in ID', id]),
+      el('label', { class: 'field' }, ['Password', pw]),
+      el('label', { class: 'check' }, [keep, 'Keep me signed in on this computer']),
+      err, go]);
+    screen([kicker(), el('h2', { text: C.name }),
+      el('p', { text: 'Sign in once with the ID and password you were given. After that, this file opens straight away, and every change is shared live with everyone in the app.' }),
+      form, el('div', { class: 'foot', text: 'Works while you are online. Saved on ' + HOST + '.' })]);
+    setTimeout(function () { id.focus(); }, 50);
+  }
+  function loading() { stop(); bar.hidden = true; stage.textContent = ''; stage.appendChild(el('div', { class: 'screen' }, [el('div', { class: 'spin', role: 'status', 'aria-label': 'Opening' })])); }
+
+  /* ---------- opening the app ---------- */
+  var me = null, retryTimer = null;
+  function launch(hash, scroll) {
+    return request('POST', '/api/apps/' + C.appId + '/launch').then(function (r) {
+      nonce = r.nonce; pendingScroll = scroll || null;
+      if (port) { port.close(); port = null; }
+      buffer = [];
+      var h = typeof hash === 'string' && /^#[\w/-]{1,160}$/.test(hash) ? hash : '';
+      var f = el('iframe', { sandbox: SANDBOX, allow: 'clipboard-write; fullscreen', referrerpolicy: 'no-referrer', title: C.name, src: C.server + r.url + h });
+      stage.textContent = '';
+      stage.appendChild(f);
+      frame = f;
+      notice(null);
+    }, function (e) {
+      if (e.status === 401) return;
+      if (e.error === 'IN_TRASH') message('This app is in Trash', 'The owner moved ' + C.name + ' to Trash. It opens again if they restore it.', [['Try again', start]]);
+      else toast(e.message || 'Could not open the app.', true);
+    });
+  }
+  function start() {
+    clearTimeout(retryTimer);
+    key = readKey();
+    if (!key) { showSignIn(); return; }
+    loading();
+    request('GET', '/api/desk/' + C.appId + '/me').then(function (r) {
+      me = r;
+      document.title = C.name;
+      $('name').textContent = C.name;
+      $('mark').textContent = (C.name || 'J').trim().slice(0, 1).toUpperCase();
+      document.body.classList.toggle('solo', solo);
+      bar.hidden = solo;
+      online = true; sync = 'saved'; drawSync();
+      stream();
+      return launch(location.hash);
+    }, function (e) {
+      if (e.status === 401) return; // back at sign-in
+      if (e.error === 'CONNECTION_LOST') {
+        message('You are offline', 'This file opens ' + C.name + ' from ' + HOST + '. Connect to the internet and it opens by itself.', [['Try again', start]]);
+        retryTimer = setTimeout(start, 6000);
+      } else message('Could not open ' + C.name, e.message || 'Try again in a moment.', [['Try again', start]]);
+    });
+  }
+
+  /* ---------- the menu ---------- */
+  var menuEl = null;
+  function closeMenu() { if (menuEl) { menuEl.remove(); menuEl = null; $('more').setAttribute('aria-expanded', 'false'); } }
+  $('more').addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (menuEl) { closeMenu(); return; }
+    var item = function (label, fn) { return el('button', { role: 'menuitem', text: label, onclick: function () { closeMenu(); fn(); } }); };
+    menuEl = el('div', { class: 'menu', role: 'menu' }, [
+      me && me.user ? el('div', { class: 'who', text: 'Signed in as ' + me.user.name }) : null,
+      item('Reload the app', function () { launch(location.hash); }),
+      item('Open in the browser', function () { window.open(C.server + '/apps/' + C.appId + (/^#[\w/-]{1,160}$/.test(location.hash) ? location.hash : ''), '_blank'); }),
+      el('hr'),
+      item('Sign out of this file', function () {
+        var k = key;
+        request('POST', '/api/desk/' + C.appId + '/logout').catch(function () { /* the key is dropped here anyway */ });
+        if (k) dropKey();
+        showSignIn('Signed out. Sign in to open it again.');
+      }),
+    ]);
+    document.body.appendChild(menuEl);
+    $('more').setAttribute('aria-expanded', 'true');
+    var first = menuEl.querySelector('button'); if (first) first.focus();
+  });
+  document.addEventListener('click', function (e) { if (menuEl && !menuEl.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+
+  start();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,2820 @@
+{
+  "categories": [
+    "Deliver and approve",
+    "Shoots and production",
+    "Brand and content",
+    "Apps and websites",
+    "Money with the client",
+    "Working together",
+    "Extras"
+  ],
+  "blocks": [
+    {
+      "key": "video_review",
+      "name": "Video deliveries",
+      "short": "Videos",
+      "item": "video",
+      "category": "Deliver and approve",
+      "engine": "table",
+      "icon": "play",
+      "description": "Upload each cut or version. The client watches it here, comments, and approves or asks for changes.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "video",
+          "label": "Video",
+          "type": "file",
+          "required": true,
+          "accept": "video/*"
+        },
+        {
+          "key": "version",
+          "label": "Version",
+          "type": "text",
+          "list": true,
+          "default": "v1"
+        },
+        {
+          "key": "due",
+          "label": "Feedback by",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Waiting for review",
+            "Changes requested",
+            "Approved"
+          ],
+          "default": "Waiting for review",
+          "list": true
+        },
+        {
+          "key": "notes",
+          "label": "Notes for the client",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title",
+      "imageField": "video",
+      "dateField": "due",
+      "views": [
+        "cards",
+        "table",
+        "board"
+      ],
+      "boardField": "status",
+      "comments": true,
+      "workflow": {
+        "field": "status",
+        "actions": [
+          {
+            "label": "Approve",
+            "to": "Approved",
+            "from": [
+              "Waiting for review",
+              "Changes requested"
+            ]
+          },
+          {
+            "label": "Ask for changes",
+            "to": "Changes requested",
+            "from": [
+              "Waiting for review"
+            ]
+          },
+          {
+            "label": "Send for review again",
+            "to": "Waiting for review",
+            "from": [
+              "Changes requested"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "photo_proofing",
+      "name": "Photo proofing",
+      "short": "Photos",
+      "item": "photo",
+      "category": "Deliver and approve",
+      "engine": "files",
+      "icon": "image",
+      "mode": "proofing",
+      "description": "Share the photos from a shoot. The client marks Pick, Maybe or No on each one, and you see the selection live.",
+      "fields": [
+        {
+          "key": "file",
+          "label": "Photo",
+          "type": "file",
+          "required": true,
+          "accept": "image/*,video/*"
+        },
+        {
+          "key": "title",
+          "label": "Caption",
+          "type": "text"
+        },
+        {
+          "key": "folder",
+          "label": "Album",
+          "type": "text"
+        },
+        {
+          "key": "pick",
+          "label": "Client pick",
+          "type": "select",
+          "options": [
+            "Pick",
+            "Maybe",
+            "No"
+          ]
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title",
+      "comments": true
+    },
+    {
+      "key": "design_proofs",
+      "name": "Design proofs",
+      "short": "Designs",
+      "item": "design",
+      "category": "Deliver and approve",
+      "engine": "table",
+      "icon": "palette",
+      "description": "Logos, posters, packaging or app screens for approval, round by round, with comments on each.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Design",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "file",
+          "label": "File",
+          "type": "file",
+          "required": true,
+          "accept": "image/*,application/pdf"
+        },
+        {
+          "key": "round",
+          "label": "Round",
+          "type": "number",
+          "list": true,
+          "default": 1,
+          "min": 1
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Waiting for review",
+            "Changes requested",
+            "Approved"
+          ],
+          "default": "Waiting for review",
+          "list": true
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title",
+      "imageField": "file",
+      "views": [
+        "cards",
+        "table",
+        "board"
+      ],
+      "boardField": "status",
+      "comments": true,
+      "workflow": {
+        "field": "status",
+        "actions": [
+          {
+            "label": "Approve",
+            "to": "Approved",
+            "from": [
+              "Waiting for review",
+              "Changes requested"
+            ]
+          },
+          {
+            "label": "Ask for changes",
+            "to": "Changes requested",
+            "from": [
+              "Waiting for review"
+            ]
+          },
+          {
+            "label": "Send for review again",
+            "to": "Waiting for review",
+            "from": [
+              "Changes requested"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "deliverables",
+      "name": "Final deliveries",
+      "short": "Deliveries",
+      "item": "deliverable",
+      "category": "Deliver and approve",
+      "engine": "table",
+      "icon": "package",
+      "description": "Everything the client receives, with due dates, final files and download links.",
+      "fields": [
+        {
+          "key": "deliverable",
+          "label": "Deliverable",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "due",
+          "label": "Due",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Not started",
+            "In progress",
+            "Delivered"
+          ],
+          "default": "Not started",
+          "list": true
+        },
+        {
+          "key": "files",
+          "label": "Final files",
+          "type": "files"
+        },
+        {
+          "key": "link",
+          "label": "Download link",
+          "type": "url"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "deliverable",
+      "dateField": "due",
+      "views": [
+        "table",
+        "board",
+        "calendar"
+      ],
+      "boardField": "status",
+      "comments": true
+    },
+    {
+      "key": "file_library",
+      "name": "Big file transfer",
+      "short": "Files",
+      "item": "file",
+      "category": "Deliver and approve",
+      "engine": "files",
+      "icon": "folder",
+      "mode": "library",
+      "description": "Send and receive large files both ways: raw footage, project files, exports. Big videos are compressed for smooth streaming.",
+      "fields": [
+        {
+          "key": "file",
+          "label": "File",
+          "type": "file",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text"
+        },
+        {
+          "key": "folder",
+          "label": "Folder",
+          "type": "text"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title"
+    },
+    {
+      "key": "shoots",
+      "name": "Shoot schedule",
+      "short": "Shoots",
+      "item": "shoot",
+      "category": "Shoots and production",
+      "engine": "table",
+      "icon": "camera",
+      "description": "Shoot days with call time, location, crew and the call sheet, on a calendar you both see.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Shoot",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "call_time",
+          "label": "Call time",
+          "type": "time",
+          "list": true
+        },
+        {
+          "key": "location",
+          "label": "Location",
+          "type": "text",
+          "list": true
+        },
+        {
+          "key": "crew",
+          "label": "Crew and roles",
+          "type": "longtext"
+        },
+        {
+          "key": "call_sheet",
+          "label": "Call sheet",
+          "type": "file"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Planned",
+            "Confirmed",
+            "Shot",
+            "Cancelled"
+          ],
+          "default": "Planned",
+          "list": true
+        }
+      ],
+      "titleField": "title",
+      "dateField": "date",
+      "views": [
+        "calendar",
+        "table",
+        "board"
+      ],
+      "boardField": "status",
+      "comments": true
+    },
+    {
+      "key": "shot_list",
+      "name": "Shot list",
+      "short": "Shot list",
+      "item": "shot",
+      "category": "Shoots and production",
+      "engine": "checklist",
+      "icon": "check",
+      "description": "Every shot or scene to capture, ticked off on the day so the client knows nothing was missed.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Shot",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "done",
+          "label": "Done",
+          "type": "boolean"
+        },
+        {
+          "key": "assignee",
+          "label": "Who",
+          "type": "user"
+        },
+        {
+          "key": "due",
+          "label": "Day",
+          "type": "date"
+        }
+      ],
+      "titleField": "title"
+    },
+    {
+      "key": "briefs",
+      "name": "Creative brief",
+      "short": "Brief",
+      "item": "page",
+      "category": "Shoots and production",
+      "engine": "docs",
+      "icon": "notes",
+      "description": "The brief, audience, tone, references and must-haves, written together and always up to date.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Updated",
+          "type": "date",
+          "default": "today"
+        },
+        {
+          "key": "body",
+          "label": "Brief",
+          "type": "longtext"
+        },
+        {
+          "key": "pinned",
+          "label": "Pinned",
+          "type": "boolean"
+        }
+      ],
+      "titleField": "title",
+      "comments": true
+    },
+    {
+      "key": "mood_board",
+      "name": "Mood board",
+      "short": "Mood board",
+      "item": "reference",
+      "category": "Shoots and production",
+      "engine": "files",
+      "icon": "image",
+      "mode": "gallery",
+      "description": "Reference photos and videos for the look and feel, added by you or the client.",
+      "fields": [
+        {
+          "key": "file",
+          "label": "Image or video",
+          "type": "file",
+          "required": true,
+          "accept": "image/*,video/*"
+        },
+        {
+          "key": "title",
+          "label": "Caption",
+          "type": "text"
+        },
+        {
+          "key": "folder",
+          "label": "Board",
+          "type": "text"
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title"
+    },
+    {
+      "key": "talent",
+      "name": "Talent and locations",
+      "short": "Talent",
+      "item": "option",
+      "category": "Shoots and production",
+      "engine": "table",
+      "icon": "people",
+      "description": "Models, influencers, voice artists and venues with photos and rates. The client shortlists with you.",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            "Model",
+            "Influencer",
+            "Voice artist",
+            "Location",
+            "Crew"
+          ],
+          "list": true
+        },
+        {
+          "key": "photo",
+          "label": "Photo",
+          "type": "file",
+          "accept": "image/*"
+        },
+        {
+          "key": "rate",
+          "label": "Rate",
+          "type": "money",
+          "list": true
+        },
+        {
+          "key": "contact",
+          "label": "Contact",
+          "type": "text"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Suggested",
+            "Shortlisted",
+            "Confirmed",
+            "Declined"
+          ],
+          "default": "Suggested",
+          "list": true
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "name",
+      "imageField": "photo",
+      "views": [
+        "cards",
+        "table",
+        "board"
+      ],
+      "boardField": "status",
+      "comments": true
+    },
+    {
+      "key": "products",
+      "name": "Products to shoot",
+      "short": "Products",
+      "item": "product",
+      "category": "Shoots and production",
+      "engine": "table",
+      "icon": "package",
+      "description": "The client's products with SKU, whether the sample arrived, shoot status and the final photos.",
+      "fields": [
+        {
+          "key": "product",
+          "label": "Product",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "sku",
+          "label": "SKU",
+          "type": "text",
+          "list": true
+        },
+        {
+          "key": "sample",
+          "label": "Sample",
+          "type": "select",
+          "options": [
+            "Waiting",
+            "Received",
+            "Returned"
+          ],
+          "default": "Waiting",
+          "list": true
+        },
+        {
+          "key": "shot",
+          "label": "Shoot",
+          "type": "select",
+          "options": [
+            "Not shot",
+            "Shot",
+            "Edited",
+            "Delivered"
+          ],
+          "default": "Not shot",
+          "list": true
+        },
+        {
+          "key": "photos",
+          "label": "Photos",
+          "type": "files"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "product",
+      "views": [
+        "table",
+        "board"
+      ],
+      "boardField": "shot"
+    },
+    {
+      "key": "brand_assets",
+      "name": "Brand kit",
+      "short": "Brand kit",
+      "item": "asset",
+      "category": "Brand and content",
+      "engine": "files",
+      "icon": "palette",
+      "mode": "library",
+      "description": "Logos, fonts, colours and guidelines, so both sides always use the same version.",
+      "fields": [
+        {
+          "key": "file",
+          "label": "File",
+          "type": "file",
+          "required": true
+        },
+        {
+          "key": "title",
+          "label": "Name",
+          "type": "text"
+        },
+        {
+          "key": "folder",
+          "label": "Group",
+          "type": "text"
+        },
+        {
+          "key": "note",
+          "label": "How to use",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title"
+    },
+    {
+      "key": "content_calendar",
+      "name": "Content calendar",
+      "short": "Calendar",
+      "item": "post",
+      "category": "Brand and content",
+      "engine": "table",
+      "icon": "calendar",
+      "description": "Posts and videos per platform with caption and asset. The client approves before anything is published.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Post",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "platform",
+          "label": "Platform",
+          "type": "select",
+          "options": [
+            "Instagram",
+            "TikTok",
+            "YouTube",
+            "Facebook",
+            "LinkedIn",
+            "X",
+            "Website"
+          ],
+          "list": true
+        },
+        {
+          "key": "publish",
+          "label": "Publish on",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Idea",
+            "In production",
+            "Waiting for review",
+            "Changes requested",
+            "Approved",
+            "Published"
+          ],
+          "default": "Idea",
+          "list": true
+        },
+        {
+          "key": "caption",
+          "label": "Caption",
+          "type": "longtext",
+          "copy": true
+        },
+        {
+          "key": "asset",
+          "label": "Image or video",
+          "type": "file",
+          "accept": "image/*,video/*"
+        },
+        {
+          "key": "link",
+          "label": "Published link",
+          "type": "url"
+        }
+      ],
+      "titleField": "title",
+      "imageField": "asset",
+      "dateField": "publish",
+      "views": [
+        "calendar",
+        "board",
+        "table"
+      ],
+      "boardField": "status",
+      "comments": true,
+      "workflow": {
+        "field": "status",
+        "actions": [
+          {
+            "label": "Approve",
+            "to": "Approved",
+            "from": [
+              "Waiting for review",
+              "Changes requested"
+            ]
+          },
+          {
+            "label": "Ask for changes",
+            "to": "Changes requested",
+            "from": [
+              "Waiting for review"
+            ]
+          },
+          {
+            "label": "Mark published",
+            "to": "Published",
+            "from": [
+              "Approved"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "captions",
+      "name": "Scripts and captions",
+      "short": "Captions",
+      "item": "script",
+      "category": "Brand and content",
+      "engine": "docs",
+      "icon": "notes",
+      "description": "Video scripts, captions and ad copy as proper documents: filter by status, write, the client reads, comments and approves.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            "Script",
+            "Caption",
+            "Ad copy",
+            "Blog",
+            "Email"
+          ],
+          "list": true
+        },
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "longtext",
+          "required": false,
+          "copy": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Waiting for review",
+            "Changes requested",
+            "Approved"
+          ],
+          "default": "Waiting for review",
+          "list": true
+        }
+      ],
+      "titleField": "title",
+      "comments": true,
+      "workflow": {
+        "field": "status",
+        "actions": [
+          {
+            "label": "Approve",
+            "to": "Approved",
+            "from": [
+              "Waiting for review",
+              "Changes requested"
+            ]
+          },
+          {
+            "label": "Ask for changes",
+            "to": "Changes requested",
+            "from": [
+              "Waiting for review"
+            ]
+          },
+          {
+            "label": "Send for review again",
+            "to": "Waiting for review",
+            "from": [
+              "Changes requested"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "campaigns",
+      "name": "Campaigns",
+      "short": "Campaigns",
+      "item": "campaign",
+      "category": "Brand and content",
+      "engine": "table",
+      "icon": "megaphone",
+      "description": "Each brand campaign with goal, dates, budget and status, across all the client's brands.",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Campaign",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "brand",
+          "label": "Brand",
+          "type": "text",
+          "list": true
+        },
+        {
+          "key": "goal",
+          "label": "Goal",
+          "type": "select",
+          "options": [
+            "Awareness",
+            "Engagement",
+            "Leads",
+            "Sales",
+            "Launch"
+          ],
+          "list": true
+        },
+        {
+          "key": "start",
+          "label": "Starts",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "end",
+          "label": "Ends",
+          "type": "date"
+        },
+        {
+          "key": "budget",
+          "label": "Budget",
+          "type": "money",
+          "list": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Planning",
+            "Live",
+            "Paused",
+            "Finished"
+          ],
+          "default": "Planning",
+          "list": true
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "name",
+      "dateField": "start",
+      "totals": [
+        "budget"
+      ],
+      "groupBy": "brand",
+      "views": [
+        "table",
+        "board",
+        "calendar"
+      ],
+      "boardField": "status",
+      "comments": true
+    },
+    {
+      "key": "ad_spend",
+      "name": "Ad spend",
+      "short": "Ad spend",
+      "item": "spend",
+      "category": "Brand and content",
+      "engine": "table",
+      "icon": "coins",
+      "description": "What was spent on ads per platform and what it brought in, with the receipt. Totals update live.",
+      "fields": [
+        {
+          "key": "campaign",
+          "label": "Campaign",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "platform",
+          "label": "Platform",
+          "type": "select",
+          "options": [
+            "Meta",
+            "TikTok",
+            "Google",
+            "YouTube",
+            "LinkedIn",
+            "Other"
+          ],
+          "list": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "default": "today",
+          "list": true
+        },
+        {
+          "key": "spent",
+          "label": "Spent",
+          "type": "money",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "results",
+          "label": "Results",
+          "type": "number",
+          "list": true
+        },
+        {
+          "key": "receipt",
+          "label": "Receipt",
+          "type": "file"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "campaign",
+      "dateField": "date",
+      "totals": [
+        "spent",
+        "results"
+      ],
+      "groupBy": "platform",
+      "views": [
+        "table",
+        "calendar"
+      ]
+    },
+    {
+      "key": "reports",
+      "name": "Monthly reports",
+      "short": "Reports",
+      "item": "report",
+      "category": "Brand and content",
+      "engine": "table",
+      "icon": "gauge",
+      "description": "Each month's numbers (reach, engagement, followers) with the full report to download.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Report",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "month",
+          "label": "Month",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "platform",
+          "label": "Platform",
+          "type": "select",
+          "options": [
+            "All",
+            "Instagram",
+            "TikTok",
+            "YouTube",
+            "Facebook",
+            "Website",
+            "App"
+          ],
+          "list": true
+        },
+        {
+          "key": "reach",
+          "label": "Reach",
+          "type": "number",
+          "list": true
+        },
+        {
+          "key": "engagement",
+          "label": "Engagement",
+          "type": "number",
+          "list": true
+        },
+        {
+          "key": "followers",
+          "label": "New followers",
+          "type": "number",
+          "list": true
+        },
+        {
+          "key": "file",
+          "label": "Report file",
+          "type": "file"
+        },
+        {
+          "key": "summary",
+          "label": "Summary",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title",
+      "dateField": "month",
+      "totals": [
+        "reach",
+        "engagement",
+        "followers"
+      ],
+      "views": [
+        "table"
+      ],
+      "sort": "-month",
+      "comments": true
+    },
+    {
+      "key": "app_releases",
+      "name": "App releases",
+      "short": "Releases",
+      "item": "release",
+      "category": "Apps and websites",
+      "engine": "table",
+      "icon": "laptop",
+      "description": "Builds for the client to test, with version, platform, download or store link, release notes and sign-off.",
+      "fields": [
+        {
+          "key": "version",
+          "label": "Version",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "platform",
+          "label": "Platform",
+          "type": "select",
+          "options": [
+            "Android",
+            "iOS",
+            "Web",
+            "Windows",
+            "macOS"
+          ],
+          "list": true
+        },
+        {
+          "key": "build",
+          "label": "Build file",
+          "type": "file"
+        },
+        {
+          "key": "link",
+          "label": "Test or store link",
+          "type": "url"
+        },
+        {
+          "key": "notes",
+          "label": "What changed",
+          "type": "longtext"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Waiting for review",
+            "Changes requested",
+            "Approved",
+            "Live"
+          ],
+          "default": "Waiting for review",
+          "list": true
+        }
+      ],
+      "titleField": "version",
+      "views": [
+        "table",
+        "board"
+      ],
+      "boardField": "status",
+      "comments": true,
+      "workflow": {
+        "field": "status",
+        "actions": [
+          {
+            "label": "Approve",
+            "to": "Approved",
+            "from": [
+              "Waiting for review",
+              "Changes requested"
+            ]
+          },
+          {
+            "label": "Ask for changes",
+            "to": "Changes requested",
+            "from": [
+              "Waiting for review"
+            ]
+          },
+          {
+            "label": "Mark live",
+            "to": "Live",
+            "from": [
+              "Approved"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "issues",
+      "name": "Bug reports",
+      "short": "Bugs",
+      "item": "bug",
+      "category": "Apps and websites",
+      "engine": "table",
+      "icon": "bug",
+      "description": "The client reports a problem with a screenshot or screen recording. You fix it and they see the status change.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "What went wrong",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "page",
+          "label": "Page or screen",
+          "type": "text",
+          "list": true
+        },
+        {
+          "key": "severity",
+          "label": "Severity",
+          "type": "select",
+          "options": [
+            "Low",
+            "Medium",
+            "High",
+            "Critical"
+          ],
+          "default": "Medium",
+          "list": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Open",
+            "In progress",
+            "Fixed",
+            "Closed"
+          ],
+          "default": "Open",
+          "list": true
+        },
+        {
+          "key": "screenshot",
+          "label": "Screenshot or recording",
+          "type": "file",
+          "accept": "image/*,video/*"
+        },
+        {
+          "key": "steps",
+          "label": "Steps to see it",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title",
+      "imageField": "screenshot",
+      "views": [
+        "board",
+        "table"
+      ],
+      "boardField": "status",
+      "groupBy": "severity",
+      "comments": true
+    },
+    {
+      "key": "feature_requests",
+      "name": "Feature requests",
+      "short": "Requests",
+      "item": "request",
+      "category": "Apps and websites",
+      "engine": "table",
+      "icon": "layers",
+      "description": "New ideas from the client, prioritised together, with your estimate and progress.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Feature",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "details",
+          "label": "Details",
+          "type": "longtext"
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            "Nice to have",
+            "Important",
+            "Must have"
+          ],
+          "default": "Important",
+          "list": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "New",
+            "Planned",
+            "In progress",
+            "Done",
+            "Not now"
+          ],
+          "default": "New",
+          "list": true
+        },
+        {
+          "key": "estimate",
+          "label": "Estimate (hours)",
+          "type": "number",
+          "list": true
+        }
+      ],
+      "titleField": "title",
+      "totals": [
+        "estimate"
+      ],
+      "views": [
+        "board",
+        "table"
+      ],
+      "boardField": "status",
+      "comments": true
+    },
+    {
+      "key": "projects",
+      "name": "Project milestones",
+      "short": "Milestones",
+      "item": "milestone",
+      "category": "Apps and websites",
+      "engine": "table",
+      "icon": "layers",
+      "description": "Phases with deadlines and progress, so the client always knows where the project stands.",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Milestone",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "phase",
+          "label": "Phase",
+          "type": "select",
+          "options": [
+            "Discovery",
+            "Design",
+            "Build",
+            "Testing",
+            "Launch",
+            "Support"
+          ],
+          "list": true
+        },
+        {
+          "key": "deadline",
+          "label": "Deadline",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "progress",
+          "label": "Progress %",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "list": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Not started",
+            "In progress",
+            "Done"
+          ],
+          "default": "Not started",
+          "list": true
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "name",
+      "dateField": "deadline",
+      "progress": {
+        "value": "progress",
+        "of": 100
+      },
+      "views": [
+        "board",
+        "table",
+        "calendar"
+      ],
+      "boardField": "status",
+      "comments": true
+    },
+    {
+      "key": "links",
+      "name": "Links and access",
+      "short": "Links",
+      "item": "link",
+      "category": "Apps and websites",
+      "engine": "table",
+      "icon": "link",
+      "description": "Staging sites, test builds, drive folders, store listings and dashboards in one place. Never store passwords here.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Name",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "url",
+          "label": "Link",
+          "type": "url",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "category",
+          "label": "Group",
+          "type": "text",
+          "list": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "text"
+        }
+      ],
+      "titleField": "title",
+      "linkField": "url",
+      "groupBy": "category",
+      "views": [
+        "cards",
+        "table"
+      ]
+    },
+    {
+      "key": "infrastructure",
+      "name": "Domains and hosting",
+      "short": "Domains",
+      "item": "service",
+      "category": "Apps and websites",
+      "engine": "table",
+      "icon": "server",
+      "description": "The client's domains, hosting and SSL with renewal dates and yearly cost, so nothing expires by surprise.",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Domain or service",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "kind",
+          "label": "Kind",
+          "type": "select",
+          "options": [
+            "Domain",
+            "Hosting",
+            "SSL",
+            "Email",
+            "App store",
+            "Other"
+          ],
+          "list": true
+        },
+        {
+          "key": "provider",
+          "label": "Provider",
+          "type": "text",
+          "list": true
+        },
+        {
+          "key": "renews",
+          "label": "Renews on",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "cost",
+          "label": "Cost per year",
+          "type": "money",
+          "list": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "name",
+      "dateField": "renews",
+      "totals": [
+        "cost"
+      ],
+      "views": [
+        "table",
+        "calendar"
+      ],
+      "sort": "renews"
+    },
+    {
+      "key": "support",
+      "name": "Support requests",
+      "short": "Support",
+      "item": "request",
+      "category": "Apps and websites",
+      "engine": "table",
+      "icon": "lifebuoy",
+      "description": "The client raises a request with a screenshot; you reply, fix and close it. Both sides see every step.",
+      "fields": [
+        {
+          "key": "subject",
+          "label": "Subject",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "details",
+          "label": "Details",
+          "type": "longtext",
+          "required": true
+        },
+        {
+          "key": "priority",
+          "label": "Priority",
+          "type": "select",
+          "options": [
+            "Low",
+            "Normal",
+            "Urgent"
+          ],
+          "default": "Normal",
+          "list": true
+        },
+        {
+          "key": "attachment",
+          "label": "Attachment",
+          "type": "file"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "New",
+            "In progress",
+            "Waiting on client",
+            "Closed"
+          ],
+          "default": "New",
+          "list": true
+        }
+      ],
+      "titleField": "subject",
+      "views": [
+        "table",
+        "board"
+      ],
+      "boardField": "status",
+      "comments": true
+    },
+    {
+      "key": "maintenance",
+      "name": "Maintenance log",
+      "short": "Upkeep",
+      "item": "entry",
+      "category": "Apps and websites",
+      "engine": "table",
+      "icon": "gear",
+      "description": "Updates, fixes, backups and security work done on the client's site or app each month, with hours.",
+      "fields": [
+        {
+          "key": "work",
+          "label": "Work done",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "default": "today",
+          "list": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            "Update",
+            "Fix",
+            "Backup",
+            "Security",
+            "Content",
+            "Other"
+          ],
+          "list": true
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number",
+          "list": true
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "work",
+      "dateField": "date",
+      "totals": [
+        "hours"
+      ],
+      "groupBy": "type",
+      "views": [
+        "table",
+        "calendar"
+      ],
+      "sort": "-date"
+    },
+    {
+      "key": "invoices",
+      "name": "Invoices",
+      "short": "Invoices",
+      "item": "invoice",
+      "category": "Money with the client",
+      "engine": "quote",
+      "icon": "invoice",
+      "mode": "invoice",
+      "description": "Invoices with line items, discount and VAT that the client can open, print or save as PDF. Track paid and overdue.",
+      "fields": [
+        {
+          "key": "number",
+          "label": "Invoice no.",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "client",
+          "label": "Bill to",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "client_details",
+          "label": "Address / PAN",
+          "type": "longtext"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true,
+          "default": "today"
+        },
+        {
+          "key": "due",
+          "label": "Due date",
+          "type": "date"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json"
+        },
+        {
+          "key": "discount",
+          "label": "Discount %",
+          "type": "number",
+          "min": 0,
+          "max": 100
+        },
+        {
+          "key": "tax",
+          "label": "VAT %",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 13
+        },
+        {
+          "key": "total",
+          "label": "Total",
+          "type": "money"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Draft",
+            "Sent",
+            "Paid",
+            "Cancelled"
+          ],
+          "default": "Draft"
+        },
+        {
+          "key": "notes",
+          "label": "Notes and bank details",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "client"
+    },
+    {
+      "key": "quotes",
+      "name": "Quotes and estimates",
+      "short": "Quotes",
+      "item": "quote",
+      "category": "Money with the client",
+      "engine": "quote",
+      "icon": "calculator",
+      "mode": "quote",
+      "description": "Price the job from line items. The client reads the quote and accepts it; print it as a PDF.",
+      "fields": [
+        {
+          "key": "number",
+          "label": "Quote no.",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "client",
+          "label": "For",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "client_details",
+          "label": "Client details",
+          "type": "longtext"
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true,
+          "default": "today"
+        },
+        {
+          "key": "due",
+          "label": "Valid until",
+          "type": "date"
+        },
+        {
+          "key": "items",
+          "label": "Items",
+          "type": "json"
+        },
+        {
+          "key": "discount",
+          "label": "Discount %",
+          "type": "number",
+          "min": 0,
+          "max": 100
+        },
+        {
+          "key": "tax",
+          "label": "VAT %",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 13
+        },
+        {
+          "key": "total",
+          "label": "Total",
+          "type": "money"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Draft",
+            "Sent",
+            "Accepted",
+            "Declined"
+          ],
+          "default": "Draft"
+        },
+        {
+          "key": "notes",
+          "label": "Terms",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "client"
+    },
+    {
+      "key": "receipts",
+      "name": "Receipts and expenses",
+      "short": "Receipts",
+      "item": "receipt",
+      "category": "Money with the client",
+      "engine": "table",
+      "icon": "receipt",
+      "description": "Receipts for money spent on the client's project, with a photo, amount and who paid. Either side can add them.",
+      "fields": [
+        {
+          "key": "vendor",
+          "label": "Paid to",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true,
+          "default": "today",
+          "list": true
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "options": [
+            "Travel",
+            "Food",
+            "Props",
+            "Equipment rental",
+            "Location",
+            "Software",
+            "Ads",
+            "Printing",
+            "Other"
+          ],
+          "list": true
+        },
+        {
+          "key": "paid_by",
+          "label": "Paid by",
+          "type": "select",
+          "options": [
+            "Agency",
+            "Client"
+          ],
+          "default": "Agency",
+          "list": true
+        },
+        {
+          "key": "image",
+          "label": "Receipt photo",
+          "type": "file",
+          "accept": "image/*,application/pdf"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "To be paid back",
+            "Added to invoice",
+            "Paid back",
+            "No refund needed"
+          ],
+          "default": "To be paid back",
+          "list": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "vendor",
+      "imageField": "image",
+      "dateField": "date",
+      "totals": [
+        "amount"
+      ],
+      "groupBy": "category",
+      "views": [
+        "table",
+        "cards",
+        "calendar"
+      ],
+      "comments": true
+    },
+    {
+      "key": "client_payments",
+      "name": "Payments",
+      "short": "Payments",
+      "item": "payment",
+      "category": "Money with the client",
+      "engine": "table",
+      "icon": "coins",
+      "description": "Advance, milestone and final payments with due dates and proof. The client uploads proof, you mark it received.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Payment",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "due",
+          "label": "Due",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "method",
+          "label": "Paid via",
+          "type": "select",
+          "options": [
+            "Bank",
+            "eSewa",
+            "Khalti",
+            "Card",
+            "Cash",
+            "Cheque"
+          ],
+          "list": true
+        },
+        {
+          "key": "proof",
+          "label": "Payment proof",
+          "type": "file",
+          "accept": "image/*,application/pdf"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Due",
+            "Proof sent",
+            "Received",
+            "Overdue"
+          ],
+          "default": "Due",
+          "list": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title",
+      "dateField": "due",
+      "totals": [
+        "amount"
+      ],
+      "groupBy": "status",
+      "views": [
+        "table",
+        "board",
+        "calendar"
+      ],
+      "boardField": "status",
+      "comments": true
+    },
+    {
+      "key": "ledger",
+      "name": "Project ledger",
+      "short": "Ledger",
+      "item": "entry",
+      "category": "Money with the client",
+      "engine": "ledger",
+      "icon": "ledger",
+      "description": "Money in and money out for the project with a running balance, by month and category.",
+      "fields": [
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true,
+          "default": "today"
+        },
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "direction",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            "In",
+            "Out"
+          ],
+          "required": true,
+          "default": "Out"
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money",
+          "required": true
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "select",
+          "options": [
+            "Client payment",
+            "Crew",
+            "Equipment",
+            "Location",
+            "Travel",
+            "Software",
+            "Ads",
+            "Other"
+          ]
+        },
+        {
+          "key": "method",
+          "label": "Paid via",
+          "type": "select",
+          "options": [
+            "Cash",
+            "Bank",
+            "eSewa",
+            "Khalti",
+            "Card",
+            "Cheque"
+          ]
+        },
+        {
+          "key": "attachment",
+          "label": "Receipt or proof",
+          "type": "file"
+        }
+      ],
+      "titleField": "description",
+      "dateField": "date"
+    },
+    {
+      "key": "hours",
+      "name": "Retainer hours",
+      "short": "Hours",
+      "item": "entry",
+      "category": "Money with the client",
+      "engine": "table",
+      "icon": "clock",
+      "description": "Hours worked against the client's monthly retainer, so both sides see what is used and what is left.",
+      "fields": [
+        {
+          "key": "work",
+          "label": "Work",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true,
+          "default": "today",
+          "list": true
+        },
+        {
+          "key": "hours",
+          "label": "Hours",
+          "type": "number",
+          "required": true,
+          "list": true,
+          "min": 0
+        },
+        {
+          "key": "person",
+          "label": "Who",
+          "type": "user",
+          "default": "me",
+          "list": true
+        },
+        {
+          "key": "billable",
+          "label": "Billable",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "titleField": "work",
+      "dateField": "date",
+      "totals": [
+        "hours"
+      ],
+      "views": [
+        "table",
+        "calendar"
+      ],
+      "sort": "-date"
+    },
+    {
+      "key": "budget",
+      "name": "Project budget",
+      "short": "Budget",
+      "item": "budget line",
+      "category": "Money with the client",
+      "engine": "table",
+      "icon": "target",
+      "description": "Planned against spent for every budget line of the project, with what is left.",
+      "fields": [
+        {
+          "key": "item",
+          "label": "Budget line",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "planned",
+          "label": "Planned",
+          "type": "money",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "spent",
+          "label": "Spent",
+          "type": "money",
+          "list": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "item",
+      "totals": [
+        "planned",
+        "spent"
+      ],
+      "progress": {
+        "value": "spent",
+        "of": "planned"
+      },
+      "views": [
+        "table",
+        "cards"
+      ]
+    },
+    {
+      "key": "announcements",
+      "name": "Project updates",
+      "short": "Updates",
+      "item": "update",
+      "category": "Working together",
+      "engine": "feed",
+      "icon": "megaphone",
+      "createRole": "editor",
+      "description": "Post progress with photos or short clips. The client sees every update in one timeline.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Update",
+          "type": "longtext",
+          "required": true
+        },
+        {
+          "key": "image",
+          "label": "Photo",
+          "type": "file",
+          "accept": "image/*"
+        },
+        {
+          "key": "pinned",
+          "label": "Pinned",
+          "type": "boolean"
+        }
+      ],
+      "titleField": "title"
+    },
+    {
+      "key": "messages",
+      "name": "Messages",
+      "short": "Messages",
+      "item": "message",
+      "category": "Working together",
+      "engine": "chat",
+      "icon": "claim",
+      "description": "Chat with the client in one place: text, photos, videos and files. Everyone on the project sees it live.",
+      "fields": [
+        {
+          "key": "body",
+          "label": "Message",
+          "type": "longtext"
+        },
+        {
+          "key": "file",
+          "label": "Attachment",
+          "type": "file"
+        }
+      ],
+      "titleField": "body"
+    },
+    {
+      "key": "tasks",
+      "name": "Tasks and requests",
+      "short": "Tasks",
+      "item": "task",
+      "category": "Working together",
+      "engine": "table",
+      "icon": "tasks",
+      "description": "What you need from the client and what they need from you, with owner, due date and status.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Task",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "side",
+          "label": "For",
+          "type": "select",
+          "options": [
+            "Us",
+            "Client"
+          ],
+          "default": "Us",
+          "list": true
+        },
+        {
+          "key": "assignee",
+          "label": "Assigned to",
+          "type": "user",
+          "list": true
+        },
+        {
+          "key": "due",
+          "label": "Due",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "To do",
+            "Doing",
+            "Waiting",
+            "Done"
+          ],
+          "default": "To do",
+          "list": true
+        },
+        {
+          "key": "details",
+          "label": "Details",
+          "type": "longtext"
+        },
+        {
+          "key": "attachment",
+          "label": "Attachment",
+          "type": "file"
+        }
+      ],
+      "titleField": "title",
+      "dateField": "due",
+      "views": [
+        "board",
+        "table",
+        "calendar"
+      ],
+      "boardField": "status",
+      "groupBy": "side",
+      "comments": true
+    },
+    {
+      "key": "todos",
+      "name": "To-do list",
+      "short": "To-dos",
+      "item": "to-do",
+      "category": "Working together",
+      "engine": "checklist",
+      "icon": "check",
+      "description": "Type a to-do and press Enter. Assign it to either side, give it a date, tick it off. No forms.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "To-do",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "done",
+          "label": "Done",
+          "type": "boolean"
+        },
+        {
+          "key": "assignee",
+          "label": "Who",
+          "type": "user"
+        },
+        {
+          "key": "due",
+          "label": "Due",
+          "type": "date"
+        }
+      ],
+      "titleField": "title"
+    },
+    {
+      "key": "meetings",
+      "name": "Meeting notes",
+      "short": "Meetings",
+      "item": "meeting",
+      "category": "Working together",
+      "engine": "docs",
+      "icon": "notes",
+      "description": "Agenda, notes, decisions and next steps from every call with the client.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Meeting",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "default": "today"
+        },
+        {
+          "key": "body",
+          "label": "Notes",
+          "type": "longtext"
+        },
+        {
+          "key": "pinned",
+          "label": "Pinned",
+          "type": "boolean"
+        }
+      ],
+      "titleField": "title",
+      "dateField": "date",
+      "comments": true
+    },
+    {
+      "key": "notes",
+      "name": "Shared notes",
+      "short": "Notes",
+      "item": "note",
+      "category": "Working together",
+      "engine": "docs",
+      "icon": "notes",
+      "description": "Free pages for anything: ideas, checklists, contacts, plans. Written together, always the latest version.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "body",
+          "label": "Text",
+          "type": "longtext"
+        },
+        {
+          "key": "pinned",
+          "label": "Pinned",
+          "type": "boolean"
+        }
+      ],
+      "titleField": "title",
+      "comments": true
+    },
+    {
+      "key": "polls",
+      "name": "Decisions and polls",
+      "short": "Polls",
+      "item": "poll",
+      "category": "Working together",
+      "engine": "poll",
+      "icon": "poll",
+      "description": "Let the client choose: which thumbnail, which name, which colour. Votes show live.",
+      "fields": [
+        {
+          "key": "question",
+          "label": "Question",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "options",
+          "label": "Options",
+          "type": "json",
+          "required": true
+        },
+        {
+          "key": "votes",
+          "label": "Votes",
+          "type": "json"
+        },
+        {
+          "key": "closed",
+          "label": "Closed",
+          "type": "boolean"
+        }
+      ],
+      "titleField": "question"
+    },
+    {
+      "key": "contracts",
+      "name": "Contracts and sign-off",
+      "short": "Contracts",
+      "item": "contract",
+      "category": "Working together",
+      "engine": "table",
+      "icon": "signature",
+      "visibility": "own",
+      "createRole": "editor",
+      "description": "Send the agreement, NDA or scope of work. The client downloads it, signs, and uploads the signed copy.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Contract",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "signer",
+          "label": "Signer",
+          "type": "user",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "document",
+          "label": "Contract to sign",
+          "type": "file",
+          "required": true,
+          "protected": true
+        },
+        {
+          "key": "due",
+          "label": "Sign by",
+          "type": "date",
+          "list": true
+        },
+        {
+          "key": "signed_document",
+          "label": "Signed copy",
+          "type": "file"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Waiting for signature",
+            "Signed",
+            "Completed",
+            "Cancelled"
+          ],
+          "default": "Waiting for signature",
+          "list": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title",
+      "dateField": "due",
+      "groupBy": "status",
+      "views": [
+        "table",
+        "board"
+      ],
+      "boardField": "status",
+      "signing": {
+        "signer": "signer",
+        "document": "document",
+        "signed": "signed_document",
+        "status": "status",
+        "waiting": "Waiting for signature",
+        "signedStatus": "Signed"
+      },
+      "workflow": {
+        "field": "status",
+        "actions": [
+          {
+            "label": "Mark completed",
+            "to": "Completed",
+            "from": [
+              "Signed"
+            ]
+          },
+          {
+            "label": "Cancel",
+            "to": "Cancelled",
+            "from": [
+              "Waiting for signature"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "key": "documents",
+      "name": "Shared documents",
+      "short": "Documents",
+      "item": "document",
+      "category": "Working together",
+      "engine": "table",
+      "icon": "file",
+      "description": "Proposals, briefs, NDAs, reports and guides in one place, each with its latest file.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Document",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "type",
+          "label": "Type",
+          "type": "select",
+          "options": [
+            "Proposal",
+            "Brief",
+            "Agreement",
+            "Report",
+            "Guide",
+            "Other"
+          ],
+          "list": true
+        },
+        {
+          "key": "file",
+          "label": "File",
+          "type": "file",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "default": "today",
+          "list": true
+        },
+        {
+          "key": "note",
+          "label": "Note",
+          "type": "longtext"
+        }
+      ],
+      "titleField": "title",
+      "dateField": "date",
+      "groupBy": "type",
+      "views": [
+        "table"
+      ],
+      "sort": "-date",
+      "comments": true
+    },
+    {
+      "key": "wiki",
+      "name": "Guides and FAQs",
+      "short": "Guides",
+      "item": "page",
+      "category": "Working together",
+      "engine": "docs",
+      "icon": "book",
+      "description": "How-tos for the client: updating the website, posting guidelines, who to call for what.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Page",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Updated",
+          "type": "date",
+          "default": "today"
+        },
+        {
+          "key": "body",
+          "label": "Content",
+          "type": "longtext"
+        },
+        {
+          "key": "pinned",
+          "label": "Pinned",
+          "type": "boolean"
+        }
+      ],
+      "titleField": "title"
+    },
+    {
+      "key": "feedback",
+      "name": "Feedback and reviews",
+      "short": "Feedback",
+      "item": "review",
+      "category": "Working together",
+      "engine": "table",
+      "icon": "star",
+      "description": "The client rates the work and leaves a review, and says whether you may use it as a testimonial.",
+      "fields": [
+        {
+          "key": "title",
+          "label": "About",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "rating",
+          "label": "Rating",
+          "type": "select",
+          "options": [
+            "1 of 5",
+            "2 of 5",
+            "3 of 5",
+            "4 of 5",
+            "5 of 5"
+          ],
+          "list": true
+        },
+        {
+          "key": "comment",
+          "label": "Review",
+          "type": "longtext"
+        },
+        {
+          "key": "publish",
+          "label": "May be used publicly",
+          "type": "boolean"
+        }
+      ],
+      "titleField": "title",
+      "views": [
+        "cards",
+        "table"
+      ]
+    },
+    {
+      "key": "summary",
+      "name": "Overview page",
+      "short": "Overview",
+      "item": "item",
+      "category": "Extras",
+      "engine": "summary",
+      "icon": "gauge",
+      "description": "A front page with totals, what waits for review, what is due soon and the latest changes.",
+      "fields": []
+    }
+  ],
+  "templates": [
+    {
+      "key": "video",
+      "name": "Video production",
+      "description": "Deliveries with approval, shoots, shot list, brief and big files.",
+      "blocks": [
+        "video_review",
+        "shoots",
+        "shot_list",
+        "todos",
+        "briefs",
+        "file_library",
+        "receipts",
+        "invoices",
+        "tasks",
+        "messages"
+      ]
+    },
+    {
+      "key": "photo",
+      "name": "Photography",
+      "description": "Photo proofing, shoot days, products, mood board and big files.",
+      "blocks": [
+        "photo_proofing",
+        "shoots",
+        "products",
+        "todos",
+        "mood_board",
+        "file_library",
+        "invoices",
+        "client_payments",
+        "messages"
+      ]
+    },
+    {
+      "key": "design",
+      "name": "Design and branding",
+      "description": "Design proofs round by round, brand kit, brief and decisions.",
+      "blocks": [
+        "design_proofs",
+        "brand_assets",
+        "briefs",
+        "todos",
+        "mood_board",
+        "deliverables",
+        "polls",
+        "invoices",
+        "messages"
+      ]
+    },
+    {
+      "key": "social",
+      "name": "Social media",
+      "description": "Content calendar, captions, campaigns, ad spend and reports.",
+      "blocks": [
+        "content_calendar",
+        "captions",
+        "campaigns",
+        "todos",
+        "ad_spend",
+        "reports",
+        "brand_assets",
+        "invoices",
+        "messages"
+      ]
+    },
+    {
+      "key": "apps",
+      "name": "App development",
+      "description": "Releases to test, bug reports, feature requests and milestones.",
+      "blocks": [
+        "app_releases",
+        "issues",
+        "feature_requests",
+        "todos",
+        "projects",
+        "links",
+        "announcements",
+        "invoices",
+        "client_payments",
+        "messages"
+      ]
+    },
+    {
+      "key": "web",
+      "name": "Website projects",
+      "description": "Milestones, bugs, access links, domains, maintenance and support.",
+      "blocks": [
+        "projects",
+        "issues",
+        "links",
+        "todos",
+        "infrastructure",
+        "maintenance",
+        "support",
+        "hours",
+        "invoices",
+        "messages"
+      ]
+    }
+  ]
+}

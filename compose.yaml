@@ -1,0 +1,16 @@
+services:
+  jhino:
+    build: .
+    image: jhino:local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4310:4310"   # put a reverse proxy with HTTPS in front (see README)
+    environment:
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@jhino.local}
+      ADMIN_NAME: ${ADMIN_NAME:-Admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    volumes:
+      - jhino-data:/data
+volumes:
+  jhino-data:
