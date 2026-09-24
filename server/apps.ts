@@ -10,6 +10,8 @@ import { loadFile, canReadFile, sendFile } from './files.js';
 import { installPackage, appDir } from './packages.js';
 import { publish, revoke, notifyUser, watch, unwatch, openStream } from './realtime.js';
 import { snapshotFor } from './data.js';
+import { assertCanCreate } from './plans.js';
+import { uploadsOn } from './security.js';
 
 const ROLES: Role[] = ['editor', 'contributor', 'viewer'];
 const roleWord = (r: Role) => (r === 'editor' ? 'can edit' : r === 'contributor' ? 'can add' : 'can view');
@@ -40,7 +42,7 @@ function versionRow(appId: string, n: number) {
 }
 
 function appSummary(a: AppRow, userId: string) {
-  const members = db.prepare(`SELECT u.id, u.name, m.role FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? ORDER BY m.added_at`).all(a.id) as { id: string; name: string; role: Role }[];
+  const members = db.prepare(`SELECT u.id, u.name, m.role FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.kind='person' ORDER BY m.added_at`).all(a.id) as { id: string; name: string; role: Role }[];
   const v = versionRow(a.id, a.live_version) as (ReturnType<typeof versionRow> & { builder?: string | null }) | undefined;
   const last = db.prepare(`SELECT a.action, a.at, u.name FROM activity a LEFT JOIN users u ON u.id=a.user_id WHERE a.app_id=? ORDER BY a.id DESC LIMIT 1`).get(a.id) as { action: string; at: string; name: string | null } | undefined;
   // For created apps: who it is for, their colour and whether there is a logo (served by /api/apps/:id/logo).
@@ -62,16 +64,47 @@ function appSummary(a: AppRow, userId: string) {
     built: !!v?.builder,
     brand,
     storage: db.prepare('SELECT COUNT(*) files, COALESCE(SUM(size),0) bytes FROM files WHERE app_id=?').get(a.id) as { files: number; bytes: number },
+    access: a.access ?? 'private', slug: a.slug ?? null, showBar: a.show_bar !== 0,
   };
 }
 
-async function readUpload(req: FastifyRequest) {
-  const part = await req.file({ limits: { fileSize: config.limits.uploadBytes, files: 1, fields: 5 } });
+/** An uploaded app (HTML or ZIP) plus the form fields sent before it. */
+export async function readUpload(req: FastifyRequest) {
+  const part = await req.file({ limits: { fileSize: config.limits.uploadBytes, files: 1, fields: 8 } });
   if (!part) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a file to upload.');
   const buf = await part.toBuffer();
   if (part.file.truncated) throw new HttpError(413, 'TOO_LARGE', `That file is larger than ${config.limits.uploadBytes / 1048576} MB.`);
-  const fields = part.fields as Record<string, { value?: string } | undefined>;
-  return { buf, filename: part.filename || 'app.html', name: fields.name?.value };
+  const raw = part.fields as Record<string, { value?: string } | undefined>;
+  const fields: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) if (v && typeof v.value === 'string') fields[k] = v.value;
+  return { buf, filename: part.filename || 'app.html', name: fields.name, fields };
+}
+
+/**
+ * Publish an uploaded HTML/ZIP as a new app. The plan limit is checked before the work and again inside
+ * the insert transaction, so two uploads at once cannot both slip past it.
+ */
+export async function createAppFromUpload(user: UserRow, buf: Buffer, filename: string, nameIn?: string) {
+  assertCanCreate(user.id);
+  const id = newId('app');
+  const pkg = await installPackage(buf, filename, id, 1);
+  const name = (nameIn?.trim() || pkg.title || filename.replace(/\.(zip|html?)$/i, '').replace(/[-_]+/g, ' ')).slice(0, 80) || 'Untitled app';
+  const t = now();
+  try {
+    db.transaction(() => {
+      assertCanCreate(user.id);
+      db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at,share_token) VALUES(?,?,?,?,1,?,?,?)')
+        .run(id, name, crypto.randomInt(0, 6), user.id, t, t, crypto.randomBytes(10).toString('hex'));
+      db.prepare('INSERT INTO app_versions(app_id,n,entry,file_count,size,features,source_name,uploaded_by,created_at,manifest) VALUES(?,?,?,?,?,?,?,?,?,?)')
+        .run(id, 1, pkg.entry, pkg.fileCount, pkg.size, JSON.stringify(pkg.features), filename.slice(0, 200), user.id, t, pkg.manifest ? JSON.stringify(pkg.manifest) : null);
+      db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?)').run(id, user.id, 'owner', t);
+      logActivity(id, user.id, 'published the app', `version 1`);
+    })();
+  } catch (e) {
+    fs.rmSync(path.join(config.dataDir, 'apps', id), { recursive: true, force: true });
+    throw e;
+  }
+  return id;
 }
 
 /* ---------------- run tokens: short-lived, per open app, cookie-free ---------------- */
@@ -152,19 +185,9 @@ export function registerApps(app: FastifyInstance) {
 
   app.post('/api/apps', async (req) => {
     const user = requireCreator(req);
+    assertCanCreate(user.id); // before reading a big upload
     const up = await readUpload(req);
-    const id = newId('app');
-    const pkg = await installPackage(up.buf, up.filename, id, 1);
-    const name = (up.name?.trim() || pkg.title || up.filename.replace(/\.(zip|html?)$/i, '').replace(/[-_]+/g, ' ')).slice(0, 80) || 'Untitled app';
-    const t = now();
-    db.transaction(() => {
-      db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at) VALUES(?,?,?,?,1,?,?)')
-        .run(id, name, crypto.randomInt(0, 6), user.id, t, t);
-      db.prepare('INSERT INTO app_versions(app_id,n,entry,file_count,size,features,source_name,uploaded_by,created_at,manifest) VALUES(?,?,?,?,?,?,?,?,?,?)')
-        .run(id, 1, pkg.entry, pkg.fileCount, pkg.size, JSON.stringify(pkg.features), up.filename.slice(0, 200), user.id, t, pkg.manifest ? JSON.stringify(pkg.manifest) : null);
-      db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?)').run(id, user.id, 'owner', t);
-      logActivity(id, user.id, 'published the app', `version 1`);
-    })();
+    const id = await createAppFromUpload(user, up.buf, up.filename, up.name);
     return { app: appSummary(loadApp(id), user.id) };
   });
 
@@ -172,7 +195,8 @@ export function registerApps(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const { user, app: a, role } = access(req, id);
     const s = appSummary(a, user.id);
-    const members = (db.prepare(`SELECT u.id, u.name, u.email, m.role, u.created_by, u.is_admin FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? ORDER BY m.role='owner' DESC, m.added_at`).all(id) as any[])
+    if (req.pub) return { app: { ...s, members: [], versions: [], ownerId: '', privateKeys: [], storage: undefined } };
+    const members = (db.prepare(`SELECT u.id, u.name, u.email, m.role, u.created_by, u.is_admin FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.kind='person' ORDER BY m.role='owner' DESC, m.added_at`).all(id) as any[])
       .map(({ created_by, is_admin, ...m }) => ({ ...m, madeByMe: role === 'owner' && created_by === user.id && !is_admin }));
     const versions = role === 'owner'
       ? db.prepare(`SELECT v.n, v.file_count fileCount, v.size, v.source_name sourceName, v.created_at createdAt, v.features, u.name uploadedBy FROM app_versions v LEFT JOIN users u ON u.id=v.uploaded_by WHERE app_id=? ORDER BY n DESC`).all(id)
@@ -252,6 +276,7 @@ export function registerApps(app: FastifyInstance) {
     if (!a.deleted_at) throw new HttpError(409, 'NOT_IN_TRASH', 'Move the app to Trash first.');
     const members = db.prepare('SELECT user_id FROM memberships WHERE app_id=?').all(id) as { user_id: string }[];
     db.prepare('DELETE FROM apps WHERE id=?').run(id);
+    if (a.visitor_id) db.prepare("DELETE FROM users WHERE id=? AND kind='visitor'").run(a.visitor_id);
     fs.rmSync(path.join(config.dataDir, 'apps', id), { recursive: true, force: true });
     fs.rmSync(path.join(config.dataDir, 'files', id), { recursive: true, force: true });
     members.forEach((m) => notifyUser(m.user_id));
@@ -304,7 +329,7 @@ export function registerApps(app: FastifyInstance) {
   app.get('/api/apps/:id/people', async (req) => {
     const { id } = req.params as { id: string };
     access(req, id);
-    const rows = db.prepare('SELECT u.id, u.name, m.role FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.disabled=0 ORDER BY u.name').all(id);
+    const rows = db.prepare("SELECT u.id, u.name, m.role FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.disabled=0 AND u.kind='person' ORDER BY u.name").all(id);
     return { people: rows };
   });
 
@@ -393,7 +418,7 @@ export function registerApps(app: FastifyInstance) {
       // Someone who joins through an invite is a client of that app's owner.
       db.prepare('UPDATE users SET created_by=? WHERE id=?').run(inv.created_by, user.id);
       user = db.prepare('SELECT * FROM users WHERE id=?').get(user.id) as UserRow;
-      createSession(reply, user.id);
+      createSession(reply, user.id, req);
     }
     const uid = user.id;
     const joined = db.transaction(() => {
@@ -503,6 +528,7 @@ export function registerApps(app: FastifyInstance) {
         user: { id: u.id, name: u.name, email: u.email, role },
         privateKeys: JSON.parse(a.private_keys),
         data: snapshotFor(a.id, u.id),
+        uploads: uploadsOn(),
       };
       let usesIdb = false;
       try { usesIdb = !!JSON.parse(v.features).indexedDB; } catch { /* old version row */ }

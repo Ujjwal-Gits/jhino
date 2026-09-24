@@ -14,6 +14,13 @@ import { registerBuilder } from './builder.js';
 import { registerActivity } from './activity.js';
 import { registerTrash } from './trash.js';
 import { registerDesk } from './desk.js';
+import { registerAccount } from './account.js';
+import { registerOAuth } from './oauth.js';
+import { registerBilling } from './billing.js';
+import { registerSuperAdmin } from './superadmin.js';
+import { registerPublicShare } from './publicshare.js';
+import { startBookingReminders } from './booking.js';
+import { limit } from './security.js';
 import { closeAllStreams } from './realtime.js';
 import { stopVideo } from './video.js';
 
@@ -56,10 +63,21 @@ app.addHook('onSend', async (req, reply) => {
       "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
     reply.header('X-Frame-Options', 'DENY');
   }
+  reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  if (config.cookieSecure) reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 });
 
 registerAuth(app);
 registerDesk(app);
+registerPublicShare(app);
+// A ceiling on changes from one address (sign-in, payments and links have their own, tighter limits).
+app.addHook('onRequest', async (req) => {
+  if (req.url.startsWith('/api/') && !['GET', 'HEAD', 'OPTIONS'].includes(req.method)) limit(req, 'api-write', Number(process.env.API_WRITES_PER_MIN) || 900, 60_000);
+});
+registerAccount(app);
+registerOAuth(app);
+registerBilling(app);
+registerSuperAdmin(app);
 registerApps(app);
 registerData(app);
 registerFiles(app);
@@ -102,6 +120,7 @@ if (fs.existsSync(path.join(webDir, 'index.html'))) {
 }
 
 await bootstrapAdmin();
+startBookingReminders();
 await app.listen({ port: config.port, host: config.host });
 console.log(`  Jhino is running at ${config.publicUrl || `http://${config.host === '0.0.0.0' ? 'localhost' : config.host}:${config.port}`}`);
 

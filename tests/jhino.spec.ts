@@ -39,7 +39,7 @@ async function createUser(owner: Api, name: string) {
 
 async function signIn(browser: Browser, email: string, password: string): Promise<Page> {
   const page = await (await browser.newContext()).newPage();
-  await page.goto('/');
+  await page.goto('/login');
   await page.fill('input[autocomplete=username]', email);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');

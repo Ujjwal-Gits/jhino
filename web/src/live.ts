@@ -2,13 +2,16 @@ import { post } from './api';
 
 /** One live connection per tab. Pages watch the apps they show and get committed changes. */
 type Handler = (event: string, data: any) => void;
-const EVENTS = ['kv', 'record', 'file', 'presence', 'activity', 'revoked', 'app-updated', 'role-changed', 'apps-changed', 'trash'];
+const EVENTS = ['kv', 'record', 'file', 'presence', 'activity', 'revoked', 'app-updated', 'role-changed', 'apps-changed', 'trash', 'notification'];
 
 class Live {
   private es: EventSource | null = null;
   private handlers = new Set<Handler>();
   private watched = new Set<string>();
   connId: string | null = null;
+  /** A link visitor streams one app only (their access is for that app). */
+  private scope: string | null = null;
+  setScope(appId: string | null) { if (this.scope !== appId) { this.scope = appId; if (this.es) { this.close(); this.open(); } } }
   private bootId: string | null = null;
   online = false;
 
@@ -50,7 +53,7 @@ class Live {
 
   private open() {
     if (this.es) return;
-    const es = new EventSource('/api/events');
+    const es = new EventSource(this.scope ? `/api/events?app=${encodeURIComponent(this.scope)}` : '/api/events');
     this.es = es;
     es.addEventListener('hello', (e) => {
       const d = JSON.parse((e as MessageEvent).data);

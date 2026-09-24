@@ -99,6 +99,7 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
     <Modal title={`Share ${app.name}`} onClose={onClose} wide>
       <div className="modal-body" style={{ gap: 22 }}>
         <p className="callout"><Icon name="key" size={15} /> Only people on this list can open this app, and each signs in with their own ID and password. A copied link alone never gives access.</p>
+        <LinkSharing appId={app.id} />
         <div className="share-file">
           <div>
             <b>Send it as an HTML file</b>
@@ -201,5 +202,59 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
         </section>
       </div>
     </Modal>
+  );
+}
+
+/* ---------- sharing by link: private, public, or with a password ---------- */
+interface SharingT { access: 'private' | 'public' | 'password'; publicRole: Role; hasPassword: boolean; showBar: boolean; shareUrl: string; slug: string | null; slugUrl: string | null }
+function LinkSharing({ appId }: { appId: string }) {
+  const toast = useToast();
+  const [s, setS] = useState<SharingT | null>(null);
+  const [pw, setPw] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => { get<SharingT>(`/api/apps/${appId}/sharing`).then(setS, () => {}); }, [appId]);
+  if (!s) return null;
+  const save = async (patch: Partial<SharingT> & { password?: string }) => {
+    setBusy(true); setError('');
+    try { const r = await api<SharingT>('PATCH', `/api/apps/${appId}/sharing`, patch); setS(r); setPw(''); toast(r.access === 'private' ? 'Link sharing is off' : 'Saved'); }
+    catch (e) { setError(e instanceof ApiError ? e.message : 'Could not save.'); }
+    setBusy(false);
+  };
+  const choose = (access: SharingT['access']) => {
+    if (access === 'password' && !s.hasPassword) { setS({ ...s, access }); return; } // ask for the password first
+    save({ access });
+  };
+  const url = s.slugUrl ?? s.shareUrl;
+  return (
+    <section className="link-share" aria-labelledby="ls-h">
+      <p className="section-title" id="ls-h">Share by link</p>
+      <div className="ls-opts" role="radiogroup" aria-label="Who can open the link">
+        {([['private', 'Only people added below'], ['public', 'Anyone with the link'], ['password', 'Anyone with the link and a password']] as const).map(([k, l]) => (
+          <button key={k} type="button" role="radio" aria-checked={s.access === k} className="ls-opt" disabled={busy} onClick={() => choose(k)}><span className="radio" />{l}</button>
+        ))}
+      </div>
+      {s.access === 'password' && (
+        <form className="linkbox" onSubmit={(e) => { e.preventDefault(); save({ access: 'password', password: pw }); }}>
+          <input className="input" type="text" autoComplete="new-password" placeholder={s.hasPassword ? 'New password (leave empty to keep it)' : 'Set a password for the link'} value={pw} onChange={(e) => setPw(e.target.value)} aria-label="Link password" />
+          <button className="btn sm" disabled={busy || (!s.hasPassword && pw.length < 4)}>{s.hasPassword ? 'Change' : 'Set password'}</button>
+        </form>
+      )}
+      {s.access !== 'private' && (
+        <>
+          <div className="linkbox">
+            <input className="input mono" readOnly value={url} onFocus={(e) => e.target.select()} aria-label="Share link" />
+            <button className="btn sm primary" type="button" onClick={() => copyText(url).then(() => toast('Link copied'))}><Icon name="copy" size={15} />Copy</button>
+          </div>
+          <div className="ls-row">
+            <span>Visitors can</span>
+            <Select size="sm" label="Visitors can" width={130} value={s.publicRole} options={[{ value: 'viewer', label: 'View' }, { value: 'contributor', label: 'Add' }, { value: 'editor', label: 'Edit' }]} onChange={(v) => save({ publicRole: v as Role })} />
+          </div>
+          {s.slugUrl && <p className="hint">Also at <span className="mono">{s.slugUrl}</span> (set by a super admin).</p>}
+        </>
+      )}
+      <label className="check-row"><input type="checkbox" checked={s.showBar} onChange={(e) => save({ showBar: e.target.checked })} /><span>Show the Jhino top bar (hide it to open like a standalone app)</span></label>
+      {error && <p className="error-text" role="alert">{error}</p>}
+    </section>
   );
 }

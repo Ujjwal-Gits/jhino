@@ -24,6 +24,28 @@ const PATHS: Record<string, string> = {
   phone: 'M8 3h8v18H8zM11.5 17.5h1',
   eye: 'M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   image: 'M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15 9h.01',
+  bell: 'M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20a7.5 7.5 0 0 1 15 0',
+  users: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 6.5M18.5 20a6.5 6.5 0 0 0-3-5.5',
+  shield: 'M12 3l7.5 3v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6zM9 12l2 2 4-4',
+  card: 'M3 6h18v12H3zM3 10h18M7 15h4',
+  receipt: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6',
+  lock: 'M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3',
+  help: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.4M12 16.5v.01',
+  logout: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10',
+  settings: 'M4 7h9M17 7h3M4 17h3M11 17h9M13 5v4M9 15v4',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  globe: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3.5 9h17M3.5 15h17M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3',
+  calendar: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5',
+  download: 'M12 4v11M7.5 10.5 12 15l4.5-4.5M4 19h16',
+  trash: 'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13',
+  mail: 'M3 6h18v12H3zM3 7l9 6 9-6',
+  chart: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
+  qr: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2',
+  pause: 'M8 5v14M16 5v14',
+  play: 'M7 5l12 7-12 7z',
+  external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
+  audit: 'M8 4h10v16H6V6zM8 4v2H6M9 10h6M9 14h6M9 18h3',
 };
 export function Icon({ name, size }: { name: keyof typeof PATHS | string; size?: number }) {
   return (
@@ -38,7 +60,10 @@ export const initials = (name: string) => {
   return (words.map((w) => w[0]).join('').slice(0, 2) || '?').toUpperCase();
 };
 
-export function Avatar({ name, size }: { name: string; size?: 'sm' }) {
+/** Initials, or the person's photo when there is one (falls back to initials if it cannot load). */
+export function Avatar({ name, size, src }: { name: string; size?: 'sm' | 'lg'; src?: string | null }) {
+  const [failed, setFailed] = useState(false);
+  if (src && !failed) return <span className={`avatar has-img ${size ?? ''}`} title={name} aria-hidden="true"><img src={src} alt="" onError={() => setFailed(true)} /></span>;
   return <span className={`avatar ${size ?? ''}`} title={name} aria-hidden="true">{initials(name)}</span>;
 }
 
@@ -97,7 +122,11 @@ export function Menu({ anchor, onClose, children }: { anchor: HTMLElement; onClo
   useLayoutEffect(() => {
     const r = anchor.getBoundingClientRect();
     const w = ref.current?.offsetWidth ?? 220;
-    setPos({ top: r.bottom + 6, left: Math.max(8, Math.min(r.right - w, window.innerWidth - w - 8)) });
+    const hgt = ref.current?.offsetHeight ?? 0;
+    // Near the bottom of the window (for example the corner button of a bare app), open upwards.
+    const below = window.innerHeight - r.bottom - 12;
+    const top = hgt > below && r.top - hgt - 6 > 8 ? r.top - hgt - 6 : r.bottom + 6;
+    setPos({ top, left: Math.max(8, Math.min(r.left < w ? r.left : r.right - w, window.innerWidth - w - 8)) });
     ref.current?.querySelector<HTMLButtonElement>('button')?.focus();
   }, [anchor]);
   useEffect(() => {
@@ -154,21 +183,26 @@ export function Select<T extends string>({ value, options, onChange, label, widt
 }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [q, setQ] = useState('');
   const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const cur = options.find((o) => o.value === value);
+  // Long lists (countries, time zones) get a search box.
+  const searchable = options.length > 12;
+  const shown = searchable && q ? options.filter((o) => (o.label + ' ' + (o.hint ?? '')).toLowerCase().includes(q.toLowerCase())) : options;
   const close = useCallback((focus = true) => { setOpen(false); if (focus) btn.current?.focus(); }, []);
 
   useLayoutEffect(() => {
     if (!open || !btn.current) return;
     const r = btn.current.getBoundingClientRect();
     const w = Math.max(r.width, 200);
-    const h = Math.min(320, options.length * 40 + 12);
+    const h = Math.min(searchable ? 380 : 320, options.length * 40 + 12 + (searchable ? 48 : 0));
     const up = innerHeight - r.bottom < h + 12 && r.top > innerHeight - r.bottom;
     setPos({ top: up ? r.top - h - 6 : r.bottom + 6, left: Math.max(8, Math.min(r.left, innerWidth - w - 8)), width: w });
   }, [open, options.length]);
-  useEffect(() => { if (open && pos) list.current?.focus({ preventScroll: true }); }, [open, pos]);
+  useEffect(() => { if (open && pos) (searchRef.current ?? list.current)?.focus({ preventScroll: true }); if (!open) setQ(''); }, [open, pos]);
   useEffect(() => {
     if (!open) return;
     const outside = (e: Event) => { const t = e.target as Node; if (!list.current?.contains(t) && !btn.current?.contains(t)) close(false); };
@@ -181,9 +215,9 @@ export function Select<T extends string>({ value, options, onChange, label, widt
 
   const choose = (o: SelectOption<T>) => { close(); if (o.value !== value) onChange(o.value); };
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(options.length - 1, a + 1)); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => Math.min(shown.length - 1, a + 1)); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => Math.max(0, a - 1)); }
-    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (options[active]) choose(options[active]); }
+    else if (e.key === 'Enter' || (e.key === ' ' && !searchable)) { e.preventDefault(); if (shown[active]) choose(shown[active]); }
     else if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); close(); }
   };
   // Inside a modal dialog the list must live in the dialog (it sits above the rest of the page).
@@ -198,8 +232,10 @@ export function Select<T extends string>({ value, options, onChange, label, widt
         <Icon name="down" size={15} />
       </button>
       {open && pos && createPortal(
-        <div ref={list} className="dd-pop" role="listbox" tabIndex={-1} aria-label={label} style={{ top: pos.top, left: pos.left, minWidth: pos.width }} onKeyDown={onKey}>
-          {options.map((o, i) => (
+        <div ref={list} className={`dd-pop ${searchable ? 'dd-searchable' : ''}`} role="listbox" tabIndex={-1} aria-label={label} style={{ top: pos.top, left: pos.left, minWidth: pos.width }} onKeyDown={onKey}>
+          {searchable && <input ref={searchRef} className="input dd-search" placeholder="Search" aria-label={`Search ${label}`} value={q} onChange={(e) => { setQ(e.target.value); setActive(0); }} />}
+          {searchable && !shown.length && <p className="hint" style={{ padding: '8px 10px' }}>Nothing matches.</p>}
+          {shown.map((o, i) => (
             <div key={o.value} role="option" aria-selected={o.value === value} className={`dd-opt ${i === active ? 'act' : ''}`}
               onPointerMove={() => setActive(i)} onPointerDown={(e) => e.preventDefault()} onClick={() => choose(o)}>
               <span className="dd-t">{o.label}{o.hint && <small>{o.hint}</small>}</span>

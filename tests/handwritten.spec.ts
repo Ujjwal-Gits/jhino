@@ -13,7 +13,7 @@ test.afterEach(async ({ browser }) => { for (const c of browser.contexts()) awai
 
 async function webSignIn(browser: Browser, login: string, password: string, width: number) {
   const page = await (await browser.newContext({ viewport: { width, height: 820 } })).newPage();
-  await page.goto('/');
+  await page.goto('/login');
   await page.fill('input[autocomplete=username]', login);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');

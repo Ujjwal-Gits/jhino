@@ -36,7 +36,7 @@ async function person(owner: Api, appId: string, name: string, role: string) {
 }
 async function signIn(browser: Browser, login: string, password: string, width = 1360): Promise<Page> {
   const page = await (await browser.newContext({ viewport: { width, height: width < 600 ? 844 : 860 } })).newPage();
-  await page.goto('/');
+  await page.goto('/login');
   await page.fill('input[autocomplete=username]', login);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');

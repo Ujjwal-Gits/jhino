@@ -1,14 +1,21 @@
-# Jhino status (2026-09-24, fourth round)
+# Jhino status (2026-09-25, SaaS round)
 
 Measured against the product brief plus the owner's direction:
 - the main job: **upload or create an HTML, share it with a client by sign-in, and both sides work on the same data and files, live**
 - **Create HTML** is for work between a studio or IT company and its clients (never internal HR or company management): who it is for, 41 features, the design; it opens directly
 - no management dashboard; every app needs a sign-in ID and password made by its owner, with roles
 
-## Tested automatically: `npm test`, 28 tests × Chromium, Firefox, WebKit = 84/84 passing
+## Tested automatically: `npm test`, 36 tests × Chromium, Firefox, WebKit = 108/108 passing
 
 | Area | What the tests prove |
 | --- | --- |
+| Accounts (new) | Sign up, email confirmation link (single use), forgot/reset (same answer for unknown emails, link works once, everyone signed out), change password (needs the current one, other devices signed out), profile validation, sessions, security activity, data export without secrets, account deletion (needs DELETE and the password) |
+| Plans and QR payments (new) | Free Forever allows 1 app and the server refuses the 2nd (upload and Create HTML); fake PNGs refused for QR and proof; one pending payment at a time; proof private to the payer and super admins; customers cannot approve; two approvals at the same moment grant the plan once; rejection keeps the plan and shows the reason; audit log entries |
+| Link sharing and addresses (new) | Private → public (view, then add) → password (old visitors sent back, wrong/right password) → private; visitors reach only that app (no account, no app list, no invites, no member list); only super admins set addresses, reserved names refused; `/<address>` opens the app |
+| Super Admin (new) | Paid sign-ins with a plan, suspend (signed out at once, sign-in refused with the reason) and reactivate, no self-suspend or self-demotion, customers get 403 on every admin API, uploads switch refusing app files with UPLOADS_OFF, audit log |
+| Continue with Google (new) | Against a stand-in provider: new account, forged signature refused, same account next time, an unconfirmed same-email account taken over safely (its password stops working), unverified email refused, replayed callback refused |
+| Studio booking (new) | A reminder sent once, at the set time before the booking, with the owner's message and a link to the booking; on screen: day view, booking a free slot, double-booking warning |
+| Top bar (new) | Hide the top bar from the menu, the corner button brings the menu back, show it again |
 | Client work (new) | On a created HTML: we deliver a video, the client (own sign-in) sees it live, comments and asks for changes; we see the status and comment count live and reply; the video is made smaller on the server even while someone streams the original, and still streams (206, MP4); the client adds a receipt with a photo and we see it; we share photos and the client's Pick shows up for us; we change the built HTML and the client's open copy switches to the new version by itself, staying in the same section |
 | Activity | Lines point at their item (comments at the item they belong to); lines about private items and files are hidden from people who cannot see them; "seen" per person, never backwards |
 | Nepali dates | BS with AD small in lists, the date picker (picking saves the right AD date) and BS calendar months with Saturday; AD-only apps show AD |

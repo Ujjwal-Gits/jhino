@@ -12,7 +12,7 @@ test('mood board: paste links, they show as tiles next to the photos', async ({ 
   expect(r.status()).toBe(200);
   const appId = (await r.json()).app.id;
   const page = await (await browser.newContext()).newPage();
-  await page.goto('/');
+  await page.goto('/login');
   await page.fill('input[autocomplete=username]', 'owner@test.local');
   await page.fill('input[type=password]', 'owner-password-123');
   await page.click('button:has-text("Sign in")');

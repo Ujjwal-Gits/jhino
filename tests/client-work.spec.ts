@@ -20,7 +20,7 @@ test.afterEach(async ({ browser }) => { for (const c of browser.contexts()) awai
 
 async function signIn(browser: Browser, login: string, password: string): Promise<Page> {
   const page = await (await browser.newContext({ viewport: { width: 1360, height: 860 } })).newPage();
-  await page.goto('/');
+  await page.goto('/login');
   await page.fill('input[autocomplete=username]', login);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');
@@ -155,8 +155,13 @@ test('client work: deliver a video, client comments and asks for changes, receip
   await expect(U.locator('.proof-tile')).toHaveCount(2);
   await T.locator('nav button', { hasText: 'Photo proofing' }).click();
   await expect(T.locator('.proof-tile')).toHaveCount(2);
-  await T.locator('.proof-tile', { hasText: 'tea-01' }).locator('button.pk-pick').click();
-  await expect(U.locator('.proof-tile.is-pick')).toHaveCount(1);
+  // The grid redraws as the photos' details arrive; if the click lands on the old tile, click the new one.
+  await expect(async () => {
+    const tile = T.locator('.proof-tile', { hasText: 'tea-01' });
+    if (!(await tile.getAttribute('class'))?.includes('is-pick')) await tile.locator('button.pk-pick').click();
+    await expect(T.locator('.proof-tile.is-pick')).toHaveCount(1, { timeout: 3000 });
+  }).toPass({ timeout: 20_000 });
+  await expect(U.locator('.proof-tile.is-pick')).toHaveCount(1, { timeout: 15_000 });
   await expect(U.locator('.proofbar button', { hasText: 'Picked' }).locator('.n')).toHaveText('1');
   await expect(U.locator('.proof-tile.is-pick')).toContainText('tea-01');
   // Every card is the same size; the viewer puts the picks under the photo, and M marks it Maybe.
@@ -194,7 +199,7 @@ test('phone: main sections in a bottom bar, everything else behind the menu butt
   const appId = (await built.json()).app.id;
 
   const page = await (await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true })).newPage();
-  await page.goto('/');
+  await page.goto('/login');
   await page.fill('input[autocomplete=username]', OWNER.email);
   await page.fill('input[type=password]', OWNER.password);
   await page.click('button:has-text("Sign in")');

@@ -426,6 +426,11 @@
         purge: (ids) => J.trash.purge(ids),
         subscribe: (fn) => J.trash.subscribe(fn),
       } : null,
+      uploads: J.uploadsAllowed !== false,
+      storage: window.storage ? {
+        get: (k) => window.storage.get(k, true).then((r) => (r ? r.value : null)),
+        set: (k, v) => window.storage.set(k, v, true),
+      } : null,
       setLocation: (hash) => { if (J.setLocation) J.setLocation(hash); },
       openInNewTab: J.openInNewTab ? (hash) => J.openInNewTab(hash) : null,
       openFull: J.openFull ? (hash) => J.openFull(hash) : null,
@@ -434,6 +439,7 @@
   }
   function mockApi() {
     const me = { id: 'u_you', name: 'You', email: 'you@preview', role: 'owner' };
+    const kv = new Map();
     const people = [me, { id: 'u_asha', name: 'Asha Tamang', role: 'editor' }, { id: 'u_bikash', name: 'Bikash Rai', role: 'contributor' }];
     const cols = {}, subs = {}, files = new Map(), fileSubs = [];
     let n = 0;
@@ -454,6 +460,8 @@
     }
     const clone = (x) => JSON.parse(JSON.stringify(x));
     return {
+      uploads: true,
+      storage: { get: async (k) => (kv.has(k) ? kv.get(k) : null), set: async (k, v) => { kv.set(k, v); } },
       ready: () => Promise.resolve(), me: () => Promise.resolve(me), people: () => Promise.resolve(people),
       list: (col) => Promise.resolve(clone(cols[col] || [])),
       create(col, data) {
@@ -527,6 +535,8 @@
     };
   }
   const API = PREVIEW ? mockApi() : realApi();
+  // The platform can keep files as links only; then upload buttons step aside and links do the job.
+  const UPLOADS = () => API.uploads !== false;
 
   /* ================= state ================= */
   const S = {
@@ -690,8 +700,9 @@
     tabs.replaceChildren(
       ...list.map((b) => h('button', { 'aria-current': S.current === b.id ? 'page' : null, onClick: () => go(b.id) },
         icon(b.icon), h('span', { class: 'tl', text: tabLabel(b) }))),
-      fitsAll ? null : h('button', { 'aria-current': inMore ? 'page' : null, 'aria-haspopup': 'dialog', onClick: openMenu },
-        icon('menu'), h('span', { class: 'tl', text: inMore && blockById(S.current) ? tabLabel(blockById(S.current)) : 'More' })));
+      // (replaceChildren would print a null as the word "null")
+      ...(fitsAll ? [] : [h('button', { 'aria-current': inMore ? 'page' : null, 'aria-haspopup': 'dialog', onClick: openMenu },
+        icon('menu'), h('span', { class: 'tl', text: inMore && blockById(S.current) ? tabLabel(blockById(S.current)) : 'More' }))]));
   }
   let menuEls = null;
   function closeMenu() {
@@ -1000,7 +1011,7 @@
           fm ? h('a', { class: 'btn sm', href: API.files.url(id, true), download: fm.name }, icon('download', 14), 'Download') : null,
           disabled ? null : h('button', { class: 'btn sm ghost', type: 'button', onClick: () => { current = current.filter((x) => x !== id); onIds(current); draw(); } }, 'Remove'));
       });
-      const drop = disabled ? null : compact ? h('button', { type: 'button', class: 'btn sm attach', onClick: () => input.click() }, icon('upload', 14), current.length && !multiple ? 'Replace file' : multiple && current.length ? 'Attach more' : 'Attach a file') : h('div', {
+      const drop = disabled ? null : !UPLOADS() ? h('p', { class: 'hint', text: 'File uploads are off here. Add a link in "Files and links" instead.' }) : compact ? h('button', { type: 'button', class: 'btn sm attach', onClick: () => input.click() }, icon('upload', 14), current.length && !multiple ? 'Replace file' : multiple && current.length ? 'Attach more' : 'Attach a file') : h('div', {
         class: 'drop', tabindex: '0', role: 'button',
         onClick: () => input.click(),
         onKeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } },
@@ -1160,6 +1171,14 @@
     const b = d.block;
     const miss = missing(b, d.draft);
     if (miss.length) { toast(miss.some((f) => f.orLink) ? 'Add a file or a link: ' + miss.map((f) => f.label).join(', ') : 'Fill in: ' + miss.map((f) => f.label).join(', '), true); const el = document.getElementById('f_' + b.id + '_' + miss[0].key); if (el) el.focus(); return; }
+    if (b.engine === 'booking') {
+      const s = hm(d.draft.start), e = hm(d.draft.end);
+      if (s !== null && e !== null && e <= s) { toast('The end time must be after the start time.', true); return; }
+      if (!force && !BOOK_DONE.includes(d.draft.status)) {
+        const clash = bookingClashes(b, dateOnly(d.draft.date), d.draft.start, d.draft.end, d.rec ? d.rec.id : null);
+        if (clash.length && !(await confirmBox('This time is already booked', clash.map((r) => (r.data.customer || 'Booking') + ' ' + bookSpan(r)).join(', ') + '. Book it anyway?', 'Book anyway', false))) return;
+      }
+    }
     const data = cleanDraft(b, d.draft, d.rec);
     if (d.rec && !Object.keys(data).length) { closeDrawer(); return; }
     d.busy = true; renderDrawer();
@@ -1225,7 +1244,7 @@
           await quickSet(b, fresh, s.status, s.signedStatus, 'Signed copy uploaded');
         } catch (err) { row.fail(explain(err)); }
       } });
-      box.appendChild(h('div', null, input, h('button', { class: 'btn primary sm', onClick: () => input.click() }, icon('upload', 14), 'Upload signed copy')));
+      if (UPLOADS()) box.appendChild(h('div', null, input, h('button', { class: 'btn primary sm', onClick: () => input.click() }, icon('upload', 14), 'Upload signed copy')));
     } else if (status === s.waiting) {
       box.appendChild(h('p', { class: 'hint', text: 'Waiting for ' + ((person(rec.data[s.signer]) || {}).name || 'the signer') + ' to upload the signed copy.' }));
     } else if (signed) {
@@ -1297,7 +1316,7 @@
       h('h4', null, 'Comments', countEl),
       listEl,
       canAdd() ? h('div', { class: 'cmt-new' }, ta, h('div', { class: 'actions', style: { alignItems: 'center' } },
-        pick, h('button', { class: 'btn sm ghost', type: 'button', onClick: () => pick.click() }, icon('upload', 14), 'Attach'), att, h('span', { class: 'grow' }), sendBtn)) : null);
+        UPLOADS() ? [pick, h('button', { class: 'btn sm ghost', type: 'button', onClick: () => pick.click() }, icon('upload', 14), 'Attach')] : null, att, h('span', { class: 'grow' }), sendBtn)) : null);
   }
   /** "Ask for changes": the reason is posted as a comment, then the status moves. */
   async function askForChanges(b, rec, action) {
@@ -1782,7 +1801,7 @@
     };
     const sec = h('section', { class: 'ip-sec attbox' },
       h('div', { class: 'ip-sec-h' }, h('h4', null, 'Files and links', list.length ? h('span', { class: 'muted num', text: ' ' + list.length }) : null), h('span', { class: 'grow' }),
-        canAdd() ? [pick, h('button', { class: 'btn sm', onClick: () => pick.click() }, icon('upload', 14), 'Upload files')] : null),
+        canAdd() && UPLOADS() ? [pick, h('button', { class: 'btn sm', onClick: () => pick.click() }, icon('upload', 14), 'Upload files')] : null),
       chosen.length ? h('div', { class: 'bulk' }, h('b', { text: chosen.length + ' selected' }),
         chosen.some((a) => a.t === 'file') ? h('button', { class: 'btn sm', onClick: () => downloadFiles(chosen.filter((a) => a.t === 'file').map((a) => a.id)) }, icon('download', 14), 'Download') : null,
         chosen.some((a) => a.t === 'link') ? h('button', { class: 'btn sm', onClick: () => { chosen.filter((a) => a.t === 'link').forEach((a) => window.open(a.url, '_blank', 'noopener')); } }, icon('external', 14), 'Open links') : null,
@@ -2080,6 +2099,188 @@
       undated ? h('p', { class: 'hint', text: undated + (undated === 1 ? ' item has' : ' items have') + ' no date and ' + (undated === 1 ? 'is' : 'are') + ' not on the calendar. Switch to List to see ' + (undated === 1 ? 'it' : 'them') + '.' }) : null);
   }
 
+
+  /* ---------- studio booking: a day of time slots, the month, upcoming and history ---------- */
+  const BOOK_DONE = ['Completed', 'Cancelled', 'No-show'];
+  const BOOK_VIEWS = [['day', 'Day', 'table'], ['month', 'Month', 'calendar'], ['upcoming', 'Upcoming', 'chevR'], ['history', 'History', 'refresh']];
+  const BOOK_KEY = (b) => 'jhino.booking-reminders.' + b.id;
+  const BOOK_TZ = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kathmandu'; } catch (e) { return 'Asia/Kathmandu'; } })();
+  const hm = (t) => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+  const hmText = (min) => String(Math.floor(min / 60) % 24).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
+  const bookAt = (r, key) => { const d = dateOnly(r.data.date), t = hm(r.data[key || 'start']); return d && t !== null ? new Date(d + 'T' + hmText(t) + ':00').getTime() : null; };
+  const bookEnd = (r) => bookAt(r, 'end') || ((bookAt(r) || 0) + 3600e3);
+  const bookTone = (r) => ({ Confirmed: 'ok', Completed: 'done', Cancelled: 'bad', 'No-show': 'warn' }[r.data.status] || 'new');
+  const bookSpan = (r) => (r.data.start || '') + (r.data.end ? '–' + r.data.end : '');
+  const DEFAULT_REMINDER = { enabled: true, minutes: 60, message: 'Studio booking: {customer} at {time} ({service}).' };
+  function reminderCfg(b) {
+    S.bookCfg = S.bookCfg || {};
+    if (!S.bookCfg[b.id]) {
+      S.bookCfg[b.id] = Object.assign({}, DEFAULT_REMINDER, { loading: true });
+      (API.storage ? API.storage.get(BOOK_KEY(b)) : Promise.resolve(null)).then((v) => {
+        let saved = {};
+        try { saved = v ? JSON.parse(v) : {}; } catch (e) { saved = {}; }
+        S.bookCfg[b.id] = Object.assign({}, DEFAULT_REMINDER, saved, { loading: false });
+        if (S.current === b.id) renderMain();
+      }).catch(() => { S.bookCfg[b.id].loading = false; });
+    }
+    return S.bookCfg[b.id];
+  }
+  /** Other live bookings that overlap a time on a day. */
+  function bookingClashes(b, date, start, end, selfId) {
+    const s = hm(start), e = hm(end);
+    if (s === null || e === null) return [];
+    return col(b.id).items.filter((r) => r.id !== selfId && dateOnly(r.data.date) === date && !BOOK_DONE.includes(r.data.status)
+      && hm(r.data.start) !== null && s < (hm(r.data.end) ?? hm(r.data.start) + 60) && e > hm(r.data.start));
+  }
+
+  ENGINES.booking = function (b) {
+    const all = col(b.id).items;
+    const view = BOOK_VIEWS.some((v) => v[0] === S.view[b.id]) ? S.view[b.id] : 'day';
+    const tdy = today();
+    const day = S.calSel[b.id] || tdy;
+    const cfg = reminderCfg(b);
+    const nowT = Date.now();
+    // The next booking inside the reminder window, shown while the app is open.
+    const soon = cfg.enabled ? all.filter((r) => !BOOK_DONE.includes(r.data.status)).map((r) => ({ r, t: bookAt(r) })).filter((x) => x.t && x.t > nowT && x.t - nowT <= cfg.minutes * 60e3).sort((x, y) => x.t - y.t)[0] : null;
+    const setDay = (iso) => { S.calSel[b.id] = iso; renderMain(); };
+    const nav = view === 'day' ? h('div', { class: 'bk-nav' },
+      h('button', { class: 'icon', 'aria-label': 'Previous day', onClick: () => setDay(addDays(day, -1)) }, icon('chevL')),
+      datePicker({ value: day, label: 'Day', compact: true, onChange: (v) => setDay(v) }),
+      h('button', { class: 'icon', 'aria-label': 'Next day', onClick: () => setDay(addDays(day, 1)) }, icon('chevR')),
+      day !== tdy ? h('button', { class: 'btn sm', onClick: () => setDay(tdy) }, 'Today') : null) : null;
+    let content;
+    if (view === 'month') content = calendarView(b, all);
+    else if (view === 'upcoming') content = bookingList(b, all.filter((r) => !BOOK_DONE.includes(r.data.status) && bookEnd(r) >= nowT).sort((x, y) => (bookAt(x) || 0) - (bookAt(y) || 0)), false);
+    else if (view === 'history') content = bookingList(b, all.filter((r) => BOOK_DONE.includes(r.data.status) || bookEnd(r) < nowT).sort((x, y) => (bookAt(y) || 0) - (bookAt(x) || 0)), true);
+    else content = bookingDay(b, day, all);
+    const gear = canEdit() ? h('button', { class: 'btn', onClick: () => bookingSettings(b) }, icon('bell', 16), cfg.enabled ? 'Reminders: ' + minutesText(cfg.minutes) + ' before' : 'Reminders off') : null;
+    return [
+      head(b, [gear, addButton(b, 'New booking', { date: view === 'day' ? day : tdy, start: '10:00', end: '11:00' })]),
+      h('div', { class: 'body' },
+        soon ? h('div', { class: 'notice bk-soon', role: 'status' }, icon('bell', 16),
+          h('span', { class: 'grow' }, h('b', { text: 'Next: ' + (soon.r.data.customer || 'Booking') + ' at ' + (soon.r.data.start || '') }), ' · starts in ' + minutesText(Math.max(1, Math.round((soon.t - nowT) / 60e3)))),
+          h('button', { class: 'btn sm', onClick: () => openRecord(b, soon.r.id) }, 'Open')) : null,
+        h('div', { class: 'toolbar bk-bar' },
+          h('div', { class: 'seg', role: 'group', 'aria-label': 'View' }, BOOK_VIEWS.map((v) => h('button', { 'aria-pressed': view === v[0] ? 'true' : 'false', onClick: () => { S.view[b.id] = v[0]; renderMain(); } }, v[1]))),
+          h('span', { class: 'grow' }), nav),
+        content),
+    ];
+  };
+  function minutesText(m) {
+    if (m % 1440 === 0) return m / 1440 === 1 ? '1 day' : m / 1440 + ' days';
+    if (m % 60 === 0) return m / 60 === 1 ? '1 hour' : m / 60 + ' hours';
+    return m + ' min';
+  }
+
+  /** One day as time slots: free slots book with a tap, bookings sit on the times they take. */
+  function bookingDay(b, day, all) {
+    const list = all.filter((r) => dateOnly(r.data.date) === day && r.data.status !== 'Cancelled' && hm(r.data.start) !== null);
+    const starts = list.map((r) => hm(r.data.start)), ends = list.map((r) => hm(r.data.end) ?? hm(r.data.start) + 60);
+    const from = Math.min(8 * 60, ...starts.map((s) => Math.floor(s / 60) * 60));
+    const to = Math.min(24 * 60, Math.max(22 * 60, ...ends.map((e) => Math.ceil(e / 60) * 60)));
+    const SLOT = 30, ROW = 30;
+    const y = (min) => ((min - from) / SLOT) * ROW;
+    // Bookings that overlap sit side by side.
+    const lanes = [], laneOf = new Map();
+    list.slice().sort((p, q) => hm(p.data.start) - hm(q.data.start)).forEach((r) => {
+      const s = hm(r.data.start), e = Math.max(s + 15, hm(r.data.end) ?? s + 60);
+      let i = lanes.findIndex((end) => end <= s);
+      if (i < 0) { i = lanes.length; lanes.push(e); } else lanes[i] = e;
+      laneOf.set(r.id, i);
+    });
+    const n = Math.max(1, lanes.length);
+    const grid = h('div', { class: 'bk-day', style: { height: y(to) + 'px' } });
+    for (let t = from; t < to; t += SLOT) {
+      const busy = list.some((r) => { const s = hm(r.data.start), e = hm(r.data.end) ?? s + 60; return t < e && t + SLOT > s; });
+      const free = !busy && canCreate(b);
+      grid.appendChild(h('button', {
+        type: 'button', class: 'bk-slot' + (busy ? ' busy' : '') + (t % 60 === 0 ? ' hour' : ''), style: { top: y(t) + 'px', height: ROW + 'px' },
+        disabled: free ? null : true, 'aria-label': (busy ? 'Booked at ' : 'Free at ') + hmText(t) + (free ? ', book it' : ''),
+        onClick: () => openDrawer(b, null, { date: day, start: hmText(t), end: hmText(Math.min(t + 60, 23 * 60 + 59)) }),
+      }, t % 60 === 0 ? h('span', { class: 'bk-t', text: hmText(t) }) : null, free ? h('span', { class: 'bk-free' }, icon('plus', 13), 'Book ' + hmText(t)) : null));
+    }
+    list.forEach((r) => {
+      const s = hm(r.data.start), e = Math.max(s + 15, hm(r.data.end) ?? s + 60), lane = laneOf.get(r.id);
+      grid.appendChild(h('button', {
+        type: 'button', class: 'bk-ev t-' + bookTone(r), 'data-rec': r.id,
+        style: { top: (y(s) + 1) + 'px', height: Math.max(ROW - 3, y(e) - y(s) - 3) + 'px', left: 'calc(58px + (100% - 64px) * ' + lane / n + ')', width: 'calc((100% - 64px) / ' + n + ' - 4px)' },
+        onClick: () => openRecord(b, r.id),
+      }, h('b', { text: r.data.customer || 'Booking' }), h('span', { text: bookSpan(r) + (r.data.service ? ' · ' + r.data.service : '') + (r.data.status && r.data.status !== 'Booked' ? ' · ' + r.data.status : '') })));
+    });
+    if (day === today()) {
+      const d = new Date(), m = d.getHours() * 60 + d.getMinutes();
+      if (m >= from && m <= to) grid.appendChild(h('div', { class: 'bk-now', style: { top: y(m) + 'px' }, 'aria-hidden': 'true' }));
+    }
+    const booked = list.reduce((sum, r) => sum + Math.max(0, (hm(r.data.end) ?? hm(r.data.start) + 60) - hm(r.data.start)), 0);
+    return h('div', { class: 'bk-daywrap' },
+      h('div', { class: 'bk-dayh' },
+        h('div', null, h('b', { text: fmtDate(day) }), altDate(day) ? h('span', { class: 'muted', text: ' · ' + altDate(day) }) : null,
+          h('span', { class: 'muted', text: ' · ' + new Date(isoUTC(day)).toLocaleDateString(undefined, { weekday: 'long', timeZone: 'UTC' }) })),
+        h('span', { class: 'muted', text: list.length ? list.length + (list.length === 1 ? ' booking · ' : ' bookings · ') + minutesText(booked) + ' booked' : 'All free' })),
+      grid);
+  }
+
+  function bookingList(b, items, past) {
+    if (!items.length) return h('div', { class: 'empty' }, h('b', { text: past ? 'No past bookings yet' : 'No upcoming bookings' }), past ? 'Finished, cancelled and past bookings show up here.' : 'New bookings appear here in time order.', !past && canCreate(b) ? h('div', null, addButton(b, 'New booking', { date: today(), start: '10:00', end: '11:00' })) : null);
+    const groups = [];
+    items.forEach((r) => { const d = dateOnly(r.data.date) || ''; const g = groups[groups.length - 1]; if (g && g.d === d) g.items.push(r); else groups.push({ d, items: [r] }); });
+    return h('div', { class: 'bk-list' }, groups.map((g) => h('section', { class: 'bk-group' },
+      h('h4', null, h('span', { text: g.d === today() ? 'Today' : g.d === addDays(today(), 1) ? 'Tomorrow' : fmtDate(g.d) }), altDate(g.d) ? h('small', { class: 'muted', text: altDate(g.d) }) : null,
+        h('small', { class: 'muted', text: g.d ? new Date(isoUTC(g.d)).toLocaleDateString(undefined, { weekday: 'short', timeZone: 'UTC' }) : '' })),
+      g.items.map((r) => {
+        const can = canChange(b, r);
+        return h('div', { class: 'bk-row', 'data-rec': r.id },
+          h('span', { class: 'bk-time num', text: bookSpan(r) }),
+          h('button', { class: 'bk-who', onClick: () => openRecord(b, r.id) }, h('b', { text: r.data.customer || 'Booking' }),
+            h('span', { class: 'muted', text: [r.data.service, r.data.phone].filter(Boolean).join(' · ') })),
+          h('span', { class: 'bk-chip t-' + bookTone(r), text: r.data.status || 'Booked' }),
+          !past && can ? h('span', { class: 'bk-acts' },
+            h('button', { class: 'btn sm', onClick: () => openDrawer(b, r) }, 'Reschedule'),
+            h('button', { class: 'btn sm quiet', onClick: async () => { if (await confirmBox('Cancel this booking?', (r.data.customer || 'This booking') + ' on ' + fmtDate(r.data.date) + ' at ' + bookSpan(r) + '. The time becomes free again.', 'Cancel booking', true)) quickSet(b, r, 'status', 'Cancelled', 'Booking cancelled'); } }, 'Cancel')) : null);
+      }))));
+  }
+
+  /** When reminders go out, and what they say. Saved in the app, so everyone's reminders follow it. */
+  function bookingSettings(b) {
+    const cur = Object.assign({}, reminderCfg(b));
+    const PRESETS = [10, 30, 60, 120, 1440];
+    let minutes = cur.minutes, custom = !PRESETS.includes(minutes);
+    const scrim = h('div', { class: 'scrim modal-scrim' });
+    const on = h('input', { type: 'checkbox', checked: cur.enabled !== false });
+    const customIn = h('input', { class: 'input', type: 'number', min: '1', max: '20160', value: String(minutes), 'aria-label': 'Minutes before', style: { width: '110px' } });
+    const msg = h('textarea', { class: 'textarea', rows: '3', maxlength: '300', 'aria-label': 'Reminder message' });
+    msg.value = cur.message || DEFAULT_REMINDER.message;
+    const customRow = h('label', { class: 'field bk-custom' }, h('span', { text: 'Minutes before' }), customIn);
+    const when = dropdown({ label: 'When', value: custom ? 'custom' : String(minutes),
+      options: PRESETS.map((m) => ({ value: String(m), label: minutesText(m) + ' before' })).concat([{ value: 'custom', label: 'Custom time' }]),
+      onChange: (v) => { custom = v === 'custom'; if (!custom) minutes = +v; customRow.style.display = custom ? '' : 'none'; } });
+    customRow.style.display = custom ? '' : 'none';
+    const close = () => { scrim.remove(); box.remove(); document.removeEventListener('keydown', key); };
+    const key = (e) => { if (e.key === 'Escape' && !openPop) close(); };
+    const save = h('button', { class: 'btn primary', onClick: async () => {
+      const m = custom ? Math.round(Number(customIn.value)) : minutes;
+      if (!(m >= 1 && m <= 20160)) { toast('Use 1 minute to 14 days.', true); customIn.focus(); return; }
+      const next = { enabled: on.checked, minutes: m, message: msg.value.trim().slice(0, 300) || DEFAULT_REMINDER.message, tz: BOOK_TZ };
+      try {
+        if (!API.storage) throw new Error('Saving settings is not available here.');
+        await API.storage.set(BOOK_KEY(b), JSON.stringify(next));
+        S.bookCfg[b.id] = Object.assign({}, next, { loading: false });
+        close(); toast(next.enabled ? 'Reminders ' + minutesText(m) + ' before each booking' : 'Reminders are off'); renderMain();
+      } catch (e) { showErr(e); }
+    } }, 'Save');
+    const box = h('div', { class: 'modal bk-settings', role: 'dialog', 'aria-label': 'Booking reminders' },
+      h('h3', { text: 'Booking reminders', style: { fontSize: '17px' } }),
+      h('p', { class: 'muted', text: 'Everyone who can edit this app gets a reminder before each booking: in the Jhino bell, as a desktop notification if they turned those on, and by email if they chose to.' }),
+      h('label', { class: 'switch' }, on, 'Send booking reminders'),
+      h('div', { class: 'field' }, h('span', { text: 'When' }), when), customRow,
+      h('label', { class: 'field' }, h('span', { text: 'Message' }), msg, h('small', { class: 'hint', text: 'You can use {customer}, {time}, {date}, {service} and {end}.' })),
+      h('div', { class: 'actions', style: { justifyContent: 'flex-end' } }, h('button', { class: 'btn', onClick: close, text: 'Cancel' }), save));
+    scrim.addEventListener('click', close);
+    document.addEventListener('keydown', key);
+    document.body.append(scrim, box);
+    on.focus();
+  }
+
   /* ---------- files: library and gallery ---------- */
   const PICKS = ['Pick', 'Maybe', 'No'];
   function pickBar(b, r, big, after) {
@@ -2100,7 +2301,7 @@
     if (pf) items = items.filter((r) => (pf === 'none' ? !r.data.pick : r.data.pick === pf));
     const folders = [...new Set(all.map((r) => r.data.folder).filter(Boolean))].sort();
     const input = h('input', { type: 'file', class: 'sr', multiple: true, accept: gallery ? 'image/*,video/*' : null, onChange: (e) => { uploadMany(b, [...e.target.files]); e.target.value = ''; } });
-    const uploadBtn = canCreate(b) ? h('button', { class: 'btn primary', onClick: () => input.click() }, icon('upload', 16), gallery ? 'Add photos or videos' : 'Upload files') : null;
+    const uploadBtn = canCreate(b) && UPLOADS() ? h('button', { class: 'btn primary', onClick: () => input.click() }, icon('upload', 16), gallery ? 'Add photos or videos' : 'Upload files') : null;
     const linkBtn = canCreate(b) ? h('button', { class: 'btn', onClick: () => addFileLinks(b) }, icon('link', 16), 'Add link') : null;
     const totalSize = all.reduce((s, r) => s + ((fileMeta(r.data.file) || {}).size || 0), 0);
     const nLinks = all.filter((r) => !r.data.file && r.data.link).length, nFiles = all.length - nLinks;
@@ -2136,16 +2337,15 @@
       proofBar,
       folders.length ? h('div', { class: 'folders' }, h('button', { 'aria-pressed': !S.folder[b.id] ? 'true' : 'false', onClick: () => { S.folder[b.id] = ''; renderMain(); } }, 'All'),
         folders.map((f) => h('button', { 'aria-pressed': S.folder[b.id] === f ? 'true' : 'false', onClick: () => { S.folder[b.id] = f; renderMain(); } }, f))) : null,
-      !all.length ? h('div', { class: 'empty' }, h('b', { text: gallery ? 'No photos, videos or links yet' : 'No files or links yet' }), canCreate(b) ? 'Drop files anywhere here, or paste links: Pinterest, Drive, Dropbox, YouTube, any web address.' : 'Files and links will show up here when someone adds them.', uploadBtn ? h('div', { class: 'actions', style: { justifyContent: 'center' } }, uploadBtn.cloneNode(true), linkBtn.cloneNode(true)) : null)
+      !all.length ? h('div', { class: 'empty' }, h('b', { text: gallery ? 'No photos, videos or links yet' : 'No files or links yet' }), canCreate(b) ? (UPLOADS() ? 'Drop files anywhere here, or paste links: Pinterest, Drive, Dropbox, YouTube, any web address.' : 'Paste links to your files: Google Drive, Dropbox, OneDrive, Figma, Canva, YouTube, Vimeo or any https address.') : 'Files and links will show up here when someone adds them.', linkBtn ? h('div', { class: 'actions', style: { justifyContent: 'center' } }, uploadBtn ? h('button', { class: 'btn primary', 'data-act': 'upload', onClick: () => input.click() }, icon('upload', 16), gallery ? 'Add photos or videos' : 'Upload files') : null, h('button', { class: 'btn' + (uploadBtn ? '' : ' primary'), 'data-act': 'link', onClick: () => addFileLinks(b) }, icon('link', 16), 'Add link')) : null)
         : !items.length ? h('div', { class: 'empty' }, h('b', { text: 'No matches' }), 'Try another search or folder.')
           : h('div', { class: gallery ? 'fgrid gal' : 'fgrid' }, items.map((r, i) => fileTile(b, r, items, i, gallery))));
-    if (!all.length && canCreate(b)) { const btns = body.querySelectorAll('.empty .btn'); if (btns[0]) btns[0].addEventListener('click', () => input.click()); if (btns[1]) btns[1].addEventListener('click', () => addFileLinks(b)); }
-    if (canCreate(b)) {
+    if (canCreate(b) && UPLOADS()) {
       body.addEventListener('dragover', (e) => { if ([...(e.dataTransfer.types || [])].includes('Files')) { e.preventDefault(); body.classList.add('dropzone-over'); } });
       body.addEventListener('dragleave', (e) => { if (!body.contains(e.relatedTarget)) body.classList.remove('dropzone-over'); });
       body.addEventListener('drop', (e) => { e.preventDefault(); body.classList.remove('dropzone-over'); uploadMany(b, [...e.dataTransfer.files]); });
     }
-    return [head(b, all.length && uploadBtn ? [linkBtn, uploadBtn] : null), body];
+    return [head(b, all.length && linkBtn ? (uploadBtn ? [linkBtn, uploadBtn] : linkBtn) : null), body];
   };
   /** Paste one or more web addresses; each becomes an item of its own. */
   async function addFileLinks(b) {
@@ -2739,7 +2939,7 @@
     }
     showAtt();
     const composer = canCreate(b) ? h('div', { class: 'chat-compose' }, pick,
-      h('button', { class: 'icon', type: 'button', 'aria-label': 'Attach a file', title: 'Attach a file', onClick: () => pick.click() }, icon('upload')),
+      UPLOADS() ? h('button', { class: 'icon', type: 'button', 'aria-label': 'Attach a file', title: 'Attach a file', onClick: () => pick.click() }, icon('upload')) : null,
       h('div', { class: 'grow' }, ta, att), h('button', { class: 'btn primary', type: 'button', onClick: send }, icon('send', 15), 'Send')) : null;
     setTimeout(() => scrollChat(false), 0);
     return [head(b), h('div', { class: 'body chat-body' }, h('div', { class: 'chat' }, thread, composer))];

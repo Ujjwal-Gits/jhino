@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { config, ROOT } from './config.js';
 import { db, now, sha256, roleOf, type AppRow, type UserRow } from './db.js';
-import { HttpError, checkLogin, publicUser, requireUser } from './auth.js';
+import { HttpError, afterLogin, checkLogin, publicUser, requireUser } from './auth.js';
 import { openStream, watch } from './realtime.js';
 import { access } from './apps.js';
 
@@ -62,6 +62,7 @@ export function registerDesk(app: FastifyInstance) {
     const { appId } = req.params as { appId: string };
     const b = (req.body ?? {}) as { email?: string; password?: string };
     const u = await checkLogin(req, b.email, b.password);
+    afterLogin(req, u, 'downloaded file');
     const a = db.prepare('SELECT * FROM apps WHERE id=?').get(appId) as AppRow | undefined;
     const role = roleOf(appId, u.id);
     if (!a || a.deleted_at || !role) throw new HttpError(403, 'NOT_MEMBER', 'This sign-in does not have access to this app. Ask the person who sent you the file.');

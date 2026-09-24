@@ -221,6 +221,228 @@ const MIGRATIONS: string[] = [
   -- Runs opened from a downloaded file may be framed by that file.
   ALTER TABLE runs ADD COLUMN desk INTEGER NOT NULL DEFAULT 0;
   `,
+  `
+  -- Accounts: profile, email verification, plans and usage.
+  ALTER TABLE users ADD COLUMN display_name TEXT;
+  ALTER TABLE users ADD COLUMN phone TEXT;
+  ALTER TABLE users ADD COLUMN country TEXT;
+  ALTER TABLE users ADD COLUMN timezone TEXT;
+  ALTER TABLE users ADD COLUMN language TEXT NOT NULL DEFAULT 'en';
+  ALTER TABLE users ADD COLUMN company TEXT;
+  ALTER TABLE users ADD COLUMN job_title TEXT;
+  ALTER TABLE users ADD COLUMN bio TEXT;
+  ALTER TABLE users ADD COLUMN avatar TEXT;
+  ALTER TABLE users ADD COLUMN email_verified_at TEXT;
+  ALTER TABLE users ADD COLUMN password_set INTEGER NOT NULL DEFAULT 1;
+  ALTER TABLE users ADD COLUMN password_changed_at TEXT;
+  ALTER TABLE users ADD COLUMN last_login_at TEXT;
+  ALTER TABLE users ADD COLUMN last_login_ip TEXT;
+  ALTER TABLE users ADD COLUMN last_login_ua TEXT;
+  ALTER TABLE users ADD COLUMN plan TEXT NOT NULL DEFAULT 'free';
+  ALTER TABLE users ADD COLUMN plan_started_at TEXT;
+  ALTER TABLE users ADD COLUMN plan_expires_at TEXT;
+  ALTER TABLE users ADD COLUMN extra_creations INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE users ADD COLUMN suspended_reason TEXT;
+  ALTER TABLE users ADD COLUMN kind TEXT NOT NULL DEFAULT 'person';
+  ALTER TABLE users ADD COLUMN notify_prefs TEXT NOT NULL DEFAULT '{}';
+  -- Accounts made before this (by an admin or an invite) count as verified when their sign-in is an email.
+  UPDATE users SET email_verified_at = created_at WHERE email LIKE '%@%';
+
+  -- Sessions know their device, so people can see and end them.
+  ALTER TABLE sessions ADD COLUMN ip TEXT;
+  ALTER TABLE sessions ADD COLUMN ua TEXT;
+  ALTER TABLE sessions ADD COLUMN last_seen_at TEXT;
+  ALTER TABLE sessions ADD COLUMN auth_at TEXT;
+
+  -- Single-use, short-lived links: verify email, reset password, confirm a new email. Stored hashed.
+  CREATE TABLE auth_tokens(
+    token_hash TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    purpose TEXT NOT NULL,
+    data TEXT,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used_at TEXT
+  );
+  CREATE INDEX auth_tokens_user ON auth_tokens(user_id, purpose);
+
+  -- Sign-in with Google or Apple, linked to one account.
+  CREATE TABLE identities(
+    provider TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    email TEXT,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY(provider, subject)
+  );
+  CREATE TABLE oauth_states(
+    state_hash TEXT PRIMARY KEY,
+    provider TEXT NOT NULL,
+    nonce TEXT NOT NULL,
+    verifier TEXT NOT NULL,
+    bind_hash TEXT NOT NULL,
+    link_user TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  -- What happened to an account (sign-ins, password and email changes), for the person and for support.
+  CREATE TABLE security_events(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT,
+    kind TEXT NOT NULL,
+    ip TEXT,
+    ua TEXT,
+    detail TEXT NOT NULL DEFAULT '',
+    at TEXT NOT NULL
+  );
+  CREATE INDEX security_events_user ON security_events(user_id, id);
+
+  -- Every sensitive action by an administrator.
+  CREATE TABLE audit_log(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    actor_id TEXT,
+    actor_email TEXT,
+    action TEXT NOT NULL,
+    target_type TEXT,
+    target_id TEXT,
+    detail TEXT NOT NULL DEFAULT '',
+    ip TEXT,
+    at TEXT NOT NULL
+  );
+
+  -- In-app notifications (the bell).
+  CREATE TABLE notifications(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    category TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL DEFAULT '',
+    link TEXT,
+    created_at TEXT NOT NULL,
+    read_at TEXT
+  );
+  CREATE INDEX notifications_user ON notifications(user_id, id);
+
+  -- Emails: sent by SMTP when it is set up, and always logged.
+  CREATE TABLE email_outbox(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    to_addr TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    status TEXT NOT NULL,
+    error TEXT,
+    created_at TEXT NOT NULL,
+    sent_at TEXT
+  );
+
+  -- Platform settings changed from Super Admin.
+  CREATE TABLE settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+  -- Installs that already hold uploaded files keep uploads on; new installs use links only.
+  INSERT INTO settings(key, value) SELECT 'uploads', CASE WHEN EXISTS(SELECT 1 FROM files) THEN 'on' ELSE 'off' END;
+  INSERT INTO settings(key, value) VALUES('signups', 'on');
+
+  -- Payments: manual QR now, other providers later, all through the same records.
+  CREATE TABLE payment_methods(
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    provider TEXT NOT NULL DEFAULT 'manual_qr',
+    bank TEXT,
+    account_name TEXT,
+    account_number TEXT,
+    instructions TEXT NOT NULL DEFAULT '',
+    notes TEXT NOT NULL DEFAULT '',
+    qr_file TEXT,
+    qr_type TEXT,
+    active INTEGER NOT NULL DEFAULT 1,
+    position INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE TABLE payments(
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    user_email TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    plan TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    expected_amount INTEGER NOT NULL,
+    method_id TEXT,
+    method_name TEXT NOT NULL,
+    provider TEXT NOT NULL DEFAULT 'manual_qr',
+    reference TEXT,
+    paid_on TEXT,
+    note TEXT,
+    proof_file TEXT,
+    proof_type TEXT,
+    status TEXT NOT NULL,
+    reject_reason TEXT,
+    internal_note TEXT,
+    reviewed_by TEXT,
+    reviewed_by_email TEXT,
+    reviewed_at TEXT,
+    ip TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX payments_user ON payments(user_id, created_at);
+  CREATE INDEX payments_status ON payments(status, created_at);
+  -- One row per plan granted. payment_id is unique, so one payment can never grant twice.
+  CREATE TABLE subscriptions(
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    plan TEXT NOT NULL,
+    creations INTEGER NOT NULL,
+    amount INTEGER NOT NULL,
+    payment_id TEXT UNIQUE,
+    source TEXT NOT NULL,
+    granted_by TEXT,
+    starts_at TEXT NOT NULL,
+    expires_at TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  -- Help and support requests.
+  CREATE TABLE support_tickets(
+    id TEXT PRIMARY KEY,
+    user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+    email TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    message TEXT NOT NULL,
+    diagnostics TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at TEXT NOT NULL,
+    closed_at TEXT
+  );
+
+  -- Sharing an app by link: private (people added), public, or password protected. Custom addresses (jhino.com/abc) by Super Admin.
+  ALTER TABLE apps ADD COLUMN access TEXT NOT NULL DEFAULT 'private';
+  ALTER TABLE apps ADD COLUMN public_role TEXT NOT NULL DEFAULT 'viewer';
+  ALTER TABLE apps ADD COLUMN share_token TEXT;
+  ALTER TABLE apps ADD COLUMN share_password_hash TEXT;
+  ALTER TABLE apps ADD COLUMN slug TEXT;
+  ALTER TABLE apps ADD COLUMN show_bar INTEGER NOT NULL DEFAULT 1;
+  ALTER TABLE apps ADD COLUMN visitor_id TEXT;
+  UPDATE apps SET share_token = lower(hex(randomblob(10)));
+  CREATE UNIQUE INDEX apps_share_token ON apps(share_token);
+  CREATE UNIQUE INDEX apps_slug ON apps(slug COLLATE NOCASE);
+  CREATE TABLE pub_sessions(
+    token_hash TEXT PRIMARY KEY,
+    app_id TEXT NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+    ip TEXT,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL
+  );
+
+  -- Studio booking reminders already sent (so each is sent once).
+  CREATE TABLE booking_reminders(
+    app_id TEXT NOT NULL,
+    record_id TEXT NOT NULL,
+    fire_at TEXT NOT NULL,
+    sent_at TEXT NOT NULL,
+    PRIMARY KEY(app_id, record_id, fire_at)
+  );
+  `,
 ];
 
 const current = db.pragma('user_version', { simple: true }) as number;
@@ -239,10 +461,19 @@ export type Role = 'owner' | 'editor' | 'contributor' | 'viewer';
 export interface UserRow {
   id: string; email: string; name: string; password_hash: string;
   is_admin: number; disabled: number; created_at: string;
+  created_by?: string | null;
+  display_name?: string | null; phone?: string | null; country?: string | null; timezone?: string | null; language?: string;
+  company?: string | null; job_title?: string | null; bio?: string | null; avatar?: string | null;
+  email_verified_at?: string | null; password_set?: number; password_changed_at?: string | null;
+  last_login_at?: string | null; last_login_ip?: string | null; last_login_ua?: string | null;
+  plan?: string; plan_started_at?: string | null; plan_expires_at?: string | null; extra_creations?: number;
+  suspended_reason?: string | null; kind?: string; notify_prefs?: string;
 }
 export interface AppRow {
   id: string; name: string; color: number; owner_id: string; live_version: number;
   private_keys: string; created_at: string; updated_at: string; deleted_at: string | null;
+  access?: string; public_role?: string; share_token?: string | null; share_password_hash?: string | null;
+  slug?: string | null; show_bar?: number; visitor_id?: string | null;
 }
 
 export function roleOf(appId: string, userId: string): Role | null {

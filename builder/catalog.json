@@ -1,6 +1,7 @@
 {
   "categories": [
     "Deliver and approve",
+    "Bookings",
     "Shoots and production",
     "Brand and content",
     "Apps and websites",
@@ -331,6 +332,96 @@
         }
       ],
       "titleField": "title"
+    },
+    {
+      "key": "studio_booking",
+      "name": "Studio booking",
+      "short": "Bookings",
+      "item": "booking",
+      "category": "Bookings",
+      "engine": "booking",
+      "icon": "calendar",
+      "description": "Book studio time like a calendar: free and booked slots, customer details, reschedule or cancel in a tap, and a reminder before each booking.",
+      "titleField": "customer",
+      "dateField": "date",
+      "boardField": "status",
+      "comments": true,
+      "fields": [
+        {
+          "key": "customer",
+          "label": "Customer",
+          "type": "text",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "phone",
+          "list": true
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "email"
+        },
+        {
+          "key": "service",
+          "label": "Session",
+          "type": "select",
+          "options": [
+            "Recording",
+            "Mixing",
+            "Podcast",
+            "Photo shoot",
+            "Video shoot",
+            "Rehearsal",
+            "Other"
+          ],
+          "list": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true,
+          "list": true,
+          "default": "today"
+        },
+        {
+          "key": "start",
+          "label": "Start",
+          "type": "time",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "end",
+          "label": "End",
+          "type": "time",
+          "required": true,
+          "list": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "options": [
+            "Booked",
+            "Confirmed",
+            "Completed",
+            "Cancelled",
+            "No-show"
+          ],
+          "default": "Booked",
+          "list": true
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "longtext"
+        }
+      ]
     },
     {
       "key": "shoots",
@@ -2813,6 +2904,17 @@
         "support",
         "hours",
         "invoices",
+        "messages"
+      ]
+    },
+    {
+      "key": "studio",
+      "name": "Studio bookings",
+      "description": "Bookings on a calendar with reminders, to-dos, payments and messages.",
+      "blocks": [
+        "studio_booking",
+        "todos",
+        "client_payments",
         "messages"
       ]
     }

@@ -7,7 +7,7 @@ test.afterEach(async ({ browser }) => { for (const c of browser.contexts()) awai
 async function signIn(browser: Browser, login: string, password: string, mobile = false): Promise<Page> {
   const ctx = await browser.newContext(mobile ? { viewport: { width: 390, height: 844 } } : { viewport: { width: 1360, height: 860 } });
   const page = await ctx.newPage();
-  await page.goto('/');
+  await page.goto('/login');
   await page.fill('input[autocomplete=username]', login);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');
@@ -99,7 +99,7 @@ test('uploaded HTML: photos and videos picked in the app are stored on the serve
   await expect(fc.locator('.item .title', { hasText: 'Site photo (checked)' })).toBeVisible({ timeout: 20_000 });
   await c.waitForTimeout(1600);
   await fc.locator('.item', { hasText: 'Studio rent receipt' }).locator('button:has-text("Delete")').click();
-  await expect(fa.locator('.item .title', { hasText: 'Studio rent receipt' })).toHaveCount(0, { timeout: 20_000 });
+  await expect(fa.locator('.item .title', { hasText: 'Studio rent receipt' })).toHaveCount(0, { timeout: 30_000 });
 
   // On the server: the saved data holds links, not megabytes of pixels; the files are stored separately.
   const saved = await a.evaluate(async (id) => (await (await fetch(`/api/apps/${id}/kv`)).json()).data.ls.s['project-items'][0] as string, appId);

@@ -18,7 +18,7 @@ export function dataMode(f: Features, built?: boolean): { dot: string; text: str
 
 interface Line { id: number; action: string; detail: string; at: string; name: string | null; userId: string | null; note: string | null }
 interface Pulse { unread: number; last: Line | null; lastNew?: Line | null }
-const FIELD: Record<string, string> = { video: 'Video production', photo: 'Photography', design: 'Design and branding', social: 'Social media', apps: 'App development', web: 'Website', other: 'Client room' };
+const FIELD: Record<string, string> = { video: 'Video production', photo: 'Photography', design: 'Design and branding', social: 'Social media', apps: 'App development', web: 'Website', studio: 'Studio bookings', other: 'Client room' };
 type Kind = 'all' | 'created' | 'uploaded';
 type Sort = 'recent' | 'name' | 'new';
 

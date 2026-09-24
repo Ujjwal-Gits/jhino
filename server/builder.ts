@@ -9,6 +9,7 @@ import { access, loadApp } from './apps.js';
 import { appDir } from './packages.js';
 import { validateManifest, type Manifest } from './manifest.js';
 import { publish } from './realtime.js';
+import { assertCanCreate } from './plans.js';
 
 /*
  * The app builder. A person picks blocks and a design; Jhino writes a complete
@@ -33,7 +34,7 @@ export interface BuildConfig {
 
 const CURRENCIES = ['NPR', 'INR', 'USD', 'EUR', 'GBP', 'AUD', 'AED'];
 const STYLES = ['modern', 'editorial', 'technical'];
-const FIELDS = ['video', 'photo', 'design', 'social', 'apps', 'web', 'other'];
+const FIELDS = ['video', 'photo', 'design', 'social', 'apps', 'web', 'studio', 'other'];
 /** A small raster logo, already shrunk by the browser. SVG is refused (it can carry script). */
 const LOGO = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 const MAX_LOGO = 150_000;
@@ -194,6 +195,7 @@ function tagsFor(b: BlockSpec): string[] {
   if (views.includes('board')) t.push('Board');
   if (views.includes('calendar')) t.push('Calendar');
   if (b.engine === 'poll') t.push('Live votes');
+  if (b.engine === 'booking') t.push('Time slots', 'Reminders');
   return t.slice(0, 4);
 }
 
@@ -233,6 +235,7 @@ export function registerBuilder(app: FastifyInstance) {
 
   app.post('/api/apps/build', async (req) => {
     const user = requireCreator(req);
+    assertCanCreate(user.id);
     const cfg = validateConfig((req.body as { config?: unknown })?.config);
     const html = generateHtml(cfg);
     const manifest = manifestFor(cfg);
@@ -240,13 +243,19 @@ export function registerBuilder(app: FastifyInstance) {
     fs.mkdirSync(path.join(path.dirname(appDir(id, 1))), { recursive: true });
     installBuilt(id, 1, html);
     const t = now();
+    try {
     db.transaction(() => {
-      db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at) VALUES(?,?,?,?,1,?,?)').run(id, cfg.name, 0, user.id, t, t);
+      assertCanCreate(user.id); // again inside the insert, so two requests at once cannot both pass
+      db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at,share_token) VALUES(?,?,?,?,1,?,?,?)').run(id, cfg.name, 0, user.id, t, t, crypto.randomBytes(10).toString('hex'));
       db.prepare('INSERT INTO app_versions(app_id,n,entry,file_count,size,features,source_name,uploaded_by,created_at,manifest,builder) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
         .run(id, 1, 'index.html', 1, Buffer.byteLength(html), FEATURES, 'Built in Jhino', user.id, t, JSON.stringify(manifest), JSON.stringify(cfg));
       db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?)').run(id, user.id, 'owner', t);
       logActivity(id, user.id, 'built the app', `${cfg.blocks.length} blocks`);
     })();
+    } catch (e) {
+      fs.rmSync(path.dirname(appDir(id, 1)), { recursive: true, force: true });
+      throw e;
+    }
     return { app: { id, name: cfg.name } };
   });
 

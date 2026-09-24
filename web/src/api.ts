@@ -1,4 +1,9 @@
-export interface User { id: string; email: string; name: string; isAdmin: boolean; disabled: boolean; canCreate: boolean }
+export interface User {
+  id: string; email: string; name: string; displayName: string | null; isAdmin: boolean; disabled: boolean; canCreate: boolean;
+  emailIsAddress: boolean; emailVerified: boolean | null; hasAvatar: boolean; passwordSet: boolean; plan: string;
+}
+/** A person's photo, when they have one. `v` busts the cache after a change. */
+export const avatarUrl = (u: { id: string; hasAvatar?: boolean } | null | undefined, v: string | number = '') => (u && u.hasAvatar ? `/api/users/${u.id}/avatar${v ? `?v=${v}` : ''}` : null);
 export type Role = 'owner' | 'editor' | 'contributor' | 'viewer';
 export interface Features { localStorage?: boolean; claudeStorage?: boolean; jhinoSdk?: boolean; indexedDB?: boolean; network?: boolean }
 export interface AppSummary {
@@ -10,6 +15,7 @@ export interface AppSummary {
   built?: boolean;
   brand?: { client: string; field: string; accent: string; logo: boolean; sections: number } | null;
   storage?: { files: number; bytes: number };
+  access?: 'private' | 'public' | 'password'; slug?: string | null; showBar?: boolean;
 }
 export interface Version { n: number; fileCount: number; size: number; sourceName: string; createdAt: string; uploadedBy: string; features: Features }
 export interface AppDetail extends AppSummary { versions: Version[] }

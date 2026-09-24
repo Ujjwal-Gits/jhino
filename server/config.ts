@@ -71,6 +71,17 @@ export const config = {
     name: env.ADMIN_NAME || 'Admin',
     password: env.ADMIN_PASSWORD || '',
   },
+  // Email (verification, password reset, receipts). Without SMTP_URL, emails are only logged for Super Admin.
+  mail: {
+    smtpUrl: env.SMTP_URL || '',
+    from: env.MAIL_FROM || 'Jhino <no-reply@jhino.local>',
+    supportEmail: env.SUPPORT_EMAIL || '',
+  },
+  // Sign in with Google / Apple: shown only when these are set.
+  oauth: {
+    google: { clientId: env.GOOGLE_CLIENT_ID || '', clientSecret: env.GOOGLE_CLIENT_SECRET || '' },
+    apple: { clientId: env.APPLE_CLIENT_ID || '', teamId: env.APPLE_TEAM_ID || '', keyId: env.APPLE_KEY_ID || '', privateKey: (env.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n') },
+  },
   limits: {
     uploadBytes: 60 * 1024 * 1024,
     unzippedBytes: 250 * 1024 * 1024,
@@ -108,7 +119,7 @@ function ensureWritable(dir: string, label: string) {
   }
 }
 ensureWritable(config.dataDir, 'DATA_DIR');
-for (const sub of ['apps', 'files', 'staging']) fs.mkdirSync(path.join(config.dataDir, sub), { recursive: true });
+for (const sub of ['apps', 'files', 'staging', 'system/avatars', 'system/qr', 'system/payments']) fs.mkdirSync(path.join(config.dataDir, sub), { recursive: true });
 ensureWritable(config.backupDir, 'BACKUP_DIR');
 // Half-finished uploads from a previous run.
 for (const n of fs.readdirSync(path.join(config.dataDir, 'staging'))) fs.rmSync(path.join(config.dataDir, 'staging', n), { recursive: true, force: true });

@@ -9,6 +9,7 @@ import { access } from './apps.js';
 import { publish } from './realtime.js';
 import { collectionDef, hasOwnVisibility, visibleTo, type RecordRow } from './data.js';
 import { initVideo, maybeCompress, videoProgress } from './video.js';
+import { uploadsOn } from './security.js';
 
 export interface FileRow { id: string; app_id: string; name: string; type: string; size: number; created_by: string | null; created_at: string; status: string; original_size: number | null; version: number; deleted_at: string | null }
 
@@ -129,6 +130,7 @@ export function registerFiles(app: FastifyInstance) {
   app.post('/api/apps/:id/files', async (req) => {
     const { id } = req.params as { id: string };
     const { user, role } = access(req, id, 'add');
+    if (!uploadsOn()) throw new HttpError(403, 'UPLOADS_OFF', 'File uploads are turned off on this Jhino. Add a link to the file instead (Google Drive, Dropbox, OneDrive, YouTube and so on).');
     if (appFilesBytes(id) >= config.limits.appFilesBytes) throw new HttpError(413, 'QUOTA_EXCEEDED', 'This app has used all of its file storage.');
     const part = await req.file({ limits: { fileSize: config.limits.fileBytes, files: 1, fields: 4 } });
     if (!part) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a file to upload.');

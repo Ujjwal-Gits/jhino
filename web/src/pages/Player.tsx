@@ -142,7 +142,7 @@ const mb = (n: number) => (n >= 1073741824 ? (n / 1073741824).toFixed(2) + ' GB'
  * The Jhino page around an app. With `solo`, it is the "open in a new tab" view of one item:
  * the item fills the tab, with no Jhino bar and none of the app's menus.
  */
-export function Player({ id, solo }: { id: string; solo?: boolean }) {
+export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visitor?: { name: string; showBar: boolean } }) {
   const { user, refresh } = useSession();
   const { go } = useRoute();
   const toast = useToast();
@@ -273,6 +273,11 @@ export function Player({ id, solo }: { id: string; solo?: boolean }) {
   }, []);
 
   useEffect(() => live.on((event, d) => {
+    if (event === 'notification' && d && !visitor) {
+      toast(String(d.title ?? '').slice(0, 160));
+      if (notifyOn() && document.hidden) { try { new Notification(String(d.title ?? 'Jhino'), { body: String(d.body ?? '').slice(0, 200), tag: `jhino-n-${d.id}` }); } catch { /* not supported */ } }
+      return;
+    }
     if (event === 'online') {
       setOnline(true);
       // Re-sync on every (re)connection: if the stream came up after the app opened, changes in between are fetched now.
@@ -295,7 +300,7 @@ export function Player({ id, solo }: { id: string; solo?: boolean }) {
       return;
     }
     if (event === 'presence') setPeople(d.people ?? []);
-    else if (event === 'revoked') { setRun(null); setFatal({ title: 'Your access was removed', text: 'The owner removed you from this app. Anything already on your screen may be out of date.' }); }
+    else if (event === 'revoked') { setRun(null); setFatal(visitor ? { title: 'This link was turned off', text: 'The owner stopped sharing this app by link.' } : { title: 'Your access was removed', text: 'The owner removed you from this app. Anything already on your screen may be out of date.' }); }
     else if (event === 'role-changed') {
       bridge.current?.send('role', { role: d.role });
       loadApp().catch(() => {});
@@ -346,10 +351,16 @@ export function Player({ id, solo }: { id: string; solo?: boolean }) {
       <main className="state-card">
         <h2>{fatal.title}</h2>
         <p>{fatal.text}</p>
-        <button className="btn" onClick={() => go('/')}><Icon name="back" size={16} />Back to apps</button>
+        {!visitor && <button className="btn" onClick={() => go('/')}><Icon name="back" size={16} />Back to apps</button>}
       </main>
     );
   }
+  const showBar = app?.showBar !== false;
+  const setBar = async (on: boolean) => {
+    setMenuFor(null);
+    try { await api('PATCH', `/api/apps/${id}/sharing`, { showBar: on }); await loadApp(); toast(on ? 'Top bar shown' : 'Top bar hidden. Use the corner button for the menu.'); }
+    catch (e) { toast(e instanceof ApiError ? e.message : 'Could not change it.', true); }
+  };
 
   if (solo) {
     return (
@@ -363,15 +374,15 @@ export function Player({ id, solo }: { id: string; solo?: boolean }) {
   }
 
   return (
-    <div className="player player-enter">
-      <header className="player-bar">
-        <button className="icon-btn" onClick={back} aria-label="Back to apps"><Icon name="back" /></button>
+    <div className={`player player-enter ${showBar ? '' : 'bare'}`}>
+      {showBar ? <header className="player-bar">
+        {visitor ? <span className="visitor-mark" aria-hidden="true" /> : <button className="icon-btn" onClick={back} aria-label="Back to apps"><Icon name="back" /></button>}
         <div className="title">
           <h1>{app?.name ?? ''}</h1>
-          {app && <span className="ver hide-sm">v{app.liveVersion}</span>}
+          {app && !visitor && <span className="ver hide-sm">v{app.liveVersion}</span>}
         </div>
         <div className="spacer" />
-        {others.length > 0 && (
+        {others.length > 0 && !visitor && (
           <span className="stack hide-sm" aria-label={`Also here: ${others.map((p) => p.name).join(', ')}`} title={`Also here: ${others.map((p) => p.name).join(', ')}`}>
             {others.slice(0, 4).map((p) => <Avatar key={p.id} name={p.name} size="sm" />)}
           </span>
@@ -383,7 +394,10 @@ export function Player({ id, solo }: { id: string; solo?: boolean }) {
         <span className="sync" role="status" aria-live="polite">{syncView}</span>
         {isOwner && <button className="btn sm" onClick={() => setDialog('share')}>Share</button>}
         <button className="icon-btn" onClick={(e) => setMenuFor(e.currentTarget)} aria-label="More" aria-haspopup="menu" aria-expanded={!!menuFor}><Icon name="more" /></button>
-      </header>
+      </header> : !visitor && (
+        // Top bar hidden: a small corner button keeps the menu in reach.
+        <button className="bar-handle" onClick={(e) => setMenuFor(e.currentTarget)} aria-label="Menu" aria-haspopup="menu" aria-expanded={!!menuFor}><Icon name="more" /></button>
+      )}
       <div className="frame-wrap">
         {run && (
           <iframe
@@ -403,19 +417,28 @@ export function Player({ id, solo }: { id: string; solo?: boolean }) {
           </div>
         )}
       </div>
-      {menuFor && app && (
+      {menuFor && app && visitor && (
         <Menu anchor={menuFor} onClose={() => setMenuFor(null)}>
+          <button role="menuitem" onClick={() => launch()}>Reload</button>
+          <button role="menuitem" onClick={() => go('/')}>About Jhino</button>
+        </Menu>
+      )}
+      {menuFor && app && !visitor && (
+        <Menu anchor={menuFor} onClose={() => setMenuFor(null)}>
+          {!showBar && <button role="menuitem" onClick={back}>Back to apps</button>}
+          {!showBar && isOwner && <button role="menuitem" onClick={() => setDialog('share')}>Share</button>}
           <button role="menuitem" onClick={() => setDialog('details')}>Details and activity</button>
           <button role="menuitem" onClick={() => launch()}>Reload app</button>
           <button role="menuitem" onClick={() => { setMenuFor(null); downloadHtml(app.id); toast('Downloading. Open the file, sign in once, and it stays in sync with everyone.'); }}>Download as HTML file</button>
           <button role="menuitem" onClick={() => { setMenuFor(null); toggleNotify(); }}>{notify ? 'Turn off desktop notifications' : 'Turn on desktop notifications'}</button>
+          {isOwner && <button role="menuitem" onClick={() => setBar(!showBar)}>{showBar ? 'Hide top bar' : 'Show top bar'}</button>}
           {isOwner && app.built && <button role="menuitem" onClick={() => go(`/apps/${app.id}/blocks`)}>Edit features and design</button>}
           {isOwner && !app.built && <button role="menuitem" onClick={() => setDialog('upload')}>Upload a new version</button>}
           <hr />
           {isOwner
             ? <button role="menuitem" className="danger" onClick={trash}>Move to Trash</button>
             : <button role="menuitem" className="danger" onClick={leave}>Leave this app</button>}
-          <button role="menuitem" onClick={async () => { await post('/api/auth/logout'); await refresh(); go('/', true); }}>Sign out</button>
+          <button role="menuitem" onClick={async () => { await post('/api/auth/logout'); await refresh(); go('/login', true); }}>Sign out</button>
         </Menu>
       )}
       {dialog === 'share' && app && <ShareDialog app={app} onClose={() => { setDialog(null); loadApp().catch(() => {}); }} />}

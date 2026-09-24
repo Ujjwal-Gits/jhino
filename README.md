@@ -7,7 +7,9 @@ Two ways to get an app:
 - **Create HTML:** say which client or brand it is for and what kind of work (video, photography, design, social media, apps, websites), tick the features you want from 41 (video deliveries with approval, photo proofing, design proofs, shoot schedules, content calendar, app releases, bug reports, invoices, the client's receipts, payments and more), pick the colour, lettering and their logo, and Jhino writes the whole HTML for you. It opens straight away.
 - **Upload HTML:** upload an `.html` file or a `.zip` made with Claude or any other tool. It opens straight away too.
 
-Only people you add can open an app, and each signs in with their own ID and password. Everything they save is stored in Jhino's database on your server and shows up for everyone else, live. There are no outside services: sign-in, hosting, database, files and sharing all run in this one program.
+Share an app with the people you add (each signs in with their own ID and password), or by a public link, or by a link with a password. Everything saved is stored in Jhino's database on your server and shows up for everyone else, live. Sign-in, hosting, database, files and sharing all run in this one program; email (SMTP) and Google/Apple sign-in are optional.
+
+It is also a small SaaS: a public website, sign-up, an Account Center, plans paid by QR (Free Forever: 1 app, NPR 500: 10 apps, NPR 2,000: 50 apps) and a Super Admin dashboard. See [Accounts, plans and Super Admin](#accounts-plans-and-super-admin).
 
 ## Run it
 
@@ -57,6 +59,19 @@ PUBLIC_URL=https://apps.example.com
 ```
 
 Server-sent events need response buffering switched off in your proxy. Caddy does this by itself; for nginx add `proxy_buffering off;` to the location block. Serve over HTTPS with HTTP/2 (Caddy does by default): over plain HTTP/1.1 a browser allows only about six connections per server, and every open Jhino tab uses one for live updates (background tabs let theirs go after 15 seconds).
+
+## Accounts, plans and Super Admin
+
+- **Website and sign-up.** Signed-out visitors see the website at `/` (pricing, help, terms, privacy). Anyone can create a Free Forever account (switch sign-ups off in Super Admin → Settings). Email verification, forgot/reset password (single-use links, 30 minutes), sign-in alerts for new devices and every security email go out by SMTP when `SMTP_URL` is set; without it Super Admin → Settings shows them.
+- **Continue with Google / Apple** appear when their keys are set (see `.env.example`). A Google/Apple sign-in with a verified email joins the existing account with that email; if that account had never confirmed its email, its password is cleared first (someone else may have set it).
+- **Account Center** (`/account`): profile and photo, email (a new email counts only after it is confirmed), security (password, sign-in methods, every signed-in device with sign-out, recent security activity), plan and usage, billing with receipts, notification choices (security and account messages are always on), privacy (download your data, delete the account after password and "DELETE").
+- **Plans.** The server counts apps per owner and refuses the next one past the plan (checked again inside the insert, so two requests at once cannot both pass). Super admins have no limit. Apps in Trash count until they are deleted for good.
+- **Paying by QR.** Super Admin adds payment methods with a QR image. The customer picks a plan, pays, and uploads a screenshot (JPG/PNG/WEBP up to 10 MB, checked by its bytes, stored privately, never at a public address). The payment waits for review; approving grants the plan exactly once (a double click or two admins at once give it once), and rejecting keeps the old plan and shows the reason. The customer and the admins get a notification (and an email).
+- **Super Admin** (`/admin`, super admins only): overview, users (create a sign-in for someone who paid, change plan, end date and extra allowance, suspend, new password, sign out everywhere, make or remove super admins), payments to review, QR and payment methods, hosting, support requests, the audit log (every sensitive admin action) and settings (uploads on/off, sign-ups, support email, email log).
+- **Sharing by link.** In Share, an owner turns on a public link or a password link and picks what visitors can do (view, add or edit). Visitors act as one hidden "Visitor" member of that app only; their cookie opens nothing else. Super admins can give any app a short address, `jhino.com/<name>`, or host an HTML at one in a single step (Super Admin → Hosting).
+- **Top bar.** Each app can hide the Jhino top bar (⋯ → Hide top bar, or in Share) to open like a standalone app; a small corner button keeps the menu in reach.
+- **Studio booking.** A Create HTML template: a day of free and booked time slots (tap a free slot to book), month, upcoming and history, reschedule and cancel, a warning before double-booking, and reminders before each booking (10 minutes to a day, or custom, with your own message) to everyone who can edit the app, in the bell and by email.
+- **Files.** Super Admin → Settings → "File uploads inside apps". Off means apps use links (Drive, Dropbox, OneDrive, Figma, Canva, YouTube, Vimeo, any https address); payment screenshots, QR codes and profile photos still upload. Installs that already held uploaded files keep uploads on; new installs start with links only.
 
 ## How it works
 
@@ -159,7 +174,7 @@ To restore:
 
 People sign in with the passwords they had when the backup was made.
 
-To recover a lost admin password, sign in as another admin and use People → New password. If there is no other admin, stop Jhino, back up `data/`, and ask a developer to reset the hash in the `users` table. There is no hidden backdoor.
+To recover a lost admin password, sign in as another super admin and use Super Admin → Users → New password, or run `node dist/server/admin.js --email you@example.com --password '…'` on the server. If there is no other admin, stop Jhino, back up `data/`, and ask a developer to reset the hash in the `users` table. There is no hidden backdoor.
 
 ## Tests
 
@@ -170,7 +185,14 @@ npm test                                         # all three browsers
 npx playwright test --project=chromium           # just one
 ```
 
-The tests start their own server on port 4399 with an empty `test-data/` folder. The same 24 tests run in Chromium, Firefox and WebKit (Safari's engine). They cover:
+The tests start their own server on port 4399 with an empty `test-data/` folder, plus a stand-in Google sign-in provider on port 4398. The same tests run in Chromium, Firefox and WebKit (Safari's engine). They cover:
+
+- accounts: sign up, confirm email, password reset links that work once, changing the password (other devices signed out), sessions, data export without secrets, deleting the account
+- plans: creation limits enforced by the server; QR payments (fake images refused, private screenshots, one pending at a time), two approvals at the same moment granting the plan once, rejections with a reason; everything in the audit log
+- link sharing: public, password and private; visitors reach only that app; super admin addresses (reserved names refused); the custom address opening the app
+- Super Admin: paid sign-ins, suspend and reactivate, the uploads switch, customers kept out of the admin API
+- Continue with Google: new account, forged token refused, safe linking of an unconfirmed account, unverified email refused, replayed sign-in refused
+- studio booking: a reminder sent once before a booking; the day view, double-booking warning and hiding the top bar on screen
 
 - uploaded HTML with files: a large photo, a video and a canvas-shrunk photo picked inside your own HTML are stored on the server and seen, renamed and deleted from both sides (you and a client on a phone); clients land in their app and cannot create apps
 
@@ -200,7 +222,7 @@ The tests start their own server on port 4399 with an empty `test-data/` folder.
 
 ## Security notes and limits
 
-- Passwords are hashed with argon2id. Sessions are server-side, stored hashed, and sent in `HttpOnly`, `SameSite=Strict` cookies (`Secure` when `PUBLIC_URL` is https). Every change needs a CSRF token. Repeated wrong passwords are slowed down.
+- Passwords are hashed with argon2id. Sessions are server-side, stored hashed, and sent in `HttpOnly`, `SameSite=Strict` cookies (`Secure` when `PUBLIC_URL` is https). Every change needs a CSRF token. Sign-in, sign-up, password reset, payments, link passwords and every write are rate-limited per address. Password, email and account deletion ask for the password again. Security events (sign-ins, failures, password and email changes) are kept per account; admin actions go to the audit log. With https, responses also carry HSTS.
 - Uploaded apps run in a sandboxed frame without `allow-same-origin`, so they cannot read Jhino's page, cookies or session. The same sandbox is also sent as a response header, so opening an app file directly does not escape it. The app talks to Jhino only through a per-launch handshake and a private message channel. The server checks every request again.
 - Uploaded code is still code: it can show anything, and it can send the data a person can see to other websites. Only people with an account can upload, so give accounts only to people you trust.
 - One server, SQLite, small teams. The design target is tens of apps and a handful of people editing at the same time. It has not been load-tested yet.

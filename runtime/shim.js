@@ -528,6 +528,8 @@
 
   window.jhino = Object.freeze({
     version: 1,
+    /** False when the platform keeps files as links only (no uploads). */
+    uploadsAllowed: B.uploads !== false,
     ready: function () { return readyPromise; },
     me: function () { return Promise.resolve({ id: user.id, name: user.name, email: user.email, role: user.role }); },
     onChange: function (fn) {
@@ -623,7 +625,8 @@
     };
     NativeReader.prototype.readAsDataURL = function (blob) {
       var big = blob instanceof Blob && blob.size > 0 && (blob.size > 150 * 1024 || /^(video|audio)\//.test(blob.type) || blob.type === 'application/pdf');
-      if (!big || window.parent === window) return nativeReadAsDataURL.call(this, blob);
+      // With uploads switched off by the platform, the file stays inside the saved data as before.
+      if (!big || window.parent === window || B.uploads === false) return nativeReadAsDataURL.call(this, blob);
       var fr = this;
       var set = function (k, v) { try { Object.defineProperty(fr, k, { configurable: true, get: function () { return v; } }); } catch (err) { /* ignore */ } };
       set('readyState', 1); set('result', null); set('error', null);

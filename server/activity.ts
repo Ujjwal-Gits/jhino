@@ -47,7 +47,8 @@ export function registerActivity(app: FastifyInstance) {
     return { apps: out };
   });
 
-  setActivityFilter((appId, row, userId, role) => activityVisible(appId, row as unknown as ActivityRow, userId, role));
+  const isVisitor = (userId: string) => (db.prepare('SELECT kind FROM users WHERE id=?').get(userId) as { kind: string } | undefined)?.kind === 'visitor';
+  setActivityFilter((appId, row, userId, role) => (!!(row as { collection?: string }).collection || !isVisitor(userId)) && activityVisible(appId, row as unknown as ActivityRow, userId, role));
 
   app.get('/api/apps/:id/activity', async (req) => {
     const { id } = req.params as { id: string };
@@ -61,7 +62,8 @@ export function registerActivity(app: FastifyInstance) {
     for (let i = 0; i < 10 && out.length < limit; i++) {
       const rows = db.prepare(`${SELECT} WHERE a.app_id=? AND a.id<? ORDER BY a.id DESC LIMIT 200`).all(id, cursor) as ActivityRow[];
       if (!rows.length) break;
-      for (const r of rows) if (out.length < limit && activityVisible(id, r, user.id, role)) out.push(r);
+      // Link visitors see what happened to the app's content, not who was added or how it is shared.
+      for (const r of rows) if (out.length < limit && activityVisible(id, r, user.id, role) && (!req.pub || r.collection)) out.push(r);
       cursor = rows[rows.length - 1].id;
     }
     const seen = (db.prepare('SELECT seen_activity n FROM memberships WHERE app_id=? AND user_id=?').get(id, user.id) as { n: number } | undefined)?.n ?? 0;

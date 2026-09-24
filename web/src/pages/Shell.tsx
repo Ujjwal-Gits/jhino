@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ApiError, api, post, type AppSummary } from '../api';
-import { Link, applyTheme, readTheme, useRoute, useSession, type Theme } from '../context';
-import { Avatar, Icon, Menu, Modal, useToast } from '../ui';
+import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
+import { Link, useRoute, useSession } from '../context';
+import { live } from '../live';
+import { Avatar, Icon, Menu, Modal, ago, useToast } from '../ui';
 
 /* ---------- upload ---------- */
 export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: File | null; onClose: () => void; replaceAppId?: string }) {
@@ -11,6 +12,7 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [limitHit, setLimitHit] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
   const submit = async () => {
@@ -26,6 +28,7 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
       else { toast(`${r.app.name} is live.`); go(`/apps/${r.app.id}`); }
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Upload failed.');
+      setLimitHit(e instanceof ApiError && e.code === 'LIMIT_REACHED');
       setBusy(false);
     }
   };
@@ -70,62 +73,7 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
           </label>
         )}
         {replaceAppId && <p className="hint">Everyone gets the new version. Saved data stays as it is.</p>}
-        {error && <p className="error-text" role="alert">{error}</p>}
-      </div>
-    </Modal>
-  );
-}
-
-/* ---------- account ---------- */
-function AccountDialog({ onClose }: { onClose: () => void }) {
-  const { user, refresh } = useSession();
-  const toast = useToast();
-  const [name, setName] = useState(user.name);
-  const [theme, setTheme] = useState<Theme>(readTheme());
-  const [pw, setPw] = useState({ current: '', next: '' });
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-
-  const save = async () => {
-    setBusy(true); setError('');
-    try {
-      const body: Record<string, string> = {};
-      if (name.trim() !== user.name) body.name = name;
-      if (pw.next) { body.currentPassword = pw.current; body.newPassword = pw.next; }
-      if (Object.keys(body).length) await api('PATCH', '/api/me', body);
-      await refresh();
-      toast('Saved');
-      onClose();
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Could not save.');
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Modal title="Your account" onClose={onClose} footer={<>
-      <button className="btn" onClick={onClose}>Cancel</button>
-      <button className="btn primary" onClick={save} disabled={busy || !name.trim()}>{busy && <span className="spin" />}Save</button>
-    </>}>
-      <div className="modal-body">
-        <label className="field"><span>Name</span><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></label>
-        <div className="field"><span>Sign-in ID</span><p className="mono">{user.email}</p></div>
-        <div className="field">
-          <span>Appearance on this device</span>
-          <div className="seg" style={{ marginLeft: 0, width: 'max-content' }} role="group" aria-label="Appearance">
-            {(['light', 'dark', 'system'] as Theme[]).map((t) => (
-              <button key={t} style={{ width: 'auto', padding: '0 12px', fontSize: 13 }} aria-pressed={theme === t} onClick={() => { setTheme(t); applyTheme(t); }}>
-                {t === 'system' ? 'Match device' : t[0].toUpperCase() + t.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-        <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'grid', gap: 12 }}>
-          <legend className="section-title" style={{ padding: 0 }}>Change password</legend>
-          <label className="field"><span>Current password</span><input className="input" type="password" autoComplete="current-password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} /></label>
-          <label className="field"><span>New password</span><input className="input" type="password" autoComplete="new-password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} /><small className="hint">At least 10 characters. Leave empty to keep your password.</small></label>
-        </fieldset>
-        {error && <p className="error-text" role="alert">{error}</p>}
+        {error && <p className="error-text" role="alert">{error}{limitHit && <> <Link to="/account/plan" className="link" onClick={onClose}>See plans</Link></>}</p>}
       </div>
     </Modal>
   );
@@ -136,7 +84,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const { user, refresh } = useSession();
   const { path, go } = useRoute();
   const [menuFor, setMenuFor] = useState<HTMLElement | null>(null);
-  const [dialog, setDialog] = useState<'upload' | 'account' | null>(null);
+  const [dialog, setDialog] = useState<'upload' | null>(null);
   const [dropped, setDropped] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
 
@@ -200,25 +148,70 @@ export function Shell({ children }: { children: ReactNode }) {
               </button>
             </div>
           )}
+          <Bell />
           <button className="avatar-btn" onClick={(e) => setMenuFor(e.currentTarget)} aria-label="Account menu" aria-haspopup="menu" aria-expanded={!!menuFor}>
-            <Avatar name={user.name} />
+            <Avatar name={user.name} src={avatarUrl(user)} />
           </button>
         </div>
       </header>
       {menuFor && (
         <Menu anchor={menuFor} onClose={() => setMenuFor(null)}>
-          <div className="who"><b>{user.name}</b><span>{user.email}</span></div>
-          <button role="menuitem" onClick={() => setDialog('account')}>Account and appearance</button>
-          {user.isAdmin && <button role="menuitem" onClick={() => go('/people')}>People</button>}
-          {user.canCreate && <button role="menuitem" className="tab-trash-menu" onClick={() => go('/trash')}>Trash</button>}
+          <div className="who"><b>{user.displayName || user.name}</b><span>{user.email}</span></div>
+          <button role="menuitem" onClick={() => go('/account/profile')}><Icon name="user" size={16} />Profile</button>
+          {user.canCreate && <button role="menuitem" onClick={() => go('/')}><Icon name="grid" size={16} />My creations</button>}
+          {user.canCreate && <button role="menuitem" onClick={() => go('/account/plan')}><Icon name="chart" size={16} />Plan & usage</button>}
+          {user.canCreate && <button role="menuitem" onClick={() => go('/account/billing')}><Icon name="card" size={16} />Billing</button>}
+          <button role="menuitem" onClick={() => go('/account/notifications')}><Icon name="bell" size={16} />Notifications</button>
+          <button role="menuitem" onClick={() => go('/account/security')}><Icon name="shield" size={16} />Security</button>
+          <button role="menuitem" onClick={() => go('/account/account')}><Icon name="settings" size={16} />Settings</button>
+          <button role="menuitem" onClick={() => go('/help')}><Icon name="help" size={16} />Help & support</button>
+          {user.canCreate && <button role="menuitem" className="tab-trash-menu" onClick={() => go('/trash')}><Icon name="trash" size={16} />Trash</button>}
+          {user.isAdmin && <><hr /><button role="menuitem" onClick={() => go('/admin')}><Icon name="lock" size={16} />Super Admin</button></>}
           <hr />
-          <button role="menuitem" onClick={async () => { await post('/api/auth/logout'); await refresh(); go('/', true); }}>Sign out</button>
+          <button role="menuitem" onClick={async () => { await post('/api/auth/logout'); await refresh(); go('/login', true); }}><Icon name="logout" size={16} />Log out</button>
         </Menu>
       )}
       {children}
       {dialog === 'upload' && <UploadDialog file={dropped} onClose={() => setDialog(null)} />}
-      {dialog === 'account' && <AccountDialog onClose={() => setDialog(null)} />}
       {dragging && <div className="dropping-overlay">Drop to upload your app</div>}
+    </>
+  );
+}
+
+/* ---------- the bell: payments, reminders, security and support notices ---------- */
+interface Note { id: number; category: string; title: string; body: string; link: string | null; createdAt: string; readAt: string | null }
+function Bell() {
+  const { go } = useRoute();
+  const [items, setItems] = useState<Note[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [open, setOpen] = useState<HTMLElement | null>(null);
+  const load = () => get<{ items: Note[]; unread: number }>('/api/notifications').then((r) => { setItems(r.items); setUnread(r.unread); }, () => {});
+  useEffect(() => { load(); }, []);
+  useEffect(() => live.on((e) => { if (e === 'notification') load(); }), []);
+  const openItem = async (n: Note) => {
+    setOpen(null);
+    if (!n.readAt) post('/api/notifications/read', { ids: [n.id] }).then(load, () => {});
+    if (n.link && n.link.startsWith('/')) go(n.link);
+  };
+  return (
+    <>
+      <button className="icon-btn bell" onClick={(e) => setOpen(e.currentTarget)} aria-label={unread ? `Notifications, ${unread} new` : 'Notifications'} aria-haspopup="menu" aria-expanded={!!open}>
+        <Icon name="bell" />{unread > 0 && <span className="bell-n">{unread > 9 ? '9+' : unread}</span>}
+      </button>
+      {open && (
+        <Menu anchor={open} onClose={() => setOpen(null)}>
+          <div className="notes-h"><b>Notifications</b>{unread > 0 && <button className="link" onClick={(e) => { e.stopPropagation(); post('/api/notifications/read', { all: true }).then(load); }}>Mark all read</button>}</div>
+          {!items.length ? <p className="notes-empty muted">Nothing yet. Payments, booking reminders and account notices show up here.</p> : (
+            <div className="notes">
+              {items.slice(0, 12).map((n) => (
+                <button key={n.id} role="menuitem" className={`note ${n.readAt ? '' : 'unread'}`} onClick={() => openItem(n)}>
+                  <b>{n.title}</b>{n.body && <span>{n.body}</span>}<small className="muted">{ago(n.createdAt)}</small>
+                </button>
+              ))}
+            </div>
+          )}
+        </Menu>
+      )}
     </>
   );
 }

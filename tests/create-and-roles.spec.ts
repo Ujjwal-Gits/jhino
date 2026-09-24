@@ -20,7 +20,7 @@ async function apiAs(login: string, password: string): Promise<Api> {
 }
 async function signIn(browser: Browser, login: string, password: string): Promise<Page> {
   const page = await (await browser.newContext({ viewport: { width: 1360, height: 860 } })).newPage();
-  await page.goto('/');
+  await page.goto('/login');
   await page.fill('input[autocomplete=username]', login);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');
