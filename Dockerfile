@@ -1,10 +1,18 @@
 # Jhino: one container, one volume at /data. Everything Jhino writes goes to /data;
 # the image itself is never written to, so a redeploy loses nothing.
 FROM node:22-bookworm-slim AS build
+# Tools to compile native modules (better-sqlite3) when no prebuilt binary is downloaded.
+# They stay in this stage only; the final image does not have them.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# --include=dev: the build needs Vite and TypeScript even if NODE_ENV=production is set for the build.
+RUN npm ci --include=dev
 COPY . .
+# Build, then drop devDependencies. The compiled better-sqlite3 stays in node_modules and is copied
+# to the final stage, which uses the same base image (same Node version and system libraries).
 # The image uses the system ffmpeg (below), so the bundled copy from npm is not shipped.
 RUN npm run build && npm prune --omit=dev && rm -rf node_modules/ffmpeg-static
 
