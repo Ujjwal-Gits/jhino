@@ -110,6 +110,12 @@ export function revoke(appId: string, userId: string) {
   notifyUser(userId);
 }
 
+/** Shutdown: end every live stream so the server can close. Browsers reconnect to the next instance by themselves. */
+export function closeAllStreams() {
+  for (const c of conns.values()) { try { c.res.end(); } catch { /* already gone */ } }
+  conns.clear();
+}
+
 export function closeUser(userId: string) {
   for (const c of conns.values()) if (c.userId === userId) c.res.end();
 }

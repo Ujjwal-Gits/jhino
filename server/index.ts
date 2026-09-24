@@ -14,12 +14,15 @@ import { registerBuilder } from './builder.js';
 import { registerActivity } from './activity.js';
 import { registerTrash } from './trash.js';
 import { registerDesk } from './desk.js';
+import { closeAllStreams } from './realtime.js';
+import { stopVideo } from './video.js';
 
 const app = Fastify({
   logger: { level: config.isProd ? 'info' : 'warn', redact: ['req.headers.cookie', 'req.headers["x-csrf-token"]'] },
   bodyLimit: 8 * 1024 * 1024,
   trustProxy: true,
-  forceCloseConnections: true,
+  // On shutdown, idle keep-alive connections close at once; requests already running are allowed to finish.
+  forceCloseConnections: 'idle',
   genReqId: () => Math.random().toString(36).slice(2, 10),
 });
 
@@ -73,10 +76,13 @@ app.get('/_jhino/fonts/:name', async (req, reply) => {
   return fs.createReadStream(path.join(FONTS, name));
 });
 
-app.get('/api/health', async () => {
+// Health checks (Docker, Coolify, load balancers): 200 when the server and the database answer.
+const health = async () => {
   db.prepare('SELECT 1').get();
   return { ok: true };
-});
+};
+app.get('/health', health);
+app.get('/api/health', health);
 
 // The built dashboard (npm run build). In development Vite serves it instead.
 const webDir = path.join(ROOT, 'dist', 'web');
@@ -99,10 +105,28 @@ await bootstrapAdmin();
 await app.listen({ port: config.port, host: config.host });
 console.log(`  Jhino is running at ${config.publicUrl || `http://${config.host === '0.0.0.0' ? 'localhost' : config.host}:${config.port}`}`);
 
-const stop = async () => {
-  await app.close();
+/**
+ * SIGTERM (a redeploy) or Ctrl+C: stop taking new requests, let the ones already running finish,
+ * end live streams, stop a video encode (it resumes next start), then close the database cleanly.
+ */
+let stopping = false;
+const stop = async (signal: string) => {
+  if (stopping) return;
+  stopping = true;
+  console.log(`  ${signal}: finishing requests in progress, then stopping.`);
+  const force = setTimeout(() => {
+    console.error('  Requests were still running after 25 seconds; stopping now.');
+    try { db.close(); } catch { /* already closed */ }
+    process.exit(1);
+  }, 25_000);
+  force.unref();
+  stopVideo();
+  closeAllStreams();
+  try { await app.close(); } catch (e) { console.error('  Error while closing the server:', (e as Error).message); }
+  try { db.pragma('wal_checkpoint(TRUNCATE)'); } catch { /* nothing to write back */ }
   db.close();
+  console.log('  Stopped cleanly.');
   process.exit(0);
 };
-process.on('SIGINT', stop);
-process.on('SIGTERM', stop);
+process.on('SIGINT', () => { void stop('SIGINT'); });
+process.on('SIGTERM', () => { void stop('SIGTERM'); });

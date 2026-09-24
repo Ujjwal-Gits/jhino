@@ -10,6 +10,7 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@jhino.local}
       ADMIN_NAME: ${ADMIN_NAME:-Admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      # DATA_DIR=/data, BACKUP_DIR=/data/backups and FFMPEG_PATH are set in the image.
     volumes:
       - jhino-data:/data
 volumes:

@@ -5,5 +5,11 @@ test-data
 backups
 test-results
 playwright-report
+samples
+tests
+.impeccable
 .env
+.env.*
+!.env.example
 .git
+*.log

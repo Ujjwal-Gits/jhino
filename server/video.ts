@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import os from 'node:os';
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { config } from './config.js';
 import { db } from './db.js';
@@ -15,9 +15,24 @@ import { db } from './db.js';
 interface Row { id: string; app_id: string; name: string; type: string; size: number; status: string; version: number }
 
 const require = createRequire(import.meta.url);
+let warned = false;
+/** FFMPEG_PATH (the Docker image sets /usr/bin/ffmpeg), else the ffmpeg-static package, else no compression. */
 function ffmpegPath(): string | null {
-  if (process.env.FFMPEG_PATH) return process.env.FFMPEG_PATH;
-  try { return require('ffmpeg-static') as string; } catch { return null; }
+  const own = process.env.FFMPEG_PATH;
+  if (own) {
+    if (fs.existsSync(own)) return own;
+    if (!warned) { warned = true; console.warn(`[video] FFMPEG_PATH is set to ${own}, but there is no file there. Big videos will not be made smaller.`); }
+    return null;
+  }
+  try { const p = require('ffmpeg-static') as string | null; return p && fs.existsSync(p) ? p : null; } catch { return null; }
+}
+let current: ChildProcess | null = null;
+let stopped = false;
+/** Shutdown: stop the running encode. The file stays "processing" and starts again on the next start. */
+export function stopVideo() {
+  stopped = true;
+  queue.length = 0;
+  if (current) { try { current.kill('SIGKILL'); } catch { /* already done */ } }
 }
 
 const queue: string[] = [];
@@ -50,7 +65,7 @@ export function maybeCompress(row: Row): boolean {
 }
 
 function pump() {
-  if (running) return;
+  if (running || stopped) return;
   const id = queue.shift();
   if (!id) return;
   running = true;
@@ -85,6 +100,7 @@ async function compress(id: string) {
   ];
   const code = await new Promise<number>((resolve) => {
     const p = spawn(bin, args, { stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true });
+    current = p;
     try { if (p.pid) os.setPriority(p.pid, os.constants.priority.PRIORITY_BELOW_NORMAL); } catch { /* not allowed on this system */ }
     let err = '', duration = 0, told = 0;
     p.stderr.on('data', (b: Buffer) => {
@@ -95,9 +111,10 @@ async function compress(id: string) {
       // Tell open apps how far along it is, a few times a minute at most.
       if (Date.now() - told > 5000 && progress.has(id)) { told = Date.now(); onUpdate(row.app_id, id); }
     });
-    p.on('close', (c) => { if (c !== 0) console.error('[video] ffmpeg failed', id, err.slice(-600)); resolve(c ?? 1); });
+    p.on('close', (c) => { current = null; if (c !== 0 && !stopped) console.error('[video] ffmpeg failed', id, err.slice(-600)); resolve(c ?? 1); });
     p.on('error', (e) => { console.error('[video]', e.message); resolve(1); });
   });
+  if (stopped) { fs.rmSync(out, { force: true }); return; } // shutting down: it starts again next time
   const still = db.prepare('SELECT * FROM files WHERE id=?').get(id) as Row | undefined;
   if (!still) { fs.rmSync(out, { force: true }); return; } // deleted meanwhile
   if (code !== 0 || !fs.existsSync(out)) {

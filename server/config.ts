@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -26,7 +27,9 @@ export function makePassword(len = 16): string {
 }
 
 const envPath = process.env.JHINO_ENV_FILE || path.join(ROOT, '.env');
-if (!fs.existsSync(envPath) && !process.env.JHINO_SKIP_ENV_FILE) {
+// Local installs get a .env made for them. In a container (production) settings come from the environment
+// and nothing is written to the app folder.
+if (!fs.existsSync(envPath) && !process.env.JHINO_SKIP_ENV_FILE && process.env.NODE_ENV !== 'production') {
   const pw = makePassword();
   fs.writeFileSync(
     envPath,
@@ -51,11 +54,15 @@ dotenv.config({ path: envPath, quiet: true });
 
 const env = process.env;
 const publicUrl = (env.PUBLIC_URL || '').replace(/\/+$/, '');
+const dataDir = path.resolve(ROOT, env.DATA_DIR || './data');
 
 export const config = {
   port: Number(env.PORT || 4310),
   host: env.HOST || '127.0.0.1',
-  dataDir: path.resolve(ROOT, env.DATA_DIR || './data'),
+  // Everything Jhino writes lives here: the database, uploaded apps, files, compressed videos, staging.
+  dataDir,
+  // Backups (npm run backup). Defaults to a folder inside the data volume, never the app folder.
+  backupDir: path.resolve(ROOT, env.BACKUP_DIR || path.join(dataDir, 'backups')),
   publicUrl,
   cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === '1' : publicUrl.startsWith('https://'),
   isProd: env.NODE_ENV === 'production',
@@ -78,4 +85,30 @@ export const config = {
   },
 };
 
-fs.mkdirSync(config.dataDir, { recursive: true });
+/**
+ * Make the data folders and check this process can write to them. A volume mounted as root while the
+ * app runs as a normal user is the usual cause of a failure here, so say exactly that and stop.
+ */
+/** "uid:gid" for the chown hint, or '' where there are no numeric ids (Windows). */
+const ids = () => { try { const u = os.userInfo(); return u.uid >= 0 ? `${u.uid}:${u.gid}` : ''; } catch { return '1000:1000'; } };
+function ensureWritable(dir: string, label: string) {
+  const probe = path.join(dir, `.write-test-${process.pid}`);
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(probe, 'ok');
+    fs.rmSync(probe, { force: true });
+  } catch (e) {
+    let who = 'this user';
+    try { const u = os.userInfo(); who = `user "${u.username}" (uid ${u.uid}, gid ${u.gid})`; } catch { /* no passwd entry */ }
+    console.error(`\n  Jhino cannot write to ${label}: ${dir}\n  ${(e as Error).message}\n` +
+      `  It runs as ${who}. Give that user write access to the folder or volume` +
+      (ids() ? `, for example:\n    chown -R ${ids()} ${dir}\n` : '.\n') +
+      `  Or set ${label} to a folder it can write to.\n`);
+    process.exit(1);
+  }
+}
+ensureWritable(config.dataDir, 'DATA_DIR');
+for (const sub of ['apps', 'files', 'staging']) fs.mkdirSync(path.join(config.dataDir, sub), { recursive: true });
+ensureWritable(config.backupDir, 'BACKUP_DIR');
+// Half-finished uploads from a previous run.
+for (const n of fs.readdirSync(path.join(config.dataDir, 'staging'))) fs.rmSync(path.join(config.dataDir, 'staging', n), { recursive: true, force: true });

@@ -26,7 +26,11 @@ test('mood board: paste links, they show as tiles next to the photos', async ({ 
   await expect(F.locator('.ftile .link-tag')).toHaveCount(2);
   await expect(F.locator('.ftile', { hasText: 'pinterest.com' })).toContainText('warm coffee tones');
   // More links from the header button, and the item opens with an Open link button.
-  await F.locator('.head .btn', { hasText: 'Add link' }).click();
+  // The section redraws after the first links arrive; click again if the first click landed on the old header.
+  await expect(async () => {
+    await F.locator('.head .btn', { hasText: 'Add link' }).click();
+    await expect(F.locator('.modal textarea')).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 15_000 });
   await F.locator('.modal textarea').fill('https://example.com/refs/palette.png');
   await F.locator('.modal .btn.primary').click();
   await expect(F.locator('.ftile')).toHaveCount(3);

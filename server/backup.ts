@@ -1,21 +1,24 @@
 /**
- * npm run backup  →  backups/<date-time>/{jhino.db, apps/, manifest.json}
+ * npm run backup  →  BACKUP_DIR/<date-time>/{jhino.db, apps/, files/, manifest.json}  (BACKUP_DIR defaults to DATA_DIR/backups)
  * Safe while Jhino is running: SQLite's online backup copies a consistent snapshot (WAL included).
  * Copy the backups folder to another disk or machine; a backup on the same disk does not survive losing that disk.
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { config, ROOT } from './config.js';
+import { config } from './config.js';
 import { db } from './db.js';
 
 const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-const dir = path.resolve(ROOT, process.env.BACKUP_DIR || 'backups', stamp);
+const dir = path.join(config.backupDir, stamp);
 fs.mkdirSync(dir, { recursive: true });
 
 await db.backup(path.join(dir, 'jhino.db'));
 
 const src = path.join(config.dataDir, 'apps');
 if (fs.existsSync(src)) fs.cpSync(src, path.join(dir, 'apps'), { recursive: true });
+// Files people uploaded inside apps (photos, videos, documents).
+const files = path.join(config.dataDir, 'files');
+if (fs.existsSync(files)) fs.cpSync(files, path.join(dir, 'files'), { recursive: true, filter: (p) => !p.endsWith('.part') && !p.endsWith('.part.mp4') });
 
 // Check every published version's files made it into the backup.
 const versions = db.prepare('SELECT app_id, n FROM app_versions').all() as { app_id: string; n: number }[];

@@ -31,6 +31,17 @@ ADMIN_PASSWORD='choose-a-long-password' docker compose up -d --build
 
 All data lives in the `jhino-data` volume. If you leave `ADMIN_PASSWORD` empty, a password is generated and printed once in `docker compose logs`.
 
+### On Coolify (or any Docker host)
+
+Deploy with the Dockerfile and mount a persistent volume at `/data`. The image already sets `DATA_DIR=/data`, `BACKUP_DIR=/data/backups` and `FFMPEG_PATH=/usr/bin/ffmpeg`; set `PUBLIC_URL`, `ADMIN_EMAIL` and `ADMIN_PASSWORD` yourself.
+
+- Everything Jhino writes goes under `/data`: the SQLite database (WAL mode), uploaded apps, files, compressed videos, staging and backups. The rest of the container can be wiped on every redeploy.
+- The app runs as the `node` user (uid 1000). If `/data` is not writable by it, Jhino stops at start and says how to fix it (`chown -R 1000:1000` on the volume).
+- The admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` is created only when the database has no users. Later starts never change it; change the password in the app.
+- Health check: `GET /health` returns 200 when the server and database answer.
+- On `SIGTERM` (a redeploy) Jhino stops taking new requests, lets running ones finish (up to 25 seconds), stops a video encode (it resumes on the next start) and closes the database cleanly.
+- Database migrations run at every start and only apply what is new.
+
 ### Put it on the internet (HTTPS)
 
 Run Jhino behind a reverse proxy that handles HTTPS, and set `PUBLIC_URL` to the public address. That makes session cookies `Secure` and puts the right address in invite links. Example with Caddy:
@@ -131,8 +142,10 @@ Uploads stream to disk in `DATA_DIR/files`. Limits: `MAX_FILE_MB` per file (defa
 ## Back up and restore
 
 ```bash
-npm run backup       # writes backups/<date-time>/ with jhino.db, apps/ and manifest.json
+npm run backup       # writes BACKUP_DIR/<date-time>/ with jhino.db, apps/, files/ and manifest.json (BACKUP_DIR defaults to DATA_DIR/backups)
 ```
+
+In Docker or Coolify, run `node dist/server/backup.js` inside the container.
 
 It is safe while Jhino is running, because it uses SQLite's online backup. Copy the `backups` folder to another disk or machine: a backup on the same disk does not survive losing that disk.
 
@@ -140,7 +153,7 @@ To restore:
 
 1. Stop Jhino.
 2. Move the current `data/` folder aside.
-3. Create a new `data/` folder containing the backup's `jhino.db` and `apps/`.
+3. Create a new `data/` folder containing the backup's `jhino.db`, `apps/` and `files/`.
 4. Start Jhino.
 
 People sign in with the passwords they had when the backup was made.
