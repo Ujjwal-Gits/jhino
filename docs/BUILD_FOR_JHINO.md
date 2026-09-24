@@ -46,7 +46,7 @@ Saving data (pick one)
    CONNECTION_LOST. Collection names: letters, numbers, - and _.
 
 Rules
-- Do not use IndexedDB, cookies or sessionStorage for data that must be shared.
+- IndexedDB works and is saved and synced too (each record is saved on the server). Do not use cookies or sessionStorage for data that must be shared.
 - Viewers can read but not change shared data; show a friendly message on FORBIDDEN.
 - Do not ask for passwords or call Jhino URLs directly; the page is sandboxed.
 - Works in any modern browser, on phones and desktops.

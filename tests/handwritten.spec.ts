@@ -39,7 +39,9 @@ test('a hand-written HTML keeps its own design and is live on the web, on a phon
 
   // Its own design, untouched: the page's fonts and colours, not Jhino's.
   await expect(FA.locator('h1')).toHaveText('Ticket Rail', { timeout: 20_000 });
-  await expect.poll(() => FA.locator('body').evaluate((b) => getComputedStyle(b).backgroundColor)).toBe('rgb(28, 26, 23)');
+  // (WebKit moves the body background to the page canvas and reports the body as transparent, so check the app's own colours and type.)
+  await expect.poll(() => FA.locator('html').evaluate((el) => getComputedStyle(el).getPropertyValue('--bg').trim())).toBe('#1c1a17');
+  expect(await FA.locator('h1').evaluate((el) => getComputedStyle(el).fontStyle)).toBe('italic');
 
   // The owner fires a ticket (the form resets, with Qty back to 1): the phone gets it, and the owner still sees the phone's changes.
   await FA.locator('#dish').fill('Himalayan latte');

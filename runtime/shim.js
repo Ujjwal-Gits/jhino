@@ -53,6 +53,8 @@
     outbox.splice(0).forEach(function (x) { port.postMessage(x); });
     if (d.scroll) restoreScroll(d.scroll);
     readyResolve();
+    // Changes that arrived while this page was loading (for example during an automatic refresh) were not seen yet.
+    setTimeout(function () { kvResync(); }, 300);
   }, true);
 
   var helloTries = 0;
@@ -353,14 +355,7 @@
         try { fn({ op: d.op, record: d.record, by: d.by || null }); } catch (e) { console.error(e); }
       });
     } else if (type === 'resync') {
-      call('kv.snapshot').then(function (r) {
-        if (!r.data) return;
-        ['ls', 'ws'].forEach(function (ns) {
-          ['s', 'p'].forEach(function (sc) {
-            var src = r.data[ns][sc] || {};
-            Object.keys(src).forEach(function (k) { applyRemote(ns, sc === 'p' ? 'private' : 'shared', k, src[k][0], src[k][1], null); });
-          });
-        });
+      kvResync().then(function () {
         Object.keys(recordSubs).forEach(function (c) {
           recordSubs[c].slice().forEach(function (fn) { try { fn({ op: 'resync' }); } catch (e) { console.error(e); } });
         });
@@ -386,6 +381,19 @@
     } else if (type === 'new-version') {
       wantVersion = true; tryVersion();
     }
+  }
+
+  /** Fetch the saved data again and apply whatever is newer (changes, and deletions, made while this page was away). */
+  function kvResync() {
+    return call('kv.snapshot').then(function (r) {
+      if (!r || !r.data) return;
+      ['ls', 'ws'].forEach(function (ns) {
+        ['s', 'p'].forEach(function (sc) {
+          var src = r.data[ns][sc] || {};
+          Object.keys(src).forEach(function (k) { applyRemote(ns, sc === 'p' ? 'private' : 'shared', k, src[k][0], src[k][1], null); });
+        });
+      });
+    });
   }
 
   // The owner published a new version: switch to it as soon as this person pauses, keeping their place.
@@ -631,6 +639,276 @@
       });
     };
   }
+
+  /* ---------------- IndexedDB, saved on the server ---------------- */
+  // Browsers switch IndexedDB off in sandboxed frames. Apps that use it get a full IndexedDB
+  // (fake-indexeddb, loaded just before this file) whose changes are saved like localStorage:
+  // one synced key per record, "__idb/<db>/<store>/<key>", and one per database for its structure.
+  // A change by someone else refreshes the app when the person pauses, and the app reloads the saved data.
+  (function () {
+    var F = window.__JHINO_FAKE_IDB__;
+    try { delete window.__JHINO_FAKE_IDB__; } catch (e) { window.__JHINO_FAKE_IDB__ = undefined; }
+    if (!F || !F.indexedDB) return;
+    var factory = F.indexedDB, PFX = '__idb/';
+    ['IDBCursor', 'IDBCursorWithValue', 'IDBDatabase', 'IDBFactory', 'IDBIndex', 'IDBKeyRange', 'IDBObjectStore',
+      'IDBOpenDBRequest', 'IDBRequest', 'IDBTransaction', 'IDBVersionChangeEvent'].forEach(function (n) { if (F[n]) defineGlobal(n, F[n]); });
+    defineGlobal('indexedDB', factory);
+
+    // Short, stable names for keys (cyrb53).
+    function h(str) {
+      var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+      for (var i = 0; i < str.length; i++) { var c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+      h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+      h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+      return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+    }
+
+    /* values <-> JSON, keeping dates, binary data, files, maps and sets */
+    function b64(bytes) { var s = ''; for (var i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
+    function unb64(s) { var bin = atob(s), out = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
+    var blobSrc = new WeakMap();
+    function readBlob(b) {
+      // Big files are uploaded by the FileReader bridge above and come back as a link; small ones stay inline.
+      if (!blobSrc.has(b)) blobSrc.set(b, new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(r.result); }; r.onerror = function () { no(r.error || new Error('Could not read a file.')); }; r.readAsDataURL(b); }));
+      return blobSrc.get(b);
+    }
+    function enc(v, jobs) {
+      if (v === undefined) return { __jt: 'undef' };
+      if (typeof v === 'number' && !isFinite(v)) return { __jt: 'num', v: String(v) };
+      if (typeof v === 'bigint') return { __jt: 'big', v: String(v) };
+      if (v === null || typeof v !== 'object') return v;
+      if (v instanceof Date) return { __jt: 'date', v: v.getTime() };
+      if (typeof Blob !== 'undefined' && v instanceof Blob) {
+        var o = { __jt: 'blob', type: v.type, v: '' };
+        if (typeof File !== 'undefined' && v instanceof File) { o.name = v.name; o.lm = v.lastModified; }
+        jobs.push(readBlob(v).then(function (src) { o.v = src; }));
+        return o;
+      }
+      if (v instanceof ArrayBuffer) return { __jt: 'ab', v: b64(new Uint8Array(v)) };
+      if (ArrayBuffer.isView(v)) return { __jt: 'ta', t: v.constructor.name, v: b64(new Uint8Array(v.buffer, v.byteOffset, v.byteLength)) };
+      if (v instanceof Map) { var m = []; v.forEach(function (val, k) { m.push([enc(k, jobs), enc(val, jobs)]); }); return { __jt: 'map', v: m }; }
+      if (v instanceof Set) { var s = []; v.forEach(function (x) { s.push(enc(x, jobs)); }); return { __jt: 'set', v: s }; }
+      if (v instanceof RegExp) return { __jt: 're', s: v.source, f: v.flags };
+      if (Array.isArray(v)) return v.map(function (x) { return enc(x, jobs); });
+      var out = {};
+      Object.keys(v).forEach(function (k) { out[k] = enc(v[k], jobs); });
+      return out;
+    }
+    function fetchBytes(link) {
+      try {
+        var x = new XMLHttpRequest();
+        x.open('GET', runBase + String(link).replace(/^.*?(__jhino\/files\/)/, '$1'), false);
+        x.overrideMimeType('text/plain; charset=x-user-defined');
+        x.send();
+        if (x.status !== 200) return new Uint8Array(0);
+        var t = x.responseText, out = new Uint8Array(t.length);
+        for (var i = 0; i < t.length; i++) out[i] = t.charCodeAt(i) & 0xff;
+        return out;
+      } catch (e) { return new Uint8Array(0); }
+    }
+    function toBlob(o) {
+      var bytes, src = o.v || '';
+      if (src.indexOf('data:') === 0) {
+        var comma = src.indexOf(',');
+        bytes = /;base64$/.test(src.slice(0, comma)) ? unb64(src.slice(comma + 1)) : new TextEncoder().encode(decodeURIComponent(src.slice(comma + 1)));
+      } else bytes = src ? fetchBytes(src) : new Uint8Array(0);
+      var b = o.name != null && typeof File === 'function' ? new File([bytes], o.name, { type: o.type, lastModified: o.lm }) : new Blob([bytes], { type: o.type });
+      blobSrc.set(b, Promise.resolve(src)); // saving it again does not upload it again
+      return b;
+    }
+    function dec(v) {
+      if (v === null || typeof v !== 'object') return v;
+      if (Array.isArray(v)) return v.map(dec);
+      switch (v.__jt) {
+        case 'undef': return undefined;
+        case 'num': return Number(v.v);
+        case 'big': return typeof BigInt === 'function' ? BigInt(v.v) : Number(v.v);
+        case 'date': return new Date(v.v);
+        case 'blob': return toBlob(v);
+        case 'ab': return unb64(v.v).buffer;
+        case 'ta': { var bytes = unb64(v.v); if (v.t === 'DataView') return new DataView(bytes.buffer); var C = window[v.t]; return typeof C === 'function' ? new C(bytes.buffer) : bytes; }
+        case 'map': return new Map(v.v.map(function (p) { return [dec(p[0]), dec(p[1])]; }));
+        case 'set': return new Set(v.v.map(dec));
+        case 're': return new RegExp(v.s, v.f);
+      }
+      var out = {};
+      Object.keys(v).forEach(function (k) { out[k] = dec(v[k]); });
+      return out;
+    }
+    // A copy at the moment of the write (as IndexedDB does); files are kept as they are (they cannot change).
+    function snap(v) {
+      if (v === null || typeof v !== 'object') return v;
+      if (v instanceof Date) return new Date(v.getTime());
+      if (typeof Blob !== 'undefined' && v instanceof Blob) return v;
+      if (v instanceof ArrayBuffer) return v.slice(0);
+      if (ArrayBuffer.isView(v)) return v.slice ? v.slice() : new DataView(v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength));
+      if (v instanceof Map) { var m = new Map(); v.forEach(function (val, k) { m.set(snap(k), snap(val)); }); return m; }
+      if (v instanceof Set) { var s = new Set(); v.forEach(function (x) { s.add(snap(x)); }); return s; }
+      if (Array.isArray(v)) return v.map(snap);
+      var out = {};
+      Object.keys(v).forEach(function (k) { out[k] = snap(v[k]); });
+      return out;
+    }
+
+    /* saved keys */
+    var schemas = {}, mirrors = {}, ours = new WeakSet(), pending = new WeakMap(), chain = Promise.resolve();
+    function recKey(db, store, key) { return PFX + h(db) + '/' + h(store) + '/' + h(JSON.stringify(enc(key, []))); }
+    function mirror(db, store) { var d = mirrors[db] = mirrors[db] || {}; return d[store] = d[store] || new Map(); }
+    var warned = false;
+    function kvPut(k, v) {
+      if (!canWrite()) { if (!warned) { warned = true; readOnly(); } return; }
+      var e = entry('ws', 's', k, true);
+      if (e.v === v) return;
+      e.v = v; markDirty('ws', 's', k);
+    }
+    function kvDel(k) {
+      var e = entry('ws', 's', k);
+      if (!e || e.v === null) return;
+      if (!canWrite()) { if (!warned) { warned = true; readOnly(); } return; }
+      e.v = null; markDirty('ws', 's', k);
+    }
+
+    /* recording what a transaction changes; saved only when it commits */
+    function opsOf(tx) { var list = pending.get(tx); if (!list) { list = []; pending.set(tx, list); } return list; }
+    function record(tx, op) { if (tx && !ours.has(tx) && tx.mode !== 'readonly') opsOf(tx).push(op); }
+    function commit(db, ops) {
+      if (!ops || !ops.length) return;
+      chain = chain.then(function () {
+        var jobs = [], writes = [];
+        ops.forEach(function (op) {
+          var m = mirror(db, op.store);
+          if (op.t === 'put') {
+            var k = recKey(db, op.store, op.key);
+            m.set(k, op.key);
+            writes.push([k, { k: enc(op.key, []), v: enc(op.value, jobs) }]);
+          } else if (op.t === 'del') {
+            var ks = [];
+            if (F.IDBKeyRange && op.query instanceof F.IDBKeyRange) m.forEach(function (key, k2) { try { if (op.query.includes(key)) ks.push(k2); } catch (e) { /* not comparable */ } });
+            else ks.push(recKey(db, op.store, op.query));
+            ks.forEach(function (k3) { m.delete(k3); writes.push([k3, null]); });
+          } else if (op.t === 'clear') {
+            m.forEach(function (_key, k4) { writes.push([k4, null]); });
+            m.clear();
+          }
+        });
+        return Promise.all(jobs).then(function () {
+          writes.forEach(function (w) { if (w[1] === null) kvDel(w[0]); else kvPut(w[0], JSON.stringify(w[1])); });
+        });
+      }).catch(function (e) { note('error', { message: 'A change could not be saved: ' + ((e && e.message) || e) }); });
+    }
+    function saveSchema(conn) {
+      var raw = conn._rawDatabase;
+      if (!raw) return;
+      var stores = [];
+      raw.rawObjectStores.forEach(function (s, name) {
+        if (s.deleted) return;
+        var idx = [];
+        s.rawIndexes.forEach(function (ix, iname) { if (!ix.deleted) idx.push({ name: iname, keyPath: ix.keyPath, unique: !!ix.unique, multiEntry: !!ix.multiEntry }); });
+        stores.push({ name: name, keyPath: s.keyPath, autoIncrement: !!s.autoIncrement, indexes: idx });
+      });
+      var s2 = { name: conn.name, version: raw.version, stores: stores };
+      schemas[conn.name] = s2;
+      chain = chain.then(function () { kvPut(PFX + h(conn.name), JSON.stringify(s2)); });
+    }
+
+    var DB = F.IDBDatabase.prototype, OS = F.IDBObjectStore.prototype, CU = F.IDBCursor.prototype, FA = F.IDBFactory.prototype;
+    var origTx = DB.transaction;
+    DB.transaction = function (names, mode) {
+      var tx = origTx.apply(this, arguments), conn = this;
+      if (tx.mode !== 'readonly') {
+        tx.addEventListener('complete', function () {
+          if (ours.has(tx)) return;
+          commit(conn.name, pending.get(tx));
+          pending.delete(tx);
+          if (tx.mode === 'versionchange') saveSchema(conn);
+        });
+        tx.addEventListener('abort', function () { pending.delete(tx); });
+      }
+      return tx;
+    };
+    var origDelStore = DB.deleteObjectStore;
+    DB.deleteObjectStore = function (name) {
+      var raw = this._rawDatabase, tx = raw && raw.transactions.filter(function (t) { return t.mode === 'versionchange'; }).pop();
+      var r = origDelStore.apply(this, arguments);
+      record(tx, { t: 'clear', store: name });
+      return r;
+    };
+    ['put', 'add'].forEach(function (fn) {
+      var orig = OS[fn];
+      OS[fn] = function (value, key) {
+        var req = orig.apply(this, arguments), tx = this.transaction;
+        if (!ours.has(tx)) {
+          var op = { t: 'put', store: this.name, value: snap(value), key: key };
+          req.addEventListener('success', function () { op.key = req.result; });
+          record(tx, op);
+        }
+        return req;
+      };
+    });
+    var origDelete = OS.delete;
+    OS.delete = function (query) { var req = origDelete.apply(this, arguments); record(this.transaction, { t: 'del', store: this.name, query: snap(query) }); return req; };
+    var origClear = OS.clear;
+    OS.clear = function () { var req = origClear.apply(this, arguments); record(this.transaction, { t: 'clear', store: this.name }); return req; };
+    function cursorStore(c) { var s = c.source; return s && s.objectStore ? s.objectStore : s; }
+    var origUpdate = CU.update;
+    CU.update = function (value) {
+      var req = origUpdate.apply(this, arguments), store = cursorStore(this);
+      if (store) record(store.transaction, { t: 'put', store: store.name, value: snap(value), key: snap(this.primaryKey) });
+      return req;
+    };
+    var origCurDel = CU.delete;
+    CU.delete = function () {
+      var key = snap(this.primaryKey), req = origCurDel.apply(this, arguments), store = cursorStore(this);
+      if (store) record(store.transaction, { t: 'del', store: store.name, query: key });
+      return req;
+    };
+    var origDeleteDb = FA.deleteDatabase;
+    FA.deleteDatabase = function (name) {
+      var req = origDeleteDb.apply(this, arguments);
+      req.addEventListener('success', function () {
+        chain = chain.then(function () {
+          var p = PFX + h(String(name));
+          stores.ws.s.forEach(function (e, k) { if ((k === p || k.indexOf(p + '/') === 0) && e.v !== null) kvDel(k); });
+          delete schemas[name]; delete mirrors[name];
+        });
+      });
+      return req;
+    };
+
+    /* put the saved databases back before the app's own code opens them */
+    var groups = {};
+    stores.ws.s.forEach(function (e, k) {
+      if (k.indexOf(PFX) !== 0 || e.v === null) return;
+      var parts = k.slice(PFX.length).split('/');
+      var g = groups[parts[0]] = groups[parts[0]] || { schema: null, recs: {} };
+      if (parts.length === 1) { try { g.schema = JSON.parse(e.v); } catch (x) { /* damaged: skipped */ } }
+      else if (parts.length === 3) (g.recs[parts[1]] = g.recs[parts[1]] || []).push([k, e.v]);
+    });
+    Object.keys(groups).forEach(function (dh) {
+      var g = groups[dh], s = g.schema;
+      if (!s || typeof s.name !== 'string' || !Array.isArray(s.stores)) return;
+      schemas[s.name] = s;
+      var req = factory.open(s.name, Math.max(1, Number(s.version) || 1));
+      req.onupgradeneeded = function () {
+        var db = req.result;
+        ours.add(req.transaction);
+        s.stores.forEach(function (st) {
+          var os = db.createObjectStore(st.name, { keyPath: st.keyPath === undefined ? null : st.keyPath, autoIncrement: !!st.autoIncrement });
+          (st.indexes || []).forEach(function (ix) { try { os.createIndex(ix.name, ix.keyPath, { unique: !!ix.unique, multiEntry: !!ix.multiEntry }); } catch (x) { console.warn('[jhino] index not restored', ix.name, x); } });
+          var m = mirror(s.name, st.name);
+          (g.recs[h(st.name)] || []).forEach(function (pair) {
+            try {
+              var r = JSON.parse(pair[1]), key = dec(r.k), val = dec(r.v);
+              if (st.keyPath != null) os.put(val); else os.put(val, key);
+              m.set(pair[0], key);
+            } catch (x) { console.warn('[jhino] a saved record could not be restored', x); }
+          });
+        });
+      };
+      req.onsuccess = function () { req.result.close(); };
+      req.onerror = function () { console.warn('[jhino] could not restore the database', s.name, req.error); };
+    });
+  })();
 
   // Save anything waiting before the page goes away.
   addListener('pagehide', function () { if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; } flush(); });

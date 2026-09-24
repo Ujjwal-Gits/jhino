@@ -91,11 +91,12 @@ const TYPES: Record<string, string> = {
 export const SANDBOX = 'allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads';
 
 /** Put the Jhino bridge first in <head> so it runs before any app script. */
-function inject(html: string, boot: unknown) {
+function inject(html: string, boot: unknown, idb = false) {
   // Escape "<" and the two JS line separators so data can never close the script tag.
   const unsafe = new RegExp('[<' + String.fromCharCode(0x2028, 0x2029) + ']', 'g');
   const json = JSON.stringify(boot).replace(unsafe, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
-  const tag = `<script id="__jhino_boot">window.__JHINO_BOOT__=${json}</script><script src="/_jhino/shim.js"></script>`;
+  // Apps that use IndexedDB get one that works in the sandbox and saves to the server (loaded before the shim).
+  const tag = `<script id="__jhino_boot">window.__JHINO_BOOT__=${json}</script>${idb ? '<script src="/_jhino/idb.js"></script>' : ''}<script src="/_jhino/shim.js"></script>`;
   const head = html.match(/<head(\s[^>]*)?>/i);
   if (head && head.index !== undefined) return html.slice(0, head.index + head[0].length) + tag + html.slice(head.index + head[0].length);
   const root = html.match(/<html(\s[^>]*)?>/i);
@@ -452,6 +453,11 @@ export function registerApps(app: FastifyInstance) {
     return fs.createReadStream(shimPath());
   });
 
+  app.get('/_jhino/idb.js', async (_req, reply) => {
+    reply.header('Content-Type', 'text/javascript; charset=utf-8').header('Cache-Control', 'no-cache');
+    return fs.createReadStream(path.join(ROOT, 'runtime', 'idb.js'));
+  });
+
   app.get('/run/:token/*', async (req, reply) => {
     const { token } = req.params as { token: string };
     const run = getRun(token);
@@ -476,6 +482,8 @@ export function registerApps(app: FastifyInstance) {
       if (!f || !canReadFile(f, u.id, role)) return reply.code(404).type('text/plain').send('File not found');
       // Browsers will not show a PDF under a sandbox rule, so PDFs open in a tab of their own like on the files API.
       if (f.type === 'application/pdf') reply.removeHeader('Content-Security-Policy');
+      // The app frame has no origin of its own; it may read its files (for example to restore a saved photo). The link is the key.
+      reply.header('Access-Control-Allow-Origin', '*');
       return sendFile(req, reply, f, { download: (req.query as { download?: string }).download === '1', sameOrigin: false });
     }
     if (!rel || rel.endsWith('/')) rel += rel ? 'index.html' : v.entry;
@@ -496,7 +504,9 @@ export function registerApps(app: FastifyInstance) {
         privateKeys: JSON.parse(a.private_keys),
         data: snapshotFor(a.id, u.id),
       };
-      return inject(fs.readFileSync(file, 'utf8'), boot);
+      let usesIdb = false;
+      try { usesIdb = !!JSON.parse(v.features).indexedDB; } catch { /* old version row */ }
+      return inject(fs.readFileSync(file, 'utf8'), boot, usesIdb);
     }
     reply.header('Cache-Control', 'private, max-age=3600');
     return fs.createReadStream(file);

@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "concurrently -k -n api,web -c blue,green \"tsx watch server/index.ts\" \"vite\"",
     "build": "vite build && tsc -p tsconfig.server.json",
+    "build:idb": "node scripts/build-idb.mjs",
     "start": "node dist/server/index.js",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit",
     "test": "playwright test",
@@ -35,6 +36,7 @@
     "@types/yauzl": "^3.4.0",
     "@vitejs/plugin-react": "^6.1.1",
     "concurrently": "^10.0.5",
+    "fake-indexeddb": "^6.2.5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tsx": "^4.23.15",

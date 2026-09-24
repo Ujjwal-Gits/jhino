@@ -129,7 +129,8 @@ Admins (account level) also manage everyone under **People**.
 
 ### What does not sync (uploaded HTML)
 
-- **IndexedDB, cookies and `sessionStorage`** stay in one browser tab. Jhino labels such apps "Browser data only" or "Partly synced".
+- **IndexedDB** is saved on the server too: browsers block it in the sandboxed app frame, so Jhino gives such apps a full IndexedDB (fake-indexeddb) that saves every record and syncs between people.
+- **Cookies and `sessionStorage`** stay in one browser tab.
 - **Private keys:** an owner can mark some `localStorage` keys (for example `theme`) as private per person.
 - **Network calls** the app makes to other websites are not proxied or stored.
 

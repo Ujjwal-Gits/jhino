@@ -9,12 +9,10 @@ import { downloadHtml } from './Player';
 
 export function dataMode(f: Features, built?: boolean): { dot: string; text: string; long: string } {
   if (built) return { dot: 'ok', text: 'Created in Jhino', long: 'Created with Create HTML. Every record and file is stored on this server, checked by the server, and shown to everyone with access, live.' };
-  if (f.jhinoSdk || f.localStorage || f.claudeStorage) {
-    return f.indexedDB
-      ? { dot: 'warn', text: 'Partly synced', long: 'Most data saves to this server and syncs. Data kept in the browser database (IndexedDB) stays on each device.' }
-      : { dot: 'ok', text: 'Saves to server', long: 'What people save in this app is stored on this server and appears for everyone with access, live.' };
+  // localStorage, window.storage and IndexedDB are all saved on the server and synced.
+  if (f.jhinoSdk || f.localStorage || f.claudeStorage || f.indexedDB) {
+    return { dot: 'ok', text: 'Saves to server', long: 'What people save in this app is stored on this server and appears for everyone with access, live.' };
   }
-  if (f.indexedDB) return { dot: 'warn', text: 'Browser data only', long: 'This app keeps data in the browser database (IndexedDB). Jhino hosts it, but that data is not shared between people.' };
   return { dot: '', text: 'Hosted page', long: 'Jhino found no saved data in this app. It is hosted as a page; nothing people type is kept.' };
 }
 
