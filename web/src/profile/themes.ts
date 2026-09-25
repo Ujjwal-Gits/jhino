@@ -1,97 +1,65 @@
 /*
- * The 30 designs for the links page. A design is a set of decisions, not a costume: a page colour,
- * an ink, a type pairing and one way of drawing a button. Nothing is textured or themed-up; each one
- * should look like a brand chose it. Names are places in Nepal.
- *
- * Keep `id`, `name`, `tier` first in each entry: scripts/sync-themes.mjs reads them for the server.
+ * The 30 designs a person can pick for their public page. The look lives in themes.css under
+ * `.pf[data-theme="<id>"]`; this file is the catalogue (names, tiers, picker swatches).
  */
-import type { CSSProperties } from 'react';
 import type { Tier } from './types';
-
-/** How buttons are drawn. */
-export type Btn = 'fill' | 'outline' | 'soft' | 'hard' | 'line';
-/** Type pairings (display for the name, text for everything else). */
-export type Face = 'grotesk' | 'serif' | 'didone' | 'condensed' | 'mono' | 'rounded';
 
 export interface ThemeMeta {
   id: string;
   name: string;
   tier: Tier;
   blurb: string;
-  /** The page: any CSS background (almost always one flat colour). */
-  bg: string;
-  fg: string;
-  muted: string;
-  /** Buttons. */
-  card: string;
-  cardFg: string;
-  border: string;
-  radius: number;
-  btn: Btn;
-  face: Face;
-  /** The one accent: the ring on the photo and the highlighted link. */
-  accent: string;
-  /** Name in capitals (condensed and poster designs). */
-  caps?: boolean;
+  swatch: { bg: string; fg: string; accent: string };
 }
 
 export const THEMES: ThemeMeta[] = [
-  // ---------- Free (5): quiet, universal ----------
-  { id: 'paper', name: 'Paper', tier: 'free', blurb: 'White page, black ink, thin outlines.', bg: '#ffffff', fg: '#141414', muted: '#6b6a66', card: '#ffffff', cardFg: '#141414', border: '#141414', radius: 14, btn: 'outline', face: 'grotesk', accent: '#e0461f' },
-  { id: 'ink', name: 'Ink', tier: 'free', blurb: 'Near-black page with white buttons.', bg: '#111111', fg: '#f4f3ef', muted: '#9a9893', card: '#f4f3ef', cardFg: '#111111', border: 'transparent', radius: 14, btn: 'fill', face: 'grotesk', accent: '#ff6a3d' },
-  { id: 'mustang', name: 'Mustang', tier: 'free', blurb: 'Warm sand with soft cream pills.', bg: '#ece5da', fg: '#2a241e', muted: '#7a6f63', card: '#faf6ef', cardFg: '#2a241e', border: 'transparent', radius: 999, btn: 'soft', face: 'grotesk', accent: '#b4532a' },
-  { id: 'himal', name: 'Himal', tier: 'free', blurb: 'Cold sky, deep navy buttons.', bg: '#e6edf3', fg: '#12263a', muted: '#5b6f82', card: '#12263a', cardFg: '#f3f7fa', border: 'transparent', radius: 12, btn: 'fill', face: 'grotesk', accent: '#12263a' },
-  { id: 'ilam', name: 'Ilam', tier: 'free', blurb: 'Tea green, cream, a gentle serif.', bg: '#e3e8dc', fg: '#1f2b21', muted: '#5d6a5c', card: 'transparent', cardFg: '#1f2b21', border: '#1f2b21', radius: 999, btn: 'outline', face: 'serif', accent: '#3d6b45' },
+  // ---- Free (5)
+  { id: 'paper', name: 'Paper', tier: 'free', blurb: 'White stock, black ink, one vermilion mark.', swatch: { bg: '#fbfaf8', fg: '#151412', accent: '#e0461f' } },
+  { id: 'night', name: 'Night', tier: 'free', blurb: 'Near-black page, solid bone buttons.', swatch: { bg: '#101211', fg: '#ece8df', accent: '#ff6a3d' } },
+  { id: 'newsprint', name: 'Newsprint', tier: 'free', blurb: 'A broadsheet masthead and boxed classifieds.', swatch: { bg: '#edebe3', fg: '#1b1a17', accent: '#1b1a17' } },
+  { id: 'clay', name: 'Soft Clay', tier: 'free', blurb: 'Terracotta pills on unglazed cream.', swatch: { bg: '#efe3d5', fg: '#3a2219', accent: '#b4492f' } },
+  { id: 'marigold', name: 'Marigold', tier: 'free', blurb: 'Tihar orange with heavy black type.', swatch: { bg: '#f3a21a', fg: '#1c1206', accent: '#1c1206' } },
 
-  // ---------- Plus (10): more voice ----------
-  { id: 'patan', name: 'Patan', tier: 'plus', blurb: 'Editorial cream, a serif name, black buttons.', bg: '#f6f1e7', fg: '#1d1a16', muted: '#7a7163', card: '#1d1a16', cardFg: '#f6f1e7', border: 'transparent', radius: 6, btn: 'fill', face: 'serif', accent: '#a8391b' },
-  { id: 'rara', name: 'Rara', tier: 'plus', blurb: 'Lake cobalt, white buttons.', bg: '#2143c6', fg: '#ffffff', muted: '#c5d0f5', card: '#ffffff', cardFg: '#2143c6', border: 'transparent', radius: 14, btn: 'fill', face: 'grotesk', accent: '#ffffff' },
-  { id: 'tihar', name: 'Tihar', tier: 'plus', blurb: 'Marigold orange, black pills.', bg: '#ff7a2f', fg: '#140c05', muted: '#5a2f12', card: '#140c05', cardFg: '#ffffff', border: 'transparent', radius: 999, btn: 'fill', face: 'grotesk', accent: '#140c05' },
-  { id: 'shivapuri', name: 'Shivapuri', tier: 'plus', blurb: 'Forest green with soft, see-through cards.', bg: '#183a2c', fg: '#f1ebdb', muted: '#a9b8a4', card: 'rgba(241,235,219,0.09)', cardFg: '#f1ebdb', border: 'rgba(241,235,219,0.18)', radius: 12, btn: 'soft', face: 'serif', accent: '#d9b26a' },
-  { id: 'lalitpur', name: 'Lalitpur', tier: 'plus', blurb: 'Blush pink, white pills, brick text.', bg: '#f4dcd4', fg: '#3b1c17', muted: '#8a5d53', card: '#ffffff', cardFg: '#3b1c17', border: 'transparent', radius: 999, btn: 'fill', face: 'rounded', accent: '#b53a2a' },
-  { id: 'slate', name: 'Slate', tier: 'plus', blurb: 'Graphite with raised grey buttons.', bg: '#262a30', fg: '#eceef1', muted: '#9aa1ab', card: '#353b43', cardFg: '#eceef1', border: 'transparent', radius: 10, btn: 'fill', face: 'grotesk', accent: '#ff8a5b' },
-  { id: 'ason', name: 'Ason', tier: 'plus', blurb: 'Market yellow, hard black shadows.', bg: '#f3df4d', fg: '#141414', muted: '#4d4617', card: '#ffffff', cardFg: '#141414', border: '#141414', radius: 10, btn: 'hard', face: 'grotesk', accent: '#141414' },
-  { id: 'newsroom', name: 'Newsroom', tier: 'plus', blurb: 'White, black, sharp shadows.', bg: '#ffffff', fg: '#141414', muted: '#666666', card: '#ffffff', cardFg: '#141414', border: '#141414', radius: 4, btn: 'hard', face: 'grotesk', accent: '#e0461f' },
-  { id: 'durbar', name: 'Durbar', tier: 'plus', blurb: 'Oxblood with fine outlines and a Didone.', bg: '#561b20', fg: '#f6e7dc', muted: '#c8a79b', card: 'transparent', cardFg: '#f6e7dc', border: 'rgba(246,231,220,0.55)', radius: 2, btn: 'outline', face: 'didone', accent: '#e7c38a' },
-  { id: 'phewa', name: 'Phewa', tier: 'plus', blurb: 'Pale mint, deep green pills.', bg: '#d8efe3', fg: '#0f3324', muted: '#4c7563', card: '#0f3324', cardFg: '#e8f6ee', border: 'transparent', radius: 999, btn: 'fill', face: 'rounded', accent: '#0f3324' },
+  // ---- Plus (10)
+  { id: 'letterpress', name: 'Letterpress', tier: 'plus', blurb: 'Cotton paper, pressed ink, small caps.', swatch: { bg: '#f3eee3', fg: '#22252b', accent: '#b8322a' } },
+  { id: 'swiss', name: 'Swiss Grid', tier: 'plus', blurb: 'Flush left, numbered, one red.', swatch: { bg: '#ffffff', fg: '#111111', accent: '#e2231a' } },
+  { id: 'darkroom', name: 'Darkroom', tier: 'plus', blurb: 'Safelight red over film-strip frames.', swatch: { bg: '#140c0b', fg: '#f0d9d2', accent: '#e0321c' } },
+  { id: 'blueprint', name: 'Blueprint', tier: 'plus', blurb: 'Drafting grid, title block, dashed parts.', swatch: { bg: '#1d4f91', fg: '#eaf2ff', accent: '#ffffff' } },
+  { id: 'linen', name: 'Linen', tier: 'plus', blurb: 'Woven oatmeal cloth and stitched labels.', swatch: { bg: '#e8e1d2', fg: '#3b3a33', accent: '#56643f' } },
+  { id: 'terminal', name: 'Terminal', tier: 'plus', blurb: 'Amber phosphor on a warm black shell.', swatch: { bg: '#12110e', fg: '#e8e0c8', accent: '#f2a93b' } },
+  { id: 'risograph', name: 'Risograph', tier: 'plus', blurb: 'Two-ink print: fluoro pink and blue.', swatch: { bg: '#f5f0e6', fg: '#0078bf', accent: '#ff48b0' } },
+  { id: 'gallery', name: 'Gallery White', tier: 'plus', blurb: 'Wall labels with room to breathe.', swatch: { bg: '#ffffff', fg: '#111111', accent: '#9a9a96' } },
+  { id: 'monsoon', name: 'Monsoon', tier: 'plus', blurb: 'Slate rain and pale jade.', swatch: { bg: '#22303a', fg: '#dfe8ea', accent: '#9fd3c7' } },
+  { id: 'tea-estate', name: 'Tea Estate', tier: 'plus', blurb: 'Ilam greens, contour lines, brass.', swatch: { bg: '#1d3a2a', fg: '#efe9d6', accent: '#d4ae5a' } },
 
-  // ---------- Pro (15): the finest ----------
-  { id: 'noir', name: 'Noir', tier: 'pro', blurb: 'Black, brass outlines, a Didone name.', bg: '#0c0c0c', fg: '#f1eadb', muted: '#8f8778', card: 'transparent', cardFg: '#f1eadb', border: '#b89a62', radius: 0, btn: 'outline', face: 'didone', accent: '#c9a96b' },
-  { id: 'gallery', name: 'Gallery', tier: 'pro', blurb: 'Wall-label list: ruled rows, no boxes.', bg: '#fbfaf7', fg: '#161513', muted: '#77746d', card: 'transparent', cardFg: '#161513', border: '#161513', radius: 0, btn: 'line', face: 'serif', accent: '#161513' },
-  { id: 'kathmandu-night', name: 'Kathmandu Night', tier: 'pro', blurb: 'Deep navy with soft panels.', bg: '#0f1b2d', fg: '#e8eef8', muted: '#8fa0b8', card: 'rgba(232,238,248,0.07)', cardFg: '#e8eef8', border: 'rgba(232,238,248,0.14)', radius: 16, btn: 'soft', face: 'grotesk', accent: '#7fb0ff' },
-  { id: 'bhaktapur', name: 'Bhaktapur', tier: 'pro', blurb: 'Brick terracotta and cream pills.', bg: '#b85a3c', fg: '#fff5ec', muted: '#f3c9b3', card: '#fff5ec', cardFg: '#7a2f18', border: 'transparent', radius: 999, btn: 'fill', face: 'serif', accent: '#fff5ec' },
-  { id: 'stone', name: 'Stone', tier: 'pro', blurb: 'Warm grey, square cards, condensed caps.', bg: '#d9d5cf', fg: '#22201d', muted: '#6d6860', card: '#f4f2ee', cardFg: '#22201d', border: 'transparent', radius: 3, btn: 'fill', face: 'condensed', accent: '#22201d', caps: true },
-  { id: 'volt', name: 'Volt', tier: 'pro', blurb: 'Black with electric lime buttons.', bg: '#0b0b0b', fg: '#f4f4f0', muted: '#8d8d88', card: '#d6ff3b', cardFg: '#0b0b0b', border: 'transparent', radius: 8, btn: 'fill', face: 'condensed', accent: '#d6ff3b', caps: true },
-  { id: 'poster', name: 'Poster', tier: 'pro', blurb: 'A big condensed name, black blocks.', bg: '#ebe5d8', fg: '#141414', muted: '#6b665b', card: '#141414', cardFg: '#ebe5d8', border: 'transparent', radius: 0, btn: 'fill', face: 'condensed', accent: '#d8401d', caps: true },
-  { id: 'pokhara', name: 'Pokhara', tier: 'pro', blurb: 'Lake teal and bright cream buttons.', bg: '#0f4e5a', fg: '#eaf6f3', muted: '#9cc6c1', card: '#eaf6f3', cardFg: '#0f4e5a', border: 'transparent', radius: 14, btn: 'fill', face: 'grotesk', accent: '#f2c36b' },
-  { id: 'porcelain', name: 'Porcelain', tier: 'pro', blurb: 'Clean white cards on cool grey.', bg: '#eef1f3', fg: '#18242c', muted: '#6a7880', card: '#ffffff', cardFg: '#18242c', border: '#dbe2e6', radius: 16, btn: 'soft', face: 'grotesk', accent: '#18242c' },
-  { id: 'terai', name: 'Terai', tier: 'pro', blurb: 'Rust type on wheat, serif and warm.', bg: '#f2e3cf', fg: '#6d2c14', muted: '#a06a4d', card: '#6d2c14', cardFg: '#f7ecdd', border: 'transparent', radius: 8, btn: 'fill', face: 'serif', accent: '#6d2c14' },
-  { id: 'vermilion', name: 'Vermilion', tier: 'pro', blurb: 'Sindoor red, white pills.', bg: '#e0461f', fg: '#ffffff', muted: '#ffd2c4', card: '#ffffff', cardFg: '#b3300f', border: 'transparent', radius: 999, btn: 'fill', face: 'grotesk', accent: '#ffffff' },
-  { id: 'apricot', name: 'Apricot', tier: 'pro', blurb: 'A soft dusk from apricot to peach.', bg: 'linear-gradient(180deg, #f6ddb6 0%, #eca47e 100%)', fg: '#2d1a10', muted: '#6d4630', card: '#fffaf3', cardFg: '#2d1a10', border: 'transparent', radius: 16, btn: 'fill', face: 'serif', accent: '#2d1a10' },
-  { id: 'typewriter', name: 'Typewriter', tier: 'pro', blurb: 'Mono type on off-white, square outlines.', bg: '#f2eee5', fg: '#1b1a17', muted: '#6d6a61', card: 'transparent', cardFg: '#1b1a17', border: '#1b1a17', radius: 0, btn: 'outline', face: 'mono', accent: '#1b1a17' },
-  { id: 'cinema', name: 'Cinema', tier: 'pro', blurb: 'Screening-room black with raised cards.', bg: '#101010', fg: '#f2f2ef', muted: '#8b8b86', card: '#1d1d1c', cardFg: '#f2f2ef', border: '#2c2c2a', radius: 12, btn: 'soft', face: 'grotesk', accent: '#e0461f' },
-  { id: 'everest', name: 'Everest', tier: 'pro', blurb: 'Snow white, ice blue, fine lines.', bg: '#f7fafc', fg: '#0f2233', muted: '#6b7f90', card: 'transparent', cardFg: '#0f2233', border: '#9fb6c8', radius: 12, btn: 'outline', face: 'rounded', accent: '#2f78b7' },
+  // ---- Pro (15)
+  { id: 'kathmandu-morning', name: 'Kathmandu Morning', tier: 'pro', blurb: 'Dhaka weave bands on warm cream.', swatch: { bg: '#f6efe2', fg: '#1a1512', accent: '#a3271c' } },
+  { id: 'himalaya', name: 'Himalaya', tier: 'pro', blurb: 'Snow ridges, slate, rhododendron red.', swatch: { bg: '#f2f4f6', fg: '#1f2a35', accent: '#c2402b' } },
+  { id: 'film-slate', name: 'Film Slate', tier: 'pro', blurb: 'Clapper stripes and chalk on black.', swatch: { bg: '#161616', fg: '#f2f2ee', accent: '#f2f2ee' } },
+  { id: 'studio-black', name: 'Studio Black', tier: 'pro', blurb: 'Bodoni, roman numerals, quiet brass.', swatch: { bg: '#0a0a0a', fg: '#f4f1ea', accent: '#c8b48a' } },
+  { id: 'paper-cut', name: 'Paper Cut', tier: 'pro', blurb: 'Layered card stock, hand placed.', swatch: { bg: '#f2dcc8', fg: '#2d2a26', accent: '#d2694c' } },
+  { id: 'brutalist', name: 'Brutalist', tier: 'pro', blurb: 'Raw concrete, hard shadows, no manners.', swatch: { bg: '#d7d6d0', fg: '#000000', accent: '#ff3d00' } },
+  { id: 'neon-night', name: 'Neon Night', tier: 'pro', blurb: 'One pink tube on a brick wall.', swatch: { bg: '#0c0d10', fg: '#ffd9e1', accent: '#ff3864' } },
+  { id: 'index-cards', name: 'Index Cards', tier: 'pro', blurb: 'Typed catalogue cards on a green desk.', swatch: { bg: '#3d5044', fg: '#fbf8f0', accent: '#c7372f' } },
+  { id: 'ticket-stub', name: 'Ticket Stub', tier: 'pro', blurb: 'Admit-one stubs on cinema red.', swatch: { bg: '#6e1a17', fg: '#f3e6c8', accent: '#f3e6c8' } },
+  { id: 'quarterly', name: 'Quarterly', tier: 'pro', blurb: 'A magazine contents page, dot leaders.', swatch: { bg: '#f7f3ea', fg: '#1a1a1a', accent: '#c23b22' } },
+  { id: 'receipt', name: 'Receipt', tier: 'pro', blurb: 'Thermal paper, line items, a barcode.', swatch: { bg: '#d4d1ca', fg: '#1d1d1b', accent: '#1d1d1b' } },
+  { id: 'bauhaus', name: 'Bauhaus', tier: 'pro', blurb: 'Circle, square, triangle, three primaries.', swatch: { bg: '#f1ebdd', fg: '#151515', accent: '#d63a27' } },
+  { id: 'velvet', name: 'Velvet', tier: 'pro', blurb: 'Oxblood pile and soft italic serif.', swatch: { bg: '#3a0e18', fg: '#f5e6d8', accent: '#e8b4a0' } },
+  { id: 'prayer-flags', name: 'Prayer Flags', tier: 'pro', blurb: 'Five colours strung across the sky.', swatch: { bg: '#fbf9f4', fg: '#1d2430', accent: '#2d5fa8' } },
+  { id: 'cyanotype', name: 'Cyanotype', tier: 'pro', blurb: 'Sunprint blue with a pressed fern.', swatch: { bg: '#1c3f7a', fg: '#eef2f8', accent: '#eef2f8' } },
 ];
 
 export const tierRank: Record<Tier, number> = { free: 0, plus: 1, pro: 2 };
-export const canUseTheme = (themeTier: Tier, userTier: Tier) => tierRank[themeTier] <= tierRank[userTier];
-export const themeById = (id: string) => THEMES.find((t) => t.id === id) ?? THEMES[0];
 
-const FACES: Record<Face, { display: string; text: string }> = {
-  grotesk: { display: "'Bricolage Grotesque Variable', 'Schibsted Grotesk Variable', sans-serif", text: "'Schibsted Grotesk Variable', 'Noto Sans Devanagari Variable', sans-serif" },
-  serif: { display: "'Fraunces Variable', Georgia, serif", text: "'Schibsted Grotesk Variable', 'Noto Sans Devanagari Variable', sans-serif" },
-  didone: { display: "'Bodoni Moda Variable', Didot, serif", text: "'Newsreader Variable', Georgia, serif" },
-  condensed: { display: "'Archivo Variable', 'Schibsted Grotesk Variable', sans-serif", text: "'Schibsted Grotesk Variable', 'Noto Sans Devanagari Variable', sans-serif" },
-  mono: { display: "'JetBrains Mono Variable', ui-monospace, monospace", text: "'JetBrains Mono Variable', ui-monospace, monospace" },
-  rounded: { display: "'Bricolage Grotesque Variable', sans-serif", text: "'Bricolage Grotesque Variable', 'Noto Sans Devanagari Variable', sans-serif" },
-};
+const byId = new Map(THEMES.map((t) => [t.id, t]));
 
-/** The CSS variables a design sets on the page root. */
-export function themeVars(t: ThemeMeta): CSSProperties {
-  const f = FACES[t.face];
-  return {
-    '--lk-bg': t.bg, '--lk-fg': t.fg, '--lk-muted': t.muted, '--lk-card': t.card, '--lk-card-fg': t.cardFg,
-    '--lk-border': t.border, '--lk-radius': `${t.radius}px`, '--lk-accent': t.accent,
-    '--lk-display': f.display, '--lk-text': f.text,
-  } as CSSProperties;
+/** The theme with this id, or the default ('paper') when it is unknown. */
+export function themeById(id: string | null | undefined): ThemeMeta {
+  return (id && byId.get(id)) || THEMES[0];
+}
+
+/** Whether a person on `userTier` may use a theme of `themeTier`. */
+export function canUseTheme(themeTier: Tier, userTier: Tier): boolean {
+  return tierRank[userTier] >= tierRank[themeTier];
 }

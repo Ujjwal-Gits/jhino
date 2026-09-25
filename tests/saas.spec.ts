@@ -308,7 +308,7 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   await expect(page.locator('.addr-input.ok')).toBeVisible();
   await page.click('button:has-text("Create account")');
   // Home is their own page, at jhino.com/<username>.
-  await expect(page.getByRole('heading', { name: 'Your pages' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'My page' })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/${uname}$`));
   await page.goto('/apps');
   await expect(page.getByRole('heading', { name: 'My apps' })).toBeVisible();
@@ -738,101 +738,6 @@ test('my page: links, socials, video, design by plan, public at /<username>, cli
   // Someone else's editor calls are theirs only.
   const other = await session(await signup('Nosy'));
   expect((await other.call('PATCH', `/api/me/page/items/${linkId}`, { title: 'Hacked' })).status).toBe(404);
-});
-
-test('profile page: its own content, photos by plan, /<username>/profile and /links, and which one opens at /<username>', async ({ browser }) => {
-  const fs = await import('node:fs');
-  const who = await signup('Folio');
-  const me = await session(who);
-  const uname = (await me.call('GET', '/api/me')).json.user.username;
-  // Content that only the profile page has.
-  let d = (await me.call('PUT', '/api/me/page', {
-    headline: 'Photo and film for brands', about: 'A small studio in Jhamsikhel.', palette: 'forest', ptype: 'serif',
-    cta: { label: 'Book a session', url: 'studio.example.com/book' },
-    stats: [{ value: '240+', label: 'weddings' }, { value: '', label: 'dropped' }],
-    services: [{ name: 'Wedding story', note: 'Full day', price: 'from NPR 120,000' }],
-  })).json;
-  expect(d.page.portfolio).toMatchObject({ headline: 'Photo and film for brands', palette: 'forest', type: 'serif', cta: { label: 'Book a session', url: 'https://studio.example.com/book' }, stats: [{ value: '240+', label: 'weddings' }] });
-  expect(d.settings.home).toBe('links');
-  expect((await me.call('PUT', '/api/me/page', { palette: 'rainbow' })).status).toBe(400);
-  expect((await me.call('PUT', '/api/me/page', { stats: Array(5).fill({ value: '1', label: 'x' }) })).status).toBe(400);
-  expect((await me.call('PUT', '/api/me/page', { cta: { label: 'Go', url: 'javascript:alert(1)' } })).status).toBe(400);
-  // Photos: images only, and Free holds 6.
-  const img = fs.readFileSync('web/public/img/shoot-iced.webp');
-  const up = (kind: string, buffer: Buffer, name = 'a.webp', mimeType = 'image/webp') => me.ctx.post(`/api/me/page/image?kind=${kind}`, { multipart: { image: { name, mimeType, buffer } }, headers: { 'x-csrf-token': me.csrf } });
-  expect((await up('work', Buffer.from('<svg onload=alert(1)>'), 'x.svg', 'image/svg+xml')).status()).toBe(400);
-  expect((await up('cover', img)).status()).toBe(200);
-  for (let i = 0; i < 6; i++) expect((await up('work', img)).status()).toBe(200);
-  const full = await up('work', img);
-  expect(full.status()).toBe(403);
-  expect((await full.json()).error).toBe('LIMIT_REACHED');
-  d = (await me.call('GET', '/api/me/page')).json;
-  expect(d.features.workImages).toBe(6);
-  const work = d.page.portfolio.work;
-  // Reordering keeps every photo, even one the request left out.
-  d = (await me.call('PUT', '/api/me/page', { work: [{ id: work[5].id, caption: 'Best one' }] })).json;
-  expect(d.page.portfolio.work.map((w: any) => w.id)).toEqual([work[5].id, ...work.slice(0, 5).map((w: any) => w.id)]);
-  expect(d.page.portfolio.work[0].caption).toBe('Best one');
-  d = (await me.call('DELETE', `/api/me/page/image/${work[0].id}`)).json;
-  expect(d.page.portfolio.work).toHaveLength(5);
-  // Anyone can load the photos the page uses, and nothing else from that folder.
-  const anon = await session();
-  const pub = (await anon.call('GET', `/api/profile/${uname}`)).json.profile;
-  expect(pub.home).toBe('links');
-  expect((await anon.ctx.get(pub.portfolio.coverUrl)).status()).toBe(200);
-  expect((await anon.ctx.get(`/api/profile/${uname}/img/${work[0].id}`)).status()).toBe(404);
-
-  // The two pages have their own addresses; the choice decides what /<username> opens.
-  const page = await (await browser.newContext()).newPage();
-  await page.goto(`/${uname}/profile`);
-  await expect(page.locator('.pp .pp-name')).toHaveText('Folio', { timeout: 15_000 });
-  await expect(page.locator('.pp-services')).toContainText('from NPR 120,000');
-  await expect(page.locator('.pp-work li')).toHaveCount(5);
-  await page.goto(`/${uname}/links`);
-  await expect(page.locator('.pf .pf-name')).toBeVisible();
-  await page.goto(`/${uname}`);
-  await expect(page.locator('.pf .pf-name')).toBeVisible();
-  await me.call('PUT', '/api/me/page', { home: 'profile' });
-  await page.goto(`/${uname}`);
-  await expect(page.locator('.pp .pp-name')).toBeVisible();
-  // Views are counted per page.
-  await expect.poll(async () => Object.fromEntries((await me.call('GET', '/api/me/page/analytics?days=7')).json.pages.map((x: any) => [x.value, x.n]))).toMatchObject({ Profile: 2, Links: 2 });
-  // Hidden, the photos go too.
-  await me.call('PUT', '/api/me/page', { published: false });
-  expect((await anon.ctx.get(pub.portfolio.coverUrl)).status()).toBe(404);
-  expect((await me.ctx.get(pub.portfolio.coverUrl)).status()).toBe(200);
-});
-
-test('page console: the owner edits both pages with a live preview', async ({ page }) => {
-  const who = await signup('Console');
-  await page.goto('/login');
-  await page.fill('input[autocomplete=username]', who.email);
-  await page.fill('input[type=password]', who.password);
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('heading', { name: 'Your pages' })).toBeVisible({ timeout: 15_000 });
-  // Paste a link: it appears in the list and in the phone preview.
-  await page.fill('#cs-paste', 'https://studio.example.com/book');
-  await page.click('.cs-paste button:has-text("Add")');
-  await expect(page.locator('.cs-item')).toHaveCount(1);
-  await page.locator('.cs-item .cs-t').fill('Book a session');
-  await page.locator('.cs-item .cs-t').press('Tab');
-  await expect(page.locator('.cs-state')).toHaveText('All changes saved');
-  await page.setViewportSize({ width: 1400, height: 900 });
-  await expect(page.locator('.dev-phone .pf-link')).toContainText('Book a session');
-  // The profile page: a headline shows in its preview; the colour changes it.
-  await page.click('.cs-tabs button:has-text("Profile page")');
-  await page.getByLabel('What you do').fill('Photo and film');
-  await page.getByLabel('What you do').press('Tab');
-  await expect(page.locator('.dev-phone .pp-headline')).toHaveText('Photo and film');
-  await page.click('.cs-mode [role=tab]:has-text("Style")');
-  await page.click('.cs-pal:has-text("Night")');
-  await expect(page.locator('.dev-phone .pp')).toHaveAttribute('data-palette', 'night');
-  await page.click('.seg-sm button:has-text("Desktop")');
-  await expect(page.locator('.dev-desk .pp')).toBeVisible();
-  // Settings: the profile page opens at /<username>.
-  await page.click('.cs-tabs button:has-text("Settings")');
-  await page.click('.cs-homeopt:has-text("Profile page")');
-  await expect(page.locator('.cs-homeopt:has-text("Profile page")')).toHaveAttribute('aria-checked', 'true');
 });
 
 test('email codes: confirm email, reset password and change email with a 6-digit code; five wrong tries lock it', async () => {

@@ -119,7 +119,7 @@ function ensureWritable(dir: string, label: string) {
   }
 }
 ensureWritable(config.dataDir, 'DATA_DIR');
-for (const sub of ['apps', 'files', 'staging', 'system/avatars', 'system/qr', 'system/payments', 'system/profiles']) fs.mkdirSync(path.join(config.dataDir, sub), { recursive: true });
+for (const sub of ['apps', 'files', 'staging', 'system/avatars', 'system/qr', 'system/payments']) fs.mkdirSync(path.join(config.dataDir, sub), { recursive: true });
 ensureWritable(config.backupDir, 'BACKUP_DIR');
 // Half-finished uploads from a previous run.
 for (const n of fs.readdirSync(path.join(config.dataDir, 'staging'))) fs.rmSync(path.join(config.dataDir, 'staging', n), { recursive: true, force: true });

@@ -12,7 +12,7 @@ import { baseUrl, mailReady, mails, sendMail } from './mail.js';
 import { clientInfo, deviceName, imageType, limit, maskIp, securityEvent, setting, audit } from './security.js';
 import { ESSENTIAL, notifyAdmins, prefsOf, usage, type Category } from './plans.js';
 import { closeUser } from './realtime.js';
-import { assertUsernameFree, assignUsername, nextUsernameChange, validUsername } from './usernames.js';
+import { assertUsernameFree, assignUsername, validUsername } from './usernames.js';
 
 /* ---------------- single-use links ---------------- */
 type Purpose = 'verify' | 'reset' | 'email_change';
@@ -96,7 +96,6 @@ function accountView(req: FastifyRequest, u: UserRow) {
       id: u.id, status: u.disabled ? 'suspended' : 'active', createdAt: u.created_at,
       lastLogin: u.last_login_at ? { at: u.last_login_at, device: deviceName(u.last_login_ua), ip: maskIp(u.last_login_ip) } : null,
       emailVerifiedAt: u.email_verified_at ?? null, pendingEmail: pending?.data ?? null, passwordChangedAt: u.password_changed_at ?? null,
-      username: u.username ?? null, usernameNextChange: nextUsernameChange(u),
       kind: u.is_admin ? 'super_admin' : canCreateApps(u) ? 'creator' : 'client',
     },
     usage: canCreateApps(u) ? usage(u) : null,
