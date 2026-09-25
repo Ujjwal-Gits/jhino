@@ -77,7 +77,7 @@ function App() {
   // One segment that is not a page of Jhino: someone's page (jhino.com/<username>), or a top-level address.
   // Two: an app address under a username (jhino.com/<username>/<name>).
   const seg = path.split('/').filter(Boolean);
-  const person = seg.length === 1 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) ? seg[0] : null;
+  const person = seg.length === 1 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{0,49}$/i.test(seg[0]) ? seg[0] : null;
   const under = seg.length === 2 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) && /^[a-z0-9][a-z0-9-]{1,49}$/i.test(seg[1]) ? `${seg[0]}/${seg[1]}` : null;
   const shell = (n: ReactNode) => (user ? <Shell>{n}</Shell> : n);
   if (user === undefined) page = null;

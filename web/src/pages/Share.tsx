@@ -3,7 +3,7 @@ import { ApiError, api, get, post, type AppDetail, type Role } from '../api';
 import { useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 import { downloadHtml } from './Player';
-import { AddressField, PlanTag, addrBase, slugify, useNameCheck } from './Address';
+import { AddressField, HOST, PlanTag, addrBase, slugify, useNameCheck } from './Address';
 
 interface InviteRow { id: string; role: Role; createdAt: string; expiresAt: string; usedAt: string | null; revokedAt: string | null; usedBy: string | null }
 interface Member { id: string; name: string; email: string; role: Role; madeByMe?: boolean }
@@ -211,54 +211,149 @@ function AddressSection({ appId, appName, sharing, onChange }: { appId: string; 
   const toast = useToast();
   const { user } = useSession();
   const [editing, setEditing] = useState(false);
-  const [slug, setSlug] = useState(sharing.slug ?? '');
+  const [mode, setMode] = useState<'standard' | 'root'>(user.isAdmin && sharing.rootSlug ? 'root' : 'standard');
+  const [slug, setSlug] = useState(sharing.rootSlug ?? sharing.slug ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const check = useNameCheck(editing && slug !== sharing.slug ? slug : '', { app: appId });
+
+  const currentSlug = mode === 'root' ? (sharing.rootSlug ?? '') : (sharing.slug ?? '');
+  const isDirect = mode === 'root';
+  const check = useNameCheck(editing && slug !== currentSlug ? slug : '', { app: appId, top: isDirect });
+
+  const handleModeChange = (nextMode: 'standard' | 'root') => {
+    setMode(nextMode);
+    setSlug(nextMode === 'root' ? (sharing.rootSlug ?? slugify(appName)) : (sharing.slug ?? slugify(appName)));
+    setError('');
+  };
+
   const save = async (next: string | null) => {
     setBusy(true); setError('');
     try {
       // An address is for opening without being added: a private app opens to anyone with it.
-      const body = next ? { slug: next, access: sharing.access === 'private' ? 'public' : undefined } : { slug: null };
+      const body = next
+        ? { mode, slug: next, access: sharing.access === 'private' ? 'public' : undefined }
+        : { mode, slug: null };
       const r = await api<SharingT>('PUT', `/api/apps/${appId}/address`, body);
-      onChange(r); setEditing(false); toast(next ? `Live at ${r.slugUrl}` : 'Address removed');
+      onChange(r);
+      setEditing(false);
+      const liveUrl = mode === 'root' ? r.rootUrl : r.slugUrl;
+      toast(next ? `Live at ${liveUrl || r.rootUrl || r.slugUrl}` : 'Address removed');
     } catch (e) { setError(e instanceof ApiError ? e.message : 'Could not save.'); }
     setBusy(false);
   };
+
+  const activeUrl = sharing.rootUrl || sharing.slugUrl;
+
   return (
     <div className="addr-sec">
       <p className="section-title">Address</p>
       {!editing ? (
-        sharing.slugUrl ? (
-          <div className="linkbox">
-            <input className="input mono" readOnly value={sharing.slugUrl} onFocus={(e) => e.target.select()} aria-label="Address" />
-            <button className="btn sm" type="button" onClick={() => copyText(sharing.slugUrl!).then(() => toast('Address copied'))}><Icon name="copy" size={15} />Copy</button>
-            <button className="btn sm quiet" type="button" onClick={() => { setSlug(sharing.slug ?? ''); setEditing(true); }}>Change</button>
+        activeUrl ? (
+          <div className="linkbox-stack" style={{ display: 'grid', gap: 8 }}>
+            {sharing.rootUrl && (
+              <div>
+                {user.isAdmin && <div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <b>Direct root URL</b>
+                  <span className="plan-tag" style={{ background: 'var(--signal)', color: '#fff', fontSize: 11 }}>Super admin</span>
+                </div>}
+                <div className="linkbox">
+                  <input className="input mono" readOnly value={sharing.rootUrl} onFocus={(e) => e.target.select()} aria-label="Direct address" />
+                  <button className="btn sm" type="button" onClick={() => copyText(sharing.rootUrl!).then(() => toast('Address copied'))}><Icon name="copy" size={15} />Copy</button>
+                  <button className="btn sm quiet" type="button" onClick={() => { setMode('root'); setSlug(sharing.rootSlug ?? ''); setEditing(true); }}>Change</button>
+                </div>
+              </div>
+            )}
+            {sharing.slugUrl && (!sharing.rootUrl || user.isAdmin) && (
+              <div>
+                {user.isAdmin && sharing.rootUrl && <div style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 4 }}>Standard user URL</div>}
+                <div className="linkbox">
+                  <input className="input mono" readOnly value={sharing.slugUrl} onFocus={(e) => e.target.select()} aria-label="Standard address" />
+                  <button className="btn sm" type="button" onClick={() => copyText(sharing.slugUrl!).then(() => toast('Address copied'))}><Icon name="copy" size={15} />Copy</button>
+                  <button className="btn sm quiet" type="button" onClick={() => { setMode('standard'); setSlug(sharing.slug ?? ''); setEditing(true); }}>Change</button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="addr-empty">
-            <span className="hint">Give it its own address, like <span className="mono">{addrBase(user.username)}/{slugify(appName) || 'your-studio'}</span>. It opens at exactly that address.</span>
-            <button className="btn sm" type="button" onClick={() => { setSlug(slugify(appName)); setEditing(true); }}><Icon name="globe" size={15} />Add address</button>
+            <span className="hint">
+              Give it its own address{user.isAdmin ? ', like a direct root URL or under your username' : `, like ${addrBase(user.username)}/${slugify(appName) || 'your-studio'}`}. It opens at exactly that address.
+            </span>
+            <button className="btn sm" type="button" onClick={() => { setMode(user.isAdmin ? 'root' : 'standard'); setSlug(slugify(appName)); setEditing(true); }}>
+              <Icon name="globe" size={15} />Add address
+            </button>
           </div>
         )
       ) : (
         <form className="addr-edit" onSubmit={(e) => { e.preventDefault(); if (slug) save(slug); }}>
-          <AddressField value={slug} onChange={setSlug} check={slug === sharing.slug ? { state: 'ok' } : check} appId={appId} optional={false} />
+          {user.isAdmin && (
+            <div className="field addr-mode-field" style={{ marginBottom: 12 }}>
+              <label htmlFor="addr-url-type" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Address format</span>
+                <span className="plan-tag" style={{ background: 'var(--signal)', color: '#fff' }}>Super admin only</span>
+              </label>
+              <select
+                id="addr-url-type"
+                className="select sm"
+                value={mode}
+                onChange={(e) => handleModeChange(e.target.value as 'standard' | 'root')}
+              >
+                <option value="root">Direct root URL: {HOST()}/[slug] (e.g. /a, /abc, /1)</option>
+                <option value="standard">Standard: {HOST()}/{user.username || 'username'}/[slug]</option>
+              </select>
+            </div>
+          )}
+          <AddressField
+            value={slug}
+            onChange={setSlug}
+            check={slug === currentSlug ? { state: 'ok' } : check}
+            appId={appId}
+            optional={false}
+            mode={mode}
+          />
           <div className="actions-row">
-            <button className="btn sm primary" disabled={busy || !slug || (slug !== sharing.slug && check.state !== 'ok')}>{busy && <span className="spin" />}Save address</button>
-            {sharing.slug && <button type="button" className="btn sm quiet danger" disabled={busy} onClick={() => { if (confirm(`Remove ${sharing.slugUrl}? Anyone using it gets "Nothing here", and the name becomes free for others.`)) save(null); }}>Remove</button>}
-            <button type="button" className="btn sm quiet" onClick={() => { setEditing(false); setError(''); }}>Cancel</button>
+            <button className="btn sm primary" disabled={busy || !slug || (slug !== currentSlug && check.state !== 'ok')}>
+              {busy && <span className="spin" />}Save address
+            </button>
+            {((mode === 'root' ? sharing.rootSlug : sharing.slug) || (sharing.slug || sharing.rootSlug)) && (
+              <button
+                type="button"
+                className="btn sm quiet danger"
+                disabled={busy}
+                onClick={() => {
+                  const targetUrl = mode === 'root' ? (sharing.rootUrl || sharing.slugUrl) : (sharing.slugUrl || sharing.rootUrl);
+                  if (confirm(`Remove ${targetUrl}? Anyone using it gets "Nothing here", and the name becomes free for others.`)) {
+                    save(null);
+                  }
+                }}
+              >
+                Remove
+              </button>
+            )}
+            <button type="button" className="btn sm quiet" onClick={() => { setEditing(false); setError(''); }}>
+              Cancel
+            </button>
           </div>
         </form>
       )}
-      {sharing.slugUrl && sharing.access === 'private' && !editing && <p className="hint">Only people added below can open it. Choose "Anyone with the link" to open it to everyone with the address.</p>}
+      {activeUrl && sharing.access === 'private' && !editing && <p className="hint">Only people added below can open it. Choose "Anyone with the link" to open it to everyone with the address.</p>}
       {error && <p className="error-text" role="alert">{error}</p>}
     </div>
   );
 }
 
 /* ---------- sharing by link: private, public, or with a password ---------- */
-interface SharingT { access: 'private' | 'public' | 'password'; publicRole: Role; hasPassword: boolean; showBar: boolean; shareUrl: string; slug: string | null; slugUrl: string | null }
+interface SharingT {
+  access: 'private' | 'public' | 'password';
+  publicRole: Role;
+  hasPassword: boolean;
+  showBar: boolean;
+  shareUrl: string;
+  slug: string | null;
+  slugUrl: string | null;
+  rootSlug?: string | null;
+  rootUrl?: string | null;
+}
 function LinkSharing({ appId, appName }: { appId: string; appName: string }) {
   const toast = useToast();
   const { user } = useSession();

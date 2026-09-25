@@ -231,6 +231,22 @@ test('sharing by link: public, password and private; visitors only reach that ap
   await sita.call('PATCH', `/api/apps/${id}/sharing`, { access: 'private' });
   expect((await v.call('GET', `/api/apps/${id}/records/todos_l1`)).status).toBe(401);
   expect((await v.call('GET', `/api/public/${sitaName}/${slug}`)).json.error).toBe('NOT_PUBLIC');
+
+  // Super admin direct root URLs: customers cannot set mode='root'; only super admins can (e.g. /a, /abc, /1).
+  const nonAdminRoot = await sita.call('PUT', `/api/apps/${id}/address`, { mode: 'root', slug: 'root-' + uniq() });
+  expect(nonAdminRoot.status).toBe(403);
+  expect(nonAdminRoot.json.error).toBe('FORBIDDEN');
+
+  const rootSlug = 'r' + uniq();
+  const adminSetRoot = await admin.call('PUT', `/api/apps/${id}/address`, { mode: 'root', slug: rootSlug, access: 'public' });
+  expect(adminSetRoot.status, JSON.stringify(adminSetRoot.json)).toBe(200);
+  expect(adminSetRoot.json.rootUrl).toContain(`/${rootSlug}`);
+  // Opens directly at the root address without username
+  const rootPage = await (await browser.newContext()).newPage();
+  await rootPage.goto(`/${rootSlug}`);
+  await expect(rootPage.frameLocator('iframe').getByText('Visible to visitors')).toBeVisible({ timeout: 20_000 });
+  await expect(rootPage.locator('.player-bar h1')).toContainText('Link test');
+  await expect(rootPage).toHaveURL(new RegExp(`/${rootSlug}(#.*)?$`));
 });
 
 test('super admin: create a paid sign-in, suspend and reactivate; uploads switch; only super admins get in', async () => {

@@ -18,21 +18,26 @@ export const addrBase = (username?: string | null) => (username ? `${location.ho
 
 type Check = { state: 'idle' | 'checking' | 'ok' | 'bad'; reason?: string };
 /** Is this name free? Checked a moment after typing stops. */
-export function useNameCheck(name: string, except: { app?: string; link?: string } = {}): Check {
+export function useNameCheck(name: string, except: { app?: string; link?: string; top?: boolean } = {}): Check {
   const [c, setC] = useState<Check>({ state: 'idle' });
   useEffect(() => {
     if (!name) { setC({ state: 'idle' }); return; }
     setC({ state: 'checking' });
     let live = true;
     const t = setTimeout(() => {
-      const q = new URLSearchParams({ name, ...(except.app ? { app: except.app } : {}), ...(except.link ? { link: except.link } : {}) });
+      const q = new URLSearchParams({
+        name,
+        ...(except.app ? { app: except.app } : {}),
+        ...(except.link ? { link: except.link } : {}),
+        ...(except.top ? { top: '1' } : {}),
+      });
       get<{ available: boolean; reason?: string }>(`/api/addresses/check?${q}`).then(
         (r) => { if (live) setC(r.available ? { state: 'ok' } : { state: 'bad', reason: r.reason }); },
         () => { if (live) setC({ state: 'idle' }); },
       );
     }, 280);
     return () => { live = false; clearTimeout(t); };
-  }, [name, except.app, except.link]);
+  }, [name, except.app, except.link, except.top]);
   return c;
 }
 
@@ -41,18 +46,47 @@ export function PlanTag({ plan = 'Plus' }: { plan?: string }) {
   return <Link to="/account/plan" className="plan-tag" title={`On ${plan} and up. See plans.`}>{plan}</Link>;
 }
 
-export function AddressField({ value, onChange, check, appId, optional = true }: { value: string; onChange: (v: string) => void; check: Check; appId?: string; optional?: boolean }) {
+export function AddressField({
+  value,
+  onChange,
+  check,
+  appId,
+  optional = true,
+  mode = 'standard',
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  check: Check;
+  appId?: string;
+  optional?: boolean;
+  mode?: 'standard' | 'root';
+}) {
   const { user } = useSession();
   const f = user.features;
   const id = `addr-${appId ?? 'new'}`;
+  const isRoot = mode === 'root';
+  const prefix = isRoot ? `${HOST()}/` : `${addrBase(user.username)}/`;
+
   return (
     <div className="field addr-field">
-      <label htmlFor={id}>Address {optional && <em>optional</em>}</label>
+      <label htmlFor={id}>
+        Address {optional && <em>optional</em>}
+        {isRoot && <span className="plan-tag" style={{ marginLeft: 8, background: 'var(--signal)', color: '#fff' }}>Super admin · Direct URL</span>}
+      </label>
       <div className={`addr-input ${check.state}`}>
-        <span className="addr-host mono">{addrBase(user.username)}/</span>
-        <input id={id} className="mono" value={value} maxLength={50} autoComplete="off" spellCheck={false} placeholder="your-studio"
+        <span className="addr-host mono">{prefix}</span>
+        <input
+          id={id}
+          className="mono"
+          value={value}
+          maxLength={50}
+          autoComplete="off"
+          spellCheck={false}
+          placeholder={isRoot ? 'a, abc, 1, or your-name' : 'your-studio'}
           onChange={(e) => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-'))}
-          aria-invalid={check.state === 'bad'} aria-describedby={`${id}-s`} />
+          aria-invalid={check.state === 'bad'}
+          aria-describedby={`${id}-s`}
+        />
         <span className="addr-state" aria-hidden="true">
           {check.state === 'checking' && <span className="spin" />}
           {check.state === 'ok' && <Icon name="check" size={16} />}
@@ -60,9 +94,19 @@ export function AddressField({ value, onChange, check, appId, optional = true }:
         </span>
       </div>
       <small id={`${id}-s`} className={`hint ${check.state === 'bad' ? 'error-text' : ''}`} aria-live="polite">
-        {check.state === 'bad' ? check.reason
-          : check.state === 'ok' ? <>Free. It opens at <span className="mono">{addrBase(user.username)}/{value}</span>, exactly that address.</>
-            : <>Lowercase letters, numbers and dashes. {f && f.addresses < 1e6 ? `Your plan includes ${f.addresses} address${f.addresses === 1 ? '' : 'es'}.` : ''}</>}
+        {check.state === 'bad' ? (
+          check.reason
+        ) : check.state === 'ok' ? (
+          <>
+            Free. It opens at <span className="mono">{prefix}{value}</span>{isRoot ? ', directly without username.' : ', exactly that address.'}
+          </>
+        ) : isRoot ? (
+          <>Direct root address on {HOST()}. 1 to 50 lowercase letters, numbers or dashes (e.g. /a, /abc, /1).</>
+        ) : (
+          <>
+            Lowercase letters, numbers and dashes. {f && f.addresses < 1e6 ? `Your plan includes ${f.addresses} address${f.addresses === 1 ? '' : 'es'}.` : ''}
+          </>
+        )}
       </small>
     </div>
   );

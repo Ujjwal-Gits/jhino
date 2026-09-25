@@ -33,7 +33,9 @@ const SUB_RESERVED = new Set(['edit', 'settings', 'analytics', 'apps', 'links', 
 /** An address name. `top` = a top-level address (jhino.com/<name>), which only super admins give out. */
 export function validSlug(s: unknown, top = false): string {
   const v = String(s ?? '').trim().toLowerCase();
-  if (!/^[a-z0-9](?:[a-z0-9-]{0,48}[a-z0-9])?$/.test(v) || v.length < 2) throw new HttpError(400, 'VALIDATION_FAILED', 'Use 2 to 50 lowercase letters, numbers and dashes (not at the start or end).');
+  if (!/^[a-z0-9](?:[a-z0-9-]{0,48}[a-z0-9])?$/.test(v) || (top ? v.length < 1 : v.length < 2)) {
+    throw new HttpError(400, 'VALIDATION_FAILED', top ? 'Use 1 to 50 lowercase letters, numbers and dashes.' : 'Use 2 to 50 lowercase letters, numbers and dashes (not at the start or end).');
+  }
   if (top ? RESERVED.has(v) : SUB_RESERVED.has(v)) throw new HttpError(400, 'VALIDATION_FAILED', `"${v}" is used by Jhino itself. Choose another address.`);
   return v;
 }
@@ -165,7 +167,7 @@ function allowedPath(appId: string, method: string, url: string) {
 /** A share token (/s/<token>) or a top-level address (jhino.com/<name>). */
 function resolve(ref: string) {
   const r = String(ref ?? '').trim();
-  if (!/^[\w-]{2,64}$/.test(r)) return undefined;
+  if (!/^[\w-]{1,64}$/.test(r)) return undefined;
   return (db.prepare('SELECT * FROM apps WHERE share_token=? AND deleted_at IS NULL').get(r)
     ?? db.prepare('SELECT * FROM apps WHERE root_slug=? COLLATE NOCASE AND deleted_at IS NULL').get(r)) as AppRow | undefined;
 }
@@ -279,14 +281,36 @@ export function registerPublicShare(app: FastifyInstance) {
     if (taken) return { name, available: false, reason: `${url(name)} is already taken.` };
     return { name, available: true, url: url(name) };
   });
-  /** The owner sets or removes their app's address. */
+  /** The owner sets or removes their app's address. Super admins can also set direct root URLs (domain/a, domain/abc, domain/1). */
   app.put('/api/apps/:id/address', async (req) => {
     const u = requireUser(req);
     const { id } = req.params as { id: string };
     const a = db.prepare('SELECT * FROM apps WHERE id=? AND deleted_at IS NULL').get(id) as AppRow | undefined;
     if (!a || (roleOf(id, u.id) !== 'owner' && !u.is_admin) || req.pub || req.desk) throw new HttpError(404, 'NOT_FOUND', 'That app does not exist.');
     const owner = db.prepare('SELECT * FROM users WHERE id=?').get(a.owner_id) as UserRow;
-    const r = readAddressRequest(owner, (req.body ?? {}) as Record<string, unknown>, id, a.access ?? 'private', !!u.is_admin && u.id !== owner.id);
+    const b = (req.body ?? {}) as Record<string, unknown>;
+    const mode = b.mode === 'root' ? 'root' : 'standard';
+
+    if (mode === 'root') {
+      // ONLY super admins can set direct root URLs (e.g. domain/a, domain/abc, domain/1)
+      if (!u.is_admin) throw new HttpError(403, 'FORBIDDEN', 'Only super admins can set direct root addresses.');
+      const rawSlug = b.slug === null || b.slug === undefined || String(b.slug).trim() === '' ? null : String(b.slug).trim();
+      const rootSlug = rawSlug ? validSlug(rawSlug, true) : null;
+      if (rootSlug) assertRootFree(rootSlug, { appId: id });
+      db.prepare('UPDATE apps SET root_slug=? WHERE id=?').run(rootSlug, id);
+      const access = b.access ?? (rootSlug && (a.access ?? 'private') === 'private' ? 'public' : undefined);
+      if (access || b.publicRole || b.password) {
+        await setSharing(id, { access: access as Access, publicRole: b.publicRole as Role, password: b.password ? String(b.password) : undefined });
+      }
+      if ((a.root_slug ?? null) !== rootSlug) {
+        logActivity(id, u.id, rootSlug ? `set the direct address to /${rootSlug}` : 'removed the direct address', '');
+        audit(req, rootSlug ? 'hosting.root_address_set' : 'hosting.root_address_removed', 'app', id, `${a.name}${rootSlug ? ' → /' + rootSlug : ''}`);
+      }
+      const next = db.prepare('SELECT * FROM apps WHERE id=?').get(id) as AppRow;
+      return shareInfo(next, baseFor(req));
+    }
+
+    const r = readAddressRequest(owner, b, id, a.access ?? 'private', !!u.is_admin && u.id !== owner.id);
     const next = await applyAddress(id, r);
     if ((a.slug ?? null) !== r.slug) {
       logActivity(id, u.id, r.slug ? `set the address to /${r.slug}` : 'removed the address', '');
