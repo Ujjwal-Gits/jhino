@@ -3,6 +3,7 @@ import { ApiError, api, avatarUrl, get, post, type PlanFeatures } from '../api';
 import { Link, applyTheme, readTheme, useRoute, useSession, type Theme } from '../context';
 import { Avatar, Icon, Select, ago, copyText, useToast } from '../ui';
 import { bestFreeMonths, freeMonthsText, nprAmount, priceFor, usePlans, type Period, type PlanCard } from '../plans';
+import { AvatarViewerModal, AvatarPositionModal, validatePhotoFile, ACCEPT_PHOTO_TYPES } from '../AvatarModal';
 
 /*
  * The Account Center: one quiet page per concern. The server decides everything that matters
@@ -111,6 +112,8 @@ function ProfileSection({ data, onSaved }: { data: AccountData; onSaved: (d: Acc
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [photoV, setPhotoV] = useState(Date.now());
+  const [viewOpen, setViewOpen] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const file = useRef<HTMLInputElement>(null);
   const set = (k: keyof typeof p) => (e: { target: { value: string } }) => setP({ ...p, [k]: e.target.value });
   const save = async (e: FormEvent) => {
@@ -120,29 +123,88 @@ function ProfileSection({ data, onSaved }: { data: AccountData; onSaved: (d: Acc
     catch (e2) { setError(err(e2, 'Could not save.')); }
     setBusy(false);
   };
-  const upload = async (f: File | undefined) => {
+  const onFileChosen = (f: File | undefined) => {
     if (!f) return;
-    if (f.size > 2 * 1024 * 1024) { toast('Use a photo up to 2 MB.', true); return; }
-    const fd = new FormData(); fd.append('file', f);
-    try { await api('POST', '/api/account/avatar', fd); await refresh(); setPhotoV(Date.now()); onSaved({ ...data, user: { ...data.user, hasAvatar: true } }); toast('Photo updated'); }
-    catch (e2) { toast(err(e2, 'Could not upload the photo.'), true); }
+    const check = validatePhotoFile(f);
+    if (!check.ok) { toast(check.error, true); return; }
+    const url = URL.createObjectURL(f);
+    setCropSrc(url);
+  };
+  const saveCropped = async (blob: Blob) => {
+    const fd = new FormData();
+    fd.append('file', blob, 'avatar.webp');
+    try {
+      await api('POST', '/api/account/avatar', fd);
+      await refresh();
+      setPhotoV(Date.now());
+      onSaved({ ...data, user: { ...data.user, hasAvatar: true } });
+      toast('Photo updated');
+    } catch (e2) {
+      toast(err(e2, 'Could not upload the photo.'), true);
+      throw e2;
+    }
   };
   const removePhoto = async () => {
     try { await api('DELETE', '/api/account/avatar'); await refresh(); onSaved({ ...data, user: { ...data.user, hasAvatar: false } }); toast('Photo removed'); } catch (e2) { toast(err(e2, 'Could not remove it.'), true); }
   };
+  const currentAvatarUrl = avatarUrl({ id: user.id, hasAvatar: user.hasAvatar }, photoV);
+
   return (
     <Section title="Profile" lede="How you appear to the people you work with.">
       <div className="acc-photo">
-        <Avatar name={p.name || user.name} size="lg" src={avatarUrl({ id: user.id, hasAvatar: user.hasAvatar }, photoV)} />
+        <button
+          type="button"
+          className="avatar-clickable"
+          title={user.hasAvatar ? 'Click to view photo' : 'Add a photo'}
+          onClick={() => {
+            if (user.hasAvatar) setViewOpen(true);
+            else file.current?.click();
+          }}
+        >
+          <Avatar name={p.name || user.name} size="lg" src={currentAvatarUrl} />
+          <span className="avatar-view-badge" aria-hidden="true">
+            <Icon name={user.hasAvatar ? 'eye' : 'plus'} size={22} />
+          </span>
+        </button>
         <div>
-          <input ref={file} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={(e) => { upload(e.target.files?.[0]); e.target.value = ''; }} />
+          <input
+            ref={file}
+            type="file"
+            accept={ACCEPT_PHOTO_TYPES}
+            hidden
+            onChange={(e) => { onFileChosen(e.target.files?.[0]); e.target.value = ''; }}
+          />
           <div className="actions-row">
-            <button className="btn sm" type="button" onClick={() => file.current?.click()}><Icon name="image" size={15} />{user.hasAvatar ? 'Change photo' : 'Add a photo'}</button>
-            {user.hasAvatar && <button className="btn sm quiet" type="button" onClick={removePhoto}>Remove</button>}
+            {user.hasAvatar ? (
+              <>
+                <button className="btn sm" type="button" onClick={() => setViewOpen(true)}><Icon name="eye" size={15} />View photo</button>
+                <button className="btn sm" type="button" onClick={() => { if (currentAvatarUrl) setCropSrc(currentAvatarUrl); }}><Icon name="crop" size={15} />Reposition</button>
+                <button className="btn sm quiet" type="button" onClick={() => file.current?.click()}><Icon name="image" size={15} />Change</button>
+                <button className="btn sm quiet danger" type="button" onClick={removePhoto}>Remove</button>
+              </>
+            ) : (
+              <button className="btn sm" type="button" onClick={() => file.current?.click()}><Icon name="image" size={15} />Add a photo</button>
+            )}
           </div>
-          <small className="hint">JPG, PNG or WEBP, up to 2 MB.</small>
+          <small className="hint">JPG, PNG or WEBP, up to 10 MB. Click to view or reposition anytime.</small>
         </div>
       </div>
+      <AvatarViewerModal
+        isOpen={viewOpen}
+        name={p.name || user.name}
+        username={user.username || undefined}
+        src={currentAvatarUrl || ''}
+        onClose={() => setViewOpen(false)}
+        onReposition={() => { if (currentAvatarUrl) setCropSrc(currentAvatarUrl); }}
+        onChange={() => file.current?.click()}
+        onRemove={removePhoto}
+      />
+      <AvatarPositionModal
+        isOpen={!!cropSrc}
+        src={cropSrc}
+        onClose={() => setCropSrc(null)}
+        onSave={saveCropped}
+      />
       <form className="acc-form" onSubmit={save}>
         <div className="grid2">
           <label className="field"><span>Full name</span><input className="input" required maxLength={80} autoComplete="name" value={p.name} onChange={set('name')} /></label>

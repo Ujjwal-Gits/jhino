@@ -89,6 +89,17 @@
   color: var(--pf-avatar-fg);
   margin-bottom: 18px;
 }
+.pf-avatar-viewable {
+  cursor: pointer;
+  transition: transform 160ms var(--pf-ease), box-shadow 160ms var(--pf-ease);
+}
+.pf-avatar-viewable:hover {
+  transform: scale(1.04);
+}
+.pf-avatar-viewable:focus-visible {
+  outline: 2px solid var(--pf-accent);
+  outline-offset: 4px;
+}
 .pf-initials {
   display: grid;
   place-items: center;

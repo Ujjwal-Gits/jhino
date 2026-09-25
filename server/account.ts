@@ -286,10 +286,10 @@ export function registerAccount(app: FastifyInstance) {
   app.post('/api/account/avatar', async (req) => {
     const u = requireUser(req);
     limit(req, 'avatar', 20, 3600_000, u.id);
-    const part = await req.file({ limits: { fileSize: 2 * 1024 * 1024, files: 1, fields: 0 } });
+    const part = await req.file({ limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 0 } });
     if (!part) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a photo.');
     const buf = await part.toBuffer();
-    if (part.file.truncated) throw new HttpError(413, 'TOO_LARGE', 'Use a photo up to 2 MB.');
+    if (part.file.truncated) throw new HttpError(413, 'TOO_LARGE', 'Use a photo up to 10 MB.');
     const type = imageType(buf);
     if (!type) throw new HttpError(400, 'VALIDATION_FAILED', 'Use a JPG, PNG or WEBP photo.');
     const name = `${u.id}-${crypto.randomBytes(6).toString('hex')}.${type.split('/')[1].replace('jpeg', 'jpg')}`;

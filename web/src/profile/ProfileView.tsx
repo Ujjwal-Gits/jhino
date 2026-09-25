@@ -4,6 +4,7 @@
  */
 import { useEffect, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import type { ProfileData, ProfileItem, SocialKind } from './types';
+import { AvatarViewerModal } from '../AvatarModal';
 import './profile.css';
 import './themes.css';
 
@@ -25,6 +26,7 @@ function initialsOf(name: string, username: string): string {
 
 export function ProfileView({ data, preview = false }: { data: ProfileData; preview?: boolean }) {
   const stop = preview ? (e: MouseEvent) => e.preventDefault() : undefined;
+  const [viewingAvatar, setViewingAvatar] = useState(false);
   let linkNo = 0;
 
   return (
@@ -33,7 +35,36 @@ export function ProfileView({ data, preview = false }: { data: ProfileData; prev
       <main className="pf-page">
         <header className="pf-head">
           {data.avatarUrl ? (
-            <img className="pf-avatar" src={data.avatarUrl} alt={`Profile photo of ${data.name || data.username}`} width={160} height={160} />
+            <>
+              <img
+                className="pf-avatar pf-avatar-viewable"
+                src={data.avatarUrl}
+                alt={`Profile photo of ${data.name || data.username}`}
+                width={160}
+                height={160}
+                role="button"
+                tabIndex={0}
+                title={`Click to view photo of ${data.name || data.username}`}
+                onClick={(e) => {
+                  if (stop) stop(e);
+                  else setViewingAvatar(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (!stop) setViewingAvatar(true);
+                  }
+                }}
+              />
+              <AvatarViewerModal
+                isOpen={viewingAvatar}
+                name={data.name || data.username}
+                username={data.username}
+                src={data.avatarUrl}
+                onClose={() => setViewingAvatar(false)}
+                canEdit={false}
+              />
+            </>
           ) : (
             <span className="pf-avatar pf-initials" aria-hidden="true">{initialsOf(data.name, data.username)}</span>
           )}

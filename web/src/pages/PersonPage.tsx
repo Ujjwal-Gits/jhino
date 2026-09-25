@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, api, get, post, type User } from '../api';
 import { Link, useSession } from '../context';
 import { Icon, Select, copyText, useToast } from '../ui';
+import { AvatarViewerModal, AvatarPositionModal, validatePhotoFile, ACCEPT_PHOTO_TYPES } from '../AvatarModal';
 import { Shell } from './Shell';
 import { PublicApp } from './PublicApp';
 import { PlanTag } from './Address';
@@ -218,6 +219,10 @@ function ProfileTab({ d, run, reload }: { d: EditorT; run: Run; reload: () => vo
   const [f, setF] = useState({ bio: d.settings.bio, location: d.settings.location });
   const [socials, setSocials] = useState(d.settings.socials.map((s) => ({ ...s, url: s.url.replace(/^mailto:|^tel:/, '') })));
   const [uname, setUname] = useState(d.username);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+
   const saveText = (e: FormEvent) => { e.preventDefault(); run(api<EditorT>('PUT', '/api/me/page', f), 'Saved'); };
   const saveSocials = () => run(api<EditorT>('PUT', '/api/me/page', { socials: socials.filter((s) => s.url.trim()) }), 'Socials saved');
   const changeName = async () => {
@@ -225,22 +230,102 @@ function ProfileTab({ d, run, reload }: { d: EditorT; run: Run; reload: () => vo
     try { await api('PUT', '/api/account/username', { username: uname }); await refresh(); toast('Username changed'); location.replace(`/${uname}?tab=profile`); }
     catch (e) { toast(e instanceof ApiError ? e.message : 'Could not change it.', true); }
   };
-  const photo = async (file: File | undefined) => {
+
+  const onFileChosen = (file: File | undefined) => {
     if (!file) return;
-    const fd = new FormData(); fd.append('photo', file, file.name);
-    try { await api('POST', '/api/account/avatar', fd); await refresh(); reload(); toast('Photo updated'); } catch (e) { toast(e instanceof ApiError ? e.message : 'Could not upload.', true); }
+    const check = validatePhotoFile(file);
+    if (!check.ok) { toast(check.error, true); return; }
+    const url = URL.createObjectURL(file);
+    setCropSrc(url);
   };
+
+  const savePhoto = async (blob: Blob) => {
+    const fd = new FormData();
+    fd.append('photo', blob, 'avatar.webp');
+    try {
+      await api('POST', '/api/account/avatar', fd);
+      await refresh();
+      reload();
+      toast('Photo updated');
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : 'Could not upload.', true);
+      throw e;
+    }
+  };
+
+  const removePhoto = async () => {
+    try {
+      await api('DELETE', '/api/account/avatar');
+      await refresh();
+      reload();
+      toast('Photo removed');
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : 'Could not remove photo.', true);
+    }
+  };
+
   return (
     <>
       <section className="mp-sec">
         <h2>You</h2>
         <div className="mp-you">
-          <label className="mp-photo" title="Change photo">
+          <input
+            ref={fileInput}
+            type="file"
+            accept={ACCEPT_PHOTO_TYPES}
+            className="sr-only"
+            onChange={(e) => {
+              onFileChosen(e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+          <button
+            type="button"
+            className="mp-photo"
+            title={d.page.avatarUrl ? 'Click to view or adjust photo' : 'Add a photo'}
+            onClick={() => {
+              if (d.page.avatarUrl) setViewOpen(true);
+              else fileInput.current?.click();
+            }}
+          >
             {d.page.avatarUrl ? <img src={d.page.avatarUrl} alt="" /> : <span>{(d.page.name || '?').slice(0, 1)}</span>}
-            <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { photo(e.target.files?.[0]); e.target.value = ''; }} />
-          </label>
-          <div><b>{d.page.name}</b><small className="muted">Your name and photo come from <Link to="/account/profile" className="link">Account</Link>. Click the photo to change it.</small></div>
+            <span className="mp-photo-badge" aria-hidden="true">
+              <Icon name={d.page.avatarUrl ? 'eye' : 'plus'} size={18} />
+            </span>
+          </button>
+          <div>
+            <b>{d.page.name}</b>
+            <div className="actions-row" style={{ margin: '3px 0 2px' }}>
+              {d.page.avatarUrl ? (
+                <>
+                  <button type="button" className="btn sm quiet" onClick={() => setViewOpen(true)}><Icon name="eye" size={13} />View</button>
+                  <button type="button" className="btn sm quiet" onClick={() => setCropSrc(d.page.avatarUrl)}><Icon name="crop" size={13} />Reposition</button>
+                  <button type="button" className="btn sm quiet" onClick={() => fileInput.current?.click()}><Icon name="image" size={13} />Change</button>
+                  <button type="button" className="btn sm quiet danger" onClick={removePhoto}><Icon name="trash" size={13} />Remove</button>
+                </>
+              ) : (
+                <button type="button" className="btn sm quiet" onClick={() => fileInput.current?.click()}><Icon name="image" size={13} />Add photo</button>
+              )}
+            </div>
+            <small className="muted">JPG, PNG or WEBP, up to 10 MB.</small>
+          </div>
         </div>
+        <AvatarViewerModal
+          isOpen={viewOpen}
+          name={d.page.name}
+          username={d.username}
+          src={d.page.avatarUrl || ''}
+          onClose={() => setViewOpen(false)}
+          onReposition={() => { if (d.page.avatarUrl) setCropSrc(d.page.avatarUrl); }}
+          onChange={() => fileInput.current?.click()}
+          onRemove={removePhoto}
+        />
+        <AvatarPositionModal
+          isOpen={!!cropSrc}
+          src={cropSrc}
+          onClose={() => setCropSrc(null)}
+          onSave={savePhoto}
+        />
         <form className="acc-form" onSubmit={saveText}>
           <label className="field"><span>Bio <em>{f.bio.length}/280</em></span><textarea className="textarea" rows={3} maxLength={280} value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} placeholder="Photo and video studio in Kathmandu. Weddings, brands, podcasts." /></label>
           <label className="field"><span>Location <em>optional</em></span><input className="input" maxLength={80} value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} placeholder="Kathmandu, Nepal" /></label>

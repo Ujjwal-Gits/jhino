@@ -47,6 +47,10 @@ const PATHS: Record<string, string> = {
   spark: 'M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z',
   external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
   audit: 'M8 4h10v16H6V6zM8 4v2H6M9 10h6M9 14h6M9 18h3',
+  rotate: 'M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5',
+  zoomIn: 'M11 4.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM20 20l-4.2-4.2M11 8v6M8 11h6',
+  zoomOut: 'M11 4.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM20 20l-4.2-4.2M8 11h6',
+  crop: 'M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2',
 };
 export function Icon({ name, size }: { name: keyof typeof PATHS | string; size?: number }) {
   return (
