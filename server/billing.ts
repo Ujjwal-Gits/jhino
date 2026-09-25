@@ -8,7 +8,7 @@ import { db, newId, now, type UserRow } from './db.js';
 import { HttpError, requireAdmin, requireCreator, requireUser } from './auth.js';
 import { baseUrl, mails } from './mail.js';
 import { audit, imageType, limit } from './security.js';
-import { PLANS, isPlan, notify, notifyAdmins, npr, usage, type PlanId } from './plans.js';
+import { PLANS, isPeriod, isPlan, notify, notifyAdmins, npr, periodEnd, priceOf, usage, type Period, type PlanId } from './plans.js';
 
 /*
  * Plans are paid by QR for now: the customer pays, uploads a screenshot, and a super admin approves.
@@ -21,7 +21,7 @@ const qrDir = () => path.join(config.dataDir, 'system', 'qr');
 const proofDir = () => path.join(config.dataDir, 'system', 'payments');
 
 interface MethodRow { id: string; name: string; provider: string; bank: string | null; account_name: string | null; account_number: string | null; instructions: string; notes: string; qr_file: string | null; qr_type: string | null; active: number; position: number; created_at: string; updated_at: string }
-interface PaymentRow { id: string; user_id: string | null; user_email: string; user_name: string; plan: PlanId; amount: number; expected_amount: number; method_id: string | null; method_name: string; provider: string; reference: string | null; paid_on: string | null; note: string | null; proof_file: string | null; proof_type: string | null; status: 'pending' | 'approved' | 'rejected'; reject_reason: string | null; internal_note: string | null; reviewed_by: string | null; reviewed_by_email: string | null; reviewed_at: string | null; ip: string | null; created_at: string }
+interface PaymentRow { id: string; user_id: string | null; user_email: string; user_name: string; plan: PlanId; period: Period; amount: number; expected_amount: number; method_id: string | null; method_name: string; provider: string; reference: string | null; paid_on: string | null; note: string | null; proof_file: string | null; proof_type: string | null; status: 'pending' | 'approved' | 'rejected'; reject_reason: string | null; internal_note: string | null; reviewed_by: string | null; reviewed_by_email: string | null; reviewed_at: string | null; ip: string | null; created_at: string }
 
 const methodView = (m: MethodRow, admin = false) => ({
   id: m.id, name: m.name, provider: m.provider, bank: m.bank ?? '', accountName: m.account_name ?? '', accountNumber: m.account_number ?? '',
@@ -29,6 +29,7 @@ const methodView = (m: MethodRow, admin = false) => ({
 });
 const paymentView = (p: PaymentRow, admin = false) => ({
   id: p.id, receiptNo: 'JH-' + p.id.slice(-8).toUpperCase(), plan: p.plan, planName: PLANS[p.plan]?.name ?? p.plan, creations: PLANS[p.plan]?.creations ?? 0,
+  period: p.period === 'year' ? 'year' : 'month',
   amount: p.amount, expectedAmount: p.expected_amount, method: p.method_name, provider: p.provider, reference: p.reference ?? '', paidOn: p.paid_on ?? '',
   note: p.note ?? '', hasProof: !!p.proof_file, status: p.status, rejectReason: p.reject_reason ?? '', createdAt: p.created_at, reviewedAt: p.reviewed_at,
   ...(admin ? { userId: p.user_id, userEmail: p.user_email, userName: p.user_name, internalNote: p.internal_note ?? '', reviewedBy: p.reviewed_by_email ?? '', ip: p.ip ?? '' } : {}),
@@ -76,15 +77,20 @@ export function approvePayment(req: FastifyRequest, paymentId: string, note: str
       .run(admin.id, admin.email, t, note, paymentId).changes;
     if (!changed) return { already: true, p };
     const plan = PLANS[p.plan];
-    db.prepare('INSERT INTO subscriptions(id,user_id,plan,creations,amount,payment_id,source,granted_by,starts_at,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)')
-      .run(newId('sub'), p.user_id, p.plan, plan.creations, p.amount, p.id, p.provider, admin.id, t, t);
-    if (p.user_id) db.prepare('UPDATE users SET plan=?, plan_started_at=?, plan_expires_at=NULL WHERE id=?').run(p.plan, t, p.user_id);
-    return { already: false, p: db.prepare('SELECT * FROM payments WHERE id=?').get(paymentId) as PaymentRow };
+    const period: Period = p.period === 'year' ? 'year' : 'month';
+    // A month or a year from today; paying again for the same plan adds to its end date.
+    const who = p.user_id ? db.prepare('SELECT * FROM users WHERE id=?').get(p.user_id) as UserRow | undefined : undefined;
+    const ends = periodEnd(who ?? { plan: null as unknown as string, plan_expires_at: null }, p.plan, period);
+    db.prepare('INSERT INTO subscriptions(id,user_id,plan,creations,amount,payment_id,source,granted_by,starts_at,expires_at,created_at,period) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)')
+      .run(newId('sub'), p.user_id, p.plan, plan.creations, p.amount, p.id, p.provider, admin.id, t, ends, t, period);
+    if (who) db.prepare('UPDATE users SET plan=?, plan_started_at=COALESCE(CASE WHEN plan=? THEN plan_started_at END, ?), plan_expires_at=?, plan_period=? WHERE id=?').run(p.plan, p.plan, t, ends, period, who.id);
+    return { already: false, p: db.prepare('SELECT * FROM payments WHERE id=?').get(paymentId) as PaymentRow, ends };
   })();
   if (!out.already) {
     const plan = PLANS[out.p.plan];
     audit(req, 'payment.approve', 'payment', paymentId, `${out.p.user_email} · ${plan.name} · ${npr(out.p.amount)}`);
-    if (out.p.user_id) notify(out.p.user_id, 'billing', `Payment approved. Your plan is now active with up to ${plan.creations} creations.`, `${plan.name} · ${npr(out.p.amount)}`, '/account/plan',
+    const until = 'ends' in out && out.ends ? new Date(out.ends).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    if (out.p.user_id) notify(out.p.user_id, 'billing', `Payment approved. ${plan.name} is active${until ? ` until ${until}` : ''}, with up to ${plan.creations} creations.`, `${plan.name} · ${npr(out.p.amount)}`, '/account/plan',
       { kind: 'payment_approved', mail: mails.paymentApproved(out.p.user_name, plan.name, plan.creations, `${baseUrl(req)}/account/plan`) });
   }
   return out;
@@ -112,6 +118,7 @@ export function registerBilling(app: FastifyInstance) {
     const { fields, image } = await readImageForm(req, 10 * 1024 * 1024);
     const plan = fields.plan;
     if (!isPlan(plan) || plan === 'free') throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a paid plan.');
+    const period: Period = isPeriod(fields.period) ? fields.period : 'month';
     const amount = Math.round(Number(String(fields.amount).replace(/[, ]/g, '')));
     if (!Number.isFinite(amount) || amount < 1 || amount > 10_000_000) throw new HttpError(400, 'VALIDATION_FAILED', 'Enter the amount you paid, in NPR.');
     const m = db.prepare('SELECT * FROM payment_methods WHERE id=? AND active=1').get(fields.methodId) as MethodRow | undefined;
@@ -125,13 +132,13 @@ export function registerBilling(app: FastifyInstance) {
     const id = newId('pay');
     const file = `${id}-${crypto.randomBytes(6).toString('hex')}.${ext(image.type)}`;
     fs.writeFileSync(path.join(proofDir(), file), image.buf, { flag: 'wx' });
-    db.prepare(`INSERT INTO payments(id,user_id,user_email,user_name,plan,amount,expected_amount,method_id,method_name,provider,reference,paid_on,note,proof_file,proof_type,status,ip,created_at)
-      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?,?)`).run(
-      id, u.id, u.email, u.name, plan, amount, PLANS[plan].price, m.id, m.name, m.provider,
+    db.prepare(`INSERT INTO payments(id,user_id,user_email,user_name,plan,period,amount,expected_amount,method_id,method_name,provider,reference,paid_on,note,proof_file,proof_type,status,ip,created_at)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending',?,?)`).run(
+      id, u.id, u.email, u.name, plan, period, amount, priceOf(plan, period), m.id, m.name, m.provider,
       String(fields.reference || '').trim().slice(0, 80) || null, paidOn, String(fields.note || '').trim().slice(0, 500) || null, file, image.type, req.ip, now());
-    notify(u.id, 'billing', `Your payment of ${npr(amount)} has been submitted for verification.`, `${PLANS[plan].name} · ${m.name}`, '/account/billing',
+    notify(u.id, 'billing', `Your payment of ${npr(amount)} has been submitted for verification.`, `${PLANS[plan].name}, ${period === 'year' ? 'one year' : 'one month'} · ${m.name}`, '/account/billing',
       { kind: 'payment_submitted', mail: mails.paymentSubmitted(u.name, npr(amount), PLANS[plan].name) });
-    notifyAdmins('billing', 'New payment verification request received.', `${u.name} · ${PLANS[plan].name} · ${npr(amount)}`, `/admin/payments/${id}`);
+    notifyAdmins('billing', 'New payment verification request received.', `${u.name} · ${PLANS[plan].name} (${period === 'year' ? 'year' : 'month'}) · ${npr(amount)}`, `/admin/payments/${id}`);
     return { payment: paymentView(db.prepare('SELECT * FROM payments WHERE id=?').get(id) as PaymentRow) };
   });
 
@@ -170,7 +177,8 @@ export function registerBilling(app: FastifyInstance) {
     const user = p.user_id ? db.prepare('SELECT * FROM users WHERE id=?').get(p.user_id) as UserRow | undefined : undefined;
     const history = db.prepare("SELECT actor_email actor, action, detail, at FROM audit_log WHERE target_type='payment' AND target_id=? ORDER BY id DESC").all(p.id);
     const earlier = p.user_id ? (db.prepare('SELECT * FROM payments WHERE user_id=? AND id<>? ORDER BY created_at DESC LIMIT 10').all(p.user_id, p.id) as PaymentRow[]).map((x) => paymentView(x, true)) : [];
-    return { payment: paymentView(p, true), user: user ? { id: user.id, name: user.name, email: user.email, plan: usage(user), status: user.disabled ? 'suspended' : 'active' } : null, history, earlier };
+    const endsIfApproved = p.status === 'pending' ? periodEnd(user ?? { plan: 'free', plan_expires_at: null }, p.plan, p.period === 'year' ? 'year' : 'month') : null;
+    return { payment: paymentView(p, true), user: user ? { id: user.id, name: user.name, email: user.email, plan: usage(user), status: user.disabled ? 'suspended' : 'active' } : null, history, earlier, endsIfApproved };
   });
   app.post('/api/admin/payments/:id/approve', async (req) => {
     const b = (req.body ?? {}) as { note?: string };

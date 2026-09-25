@@ -7,6 +7,7 @@ import { db, now, sha256, roleOf, type AppRow, type UserRow } from './db.js';
 import { HttpError, afterLogin, checkLogin, publicUser, requireUser } from './auth.js';
 import { openStream, watch } from './realtime.js';
 import { access } from './apps.js';
+import { assertFeature } from './plans.js';
 
 /*
  * Downloaded HTML files. The owner or a member downloads an app as one .html file. Opened on any computer,
@@ -99,6 +100,8 @@ export function registerDesk(app: FastifyInstance) {
   app.get('/api/apps/:id/download', async (req, reply) => {
     const { id } = req.params as { id: string };
     const { app: a } = access(req, id);
+    const owner = db.prepare('SELECT plan, plan_expires_at, is_admin FROM users WHERE id=?').get(a.owner_id) as Pick<UserRow, 'plan' | 'plan_expires_at' | 'is_admin'>;
+    assertFeature(owner, 'download', 'Downloading an app as an HTML file');
     let accent = '#1f6f5c';
     const v = db.prepare('SELECT builder FROM app_versions WHERE app_id=? AND n=?').get(a.id, a.live_version) as { builder: string | null } | undefined;
     try { const cfg = v?.builder ? JSON.parse(v.builder) : null; if (cfg?.design?.accent && /^#[0-9a-f]{6}$/i.test(cfg.design.accent)) accent = cfg.design.accent; } catch { /* an old build */ }

@@ -19,6 +19,8 @@ import { registerOAuth } from './oauth.js';
 import { registerBilling } from './billing.js';
 import { registerSuperAdmin } from './superadmin.js';
 import { registerPublicShare } from './publicshare.js';
+import { registerLinks } from './links.js';
+import { startPlanNotices } from './plans.js';
 import { startBookingReminders } from './booking.js';
 import { limit } from './security.js';
 import { closeAllStreams } from './realtime.js';
@@ -70,6 +72,7 @@ app.addHook('onSend', async (req, reply) => {
 registerAuth(app);
 registerDesk(app);
 registerPublicShare(app);
+registerLinks(app);
 // A ceiling on changes from one address (sign-in, payments and links have their own, tighter limits).
 app.addHook('onRequest', async (req) => {
   if (req.url.startsWith('/api/') && !['GET', 'HEAD', 'OPTIONS'].includes(req.method)) limit(req, 'api-write', Number(process.env.API_WRITES_PER_MIN) || 900, 60_000);
@@ -121,6 +124,7 @@ if (fs.existsSync(path.join(webDir, 'index.html'))) {
 
 await bootstrapAdmin();
 startBookingReminders();
+startPlanNotices();
 await app.listen({ port: config.port, host: config.host });
 console.log(`  Jhino is running at ${config.publicUrl || `http://${config.host === '0.0.0.0' ? 'localhost' : config.host}:${config.port}`}`);
 

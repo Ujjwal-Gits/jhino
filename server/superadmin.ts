@@ -3,10 +3,10 @@ import { config, makePassword } from './config.js';
 import { db, newId, now, type AppRow, type UserRow } from './db.js';
 import { HttpError, canCreateApps, createUser, hashPassword, requireAdmin, revokeSessions, validateEmail, validateName, validatePassword } from './auth.js';
 import { audit, deviceName, maskIp, setSetting, setting } from './security.js';
-import { PLANS, isPlan, usage } from './plans.js';
+import { PLANS, isPeriod, isPlan, periodEnd, usage } from './plans.js';
 import { mailReady } from './mail.js';
 import { providerReady } from './oauth.js';
-import { RESERVED, baseFor, setSharing, shareInfo, validSlug } from './publicshare.js';
+import { RESERVED, assertNameFree, baseFor, setSharing, shareInfo, validSlug } from './publicshare.js';
 import { createAppFromUpload, readUpload } from './apps.js';
 
 /*
@@ -33,6 +33,42 @@ function grant(userId: string, plan: string, adminId: string, source: string) {
     .run(newId('sub'), userId, plan, PLANS[plan as keyof typeof PLANS]?.creations ?? 0, 0, source, adminId, t, t);
 }
 
+/** Days from `days` ago to today (UTC), as YYYY-MM-DD, with a count for each. */
+function daily(sql: string, days: number) {
+  const start = new Date(); start.setUTCHours(0, 0, 0, 0); start.setUTCDate(start.getUTCDate() - (days - 1));
+  const by = new Map((db.prepare(sql).all(start.toISOString()) as { d: string; n: number }[]).map((r) => [r.d, r.n]));
+  return Array.from({ length: days }, (_, i) => { const d = new Date(start); d.setUTCDate(start.getUTCDate() + i); const k = d.toISOString().slice(0, 10); return { day: k, n: by.get(k) ?? 0 }; });
+}
+/** What the dashboard draws: money by month, sign-ups and apps by day, the plan mix, and what needs a hand. */
+function trends() {
+  const n = (sql: string, ...a: unknown[]) => (db.prepare(sql).get(...a) as { n: number }).n;
+  const t = now();
+  const d30 = new Date(Date.now() - 30 * 864e5).toISOString();
+  const d60 = new Date(Date.now() - 60 * 864e5).toISOString();
+  const m0 = new Date(); m0.setUTCDate(1); m0.setUTCHours(0, 0, 0, 0); m0.setUTCMonth(m0.getUTCMonth() - 11);
+  const byMonth = new Map((db.prepare("SELECT substr(reviewed_at,1,7) m, SUM(amount) n FROM payments WHERE status='approved' AND reviewed_at >= ? GROUP BY m").all(m0.toISOString()) as { m: string; n: number }[]).map((r) => [r.m, r.n]));
+  const revenueByMonth = Array.from({ length: 12 }, (_, i) => { const d = new Date(m0); d.setUTCMonth(m0.getUTCMonth() + i); const k = d.toISOString().slice(0, 7); return { month: k, n: byMonth.get(k) ?? 0 }; });
+  const creators = "kind='person' AND created_by IS NULL AND is_admin=0";
+  const paid = (p: string) => n(`SELECT COUNT(*) n FROM users WHERE ${creators} AND plan=? AND (plan_expires_at IS NULL OR plan_expires_at > ?)`, p, t);
+  const plus = paid('plus'); const pro = paid('pro');
+  const monthlyOf = (p: 'plus' | 'pro') => (db.prepare(`SELECT plan_period p, COUNT(*) n FROM users WHERE ${creators} AND plan=? AND (plan_expires_at IS NULL OR plan_expires_at > ?) GROUP BY plan_period`).all(p, t) as { p: string | null; n: number }[])
+    .reduce((s, r) => s + r.n * (r.p === 'year' ? PLANS[p].yearly / 12 : PLANS[p].price), 0);
+  return {
+    revenuePrev30: n("SELECT COALESCE(SUM(amount),0) n FROM payments WHERE status='approved' AND reviewed_at > ? AND reviewed_at <= ?", d60, d30),
+    newUsersPrev30: n(`SELECT COUNT(*) n FROM users WHERE ${creators} AND created_at > ? AND created_at <= ?`, d60, d30),
+    monthlyRevenue: Math.round(monthlyOf('plus') + monthlyOf('pro')),
+    revenueByMonth,
+    signupsByDay: daily(`SELECT substr(created_at,1,10) d, COUNT(*) n FROM users WHERE ${creators} AND created_at >= ? GROUP BY d`, 30),
+    appsByDay: daily('SELECT substr(created_at,1,10) d, COUNT(*) n FROM apps WHERE created_at >= ? GROUP BY d', 30),
+    planMix: { free: Math.max(0, n(`SELECT COUNT(*) n FROM users WHERE ${creators}`) - plus - pro), plus, pro },
+    links: n('SELECT COUNT(*) n FROM short_links'),
+    linkClicks30: n('SELECT COALESCE(SUM(n),0) n FROM link_clicks WHERE day >= ?', d30.slice(0, 10)),
+    pendingList: db.prepare("SELECT id, user_name userName, plan, period, amount, expected_amount expectedAmount, created_at createdAt FROM payments WHERE status='pending' ORDER BY created_at LIMIT 5").all(),
+    ticketsList: db.prepare("SELECT id, email, kind, subject, created_at createdAt FROM support_tickets WHERE status='open' ORDER BY created_at DESC LIMIT 4").all(),
+    expiring: db.prepare(`SELECT id, name, email, plan, plan_expires_at expiresAt FROM users WHERE ${creators} AND plan IN ('plus','pro') AND plan_expires_at IS NOT NULL AND plan_expires_at > ? AND plan_expires_at < ? ORDER BY plan_expires_at LIMIT 5`).all(t, new Date(Date.now() + 14 * 864e5).toISOString()),
+  };
+}
+
 export function registerSuperAdmin(app: FastifyInstance) {
   app.get('/api/admin/overview', async (req) => {
     requireAdmin(req);
@@ -51,6 +87,7 @@ export function registerSuperAdmin(app: FastifyInstance) {
       openTickets: n("SELECT COUNT(*) n FROM support_tickets WHERE status='open'"),
       recent: db.prepare('SELECT actor_email actor, action, detail, at FROM audit_log ORDER BY id DESC LIMIT 8').all(),
       mailReady: mailReady(),
+      ...trends(),
     };
   });
 
@@ -77,11 +114,15 @@ export function registerSuperAdmin(app: FastifyInstance) {
   /** Make a sign-in for someone who paid (or a new super admin). The password is shown once. */
   app.post('/api/admin/users', async (req) => {
     const admin = requireAdmin(req);
-    const b = (req.body ?? {}) as { name?: string; email?: string; password?: string; plan?: string; superAdmin?: boolean };
+    const b = (req.body ?? {}) as { name?: string; email?: string; password?: string; plan?: string; period?: string; superAdmin?: boolean };
     const plan = isPlan(b.plan) ? b.plan : 'free';
     const password = b.password ? validatePassword(b.password) : makePassword(12);
     const u = await createUser(validateEmail(b.email), validateName(b.name), password, !!b.superAdmin, { verified: true, plan });
-    if (plan !== 'free' && !b.superAdmin) grant(u.id, plan, admin.id, 'admin');
+    if (plan !== 'free' && !b.superAdmin) {
+      grant(u.id, plan, admin.id, 'admin');
+      // Paid for a month or a year: the plan ends then. No period: it runs until changed.
+      if (isPeriod(b.period)) db.prepare('UPDATE users SET plan_expires_at=?, plan_period=? WHERE id=?').run(periodEnd({ plan: 'free', plan_expires_at: null }, plan, b.period), b.period, u.id);
+    }
     audit(req, 'user.create', 'user', u.id, `${u.email} · ${b.superAdmin ? 'super admin' : PLANS[plan].name}`);
     return { user: userRow(u), password, signInUrl: `${baseFor(req)}/login` };
   });
@@ -238,7 +279,7 @@ export function registerSuperAdmin(app: FastifyInstance) {
     if (!a) throw new HttpError(404, 'NOT_FOUND', 'That app does not exist.');
     const b = (req.body ?? {}) as { slug?: string | null; access?: string; publicRole?: string; password?: string };
     const slug = b.slug ? validSlug(b.slug) : null;
-    if (slug && db.prepare('SELECT 1 FROM apps WHERE slug=? COLLATE NOCASE AND id<>?').get(slug, id)) throw new HttpError(409, 'SLUG_TAKEN', `${slug} is already used by another app.`);
+    if (slug) assertNameFree(slug, { appId: id });
     db.prepare('UPDATE apps SET slug=? WHERE id=?').run(slug, id);
     // An address is for opening without being added: make the app open by link if it was private.
     const access = b.access ?? (slug && (a.access ?? 'private') === 'private' ? 'public' : undefined);
@@ -251,9 +292,8 @@ export function registerSuperAdmin(app: FastifyInstance) {
     const admin = requireAdmin(req);
     const up = await readUpload(req);
     const slug = validSlug(up.fields.slug);
-    if (db.prepare('SELECT 1 FROM apps WHERE slug=? COLLATE NOCASE').get(slug)) throw new HttpError(409, 'SLUG_TAKEN', `${slug} is already used by another app.`);
-    const id = await createAppFromUpload(admin, up.buf, up.filename, up.name);
-    db.prepare('UPDATE apps SET slug=? WHERE id=?').run(slug, id);
+    assertNameFree(slug);
+    const id = await createAppFromUpload(admin, up.buf, up.filename, up.name, slug);
     const access = up.fields.access === 'password' ? 'password' : 'public';
     await setSharing(id, { access, publicRole: 'viewer', password: up.fields.password || undefined });
     audit(req, 'hosting.host', 'app', id, `/${slug} · ${access}`);

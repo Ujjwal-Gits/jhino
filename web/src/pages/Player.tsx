@@ -9,13 +9,21 @@ import { DetailsPanel } from './Details';
 import { SANDBOX } from '../sandbox';
 
 /** The app as one .html file: open it, sign in once, and it works live with everyone (while online). */
-export function downloadHtml(appId: string) {
+export async function downloadHtml(appId: string): Promise<string | null> {
+  const r = await fetch(`/api/apps/${appId}/download`, { credentials: 'same-origin' });
+  if (!r.ok) {
+    try { return ((await r.json()) as { message?: string }).message ?? 'Could not download it.'; } catch { return 'Could not download it.'; }
+  }
+  const name = /filename="?([^";]+)"?/.exec(r.headers.get('content-disposition') ?? '')?.[1] ?? 'app.html';
+  const url = URL.createObjectURL(await r.blob());
   const a = document.createElement('a');
-  a.href = `/api/apps/${appId}/download`;
-  a.download = '';
+  a.href = url;
+  a.download = decodeURIComponent(name);
   document.body.appendChild(a);
   a.click();
   a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  return null;
 }
 
 type Sync = 'saved' | 'saving' | 'retry' | 'offline';
@@ -226,7 +234,8 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
         else if (type === 'readonly') toast('You can view this app but not change it.');
         else if (type === 'location') {
           const hash = typeof data?.hash === 'string' && /^#?[\w/-]{0,160}$/.test(data.hash) ? data.hash.replace(/^#?/, '#') : '';
-          if (!solo) history.replaceState(history.state, '', `/apps/${id}${hash === '#' ? '' : hash}`);
+          // Keep the address the app was opened at (jhino.com/your-studio stays that); only the #part follows the app.
+          if (!solo) history.replaceState(history.state, '', `${location.pathname}${hash === '#' ? '' : hash}`);
         }
         else if (type === 'title') {
           const t = typeof data?.title === 'string' ? data.title.slice(0, 120) : '';
@@ -235,7 +244,7 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
         else if (type === 'open-full') {
           // From the single-item tab to the whole app, at the same item.
           const hash = typeof data?.hash === 'string' && /^#?[\w/-]{0,160}$/.test(data.hash) ? data.hash.replace(/^#?/, '#') : '';
-          location.href = `/apps/${id}${hash === '#' ? '' : hash}`;
+          location.href = `${visitor ? location.pathname : `/apps/${id}`}${hash === '#' ? '' : hash}`;
         }
         else if (type === 'open-tab') {
           const hash = typeof data?.hash === 'string' && /^#?[\w/-]{0,160}$/.test(data.hash) ? data.hash.replace(/^#?/, '#') : '';
@@ -429,7 +438,7 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
           {!showBar && isOwner && <button role="menuitem" onClick={() => setDialog('share')}>Share</button>}
           <button role="menuitem" onClick={() => setDialog('details')}>Details and activity</button>
           <button role="menuitem" onClick={() => launch()}>Reload app</button>
-          <button role="menuitem" onClick={() => { setMenuFor(null); downloadHtml(app.id); toast('Downloading. Open the file, sign in once, and it stays in sync with everyone.'); }}>Download as HTML file</button>
+          <button role="menuitem" onClick={async () => { setMenuFor(null); const fail = await downloadHtml(app.id); toast(fail ?? 'Downloaded. Open the file, sign in once, and it stays in sync with everyone.', !!fail); }}>Download as HTML file</button>
           <button role="menuitem" onClick={() => { setMenuFor(null); toggleNotify(); }}>{notify ? 'Turn off desktop notifications' : 'Turn on desktop notifications'}</button>
           {isOwner && <button role="menuitem" onClick={() => setBar(!showBar)}>{showBar ? 'Hide top bar' : 'Show top bar'}</button>}
           {isOwner && app.built && <button role="menuitem" onClick={() => go(`/apps/${app.id}/blocks`)}>Edit features and design</button>}

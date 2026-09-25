@@ -1,86 +1,301 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { ApiError, api, get, post } from '../api';
+import { ApiError, api, avatarUrl, get, post } from '../api';
 import { Link, useRoute, useSession } from '../context';
-import { Icon, Modal, Select, ago, copyText, useToast } from '../ui';
+import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 
 /*
- * Super Admin: customers, payments, QR codes, hosted addresses, support, audit log, settings.
- * One job per screen, lists first, details on demand.
+ * Super Admin: the platform owners' own workspace. A full-height sidebar on the left edge, a working
+ * dashboard (money, growth, what needs a hand), and one job per screen after that: customers,
+ * payments, QR codes, addresses, short links, support, the audit log and settings.
  */
 
-const npr = (n: number) => `NPR ${n.toLocaleString('en-IN')}`;
+const npr = (n: number) => `NPR ${Math.round(n).toLocaleString('en-IN')}`;
 const fmtDateTime = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
 const fmtDate = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 const err = (e: unknown, f: string) => (e instanceof ApiError ? e.message : f);
-const PLAN_OPTS = [{ value: 'free', label: 'Free Forever · 1' }, { value: 'plus', label: 'Plus · NPR 500 · 10' }, { value: 'pro', label: 'Pro · NPR 2,000 · 50' }];
+const PLAN_OPTS = [{ value: 'free', label: 'Free Forever · 1 app' }, { value: 'plus', label: 'Plus · NPR 500/mo · 10 apps' }, { value: 'pro', label: 'Pro · NPR 2,000/mo · 50 apps' }];
 const planName = (p: string) => ({ free: 'Free Forever', plus: 'Plus', pro: 'Pro' }[p] ?? p);
+const periodName = (p: string | undefined) => (p === 'year' ? 'year' : 'month');
 
-const NAV = [
-  ['overview', 'Overview', 'chart'], ['users', 'Users', 'users'], ['payments', 'Payments', 'receipt'], ['methods', 'QR & payment methods', 'qr'],
-  ['hosting', 'Hosting', 'globe'], ['support', 'Support', 'help'], ['audit', 'Audit log', 'audit'], ['settings', 'Settings', 'settings'],
-] as const;
+type NavKey = 'overview' | 'users' | 'payments' | 'methods' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
+const NAV: { group: string; items: [NavKey, string, string][] }[] = [
+  { group: '', items: [['overview', 'Overview', 'chart']] },
+  { group: 'Customers', items: [['users', 'Users', 'users'], ['payments', 'Payments', 'receipt'], ['methods', 'QR & payment methods', 'qr']] },
+  { group: 'Platform', items: [['hosting', 'Addresses', 'globe'], ['links', 'Short links', 'link']] },
+  { group: 'Operations', items: [['support', 'Support', 'help'], ['audit', 'Audit log', 'audit'], ['settings', 'Settings', 'settings']] },
+];
+const TITLES: Record<NavKey, string> = { overview: 'Overview', users: 'Users', payments: 'Payments', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
 
 export function AdminPage({ section, sub }: { section: string; sub?: string }) {
+  const { user, refresh } = useSession();
+  const { go } = useRoute();
   const [counts, setCounts] = useState<{ pendingPayments: number; openTickets: number } | null>(null);
+  const [drawer, setDrawer] = useState(false);
   const loadCounts = useCallback(() => get<{ pendingPayments: number; openTickets: number }>('/api/admin/overview').then(setCounts, () => {}), []);
   useEffect(() => { loadCounts(); }, [loadCounts, section]);
-  const cur = NAV.some((n) => n[0] === section) ? section : 'overview';
+  useEffect(() => { setDrawer(false); }, [section, sub]);
+  useEffect(() => { document.title = `${TITLES[(section as NavKey)] ?? 'Overview'} · Jhino Admin`; return () => { document.title = 'Jhino'; }; }, [section]);
+  const cur: NavKey = NAV.some((g) => g.items.some((n) => n[0] === section)) ? section as NavKey : 'overview';
+  const badge = (k: NavKey) => (k === 'payments' ? counts?.pendingPayments : k === 'support' ? counts?.openTickets : 0) || 0;
   return (
-    <main className="page acc admin">
-      <header className="acc-head"><h1>Super Admin</h1></header>
-      <div className="acc-body">
-        <nav className="acc-nav" aria-label="Super Admin">
-          {NAV.map(([k, l, i]) => (
-            <Link key={k} to={`/admin/${k}`} aria-current={cur === k ? 'page' : undefined}><Icon name={i} size={17} />{l}
-              {k === 'payments' && !!counts?.pendingPayments && <span className="count">{counts.pendingPayments}</span>}
-              {k === 'support' && !!counts?.openTickets && <span className="count">{counts.openTickets}</span>}
-            </Link>
+    <div className="adm">
+      <aside className={`adm-side ${drawer ? 'open' : ''}`} aria-label="Super Admin">
+        <div className="adm-brand">
+          <Link to="/admin" className="wordmark" aria-label="Jhino Admin">jhino<i /></Link>
+          <span className="adm-badge mono">admin</span>
+          <button className="icon-btn adm-close" onClick={() => setDrawer(false)} aria-label="Close menu"><Icon name="close" /></button>
+        </div>
+        <nav className="adm-nav">
+          {NAV.map((g) => (
+            <div key={g.group || 'top'} className="adm-group">
+              {g.group && <p className="adm-group-h">{g.group}</p>}
+              {g.items.map(([k, l, i]) => (
+                <Link key={k} to={`/admin/${k}`} aria-current={cur === k ? 'page' : undefined}>
+                  <Icon name={i} size={17} /><span>{l}</span>{badge(k) > 0 && <span className="adm-count mono">{badge(k)}</span>}
+                </Link>
+              ))}
+            </div>
           ))}
         </nav>
-        <div className="acc-main">
+        <div className="adm-foot">
+          <Link to="/apps" className="adm-back"><Icon name="back" size={16} />My apps</Link>
+          <div className="adm-me">
+            <Avatar name={user.name} src={avatarUrl(user)} />
+            <span className="adm-me-t"><b>{user.displayName || user.name}</b><small>{user.email}</small></span>
+            <button className="icon-btn" aria-label="Log out" title="Log out" onClick={async () => { await post('/api/auth/logout'); await refresh(); go('/login', true); }}><Icon name="logout" size={17} /></button>
+          </div>
+        </div>
+      </aside>
+      {drawer && <div className="adm-scrim" onClick={() => setDrawer(false)} aria-hidden="true" />}
+      <div className="adm-main">
+        <header className="adm-top">
+          <button className="icon-btn adm-menu" onClick={() => setDrawer(true)} aria-label="Open menu" aria-expanded={drawer}><Icon name="list" /></button>
+          <p className="adm-where"><span className="muted">Super Admin</span><span className="muted" aria-hidden="true">/</span><b>{TITLES[cur]}</b></p>
+          <div className="spacer" />
+          {!!counts?.pendingPayments && cur !== 'payments' && <Link to="/admin/payments" className="adm-pill"><i className="live-dot" />{counts.pendingPayments} to review</Link>}
+        </header>
+        <main className="adm-body">
           {cur === 'overview' && <Overview />}
           {cur === 'users' && (sub ? <UserDetail id={sub} /> : <Users />)}
           {cur === 'payments' && (sub ? <PaymentDetail id={sub} onChanged={loadCounts} /> : <Payments />)}
           {cur === 'methods' && <Methods />}
           {cur === 'hosting' && <Hosting />}
+          {cur === 'links' && <AdminLinks />}
           {cur === 'support' && <Support onChanged={loadCounts} />}
           {cur === 'audit' && <Audit />}
           {cur === 'settings' && <Settings />}
-        </div>
+        </main>
       </div>
-    </main>
+    </div>
   );
 }
 
 function Head({ title, lede, actions }: { title: string; lede?: ReactNode; actions?: ReactNode }) {
-  return <div className="adm-head"><div><h2>{title}</h2>{lede && <p className="acc-lede">{lede}</p>}</div>{actions && <div className="actions-row">{actions}</div>}</div>;
+  return <div className="adm-head"><div><h1>{title}</h1>{lede && <p className="acc-lede">{lede}</p>}</div>{actions && <div className="actions-row">{actions}</div>}</div>;
 }
 
-/* ---------------- overview ---------------- */
-function Overview() {
-  const [o, setO] = useState<Record<string, any> | null>(null);
-  useEffect(() => { get('/api/admin/overview').then(setO, () => {}); }, []);
-  if (!o) return <div className="acc-skel" />;
-  const cell = (label: string, value: ReactNode, to?: string, hot?: boolean) => (
-    <div className={`kpi ${hot ? 'hot' : ''}`}>{to ? <Link to={to}><dt>{label}</dt><dd>{value}</dd></Link> : <><dt>{label}</dt><dd>{value}</dd></>}</div>
+/* ---------------- overview: the dashboard ---------------- */
+interface OverviewT {
+  users: number; clients: number; newUsers30: number; newUsersPrev30: number; paying: number; pendingPayments: number; revenue30: number; revenuePrev30: number; revenueAll: number; monthlyRevenue: number;
+  apps: number; hosted: number; openTickets: number; links: number; linkClicks30: number; mailReady: boolean;
+  revenueByMonth: { month: string; n: number }[]; signupsByDay: { day: string; n: number }[]; appsByDay: { day: string; n: number }[];
+  planMix: { free: number; plus: number; pro: number };
+  pendingList: { id: string; userName: string; plan: string; period: string; amount: number; expectedAmount: number; createdAt: string }[];
+  ticketsList: { id: string; email: string; kind: string; subject: string; createdAt: string }[];
+  expiring: { id: string; name: string; email: string; plan: string; expiresAt: string }[];
+  recent: { actor: string; action: string; detail: string; at: string }[];
+}
+const monthLabel = (m: string) => new Date(m + '-01T00:00:00Z').toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }).slice(0, 3);
+function Delta({ now, before, money }: { now: number; before: number; money?: boolean }) {
+  if (!before && !now) return <span className="kd flat">no change</span>;
+  const d = now - before;
+  const pct = before ? Math.round((d / before) * 100) : null;
+  return <span className={`kd ${d > 0 ? 'up' : d < 0 ? 'down' : 'flat'}`}>{d > 0 ? '+' : d < 0 ? '−' : ''}{money ? npr(Math.abs(d)).replace('NPR ', '') : Math.abs(d)}{pct !== null && d !== 0 ? ` (${d > 0 ? '+' : '−'}${Math.abs(pct)}%)` : ''} vs previous 30 days</span>;
+}
+
+/** Bars for a series; the last bar (now) is the signal colour. Bars grow in once, on first draw. */
+function Bars({ data, label, format }: { data: { key: string; label: string; n: number }[]; label: string; format: (n: number) => string }) {
+  const max = Math.max(1, ...data.map((d) => d.n));
+  const [hover, setHover] = useState<number | null>(null);
+  const shown = hover ?? data.length - 1;
+  return (
+    <figure className="chart" aria-label={label}>
+      <figcaption className="chart-read"><b className="mono">{format(data[shown]?.n ?? 0)}</b><span className="muted">{data[shown]?.label}</span></figcaption>
+      <div className="bars" role="img" aria-label={`${label}: ${data.map((d) => `${d.label} ${format(d.n)}`).join(', ')}`} onMouseLeave={() => setHover(null)}>
+        {[0.25, 0.5, 0.75, 1].map((g) => <span key={g} className="grid-line" style={{ bottom: `${g * 100}%` }} aria-hidden="true" />)}
+        {data.map((d, i) => (
+          <button key={d.key} type="button" className={`bar ${i === data.length - 1 ? 'now' : ''} ${hover === i ? 'hot' : ''}`} style={{ ['--h' as string]: String(d.n / max), ['--i' as string]: String(i) }}
+            onMouseEnter={() => setHover(i)} onFocus={() => setHover(i)} onBlur={() => setHover(null)} aria-label={`${d.label}: ${format(d.n)}`}>
+            <i />
+          </button>
+        ))}
+      </div>
+      <div className="bars-axis mono" aria-hidden="true">{data.map((d, i) => <span key={d.key}>{i % Math.ceil(data.length / 12) === 0 || i === data.length - 1 ? d.label : ''}</span>)}</div>
+    </figure>
   );
+}
+
+/** Two daily series as lines: sign-ups (ink) and new apps (quiet). */
+function Lines({ a, b, labelA, labelB }: { a: { day: string; n: number }[]; b: { day: string; n: number }[]; labelA: string; labelB: string }) {
+  const W = 600, H = 150, P = 6;
+  const max = Math.max(1, ...a.map((d) => d.n), ...b.map((d) => d.n));
+  const pt = (i: number, n: number, len: number) => `${(P + (i * (W - 2 * P)) / Math.max(1, len - 1)).toFixed(1)},${(H - P - (n / max) * (H - 2 * P)).toFixed(1)}`;
+  const path = (s: { n: number }[]) => s.map((d, i) => `${i ? 'L' : 'M'}${pt(i, d.n, s.length)}`).join(' ');
+  const sum = (s: { n: number }[]) => s.reduce((t, d) => t + d.n, 0);
+  return (
+    <figure className="chart dlines" aria-label={`${labelA} and ${labelB}, last 30 days`}>
+      <figcaption className="legend">
+        <span><i className="sw ink" />{labelA} <b className="mono">{sum(a)}</b></span>
+        <span><i className="sw quiet" />{labelB} <b className="mono">{sum(b)}</b></span>
+      </figcaption>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`${labelA}: ${sum(a)}; ${labelB}: ${sum(b)} in the last 30 days`}>
+        {[0.25, 0.5, 0.75].map((g) => <line key={g} x1="0" x2={W} y1={H * g} y2={H * g} className="gl" />)}
+        <path d={`${path(a)} L${W - P},${H - P} L${P},${H - P} Z`} className="area" />
+        <path d={path(b)} className="ln quiet" vectorEffect="non-scaling-stroke" />
+        <path d={path(a)} className="ln ink" vectorEffect="non-scaling-stroke" />
+      </svg>
+      <div className="bars-axis mono" aria-hidden="true"><span>{new Date(a[0]?.day ?? Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span><span>today</span></div>
+    </figure>
+  );
+}
+
+function Overview() {
+  const [o, setO] = useState<OverviewT | null>(null);
+  useEffect(() => { get<OverviewT>('/api/admin/overview').then(setO, () => {}); }, []);
+  if (!o) return <div className="dash-skel"><div className="acc-skel sm" /><div className="acc-skel" /></div>;
+  const mixTotal = o.planMix.free + o.planMix.plus + o.planMix.pro || 1;
+  const queue = o.pendingList.length + o.ticketsList.length + o.expiring.length;
+  return (
+    <div className="dash">
+      <Head title="Overview" lede={`Today, ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`} />
+
+      <section className="kpi-strip" aria-label="Key numbers">
+        <div className="kpi2">
+          <p className="k-l">Monthly revenue</p>
+          <p className="k-v mono">{npr(o.monthlyRevenue)}</p>
+          <p className="k-s" title="Yearly plans count as a twelfth each month">{o.paying} paying {o.paying === 1 ? 'customer' : 'customers'}</p>
+        </div>
+        <div className="kpi2">
+          <p className="k-l">Collected, 30 days</p>
+          <p className="k-v mono">{npr(o.revenue30)}</p>
+          <Delta now={o.revenue30} before={o.revenuePrev30} money />
+        </div>
+        <Link to="/admin/users" className="kpi2">
+          <p className="k-l">Customers</p>
+          <p className="k-v mono">{o.users.toLocaleString('en-IN')}</p>
+          <Delta now={o.newUsers30} before={o.newUsersPrev30} />
+        </Link>
+        <Link to="/admin/payments" className={`kpi2 ${o.pendingPayments ? 'hot' : ''}`}>
+          <p className="k-l">Payments to review</p>
+          <p className="k-v mono">{o.pendingPayments}</p>
+          <p className="k-s">{o.pendingPayments ? 'Oldest first in the queue' : 'Nothing waiting'}</p>
+        </Link>
+      </section>
+
+      <div className="dash-grid">
+        <section className="dpanel span2" aria-labelledby="rev-h">
+          <div className="panel-h"><h2 id="rev-h">Revenue by month</h2><span className="muted small">approved payments · all time {npr(o.revenueAll)}</span></div>
+          <Bars data={o.revenueByMonth.map((m) => ({ key: m.month, label: monthLabel(m.month), n: m.n }))} label="Revenue by month, last 12 months" format={npr} />
+        </section>
+
+        <section className="dpanel queue" aria-labelledby="q-h">
+          <div className="panel-h"><h2 id="q-h">Needs you</h2>{queue > 0 && <span className="mono small muted">{queue}</span>}</div>
+          {!o.mailReady && <p className="q-warn"><Icon name="mail" size={15} /><span>Emails are not delivered. Set SMTP_URL; until then read them in <Link to="/admin/settings" className="link">Settings</Link>.</span></p>}
+          {!queue ? <p className="q-clear"><Icon name="check" size={16} />All clear. New payments and requests land here.</p> : (
+            <ul className="q-list">
+              {o.pendingList.map((p) => (
+                <li key={p.id}><Link to={`/admin/payments/${p.id}`}>
+                  <span className="q-k">Payment</span>
+                  <span className="q-t"><b>{p.userName}</b><small>{planName(p.plan)} · one {periodName(p.period)} · {ago(p.createdAt)}</small></span>
+                  <span className={`mono q-n ${p.amount !== p.expectedAmount ? 'warn-text' : ''}`}>{npr(p.amount)}</span>
+                </Link></li>
+              ))}
+              {o.ticketsList.map((t) => (
+                <li key={t.id}><Link to="/admin/support">
+                  <span className="q-k">{t.kind === 'problem' ? 'Problem' : t.kind === 'feedback' ? 'Feedback' : 'Message'}</span>
+                  <span className="q-t"><b>{t.subject}</b><small>{t.email} · {ago(t.createdAt)}</small></span>
+                </Link></li>
+              ))}
+              {o.expiring.map((u) => (
+                <li key={u.id}><Link to={`/admin/users/${u.id}`}>
+                  <span className="q-k">Renewal</span>
+                  <span className="q-t"><b>{u.name}</b><small>{planName(u.plan)} ends {fmtDate(u.expiresAt)}</small></span>
+                </Link></li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="dpanel span2" aria-labelledby="gr-h">
+          <div className="panel-h"><h2 id="gr-h">Growth, last 30 days</h2></div>
+          <Lines a={o.signupsByDay} b={o.appsByDay} labelA="Sign-ups" labelB="New apps" />
+        </section>
+
+        <section className="dpanel" aria-labelledby="mix-h">
+          <div className="panel-h"><h2 id="mix-h">Plans</h2><span className="muted small">{o.users} customers</span></div>
+          <div className="mix" role="img" aria-label={`Free ${o.planMix.free}, Plus ${o.planMix.plus}, Pro ${o.planMix.pro}`}>
+            <i className="m-free" style={{ flexGrow: o.planMix.free }} /><i className="m-plus" style={{ flexGrow: o.planMix.plus }} /><i className="m-pro" style={{ flexGrow: o.planMix.pro }} />
+          </div>
+          <dl className="mix-legend">
+            {([['free', 'Free Forever'], ['plus', 'Plus'], ['pro', 'Pro']] as const).map(([k, l]) => (
+              <div key={k}><dt><i className={`sw m-${k}`} />{l}</dt><dd className="mono">{o.planMix[k]}<small> · {Math.round((o.planMix[k] / mixTotal) * 100)}%</small></dd></div>
+            ))}
+          </dl>
+          <dl className="plat">
+            <div><dt>Apps</dt><dd className="mono">{o.apps}</dd></div>
+            <div><dt>Addresses</dt><dd className="mono"><Link to="/admin/hosting">{o.hosted}</Link></dd></div>
+            <div><dt>Short links</dt><dd className="mono"><Link to="/admin/links">{o.links}</Link></dd></div>
+            <div><dt>Link clicks, 30 d</dt><dd className="mono">{o.linkClicks30.toLocaleString('en-IN')}</dd></div>
+            <div><dt>Client sign-ins</dt><dd className="mono">{o.clients}</dd></div>
+            <div><dt>Open requests</dt><dd className="mono"><Link to="/admin/support">{o.openTickets}</Link></dd></div>
+          </dl>
+        </section>
+
+        <section className="dpanel span3" aria-labelledby="act-h">
+          <div className="panel-h"><h2 id="act-h">Recent admin activity</h2><Link to="/admin/audit" className="link small">Audit log</Link></div>
+          {!o.recent.length ? <p className="muted">Nothing yet.</p> : (
+            <table className="adm-table act-table">
+              <tbody>{o.recent.map((r, i) => <tr key={i}><td className="mono small nowrap">{r.action}</td><td className="small">{r.detail}</td><td className="muted small hide-sm">{r.actor}</td><td className="muted small nowrap">{ago(r.at)}</td></tr>)}</tbody>
+            </table>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- short links: every link on the platform ---------------- */
+interface AdminLinkT { id: string; code: string; url: string; short: string; clicks: number; disabled: boolean; disabledReason: string; createdAt: string; ownerEmail: string; ownerId: string }
+function AdminLinks() {
+  const toast = useToast();
+  const [q, setQ] = useState('');
+  const [rows, setRows] = useState<AdminLinkT[] | null>(null);
+  const load = useCallback(() => get<{ links: AdminLinkT[] }>(`/api/admin/links?q=${encodeURIComponent(q)}`).then((r) => setRows(r.links), () => {}), [q]);
+  useEffect(() => { const t = setTimeout(load, 150); return () => clearTimeout(t); }, [load]);
+  const toggle = async (l: AdminLinkT) => {
+    let reason = '';
+    if (!l.disabled) { const r = prompt(`Turn off /${l.code}? Visitors get "Nothing here". The owner sees your reason.\n\nReason:`, 'Goes to a harmful page'); if (r === null) return; reason = r; }
+    try { await api('PATCH', `/api/admin/links/${l.id}`, { disabled: !l.disabled, reason }); toast(l.disabled ? 'Turned back on' : 'Turned off'); load(); } catch (e) { toast(err(e, 'Could not change it.'), true); }
+  };
   return (
     <>
-      <Head title="Overview" />
-      <dl className="kpis">
-        {cell('Payments to review', o.pendingPayments, '/admin/payments', o.pendingPayments > 0)}
-        {cell('Customers', o.users, '/admin/users')}
-        {cell('Paying now', o.paying, '/admin/users?plan=paid')}
-        {cell('Revenue, 30 days', npr(o.revenue30))}
-        {cell('Apps', o.apps)}
-        {cell('Hosted addresses', o.hosted, '/admin/hosting')}
-        {cell('Open support requests', o.openTickets, '/admin/support', o.openTickets > 0)}
-        {cell('New customers, 30 days', o.newUsers30)}
-      </dl>
-      {!o.mailReady && <p className="notice-line"><Icon name="mail" size={16} />Emails are not being delivered: set SMTP_URL on the server. Until then you can read them in <Link to="/admin/settings" className="link">Settings</Link>.</p>}
-      <h3 className="adm-sub">Recent admin activity</h3>
-      {!o.recent.length ? <p className="muted">Nothing yet.</p> : (
-        <ul className="acc-list compact">{o.recent.map((r: any, i: number) => <li key={i}><span><b>{r.action.replace(/[._]/g, ' ')}</b><small>{r.actor} · {r.detail}</small></span><span className="muted small">{ago(r.at)}</span></li>)}</ul>
+      <Head title="Short links" lede="Every short link, newest first. Turn off any that goes somewhere harmful." />
+      <div className="adm-tools"><label className="ix-search"><Icon name="search" size={16} /><span className="sr-only">Search links</span><input placeholder="Code, address or owner email" value={q} onChange={(e) => setQ(e.target.value)} /></label></div>
+      {!rows ? <div className="acc-skel" /> : !rows.length ? <p className="muted">No short links yet.</p> : (
+        <table className="adm-table">
+          <thead><tr><th>Link</th><th>Goes to</th><th className="hide-sm">Owner</th><th>Clicks</th><th /></tr></thead>
+          <tbody>
+            {rows.map((l) => (
+              <tr key={l.id} className={l.disabled ? 'row-off' : ''}>
+                <td><a className="mono link" href={l.short} target="_blank" rel="noopener noreferrer">/{l.code}</a>{l.disabled && <small className="reason">Off: {l.disabledReason || 'no reason given'}</small>}</td>
+                <td className="small url-cell" title={l.url}>{l.url}</td>
+                <td className="hide-sm muted small">{l.ownerEmail}</td>
+                <td className="mono">{l.clicks.toLocaleString('en-IN')}</td>
+                <td><button className={`btn sm ${l.disabled ? '' : 'quiet danger'}`} onClick={() => toggle(l)}>{l.disabled ? 'Turn on' : 'Turn off'}</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </>
   );
@@ -133,14 +348,14 @@ function Users() {
 
 function CreateUser({ onClose }: { onClose: () => void }) {
   const toast = useToast();
-  const [f, setF] = useState({ name: '', email: '', password: '', plan: 'plus', superAdmin: false });
+  const [f, setF] = useState({ name: '', email: '', password: '', plan: 'plus', period: 'month', superAdmin: false });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [made, setMade] = useState<{ email: string; password: string; signInUrl: string; name: string } | null>(null);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true); setError('');
-    try { const r = await post<{ user: UserRowT; password: string; signInUrl: string }>('/api/admin/users', { ...f, password: f.password || undefined }); setMade({ email: r.user.email, password: r.password, signInUrl: r.signInUrl, name: r.user.name }); }
+    try { const r = await post<{ user: UserRowT; password: string; signInUrl: string }>('/api/admin/users', { ...f, password: f.password || undefined, period: f.period === 'none' ? undefined : f.period }); setMade({ email: r.user.email, password: r.password, signInUrl: r.signInUrl, name: r.user.name }); }
     catch (e2) { setError(err(e2, 'Could not create it.')); }
     setBusy(false);
   };
@@ -159,7 +374,13 @@ function CreateUser({ onClose }: { onClose: () => void }) {
             <label className="field"><span>Name</span><input className="input" required maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoFocus /></label>
             <label className="field"><span>Email or sign-in ID</span><input className="input" required autoComplete="off" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
             <label className="field"><span>Password <em>optional</em></span><input className="input" autoComplete="new-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} placeholder="Leave empty to generate one" /></label>
-            {!f.superAdmin && <div className="field"><span>Plan</span><Select label="Plan" value={f.plan} options={PLAN_OPTS} onChange={(v) => setF({ ...f, plan: v })} /><small className="hint">For customers who paid outside Jhino. Paid by QR? Approve their payment in Payments instead.</small></div>}
+            {!f.superAdmin && (
+              <div className="grid2">
+                <div className="field"><span>Plan</span><Select label="Plan" value={f.plan} options={PLAN_OPTS} onChange={(v) => setF({ ...f, plan: v })} /></div>
+                {f.plan !== 'free' && <div className="field"><span>Paid for</span><Select label="Paid for" value={f.period} options={[{ value: 'month', label: 'One month' }, { value: 'year', label: 'One year' }, { value: 'none', label: 'No end date' }]} onChange={(v) => setF({ ...f, period: v })} /></div>}
+              </div>
+            )}
+            {!f.superAdmin && <small className="hint">For customers who paid outside Jhino. Paid by QR? Approve their payment in Payments instead.</small>}
             <label className="check-row"><input type="checkbox" checked={f.superAdmin} onChange={(e) => setF({ ...f, superAdmin: e.target.checked })} /><span>Make them a super admin (full access to this dashboard)</span></label>
             {error && <p className="error-text" role="alert">{error}</p>}
             <div className="actions-row"><button className="btn primary" disabled={busy || !f.name.trim() || f.email.trim().length < 3}>{busy && <span className="spin" />}Create sign-in</button><button type="button" className="btn quiet" onClick={onClose}>Cancel</button></div>
@@ -256,7 +477,7 @@ function UserDetail({ id }: { id: string }) {
 }
 
 /* ---------------- payments ---------------- */
-interface PaymentT { id: string; receiptNo: string; plan: string; planName: string; amount: number; expectedAmount: number; method: string; reference: string; paidOn: string; note: string; hasProof: boolean; status: string; rejectReason: string; createdAt: string; reviewedAt: string | null; userId: string | null; userEmail: string; userName: string; internalNote: string; reviewedBy: string }
+interface PaymentT { id: string; receiptNo: string; plan: string; planName: string; period: string; amount: number; expectedAmount: number; method: string; reference: string; paidOn: string; note: string; hasProof: boolean; status: string; rejectReason: string; createdAt: string; reviewedAt: string | null; userId: string | null; userEmail: string; userName: string; internalNote: string; reviewedBy: string }
 function Payments() {
   const { go } = useRoute();
   const [status, setStatus] = useState('pending');
@@ -281,7 +502,7 @@ function Payments() {
             {d.payments.map((p) => (
               <tr key={p.id} className="clickable" onClick={() => go(`/admin/payments/${p.id}`)}>
                 <td><Link to={`/admin/payments/${p.id}`} className="cell-main"><b>{p.userName}</b><small>{p.userEmail}</small></Link></td>
-                <td>{p.planName}</td>
+                <td>{p.planName}<small className="muted"> · {periodName(p.period)}</small></td>
                 <td className={`mono ${p.amount !== p.expectedAmount ? 'warn-text' : ''}`} title={p.amount !== p.expectedAmount ? `Plan price is ${npr(p.expectedAmount)}` : undefined}>{npr(p.amount)}</td>
                 <td className="hide-sm">{p.method}</td>
                 <td className="hide-sm mono">{p.reference || '—'}</td>
@@ -298,7 +519,7 @@ function Payments() {
 
 function PaymentDetail({ id, onChanged }: { id: string; onChanged: () => void }) {
   const toast = useToast();
-  const [d, setD] = useState<{ payment: PaymentT; user: any; history: any[]; earlier: PaymentT[] } | null>(null);
+  const [d, setD] = useState<{ payment: PaymentT; user: any; history: any[]; earlier: PaymentT[]; endsIfApproved: string | null } | null>(null);
   const [note, setNote] = useState('');
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState<'' | 'approve' | 'reject'>('');
@@ -308,7 +529,7 @@ function PaymentDetail({ id, onChanged }: { id: string; onChanged: () => void })
   if (!d) return <div className="acc-skel" />;
   const p = d.payment;
   const approve = async () => {
-    if (!confirm(`Approve ${npr(p.amount)} from ${p.userName}? ${p.planName} turns on for them now.`)) return;
+    if (!confirm(`Approve ${npr(p.amount)} from ${p.userName}? ${p.planName} turns on for them now${d.endsIfApproved ? `, until ${fmtDate(d.endsIfApproved)}` : ''}.`)) return;
     setBusy('approve');
     try { const r = await post<{ already: boolean }>(`/api/admin/payments/${id}/approve`, { note: note || undefined }); toast(r.already ? 'Already approved (nothing given twice)' : `Approved. ${p.planName} is active for ${p.userName}.`); onChanged(); load(); }
     catch (e) { toast(err(e, 'Could not approve.'), true); }
@@ -332,7 +553,8 @@ function PaymentDetail({ id, onChanged }: { id: string; onChanged: () => void })
         <div>
           <dl className="facts">
             <div><dt>Customer</dt><dd>{d.user ? <Link to={`/admin/users/${d.user.id}`} className="link">{p.userName}</Link> : p.userName}<br /><span className="muted">{p.userEmail}</span></dd></div>
-            <div><dt>Plan</dt><dd>{p.planName} (price {npr(p.expectedAmount)})</dd></div>
+            <div><dt>Plan</dt><dd>{p.planName}, one {periodName(p.period)} (price {npr(p.expectedAmount)})</dd></div>
+            {p.status === 'pending' && d.endsIfApproved && <div><dt>Approving gives</dt><dd>{p.planName} until {fmtDate(d.endsIfApproved)}</dd></div>}
             <div><dt>Amount paid</dt><dd className={`mono ${p.amount !== p.expectedAmount ? 'warn-text' : ''}`}>{npr(p.amount)}{p.amount !== p.expectedAmount && ' · not the plan price'}</dd></div>
             <div><dt>Method</dt><dd>{p.method}</dd></div>
             <div><dt>Reference</dt><dd className="mono">{p.reference || '—'}</dd></div>
@@ -467,8 +689,8 @@ function Hosting() {
   useEffect(() => { load(); }, [load]);
   return (
     <>
-      <Head title="Hosting" lede="Short addresses like jhino.com/your-studio. Only super admins give them out." actions={<><button className="btn sm" onClick={() => setDialog('assign')}>Give an app an address</button><button className="btn primary sm" onClick={() => setDialog('host')}><Icon name="upload" size={15} />Host an HTML</button></>} />
-      {!d ? <div className="acc-skel" /> : !d.apps.length ? <p className="muted">No app is open by link yet.</p> : (
+      <Head title="Addresses" lede="Apps with their own address, like jhino.com/your-studio. Owners pick them when they create an app or in Share; you can change any of them." actions={<><button className="btn sm" onClick={() => setDialog('assign')}>Give an app an address</button><button className="btn primary sm" onClick={() => setDialog('host')}><Icon name="upload" size={15} />Host an HTML</button></>} />
+      {!d ? <div className="acc-skel" /> : !d.apps.length ? <p className="muted">No app has an address or a public link yet.</p> : (
         <table className="adm-table">
           <thead><tr><th>Address</th><th>App</th><th className="hide-sm">Owner</th><th>Access</th><th /></tr></thead>
           <tbody>

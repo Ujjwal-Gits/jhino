@@ -3,6 +3,7 @@ import { ApiError, api, get, post, type AppDetail, type Role } from '../api';
 import { useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 import { downloadHtml } from './Player';
+import { AddressField, PlanTag, slugify, useNameCheck } from './Address';
 
 interface InviteRow { id: string; role: Role; createdAt: string; expiresAt: string; usedAt: string | null; revokedAt: string | null; usedBy: string | null }
 interface Member { id: string; name: string; email: string; role: Role; madeByMe?: boolean }
@@ -99,13 +100,13 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
     <Modal title={`Share ${app.name}`} onClose={onClose} wide>
       <div className="modal-body" style={{ gap: 22 }}>
         <p className="callout"><Icon name="key" size={15} /> Only people on this list can open this app, and each signs in with their own ID and password. A copied link alone never gives access.</p>
-        <LinkSharing appId={app.id} />
+        <LinkSharing appId={app.id} appName={app.name} />
         <div className="share-file">
           <div>
-            <b>Send it as an HTML file</b>
+            <b>Send it as an HTML file {!user.features?.download && <PlanTag />}</b>
             <span className="hint">They open the file, sign in once, and use the same app, live with you. It needs the internet.</span>
           </div>
-          <button className="btn sm" onClick={() => downloadHtml(app.id)}><Icon name="download" size={15} />Download HTML file</button>
+          <button className="btn sm" disabled={!user.features?.download} onClick={async () => { const fail = await downloadHtml(app.id); if (fail) toast(fail, true); }}><Icon name="download" size={15} />Download HTML file</button>
         </div>
 
         {secret ? (
@@ -205,10 +206,62 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
   );
 }
 
+/* ---------- the app's own address: jhino.com/<name> ---------- */
+function AddressSection({ appId, appName, sharing, onChange }: { appId: string; appName: string; sharing: SharingT; onChange: (s: SharingT) => void }) {
+  const toast = useToast();
+  const [editing, setEditing] = useState(false);
+  const [slug, setSlug] = useState(sharing.slug ?? '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const check = useNameCheck(editing && slug !== sharing.slug ? slug : '', { app: appId });
+  const save = async (next: string | null) => {
+    setBusy(true); setError('');
+    try {
+      // An address is for opening without being added: a private app opens to anyone with it.
+      const body = next ? { slug: next, access: sharing.access === 'private' ? 'public' : undefined } : { slug: null };
+      const r = await api<SharingT>('PUT', `/api/apps/${appId}/address`, body);
+      onChange(r); setEditing(false); toast(next ? `Live at ${r.slugUrl}` : 'Address removed');
+    } catch (e) { setError(e instanceof ApiError ? e.message : 'Could not save.'); }
+    setBusy(false);
+  };
+  return (
+    <div className="addr-sec">
+      <p className="section-title">Address</p>
+      {!editing ? (
+        sharing.slugUrl ? (
+          <div className="linkbox">
+            <input className="input mono" readOnly value={sharing.slugUrl} onFocus={(e) => e.target.select()} aria-label="Address" />
+            <button className="btn sm" type="button" onClick={() => copyText(sharing.slugUrl!).then(() => toast('Address copied'))}><Icon name="copy" size={15} />Copy</button>
+            <button className="btn sm quiet" type="button" onClick={() => { setSlug(sharing.slug ?? ''); setEditing(true); }}>Change</button>
+          </div>
+        ) : (
+          <div className="addr-empty">
+            <span className="hint">Give it its own address, like <span className="mono">{location.host}/{slugify(appName) || 'your-studio'}</span>. It opens at exactly that address.</span>
+            <button className="btn sm" type="button" onClick={() => { setSlug(slugify(appName)); setEditing(true); }}><Icon name="globe" size={15} />Add address</button>
+          </div>
+        )
+      ) : (
+        <form className="addr-edit" onSubmit={(e) => { e.preventDefault(); if (slug) save(slug); }}>
+          <AddressField value={slug} onChange={setSlug} check={slug === sharing.slug ? { state: 'ok' } : check} appId={appId} optional={false} />
+          <div className="actions-row">
+            <button className="btn sm primary" disabled={busy || !slug || (slug !== sharing.slug && check.state !== 'ok')}>{busy && <span className="spin" />}Save address</button>
+            {sharing.slug && <button type="button" className="btn sm quiet danger" disabled={busy} onClick={() => { if (confirm(`Remove ${sharing.slugUrl}? Anyone using it gets "Nothing here", and the name becomes free for others.`)) save(null); }}>Remove</button>}
+            <button type="button" className="btn sm quiet" onClick={() => { setEditing(false); setError(''); }}>Cancel</button>
+          </div>
+        </form>
+      )}
+      {sharing.slugUrl && sharing.access === 'private' && !editing && <p className="hint">Only people added below can open it. Choose "Anyone with the link" to open it to everyone with the address.</p>}
+      {error && <p className="error-text" role="alert">{error}</p>}
+    </div>
+  );
+}
+
 /* ---------- sharing by link: private, public, or with a password ---------- */
 interface SharingT { access: 'private' | 'public' | 'password'; publicRole: Role; hasPassword: boolean; showBar: boolean; shareUrl: string; slug: string | null; slugUrl: string | null }
-function LinkSharing({ appId }: { appId: string }) {
+function LinkSharing({ appId, appName }: { appId: string; appName: string }) {
   const toast = useToast();
+  const { user } = useSession();
+  const f = user.features;
   const [s, setS] = useState<SharingT | null>(null);
   const [pw, setPw] = useState('');
   const [busy, setBusy] = useState(false);
@@ -228,11 +281,13 @@ function LinkSharing({ appId }: { appId: string }) {
   const url = s.slugUrl ?? s.shareUrl;
   return (
     <section className="link-share" aria-labelledby="ls-h">
+      <AddressSection appId={appId} appName={appName} sharing={s} onChange={setS} />
       <p className="section-title" id="ls-h">Share by link</p>
       <div className="ls-opts" role="radiogroup" aria-label="Who can open the link">
-        {([['private', 'Only people added below'], ['public', 'Anyone with the link'], ['password', 'Anyone with the link and a password']] as const).map(([k, l]) => (
-          <button key={k} type="button" role="radio" aria-checked={s.access === k} className="ls-opt" disabled={busy} onClick={() => choose(k)}><span className="radio" />{l}</button>
-        ))}
+        {([['private', 'Only people added below'], ['public', 'Anyone with the link'], ['password', 'Anyone with the link and a password']] as const).map(([k, l]) => {
+          const locked = k === 'password' && !f?.passwordLinks && s.access !== 'password';
+          return <button key={k} type="button" role="radio" aria-checked={s.access === k} aria-disabled={locked} className="ls-opt" disabled={busy} onClick={() => { if (!locked) choose(k); }}><span className="radio" />{l}{locked && <PlanTag />}</button>;
+        })}
       </div>
       {s.access === 'password' && (
         <form className="linkbox" onSubmit={(e) => { e.preventDefault(); save({ access: 'password', password: pw }); }}>
@@ -250,10 +305,9 @@ function LinkSharing({ appId }: { appId: string }) {
             <span>Visitors can</span>
             <Select size="sm" label="Visitors can" width={130} value={s.publicRole} options={[{ value: 'viewer', label: 'View' }, { value: 'contributor', label: 'Add' }, { value: 'editor', label: 'Edit' }]} onChange={(v) => save({ publicRole: v as Role })} />
           </div>
-          {s.slugUrl && <p className="hint">Also at <span className="mono">{s.slugUrl}</span> (set by a super admin).</p>}
         </>
       )}
-      <label className="check-row"><input type="checkbox" checked={s.showBar} onChange={(e) => save({ showBar: e.target.checked })} /><span>Show the Jhino top bar (hide it to open like a standalone app)</span></label>
+      <label className="check-row"><input type="checkbox" checked={s.showBar} disabled={s.showBar && !f?.hideBar} onChange={(e) => save({ showBar: e.target.checked })} /><span>Show the Jhino top bar (hide it to open like a standalone app){s.showBar && !f?.hideBar && <PlanTag />}</span></label>
       {error && <p className="error-text" role="alert">{error}</p>}
     </section>
   );

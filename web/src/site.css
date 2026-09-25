@@ -1,138 +1,13 @@
 /* ======================================================================
-   Public site: a studio job sheet. Paper, ink, one vermilion signal.
+   Shared controls kept here (account, admin, share dialogs). The public
+   website's own styles live in landing.css.
    ====================================================================== */
-.site { min-height: 100vh; display: flex; flex-direction: column; background: var(--paper); }
-.site main { flex: 1; }
-.site-in { max-width: 1180px; margin: 0 auto; padding: 0 28px; width: 100%; }
-.site-head { border-bottom: 1px solid var(--rule); position: sticky; top: 0; background: var(--paper); z-index: 20; }
-.site-head .site-in { display: flex; align-items: center; justify-content: space-between; height: 60px; }
-.site-nav { display: flex; align-items: center; gap: 22px; font-size: 14px; }
-.site-nav a:not(.btn) { color: var(--ink-2); text-decoration: none; }
-.site-nav a:not(.btn):hover, .site-nav a[aria-current='page'] { color: var(--ink); text-decoration: underline; text-underline-offset: 5px; }
-.site h1, .site h2 { letter-spacing: -0.035em; }
-
-.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 56px; align-items: center; padding-top: 72px; padding-bottom: 88px; }
-.kicker { font-size: 12.5px; color: var(--ink-3); margin-bottom: 18px; }
-.hero h1 { font-size: clamp(40px, 6.2vw, 78px); line-height: 0.98; font-weight: 750; letter-spacing: -0.05em; max-width: 11ch; margin-bottom: 26px; }
-.hero .lede { font-size: 18px; line-height: 1.55; color: var(--ink-2); max-width: 46ch; margin-bottom: 30px; }
-.hero-cta { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-
-/* the live sheet: two screens of one booking day */
-.sheet { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
-.sheet-pane { border: 1px solid var(--rule-strong); border-radius: var(--r-lg); background: var(--paper); overflow: hidden; }
-.sheet-pane.client { transform: translateY(28px); }
-.sheet-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--rule); font-size: 11.5px; color: var(--ink-3); }
-.sheet-date { display: grid; text-align: right; line-height: 1.2; }
-.sheet-date b { color: var(--ink); font-size: 13px; font-weight: 650; }
-.sheet-date small { font-size: 10.5px; }
-.sheet-slots { list-style: none; margin: 0; padding: 4px 0; }
-.sheet-slots li { position: relative; display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border-top: 1px dashed var(--rule); font-size: 11.5px; color: var(--ink-3); }
-.sheet-slots li:first-child { border-top: 0; }
-.sheet-bk { flex: 1; min-width: 0; padding: 6px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sheet-bk.old { background: var(--paper-3); }
-.sheet-bk.new { background: color-mix(in srgb, var(--signal) 12%, var(--paper)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--signal) 45%, transparent); }
-.sheet-tap { position: absolute; left: 70px; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; border: 2px solid var(--signal); opacity: 0; pointer-events: none; }
-.sheet-sync { position: absolute; right: 8px; bottom: -40px; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-2); }
-.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--signal); display: inline-block; }
-/* The one moving moment: a tap books 13:00 on the studio side; it lands on the client's side; "synced" shows. */
-@media (prefers-reduced-motion: no-preference) {
-  .sheet-tap { animation: sheet-tap 420ms var(--ease) 700ms both; }
-  .sheet-bk.new.studio { animation: sheet-in 320ms var(--ease) 1000ms both; }
-  .sheet-bk.new.client { animation: sheet-in 360ms var(--ease) 1500ms both; }
-  .sheet-sync { animation: sheet-fade 300ms var(--ease) 1750ms both; }
-}
-@keyframes sheet-tap { 0% { opacity: 0; transform: scale(0.4); } 40% { opacity: 1; } 100% { opacity: 0; transform: scale(1.6); } }
-@keyframes sheet-in { from { opacity: 0; transform: translateY(6px) scale(0.97); } }
-@keyframes sheet-fade { from { opacity: 0; } }
-
-/* what moves between you: a ruled ledger, not cards */
-.moves { padding-top: 40px; padding-bottom: 80px; }
-.moves h2, .ways h2, .pricing h2, .faq h2, .share h2 { font-size: clamp(26px, 3.2vw, 38px); line-height: 1.05; font-weight: 700; margin-bottom: 22px; }
-.ledger { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--ink); }
-.ledger li { display: grid; grid-template-columns: 220px minmax(0, 1fr) 170px; gap: 24px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--rule); }
-.ledger b { font-size: 17px; font-weight: 650; letter-spacing: -0.01em; }
-.ledger span { color: var(--ink-2); line-height: 1.55; }
-.ledger .tag-r { font-size: 12px; color: var(--ink-3); text-align: right; }
-
-/* two ways: an uneven split on a band of paper-2 */
-.ways { background: var(--paper-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 72px 0; }
-.ways-in { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px 56px; }
-.ways-in h2 { grid-column: 1 / -1; }
-.way h3 { font-size: 21px; letter-spacing: -0.02em; margin-bottom: 8px; }
-.way p { color: var(--ink-2); max-width: 48ch; margin-bottom: 16px; }
-.code-sheet { font-family: var(--mono); font-size: 12.5px; line-height: 1.6; background: var(--paper); border: 1px solid var(--rule-strong); border-radius: var(--r); padding: 14px 16px; margin: 0; overflow-x: auto; white-space: pre; }
-.ticks-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.ticks-list li { display: flex; align-items: center; gap: 10px; font-weight: 550; }
-.ticks-list .svg { color: var(--signal); }
-
-.share { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr); gap: 56px; align-items: center; padding-top: 88px; padding-bottom: 88px; }
-.share .lede { color: var(--ink-2); font-size: 17px; line-height: 1.6; max-width: 46ch; }
-.share-demo { border: 1px solid var(--rule-strong); border-radius: var(--r-lg); padding: 10px; display: grid; gap: 4px; }
-.share-opt { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--r); font-size: 14.5px; color: var(--ink-2); }
-.share-opt.on { background: var(--paper-2); color: var(--ink); font-weight: 600; }
 .radio { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--ink-3); flex: none; position: relative; }
-.share-opt.on .radio, [aria-checked='true'] > .radio { border-color: var(--ink); }
-.share-opt.on .radio::after, [aria-checked='true'] > .radio::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--ink); }
-.share-url { margin-top: 6px; padding: 12px; border-top: 1px dashed var(--rule-strong); font-size: 14px; color: var(--ink-3); }
-.share-url b { color: var(--ink); font-weight: 500; }
-
-.pricing { padding-top: 24px; padding-bottom: 88px; }
-.pricing .lede { color: var(--ink-2); margin: -8px 0 22px; max-width: 60ch; }
-.price-table { width: 100%; border-collapse: collapse; border-top: 2px solid var(--ink); }
-.price-table th, .price-table td { text-align: left; padding: 18px 12px 18px 0; border-bottom: 1px solid var(--rule); vertical-align: middle; }
-.price-table thead th { font-size: 12px; font-weight: 500; color: var(--ink-3); font-family: var(--mono); padding-top: 10px; padding-bottom: 10px; }
-.price-table tbody th { font-size: 17px; font-weight: 650; }
-.price-table td.mono { font-size: 15px; white-space: nowrap; }
-.price-table td:last-child { text-align: right; padding-right: 0; }
-
-.faq { padding-bottom: 96px; }
-.faq dl, .help-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; margin: 0; border-top: 1px solid var(--rule); }
-.faq dl > div, .help-list > div { padding: 20px 0; border-bottom: 1px solid var(--rule); }
-.faq dt, .help-list dt { font-weight: 650; margin-bottom: 6px; }
-.faq dd, .help-list dd { margin: 0; color: var(--ink-2); line-height: 1.6; }
-
-.site-foot { border-top: 1px solid var(--rule); padding: 22px 0 28px; font-size: 13.5px; }
-.site-foot .site-in { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
-.site-foot nav { margin-left: auto; display: flex; gap: 18px; }
-.site-foot a { color: var(--ink-2); }
-
-.help, .legal { padding-top: 48px; padding-bottom: 80px; }
-.help h1, .legal h1 { font-size: clamp(32px, 4vw, 48px); font-weight: 720; letter-spacing: -0.04em; margin-bottom: 26px; }
-.help h2 { font-size: 18px; margin-bottom: 12px; }
-.help-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 48px; align-items: start; }
-.help-list { grid-template-columns: 1fr; }
-.help-contact { border: 1px solid var(--rule); border-radius: var(--r-lg); padding: 22px; }
-.stack-form { display: grid; gap: 14px; }
+[aria-checked='true'] > .radio { border-color: var(--ink); }
+[aria-checked='true'] > .radio::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--ink); }
 .help .seg, .acc .seg, .adm-tools .seg { margin-left: 0; flex-wrap: wrap; }
 .help .seg button, .acc .seg button, .adm-tools .seg button { width: auto; padding: 0 12px; font-size: 13px; gap: 6px; display: inline-flex; align-items: center; }
 .adm-tools .seg button .n { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
-.sent { display: grid; gap: 8px; justify-items: start; }
-.help-legal { margin-top: 36px; font-size: 13.5px; }
-.legal { max-width: 760px; }
-.legal h2 { font-size: 19px; margin: 30px 0 8px; letter-spacing: -0.015em; }
-.legal p { color: var(--ink-2); line-height: 1.7; max-width: 68ch; }
-
-@media (max-width: 960px) {
-  .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 44px; padding-bottom: 96px; }
-  .ledger li { grid-template-columns: 1fr; gap: 4px; }
-  .ledger .tag-r { text-align: left; }
-  .ways-in, .share, .help-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
-  .faq dl { grid-template-columns: 1fr; }
-}
-@media (max-width: 640px) {
-  .site-in { padding-left: 16px; padding-right: 16px; }
-  .site-nav { gap: 14px; }
-  .site-nav a[href='/#pricing'] { display: none; }
-  .sheet { gap: 8px; }
-  .sheet-slots li { height: 34px; padding: 0 8px; gap: 6px; }
-  .sheet-bk { font-size: 11px; padding: 5px 6px; }
-  .sheet-tap { left: 52px; }
-  .sheet-top { flex-direction: column; gap: 4px; }
-  .sheet-date { text-align: left; }
-  .hero { padding-bottom: 104px; }
-  .price-table th, .price-table td { padding-right: 8px; }
-  .site-foot nav { margin-left: 0; }
-}
 
 /* ---------- sign in / sign up extras ---------- */
 .social { display: grid; gap: 10px; }
@@ -365,10 +240,4 @@
   /* Wide admin tables scroll inside their own box on phones instead of widening the page. */
   .adm-table, .pay-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .adm-table td, .pay-table td { white-space: nowrap; }
-}
-@media (max-width: 400px) {
-  .price-table th, .price-table td { padding: 14px 6px 14px 0; font-size: 13.5px; }
-  .price-table tbody th { font-size: 15px; }
-  .price-table td.mono { font-size: 13px; }
-  .price-table .btn.sm { padding: 0 8px; }
 }

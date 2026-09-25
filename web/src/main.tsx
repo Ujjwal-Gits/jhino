@@ -2,6 +2,7 @@ import { StrictMode, useCallback, useEffect, useState, type ReactNode } from 're
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 import './site.css';
+import './dash.css';
 import { get, setCsrf, type User } from './api';
 import { live } from './live';
 import { ToastProvider } from './ui';
@@ -15,11 +16,12 @@ import { AppsPage } from './pages/Apps';
 import { Player } from './pages/Player';
 import { Shell } from './pages/Shell';
 import { Builder } from './pages/Builder';
+import { LinksPage } from './pages/Links';
 import { RouteCtx, SessionCtx, applyTheme, readTheme, useRoute } from './context';
 
 applyTheme(readTheme());
 
-const KNOWN = new Set(['login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing']);
+const KNOWN = new Set(['links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing']);
 
 function App() {
   const [path, setPath] = useState(location.pathname);
@@ -92,7 +94,8 @@ function App() {
   else if (['/login', '/signup', '/forgot', '/people'].includes(path)) page = null;
   else if (receiptMatch) page = <Shell><ReceiptPage id={receiptMatch[1]} /></Shell>;
   else if (accountMatch) page = <Shell><AccountPage section={accountMatch[1] ?? 'profile'} /></Shell>;
-  else if (adminMatch && user.isAdmin) page = <Shell><AdminPage section={adminMatch[1] ?? 'overview'} sub={adminMatch[2]} /></Shell>;
+  else if (adminMatch && user.isAdmin) page = <AdminPage section={adminMatch[1] ?? 'overview'} sub={adminMatch[2]} />;
+  else if (path === '/links' && user.canCreate) page = <Shell><LinksPage /></Shell>;
   else if (path === '/build') page = <Builder />;
   else if (blocksMatch) page = <Builder appId={blocksMatch[1]} />;
   else if (viewMatch) page = <Player id={viewMatch[1]} solo />;

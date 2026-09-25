@@ -1,26 +1,30 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react';
+import '../landing.css';
 import { ApiError, post } from '../api';
 import { Link, useRoute } from '../context';
+import { PLAN_CARDS, nprAmount, priceFor, type Period, type PlanCard } from '../plans';
 import { Icon } from '../ui';
 
 /*
- * The public site: home, help, terms and privacy. Direction: a studio job sheet. Big tight grotesque,
- * mono readouts, ruled lists and tables, paper and ink with one vermilion signal. One moving moment:
- * the hero booking that lands on the client's screen.
+ * The public site: home, help, terms and privacy.
+ * Direction: a print-shop job sheet. One tight grotesque set very large, IBM Plex Mono for every
+ * readout (times, rupees, BS/AD dates, addresses), ruled hairlines instead of boxes and shadows,
+ * paper and ink with one vermilion signal. One moving moment: the hero booking made on the studio's
+ * screen lands on the client's phone. Everything else holds still.
  */
 
 export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
   const { path } = useRoute();
   return (
-    <header className="site-head">
-      <div className="site-in">
+    <header className="lp-head">
+      <div className="lp-wrap lp-head-in">
         <Link to="/" className="wordmark" aria-label="Jhino home">jhino<i /></Link>
-        <nav className="site-nav" aria-label="Site">
-          <a href="/#pricing" aria-current={path === '/' ? undefined : undefined}>Pricing</a>
+        <nav className="lp-nav" aria-label="Site">
+          <a href="/#pricing" className="lp-nav-pricing">Pricing</a>
           <Link to="/help" aria-current={path === '/help' ? 'page' : undefined}>Help</Link>
           {signedIn
             ? <Link to="/apps" className="btn primary sm">Open dashboard</Link>
-            : <><Link to="/login" className="site-signin">Sign in</Link><Link to="/signup" className="btn primary sm">Start free</Link></>}
+            : <><Link to="/login">Sign in</Link><Link to="/signup" className="btn primary sm">Start free</Link></>}
         </nav>
       </div>
     </header>
@@ -29,165 +33,492 @@ export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
 
 export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
   return (
-    <footer className="site-foot">
-      <div className="site-in">
-        <span className="wordmark">jhino<i /></span>
-        <span className="muted">Client work, live on both sides. Made in Nepal.</span>
-        <nav aria-label="Footer">
-          <Link to="/help">Help</Link>
-          <Link to="/terms">Terms</Link>
-          <Link to="/privacy">Privacy</Link>
-          {signedIn ? <Link to="/apps">Dashboard</Link> : <Link to="/login">Sign in</Link>}
-        </nav>
+    <footer className="lp-foot">
+      <div className="lp-wrap">
+        <div className="lp-foot-top">
+          <div className="lp-foot-mark">
+            <Link to="/" className="wordmark" aria-label="Jhino home">jhino<i /></Link>
+            <p>Client work, live on both sides. Made in Nepal.</p>
+          </div>
+          <nav aria-label="Footer" className="lp-foot-nav">
+            <a href="/#pricing">Pricing</a>
+            <Link to="/help">Help</Link>
+            <Link to="/terms">Terms</Link>
+            <Link to="/privacy">Privacy</Link>
+            {signedIn ? <Link to="/apps">Dashboard</Link> : <Link to="/login">Sign in</Link>}
+          </nav>
+        </div>
+        <p className="lp-foot-colo mono">
+          <span>Prices in NPR</span><span>Dates in Bikram Sambat, AD beside</span><span>Pay by QR</span><span>© 2026 Jhino</span>
+        </p>
       </div>
     </footer>
   );
 }
 
-/** The hero's working sheet: the studio books a slot, and the client's copy shows it. */
-function LiveSheet() {
-  const slots = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00'];
-  const pane = (who: string, side: 'studio' | 'client') => (
-    <div className={`sheet-pane ${side}`}>
-      <div className="sheet-top">
-        <span className="mono">{who}</span>
-        <span className="sheet-date"><b>8 Asoj 2083</b><small>24 Sep 2026</small></span>
-      </div>
-      <ol className="sheet-slots" aria-hidden="true">
-        {slots.map((t) => (
-          <li key={t}>
-            <span className="mono">{t}</span>
-            {t === '09:00' && <span className="sheet-bk old">Podcast · Anish</span>}
-            {t === '13:00' && <span className={`sheet-bk new ${side}`}>Recording · Himalayan Coffee</span>}
-            {t === '13:00' && side === 'studio' && <span className="sheet-tap" />}
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
+/* ---------------- hero: the studio's screen and the client's phone ---------------- */
+
+function LiveBoard() {
+  const slots: [string, ReactNode][] = [
+    ['10:00', <span className="lv-bk">Podcast · Anish K.</span>],
+    ['11:00', null],
+    ['12:00', <span className="lv-bk lv-bk-soft">Hold · Everest Films</span>],
+    ['13:00', <><span className="lv-bk lv-new lv-new-desk">Recording · Himalayan Coffee</span><span className="lv-tap" /></>],
+    ['14:00', null],
+    ['15:00', null],
+  ];
   return (
-    <figure className="sheet" aria-label="A studio booking made on one screen appears on the client's screen">
-      {pane('Your studio', 'studio')}
-      {pane('Your client', 'client')}
-      <figcaption className="sheet-sync mono"><i className="live-dot" />synced · 0.4 s</figcaption>
+    <figure className="lv" aria-labelledby="lv-cap">
+      <div className="lv-desk" aria-hidden="true">
+        <div className="lv-bar">
+          <span className="lv-addr mono">jhino.com/<b>sur-studio</b></span>
+          <span className="lv-state mono">
+            <span className="lv-saving">Saving</span>
+            <span className="lv-synced"><i className="lv-dot" />Live on 2 screens</span>
+          </span>
+        </div>
+        <div className="lv-body">
+          <div className="lv-main">
+            <div className="lv-title">
+              <b>Bookings</b>
+              <span className="lv-date mono"><b>Bihibar, 8 Asoj 2083</b><span>Thu 24 Sep 2026</span></span>
+            </div>
+            <div className="lv-tabs mono"><span className="on">Day</span><span>Month</span><span>Upcoming</span><span>History</span></div>
+            <ol className="lv-slots">
+              {slots.map(([t, b]) => <li key={t}><span className="mono">{t}</span>{b}</li>)}
+            </ol>
+          </div>
+          <div className="lv-side">
+            <span className="mono lv-k">Next session</span>
+            <b>13:00 Recording</b>
+            <span>Himalayan Coffee, 2 hrs</span>
+            <span>Reminder 1 hr before</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="lv-phone" aria-hidden="true">
+        <div className="lv-toast"><i className="lv-dot" /><span><b>New booking</b> 13:00<span className="lv-toast-x"> Recording</span></span></div>
+        <div className="lv-ph-head">
+          <span className="mono">Sur Studio</span>
+          <b>Himalayan Coffee</b>
+        </div>
+        <div className="lv-ph-date mono"><b>8 Asoj 2083</b><span>24 Sep 2026</span></div>
+        <ul className="lv-ph-list">
+          <li><span className="mono">10:00</span><span>Studio busy</span></li>
+          <li className="lv-new lv-new-ph"><span className="mono">13:00</span><span><b>Recording</b><small>Reminder at 12:00</small></span></li>
+          <li><span className="mono">Mon</span><span>Final cut due</span></li>
+        </ul>
+        <div className="lv-ph-foot mono"><span>Advance</span><span>NPR 5,000 paid</span></div>
+      </div>
+
+      <figcaption id="lv-cap" className="lv-cap mono">
+        <b>Fig. 1, one booking</b>
+        The studio books 13:00. The client’s phone shows it a moment later, with no refresh.
+      </figcaption>
     </figure>
   );
 }
 
-const MOVES: [string, string, string][] = [
-  ['Video deliveries', 'The cut plays in the page. The client approves it or asks for changes, with a comment on the exact item.', 'approve · changes'],
-  ['Photo proofing', 'Every frame the same size. The client marks Pick, Maybe or No, and you copy the picked file names.', 'pick · maybe · no'],
-  ['Studio booking', 'A day of free and booked slots, a month view, upcoming and history. A reminder before each session.', 'slots · reminders'],
-  ['Briefs and scripts', 'Twenty scripts stay readable: each one opens as its own page, and a single link opens just that script.', 'write · read · link'],
-  ['Receipts and payments', 'Money in and out with the running total. Dates in Bikram Sambat with the AD date beside it.', 'NPR · BS / AD'],
-  ['Files and links', 'Paste Drive, Dropbox, OneDrive, Figma, Canva, YouTube or Vimeo links. They show as proper previews.', 'links first'],
+/* ---------------- what moves between studio and client ---------------- */
+
+function VideoSpec() {
+  return (
+    <div className="sp sp-video">
+      <div className="sp-frame"><span className="sp-cup" /><span className="sp-play" /><span className="mono sp-tc">01:12 / 02:14</span><span className="mono sp-ver">Final cut v3</span></div>
+      <div className="sp-scrub"><i style={{ transform: 'scaleX(0.53)' }} /><b style={{ left: '53%' }} /></div>
+      <p className="sp-note"><span className="mono">01:12</span> Logo a little larger here.</p>
+      <div className="sp-btns"><span className="sp-btn ink">Approve</span><span className="sp-btn">Ask for changes</span></div>
+    </div>
+  );
+}
+
+function ProofSpec() {
+  const marks = ['Pick', 'Maybe', 'No', 'Pick'];
+  return (
+    <div className="sp sp-proof">
+      <div className="sp-photos">
+        {marks.map((m, i) => (
+          <figure key={i} className={`sp-photo t${i}`}>
+            <span className={`sp-mark ${m.toLowerCase()}`}>{m}</span>
+          </figure>
+        ))}
+      </div>
+      <p className="mono sp-tally"><span>Pick 24</span><span>Maybe 6</span><span>No 11</span></p>
+    </div>
+  );
+}
+
+function BookingSpec() {
+  return (
+    <div className="sp sp-book">
+      <div className="sp-cal mono" aria-hidden="true">
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => <span key={d} className="h">{d}</span>)}
+        {Array.from({ length: 14 }, (_, i) => i + 3).map((d) => <span key={d} className={d === 8 ? 'on' : [5, 9, 12, 15].includes(d) ? 'bk' : ''}>{d}</span>)}
+      </div>
+      <p className="sp-remind"><span className="mono">12:00</span> Reminder sent: session at 13:00.</p>
+    </div>
+  );
+}
+
+function ScriptSpec() {
+  return (
+    <div className="sp sp-script">
+      <p className="mono sp-k">Script 07 of 20</p>
+      <b>Dashain ad, 30 seconds</b>
+      <p>Open on the kitchen. Steam, then the cup. The voice comes in after the first sip.</p>
+      <p className="mono sp-link">jhino.com/sur-studio#script-07</p>
+    </div>
+  );
+}
+
+function MoneySpec() {
+  const rows: [string, string, string, string][] = [
+    ['Advance', '2 Asoj 2083', '18 Sep 2026', '5,000'],
+    ['Studio, 2 hrs', '8 Asoj 2083', '24 Sep 2026', '−3,000'],
+    ['Edit and colour', '12 Asoj 2083', '28 Sep 2026', '−9,500'],
+  ];
+  return (
+    <div className="sp sp-money">
+      <table>
+        <tbody>
+          {rows.map(([w, bs, ad, n]) => (
+            <tr key={w}><th scope="row">{w}</th><td className="mono sp-dates"><span>{bs}</span><span>{ad}</span></td><td className="mono sp-num">{n}</td></tr>
+          ))}
+        </tbody>
+        <tfoot><tr><th scope="row">Balance due</th><td /><td className="mono sp-num">NPR 7,500</td></tr></tfoot>
+      </table>
+    </div>
+  );
+}
+
+function FilesSpec() {
+  const files: [string, string, string][] = [
+    ['Google Drive', 'Raw footage, day 1', 'drive.google.com'],
+    ['Figma', 'Menu board, v4', 'figma.com'],
+    ['YouTube', 'Teaser, unlisted', 'youtube.com'],
+  ];
+  return (
+    <ul className="sp sp-files">
+      {files.map(([src, name, host]) => (
+        <li key={src}><span className={`sp-thumb ${src.split(' ')[0].toLowerCase()}`} /><span><b>{name}</b><span className="mono">{src} · {host}</span></span></li>
+      ))}
+    </ul>
+  );
+}
+
+const MOVES: { id: string; name: string; text: string; spec: () => ReactNode }[] = [
+  { id: 'video', name: 'Video approvals', text: 'The cut plays in the page. Your client approves it or asks for changes, with a note pinned to the exact second.', spec: VideoSpec },
+  { id: 'proof', name: 'Photo proofing', text: 'Every frame at the same size. The client marks each one Pick, Maybe or No, and you copy the picked file names in one go.', spec: ProofSpec },
+  { id: 'book', name: 'Studio booking', text: 'A day of free and booked slots, a month view, upcoming and history. Both sides get a reminder before each session.', spec: BookingSpec },
+  { id: 'script', name: 'Briefs and scripts', text: 'Twenty scripts stay readable. Each opens as its own page, and one link opens just that script.', spec: ScriptSpec },
+  { id: 'money', name: 'Receipts and payments', text: 'Money in and out with the running balance, in rupees. Dates in Bikram Sambat with the AD date beside.', spec: MoneySpec },
+  { id: 'files', name: 'Files and links', text: 'Paste a Drive, Dropbox, OneDrive, Figma, Canva, YouTube or Vimeo link. It shows as a proper preview, not a bare URL.', spec: FilesSpec },
 ];
 
-const PLANS = [
-  { id: 'free', name: 'Free Forever', price: '0', creations: 1, who: 'Try it with one client room. No card, no time limit.' },
-  { id: 'plus', name: 'Plus', price: '500', creations: 10, who: 'A freelancer or a small studio with a handful of clients.' },
-  { id: 'pro', name: 'Pro', price: '2,000', creations: 50, who: 'A studio or agency running a room for every client.' },
+/* ---------------- pricing ---------------- */
+
+const perMonth = (p: PlanCard) => nprAmount(Math.round(p.yearly / 12));
+
+function BillingSwitch({ period, onChange }: { period: Period; onChange: (p: Period) => void }) {
+  const opts: [Period, string][] = [['month', 'Monthly'], ['year', 'Yearly']];
+  const onKey = (e: KeyboardEvent<HTMLButtonElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+    e.preventDefault();
+    const next: Period = period === 'month' ? 'year' : 'month';
+    onChange(next);
+    (e.currentTarget.parentElement?.querySelector(`[data-period="${next}"]`) as HTMLButtonElement | null)?.focus();
+  };
+  return (
+    <div className="bill-switch" role="radiogroup" aria-label="Billing period">
+      {opts.map(([p, label]) => (
+        <button
+          key={p} type="button" role="radio" data-period={p}
+          aria-checked={period === p} tabIndex={period === p ? 0 : -1}
+          onClick={() => onChange(p)} onKeyDown={onKey}
+        >
+          {label}{p === 'year' && <span className="bill-free mono">2 months free</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function PriceCard({ plan, period, signedIn }: { plan: PlanCard; period: Period; signedIn: boolean }) {
+  const paid = plan.monthly > 0;
+  const rec = plan.id === 'plus';
+  const price = priceFor(plan, period);
+  const label = paid ? `Choose ${plan.name}` : signedIn ? 'Your plan' : 'Start free';
+  const to = signedIn
+    ? (paid ? `/account/plan?choose=${plan.id}&period=${period}` : '/account/plan')
+    : (paid ? `/signup?plan=${plan.id}&period=${period}` : '/signup');
+  return (
+    <article className={`price-card${rec ? ' is-rec' : ''}`} aria-labelledby={`plan-${plan.id}`}>
+      <div className="pcard-top">
+        <h3 id={`plan-${plan.id}`}>{plan.name}</h3>
+        {rec && <span className="pcard-rec mono"><i className="lv-dot" />Recommended</span>}
+      </div>
+      <p className="pcard-blurb">{plan.blurb}</p>
+      <p className="pcard-price">
+        <span className="pcard-cur mono">NPR</span>
+        <span className="pcard-amt">{nprAmount(price)}</span>
+        <span className="pcard-per">{paid ? (period === 'year' ? '/ year' : '/ month') : 'forever'}</span>
+      </p>
+      <p className="pcard-sub mono">
+        {!paid ? 'No card. No time limit.'
+          : period === 'year' ? `NPR ${perMonth(plan)} a month · 2 months free`
+          : `or NPR ${nprAmount(plan.yearly)} a year`}
+      </p>
+      <Link to={to} className={`btn ${rec ? 'primary' : ''} pcard-cta`}>{label}</Link>
+      <ul className="pcard-list">
+        {plan.features.map((f) => <li key={f}><Icon name="check" size={15} />{f}</li>)}
+      </ul>
+      {plan.missing.length > 0 && (
+        <ul className="pcard-list pcard-missing">
+          {plan.missing.map((f) => <li key={f}><span className="pcard-dash" aria-hidden="true" /><span className="sr-only">Not included: </span>{f}</li>)}
+        </ul>
+      )}
+    </article>
+  );
+}
+
+const COMPARE: [string, (p: PlanCard) => ReactNode][] = [
+  ['Apps', (p) => nprAmount(p.apps)],
+  ['Addresses on jhino.com', (p) => nprAmount(p.addresses)],
+  ['Short links', (p) => nprAmount(p.shortLinks)],
+  ['Sign-in and public links', () => true],
+  ['Password links', (p) => p.id !== 'free'],
+  ['Hide the top bar', (p) => p.id !== 'free'],
+  ['Download as an HTML file', (p) => p.id !== 'free'],
+  ['Daily click history', (p) => p.id === 'pro'],
+  ['Priority support', (p) => p.id === 'pro'],
 ];
+
+function Compare() {
+  return (
+    <div className="cmp-wrap">
+      <table className="cmp">
+        <caption className="sr-only">What each plan includes</caption>
+        <thead>
+          <tr><td /><th scope="col">Free</th><th scope="col" className="is-rec">Plus</th><th scope="col">Pro</th></tr>
+        </thead>
+        <tbody>
+          {COMPARE.map(([name, get]) => (
+            <tr key={name}>
+              <th scope="row">{name}</th>
+              {PLAN_CARDS.map((p) => {
+                const v = get(p);
+                return (
+                  <td key={p.id} className={p.id === 'plus' ? 'is-rec' : undefined}>
+                    {v === true ? <><Icon name="check" size={15} /><span className="sr-only">Included</span></>
+                      : v === false ? <><span className="pcard-dash" aria-hidden="true" /><span className="sr-only">Not included</span></>
+                      : <span className="mono">{v}</span>}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ---------------- questions ---------------- */
 
 const FAQ: [string, ReactNode][] = [
-  ['What is a "creation"?', 'One app on your account: an HTML you uploaded or one you made with Create HTML. Apps in Trash count until you delete them for good.'],
+  ['What counts as an app?', 'One app on your account: an HTML you uploaded, or one you made with Create HTML. Apps in Trash count until you delete them for good.'],
   ['Does my client need an account?', 'Only if you want one. Give them a sign-in, or share the app by public link or by link and password. You decide what visitors can do: view, add or edit.'],
   ['Will any HTML file work?', 'Yes. Plain HTML, CSS and JavaScript that saves with localStorage or IndexedDB syncs between everyone with no changes. Its own design stays exactly as it is.'],
-  ['How do I pay?', 'Choose a plan, scan the QR code, and upload a screenshot of the payment. We check it and turn the plan on, usually the same day. You get a receipt.'],
-  ['Can I use my own address?', 'Hosted pages can have a short address like jhino.com/your-studio. Ask us through Help and we set it up.'],
-  ['Where is my data?', 'On the Jhino server, backed up, and never sold. Read the Privacy page for the details.'],
+  ['Can I use my own address?', 'Yes. Pick jhino.com/your-name when you create an app, or later in Share. Each address is unique. The page opens at that exact address, with no redirect.'],
+  ['What are short links?', 'A short address like jhino.com/abc that opens any web link you choose: a Drive folder, a YouTube cut, a form. You see how many times each one was opened.'],
+  ['Monthly or yearly?', 'Either. Pay month by month, or pay for a year at the price of ten months, which is two months free. Both are paid the same way.'],
+  ['How do I pay?', 'Choose a plan, scan the QR code, and upload a screenshot of the payment. We check it and switch the plan on, usually the same day. You get a receipt.'],
+  ['Where is my data?', <>On the Jhino server, backed up, and never sold. The <Link to="/privacy">Privacy page</Link> has the details.</>],
 ];
 
+/* ---------------- the page ---------------- */
+
 export function Landing({ signedIn = false }: { signedIn?: boolean }) {
+  const [period, setPeriod] = useState<Period>('month');
+  const start = signedIn
+    ? <Link to="/apps" className="btn primary lg">Open dashboard</Link>
+    : <Link to="/signup" className="btn primary lg">Start free</Link>;
   return (
-    <div className="site">
+    <div className="site lp">
       <SiteHeader signedIn={signedIn} />
-      <main>
-        <section className="hero site-in">
-          <div className="hero-copy">
-            <p className="kicker mono">for studios, agencies and their clients</p>
-            <h1>One live page for you and your client.</h1>
-            <p className="lede">Upload an HTML app, or build one in minutes. Share it with a sign-in or a link. Every approval, booking, receipt and file either of you adds shows up on both screens as it happens.</p>
-            <div className="hero-cta">
-              {signedIn ? <Link to="/apps" className="btn primary lg">Open dashboard</Link> : <Link to="/signup" className="btn primary lg">Start free</Link>}
-              <a href="#pricing" className="btn lg quiet">See plans</a>
-            </div>
-            <p className="hint">Free Forever includes one app. Paid plans from NPR 500.</p>
-          </div>
-          <LiveSheet />
-        </section>
-
-        <section className="moves site-in" aria-labelledby="moves-h">
-          <h2 id="moves-h">What moves between you</h2>
-          <ul className="ledger">
-            {MOVES.map(([name, text, tag]) => (
-              <li key={name}>
-                <b>{name}</b>
-                <span>{text}</span>
-                <span className="mono tag-r">{tag}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="ways" aria-labelledby="ways-h">
-          <div className="site-in ways-in">
-            <h2 id="ways-h">Two ways to make one</h2>
-            <div className="way upload">
-              <h3>Upload the HTML you have</h3>
-              <p>A single file or a ZIP. It goes live at once, keeps its own design, and whatever it saves is shared with everyone you let in.</p>
-              <pre className="code-sheet" aria-label="An ordinary HTML app saving to localStorage"><code>{`localStorage.setItem('orders', JSON.stringify(orders));
-// saved on Jhino, live for everyone in the app`}</code></pre>
-            </div>
-            <div className="way create">
-              <h3>Or build it here</h3>
-              <p>Say who it is for, tick what you need, and it is ready to share.</p>
-              <ul className="ticks-list">
-                {['Studio booking with reminders', 'Video approvals', 'Photo proofing', 'To-dos and messages', 'Invoices and receipts'].map((t) => <li key={t}><Icon name="check" size={16} />{t}</li>)}
-              </ul>
+      <main id="main">
+        {/* 1. hero */}
+        <section className="lp-hero" aria-labelledby="hero-h">
+          <div className="lp-wrap">
+            <div className="lp-hero-grid">
+              <h1 id="hero-h">One live page for you and your client.</h1>
+              <div className="lp-hero-copy">
+                <p className="lp-lede">Upload an HTML app, or build one here. Share it with your client by sign-in or link. Every approval, booking, receipt and file either of you adds shows on both screens as it happens.</p>
+                <div className="lp-cta">
+                  {start}
+                  <a href="#pricing" className="btn lg quiet">See plans</a>
+                </div>
+                <p className="lp-hint mono">Free Forever: 1 app. Plus from NPR 500 a month.</p>
+              </div>
+              <LiveBoard />
             </div>
           </div>
-        </section>
-
-        <section className="share site-in" aria-labelledby="share-h">
-          <div>
-            <h2 id="share-h">Share it the way the job needs</h2>
-            <p className="lede">Keep it to the people you add, open it to anyone with the link, or put a password on the link. Visitors can view, add or edit: your choice, per app.</p>
-          </div>
-          <div className="share-demo" aria-hidden="true">
-            <div className="share-opt"><span className="radio" /> Only people I add</div>
-            <div className="share-opt"><span className="radio" /> Anyone with the link</div>
-            <div className="share-opt on"><span className="radio" /> Anyone with the link and password</div>
-            <div className="share-url mono">jhino.com/<b>your-studio</b></div>
+          <div className="lp-wrap">
+            <ul className="lp-facts mono" aria-label="Made for Nepal">
+              <li><b>NPR</b>Prices in rupees</li>
+              <li><b>BS / AD</b>Bikram Sambat dates, AD beside</li>
+              <li><b>QR</b>Pay by QR, approved by a person</li>
+              <li><b>HTML</b>Any app you already have</li>
+            </ul>
           </div>
         </section>
 
-        <section className="pricing site-in" id="pricing" aria-labelledby="pricing-h">
-          <h2 id="pricing-h">Plans</h2>
-          <p className="lede">Pay once by QR, upload the screenshot, and we switch your plan on. Prices in Nepali rupees.</p>
-          <table className="price-table">
-            <thead><tr><th scope="col">Plan</th><th scope="col">Price</th><th scope="col">Apps</th><th scope="col" className="hide-sm">Good for</th><th scope="col"><span className="sr-only">Choose</span></th></tr></thead>
-            <tbody>
-              {PLANS.map((p) => (
-                <tr key={p.id}>
-                  <th scope="row">{p.name}</th>
-                  <td className="mono">{p.price === '0' ? 'Free' : `NPR ${p.price}`}</td>
-                  <td className="mono">up to {p.creations}</td>
-                  <td className="hide-sm muted">{p.who}</td>
-                  <td>{signedIn
-                    ? <Link to={p.id === 'free' ? '/account/plan' : `/account/plan?choose=${p.id}`} className="btn sm">{p.id === 'free' ? 'Your plans' : 'Choose'}</Link>
-                    : <Link to={p.id === 'free' ? '/signup' : `/signup?plan=${p.id}`} className={`btn sm ${p.id === 'free' ? 'primary' : ''}`}>{p.id === 'free' ? 'Start free' : 'Choose'}</Link>}</td>
-                </tr>
+        {/* 2. what moves */}
+        <section className="lp-moves" id="moves" aria-labelledby="moves-h">
+          <div className="lp-wrap">
+            <div className="lp-split-head">
+              <h2 id="moves-h">What moves between you.</h2>
+              <p>Six things a studio sends a client every week. Each one lands on their screen when you add it, and their answer lands on yours.</p>
+            </div>
+            <ol className="mv-list">
+              {MOVES.map(({ id, name, text, spec: Spec }, i) => (
+                <li key={id} className={`mv mv-${id}`}>
+                  <span className="mv-n mono" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                  <div className="mv-copy">
+                    <h3>{name}</h3>
+                    <p>{text}</p>
+                  </div>
+                  <div className="mv-spec" aria-hidden="true"><Spec /></div>
+                </li>
               ))}
-            </tbody>
-          </table>
+            </ol>
+          </div>
         </section>
 
-        <section className="faq site-in" aria-labelledby="faq-h">
-          <h2 id="faq-h">Questions</h2>
-          <dl>
-            {FAQ.map(([q, a]) => <div key={q}><dt>{q}</dt><dd>{a}</dd></div>)}
-          </dl>
+        {/* 3. two ways to make an app */}
+        <section className="lp-ways" aria-labelledby="ways-h">
+          <div className="lp-wrap">
+            <h2 id="ways-h">Two ways to make one.</h2>
+            <div className="ways-grid">
+              <div className="ways-col">
+                <p className="ways-k mono">Upload</p>
+                <h3>Bring the HTML you already have.</h3>
+                <p>A single file or a ZIP. It goes live at once and keeps its own design. Any HTML that saves with localStorage or IndexedDB syncs for everyone you let in, with no changes to the code.</p>
+                <figure className="lp-code" aria-label="An ordinary HTML app saving to localStorage">
+                  <figcaption className="mono">jobs.html</figcaption>
+                  <pre><code>
+                    <span><i>1</i>const jobs = JSON.parse(localStorage.jobs || '[]');</span>
+                    <span><i>2</i>jobs.push({'{'} shoot: 'Menu', day: '8 Asoj' {'}'});</span>
+                    <span><i>3</i>localStorage.jobs = JSON.stringify(jobs);</span>
+                    <span className="c"><i>4</i>// On Jhino: the same jobs on every screen.</span>
+                  </code></pre>
+                </figure>
+              </div>
+              <div className="ways-col ways-b">
+                <span className="ways-or mono" aria-hidden="true">or</span>
+                <p className="ways-k mono">Create HTML</p>
+                <h3>Build it here in a few minutes.</h3>
+                <p>Say who it is for, tick what the job needs, and it is ready to share. No code.</p>
+                <div className="make">
+                  <div className="make-field"><span className="mono">Who is it for?</span><b>Himalayan Coffee</b></div>
+                  <ul className="make-ticks">
+                    {([['Studio booking with reminders', true], ['Video approvals', true], ['Photo proofing', true], ['To-dos and messages', false], ['Invoices and receipts', true]] as const).map(([t, on]) => (
+                      <li key={t} className={on ? 'on' : undefined}><span className="make-box" aria-hidden="true">{on && <Icon name="check" size={13} />}</span>{t}</li>
+                    ))}
+                  </ul>
+                  <span className="make-go" aria-hidden="true">Create HTML</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. sharing, addresses and short links */}
+        <section className="lp-share" aria-labelledby="share-h">
+          <div className="lp-wrap">
+            <div className="share-grid">
+              <div className="share-copy">
+                <h2 id="share-h">Share it the way the job needs.</h2>
+                <p>Keep it to the people you add, open it to anyone with the link, or put a password on the link. Then choose what visitors can do. Per app, and you can change it any time.</p>
+              </div>
+              <div className="share-spec" aria-hidden="true">
+                <p className="share-k mono">Who can open it</p>
+                <div className="share-opt"><span className="radio" />Only people I add</div>
+                <div className="share-opt"><span className="radio" />Anyone with the link</div>
+                <div className="share-opt on"><span className="radio" />Anyone with the link and password</div>
+                <p className="share-k mono">Visitors can</p>
+                <div className="share-seg"><span>View</span><span className="on">Add</span><span>Edit</span></div>
+              </div>
+            </div>
+
+            <div className="addr">
+              <h3 id="addr-h" className="addr-h">An address of its own</h3>
+              <p className="addr-big"><span>jhino.com/</span><wbr /><b>your-studio</b></p>
+              <div className="addr-notes">
+                <p>Pick the name when you create the app, or later in Share. Each address is unique.</p>
+                <p>No redirect. The page opens at that exact address, and with the top bar hidden it looks like its own site.</p>
+              </div>
+            </div>
+
+            <div className="short">
+              <div className="short-copy">
+                <h3>Short links, with counts.</h3>
+                <p>Point jhino.com/abc at any web address: a Drive folder, a YouTube cut, a form. Send the short one. See how many times it was opened.</p>
+              </div>
+              <table className="short-t">
+                <caption className="sr-only">Example short links</caption>
+                <thead><tr><th scope="col">Short link</th><th scope="col">Opens</th><th scope="col">Clicks</th></tr></thead>
+                <tbody>
+                  <tr><td className="mono">jhino.com/<b>dashain</b></td><td className="mono short-dest">youtube.com/watch?v=q8Vd2</td><td className="mono short-n">1,284</td></tr>
+                  <tr><td className="mono">jhino.com/<b>k7f</b></td><td className="mono short-dest">drive.google.com/drive/folders/1xR</td><td className="mono short-n">57</td></tr>
+                  <tr><td className="mono">jhino.com/<b>menu</b></td><td className="mono short-dest">figma.com/file/menu-board-v4</td><td className="mono short-n">212</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. pricing */}
+        <section className="lp-pricing" id="pricing" aria-labelledby="pricing-h">
+          <div className="lp-wrap">
+            <div className="pr-head">
+              <div>
+                <h2 id="pricing-h">Plans, in rupees.</h2>
+                <p>Start free with one app. Move up when you have more clients.</p>
+              </div>
+              <BillingSwitch period={period} onChange={setPeriod} />
+            </div>
+            <p className="sr-only" aria-live="polite">{period === 'year' ? 'Showing yearly prices.' : 'Showing monthly prices.'}</p>
+            <div className="pr-cards">
+              {PLAN_CARDS.map((p) => <PriceCard key={p.id} plan={p} period={period} signedIn={signedIn} />)}
+            </div>
+            <p className="pr-pay">
+              <Icon name="qr" size={18} />
+              <span><b>How paying works.</b> Scan our QR code, upload a screenshot of the payment, and we switch the plan on, usually the same day.</span>
+            </p>
+            <Compare />
+          </div>
+        </section>
+
+        {/* 6. questions */}
+        <section className="lp-faq" aria-labelledby="faq-h">
+          <div className="lp-wrap faq-grid">
+            <h2 id="faq-h">Questions.</h2>
+            <dl>
+              {FAQ.map(([q, a]) => <div key={q}><dt>{q}</dt><dd>{a}</dd></div>)}
+            </dl>
+          </div>
+        </section>
+
+        {/* 7. close */}
+        <section className="lp-close" aria-labelledby="close-h">
+          <div className="lp-wrap">
+            <div className="close-in">
+              <h2 id="close-h">{signedIn ? 'Your rooms are where you left them.' : 'Your first client room is free.'}</h2>
+              <div className="lp-cta">{start}<Link to="/help" className="btn lg quiet">Ask us something</Link></div>
+            </div>
+          </div>
         </section>
       </main>
       <SiteFooter signedIn={signedIn} />
@@ -225,7 +556,7 @@ export function HelpPage({ signedIn }: { signedIn: boolean }) {
   return (
     <div className="site">
       {!signedIn && <SiteHeader />}
-      <main className="site-in help">
+      <main className="lp-wrap help">
         <h1>Help</h1>
         <div className="help-grid">
           <section aria-labelledby="guides-h">
@@ -265,7 +596,7 @@ function LegalPage({ title, updated, children, signedIn }: { title: string; upda
   return (
     <div className="site">
       {!signedIn && <SiteHeader />}
-      <main className="site-in legal">
+      <main className="lp-wrap legal">
         <h1>{title}</h1>
         <p className="mono muted">Last updated {updated}</p>
         {children}
@@ -285,7 +616,7 @@ export function TermsPage({ signedIn }: { signedIn: boolean }) {
       <h2>Your content</h2>
       <p>The apps, data and links you add stay yours. You give us permission to store, copy and show them only to run Jhino for you and the people you share with. Do not upload anything illegal, harmful, or that you do not have the right to share, and do not use Jhino to attack or spam anyone. We may remove content or suspend accounts that break these rules.</p>
       <h2>Plans and payment</h2>
-      <p>Free Forever lets you keep one app. Paid plans (NPR 500 for up to 10 apps, NPR 2,000 for up to 50) are paid by QR. A plan turns on after we verify the payment; if we cannot verify it, your plan stays as it was and we tell you why. If something went wrong with a payment, write to us through Help.</p>
+      <p>Free Forever lets you keep one app, one address on jhino.com and five short links. Plus (NPR 500 a month, up to 10 apps, 10 addresses and 100 short links) and Pro (NPR 2,000 a month, up to 50 apps, 50 addresses and 1,000 short links) can be paid monthly, or yearly for the price of ten months. Each address on jhino.com belongs to one app and is unique. Plans are paid by QR. A plan turns on after we verify the payment and runs for the month or year you paid for; if we cannot verify it, your plan stays as it was and we tell you why. If something went wrong with a payment, write to us through Help.</p>
       <h2>Availability</h2>
       <p>We work to keep Jhino running and backed up, but we cannot promise it will never be interrupted. Keep your own copy of anything you cannot afford to lose; you can download your data from Account at any time.</p>
       <h2>Ending</h2>

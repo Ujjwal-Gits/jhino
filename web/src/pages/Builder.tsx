@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApiError, get, post } from '../api';
 import { useRoute } from '../context';
 import { Icon, Select, useToast } from '../ui';
+import { AddressField, OpenChoice, addressPayload, openReady, slugify, useNameCheck, type OpenSettings } from './Address';
 
 interface Feature { key: string; name: string; category: string; description: string; own: boolean; tags: string[] }
 interface Template { key: string; name: string; description: string; blocks: string[] }
@@ -159,6 +160,10 @@ export function Builder({ appId }: { appId?: string }) {
     catch { setError('That image could not be used as a logo. Try a PNG or JPG.'); }
   };
 
+  const [slug, setSlug] = useState('');
+  const [open, setOpen] = useState<OpenSettings>({ access: 'public', password: '' });
+  const check = useNameCheck(slug);
+
   const search = q.trim().toLowerCase();
   const visible = (cat?.blocks ?? []).filter((f) =>
     (!filter || (filter === '__on' ? ticked.has(f.key) : f.category === filter)) &&
@@ -171,6 +176,7 @@ export function Builder({ appId }: { appId?: string }) {
     if (!cfg.name.trim()) { setError('Give the HTML a name (step 01).'); document.getElementById('c-name')?.focus(); return; }
     if (!cfg.blocks.length) { setError('Tick at least one feature (step 02).'); document.getElementById('s2')?.scrollIntoView({ block: 'start' }); return; }
     if (cfg.blocks.some((b) => !b.title.trim())) { setError('Every feature in the menu needs a name.'); return; }
+    if (!appId && !openReady(slug, check, open)) { setError(check.state === 'bad' ? `Address: ${check.reason}` : open.access === 'password' ? 'Set a password of 4 or more characters, or choose who can open it.' : 'Wait a moment: the address is being checked.'); document.getElementById('s4')?.scrollIntoView({ block: 'start' }); return; }
     setBusy(true); setError('');
     try {
       if (appId) {
@@ -179,7 +185,7 @@ export function Builder({ appId }: { appId?: string }) {
         toast('Saved. Everyone gets the new version right away.');
         go(`/apps/${appId}`);
       } else {
-        const r = await post<{ app: { id: string; name: string } }>('/api/apps/build', { config: cfg });
+        const r = await post<{ app: { id: string; name: string } }>('/api/apps/build', { config: cfg, address: slug ? addressPayload(slug, open) : undefined });
         dirty.current = false;
         toast(`${r.app.name} is live.`);
         go(`/apps/${r.app.id}`);
@@ -372,6 +378,17 @@ export function Builder({ appId }: { appId?: string }) {
               </div>
             )}
           </section>
+
+          {!appId && (
+            <section className="step" aria-labelledby="s4">
+              <p className="step-n mono">04</p>
+              <h2 id="s4">Where does it open?</h2>
+              <p className="step-lede">Give it its own address on {location.host}. It opens at exactly that address. You can add or change it later in Share.</p>
+              <AddressField value={slug} onChange={setSlug} check={check} />
+              {!slug && cfg.name.trim() && <button type="button" className="link addr-suggest" onClick={() => setSlug(slugify(cfg.client || cfg.name))}>Use {location.host}/{slugify(cfg.client || cfg.name)}</button>}
+              {slug && <OpenChoice value={open} onChange={setOpen} />}
+            </section>
+          )}
 
           <section className="step step-end">
             {error && <p className="error-text" role="alert">{error}</p>}

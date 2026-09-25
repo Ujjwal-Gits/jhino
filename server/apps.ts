@@ -11,6 +11,7 @@ import { installPackage, appDir } from './packages.js';
 import { publish, revoke, notifyUser, watch, unwatch, openStream } from './realtime.js';
 import { snapshotFor } from './data.js';
 import { assertCanCreate } from './plans.js';
+import { assertNameFree, readAddressRequest, setSharing } from './publicshare.js';
 import { uploadsOn } from './security.js';
 
 const ROLES: Role[] = ['editor', 'contributor', 'viewer'];
@@ -84,7 +85,7 @@ export async function readUpload(req: FastifyRequest) {
  * Publish an uploaded HTML/ZIP as a new app. The plan limit is checked before the work and again inside
  * the insert transaction, so two uploads at once cannot both slip past it.
  */
-export async function createAppFromUpload(user: UserRow, buf: Buffer, filename: string, nameIn?: string) {
+export async function createAppFromUpload(user: UserRow, buf: Buffer, filename: string, nameIn?: string, slug: string | null = null) {
   assertCanCreate(user.id);
   const id = newId('app');
   const pkg = await installPackage(buf, filename, id, 1);
@@ -93,8 +94,9 @@ export async function createAppFromUpload(user: UserRow, buf: Buffer, filename: 
   try {
     db.transaction(() => {
       assertCanCreate(user.id);
-      db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at,share_token) VALUES(?,?,?,?,1,?,?,?)')
-        .run(id, name, crypto.randomInt(0, 6), user.id, t, t, crypto.randomBytes(10).toString('hex'));
+      if (slug) assertNameFree(slug);
+      db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at,share_token,slug) VALUES(?,?,?,?,1,?,?,?,?)')
+        .run(id, name, crypto.randomInt(0, 6), user.id, t, t, crypto.randomBytes(10).toString('hex'), slug);
       db.prepare('INSERT INTO app_versions(app_id,n,entry,file_count,size,features,source_name,uploaded_by,created_at,manifest) VALUES(?,?,?,?,?,?,?,?,?,?)')
         .run(id, 1, pkg.entry, pkg.fileCount, pkg.size, JSON.stringify(pkg.features), filename.slice(0, 200), user.id, t, pkg.manifest ? JSON.stringify(pkg.manifest) : null);
       db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?)').run(id, user.id, 'owner', t);
@@ -187,7 +189,10 @@ export function registerApps(app: FastifyInstance) {
     const user = requireCreator(req);
     assertCanCreate(user.id); // before reading a big upload
     const up = await readUpload(req);
-    const id = await createAppFromUpload(user, up.buf, up.filename, up.name);
+    // An address (jhino.com/<name>) and how it opens can be chosen with the upload; all checked first.
+    const addr = readAddressRequest(user, { slug: up.fields.slug, access: up.fields.access, publicRole: up.fields.publicRole, password: up.fields.password }, null);
+    const id = await createAppFromUpload(user, up.buf, up.filename, up.name, addr.slug);
+    if (addr.access && addr.access !== 'private') await setSharing(id, { access: addr.access, publicRole: addr.publicRole, password: addr.password });
     return { app: appSummary(loadApp(id), user.id) };
   });
 

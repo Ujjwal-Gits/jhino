@@ -4,7 +4,8 @@ import { verify } from '@node-rs/argon2';
 import { config, makePassword } from './config.js';
 import { db, logActivity, now, roleOf, sha256, type AppRow, type Role, type UserRow } from './db.js';
 import { HttpError, createUser, hashPassword, requireUser } from './auth.js';
-import { limit } from './security.js';
+import { audit, limit } from './security.js';
+import { assertAddressAllowance, assertFeature } from './plans.js';
 import { revoke, publish } from './realtime.js';
 
 /*
@@ -14,18 +15,58 @@ import { revoke, publish } from './realtime.js';
  * - password: anyone with the link and the password.
  * Visitors act as one hidden "Visitor" account per app, a member with the role the owner picked
  * (view, add or edit), so every existing check applies to them unchanged. Their cookie works for
- * that one app's data only. Super admins can also give an app a short address: jhino.com/<slug>.
+ * that one app's data only.
+ *
+ * Addresses: an app can have its own address, jhino.com/<name>, chosen when it is created or later in
+ * Share. It opens the app at that exact address (no redirect). Addresses and short links share one set
+ * of names, so a name is never used twice.
  */
 
 export const RESERVED = new Set(['api', 'run', 'apps', 'app', 'build', 'shared', 'trash', 'people', 'invite', 's', 'admin', 'account', 'login', 'signin',
   'signup', 'register', 'forgot', 'reset', 'verify', 'help', 'support', 'terms', 'privacy', 'pricing', 'billing', 'plans', '_jhino', 'preview', 'health',
   'assets', 'static', 'logout', 'settings', 'dashboard', 'home', 'about', 'contact', 'blog', 'docs', 'status', 'www', 'mail', 'jhino', 'favicon.ico',
-  'robots.txt', 'sitemap.xml', 'manifest.json', 'new', 'create', 'upload', 'download', 'files', 'public', 'p', 'u', 'user', 'users', 'auth', 'oauth']);
+  'robots.txt', 'sitemap.xml', 'manifest.json', 'new', 'create', 'upload', 'download', 'files', 'public', 'p', 'u', 'user', 'users', 'auth', 'oauth',
+  'links', 'link', 'go', 'l', 'admin-links', 'addresses', 'receipt', 'receipts', 'payments', 'checkout', 'plan', 'features', 'index.html']);
 export function validSlug(s: unknown): string {
   const v = String(s ?? '').trim().toLowerCase();
   if (!/^[a-z0-9](?:[a-z0-9-]{0,48}[a-z0-9])?$/.test(v) || v.length < 2) throw new HttpError(400, 'VALIDATION_FAILED', 'Use 2 to 50 lowercase letters, numbers and dashes (not at the start or end).');
   if (RESERVED.has(v)) throw new HttpError(400, 'VALIDATION_FAILED', `"${v}" is used by Jhino itself. Choose another address.`);
   return v;
+}
+
+/** Is this name already an app's address or a short link? (Apps in Trash keep their address.) */
+export function nameInUse(name: string, except: { appId?: string; linkId?: string } = {}) {
+  return !!db.prepare('SELECT 1 FROM apps WHERE slug=? COLLATE NOCASE AND id<>?').get(name, except.appId ?? '')
+    || !!db.prepare('SELECT 1 FROM short_links WHERE code=? COLLATE NOCASE AND id<>?').get(name, except.linkId ?? '');
+}
+export function assertNameFree(name: string, except: { appId?: string; linkId?: string } = {}) {
+  if (nameInUse(name, except)) throw new HttpError(409, 'SLUG_TAKEN', `jhino.com/${name} is already taken. Try another name.`);
+}
+
+export type Access = 'private' | 'public' | 'password';
+export interface AddressRequest { slug: string | null; access?: Access; publicRole?: Role; password?: string }
+/**
+ * Check an address (and how it opens) before an app is created or changed, so nothing is half done.
+ * `u` is the owner; super admins have no limits.
+ */
+export function readAddressRequest(u: UserRow, raw: { slug?: unknown; access?: unknown; publicRole?: unknown; password?: unknown }, appId: string | null, prevAccess: string | null = null): AddressRequest {
+  const slug = raw.slug === null || raw.slug === undefined || String(raw.slug).trim() === '' ? null : validSlug(raw.slug);
+  if (slug) { assertNameFree(slug, { appId: appId ?? undefined }); assertAddressAllowance(u, appId); }
+  const access = raw.access === undefined || raw.access === '' ? undefined : String(raw.access) as Access;
+  if (access && !['private', 'public', 'password'].includes(access)) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose who can open it.');
+  if (access === 'password' && prevAccess !== 'password') assertFeature(u, 'passwordLinks', 'A password link');
+  const role = raw.publicRole === undefined || raw.publicRole === '' ? undefined : String(raw.publicRole) as Role;
+  const password = raw.password === undefined || raw.password === null || raw.password === '' ? undefined : String(raw.password);
+  return { slug, access, publicRole: role, password };
+}
+/** Give an app its address and link settings, after readAddressRequest said yes. */
+export async function applyAddress(appId: string, r: AddressRequest) {
+  db.transaction(() => {
+    if (r.slug) assertNameFree(r.slug, { appId });
+    db.prepare('UPDATE apps SET slug=? WHERE id=?').run(r.slug, appId);
+  })();
+  if (r.access || r.publicRole || r.password) return setSharing(appId, { access: r.access, publicRole: r.publicRole, password: r.password });
+  return db.prepare('SELECT * FROM apps WHERE id=?').get(appId) as AppRow;
 }
 
 const PUB_DAYS = 30;
@@ -178,12 +219,44 @@ export function registerPublicShare(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     if ((roleOf(id, u.id) !== 'owner' && !u.is_admin) || req.pub || req.desk) throw new HttpError(403, 'FORBIDDEN', 'Only the owner can change how the app is shared.');
     const before = db.prepare('SELECT access, public_role, show_bar FROM apps WHERE id=?').get(id) as { access: string; public_role: string; show_bar: number };
+    const b = (req.body ?? {}) as { access?: unknown; showBar?: unknown };
+    if (b.access === 'password' && before.access !== 'password') assertFeature(u, 'passwordLinks', 'A password link');
+    if (b.showBar === false && before.show_bar !== 0) assertFeature(u, 'hideBar', 'Hiding the top bar');
     const a = await setSharing(id, (req.body ?? {}) as Record<string, unknown>);
     if (before.access !== a.access || before.public_role !== a.public_role) {
       logActivity(id, u.id, a.access === 'private' ? 'turned the share link off' : `shared the app by ${a.access === 'password' ? 'password link' : 'public link'}`, a.access === 'private' ? '' : a.public_role === 'viewer' ? 'visitors can view' : a.public_role === 'contributor' ? 'visitors can add' : 'visitors can edit');
     }
     if (before.show_bar !== a.show_bar) publish(id, 'app-updated', { reason: 'bar' });
     return shareInfo(a, baseFor(req));
+  });
+
+  /* ---------- addresses: jhino.com/<name> ---------- */
+  /** Is a name free? For the address box while someone types. */
+  app.get('/api/addresses/check', async (req) => {
+    const u = requireUser(req);
+    if (req.pub || req.desk) throw new HttpError(403, 'FORBIDDEN', 'Not here.');
+    limit(req, 'address-check', 240, 60_000, u.id);
+    const q = req.query as { name?: string; app?: string; link?: string };
+    const url = (n: string) => `${baseFor(req).replace(/^https?:\/\//, '')}/${n}`;
+    let name: string;
+    try { name = validSlug(q.name); } catch (e) { return { name: String(q.name ?? ''), available: false, reason: (e as Error).message }; }
+    if (nameInUse(name, { appId: q.app, linkId: q.link })) return { name, available: false, reason: `${url(name)} is already taken.` };
+    return { name, available: true, url: url(name) };
+  });
+  /** The owner sets or removes their app's address. */
+  app.put('/api/apps/:id/address', async (req) => {
+    const u = requireUser(req);
+    const { id } = req.params as { id: string };
+    const a = db.prepare('SELECT * FROM apps WHERE id=? AND deleted_at IS NULL').get(id) as AppRow | undefined;
+    if (!a || (roleOf(id, u.id) !== 'owner' && !u.is_admin) || req.pub || req.desk) throw new HttpError(404, 'NOT_FOUND', 'That app does not exist.');
+    const owner = db.prepare('SELECT * FROM users WHERE id=?').get(a.owner_id) as UserRow;
+    const r = readAddressRequest(u.is_admin ? u : owner, (req.body ?? {}) as Record<string, unknown>, id, a.access ?? 'private');
+    const next = await applyAddress(id, r);
+    if ((a.slug ?? null) !== r.slug) {
+      logActivity(id, u.id, r.slug ? `set the address to /${r.slug}` : 'removed the address', '');
+      if (u.id !== a.owner_id) audit(req, r.slug ? 'hosting.address_set' : 'hosting.address_removed', 'app', id, `${a.name}${r.slug ? ' → /' + r.slug : ''}`);
+    }
+    return shareInfo(next, baseFor(req));
   });
 }
 

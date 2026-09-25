@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { ApiError, api, avatarUrl, get, post } from '../api';
+import { ApiError, api, avatarUrl, get, post, type PlanFeatures } from '../api';
 import { Link, applyTheme, readTheme, useRoute, useSession, type Theme } from '../context';
 import { Avatar, Icon, Select, ago, copyText, useToast } from '../ui';
+import { PLAN_CARDS, nprAmount, priceFor, type Period, type PlanCard } from '../plans';
 
 /*
  * The Account Center: one quiet page per concern. The server decides everything that matters
  * (plans, usage, payments, sessions); this page shows it and sends changes.
  */
 
-type Usage = { plan: string; planName: string; used: number; limit: number | null; remaining: number | null; expiresAt: string | null; expired: boolean };
+type Usage = { plan: string; planName: string; used: number; limit: number | null; remaining: number | null; expiresAt: string | null; expired: boolean; period: Period; addressesUsed: number; linksUsed: number; features: PlanFeatures | null };
 type Prefs = Record<string, { inapp: boolean; email: boolean }>;
 interface AccountData {
   user: { id: string; name: string; email: string; hasAvatar: boolean; emailIsAddress: boolean; emailVerified: boolean | null; passwordSet: boolean; canCreate: boolean; isAdmin: boolean };
@@ -21,7 +22,7 @@ interface AccountData {
 }
 interface Plan { id: string; name: string; price: number; creations: number; blurb: string }
 interface Method { id: string; name: string; provider: string; bank: string; accountName: string; accountNumber: string; instructions: string; notes: string; hasQr: boolean; qrVersion: string }
-interface Payment { id: string; receiptNo: string; plan: string; planName: string; creations: number; amount: number; method: string; reference: string; paidOn: string; note: string; hasProof: boolean; status: 'pending' | 'approved' | 'rejected'; rejectReason: string; createdAt: string; reviewedAt: string | null }
+interface Payment { id: string; receiptNo: string; plan: string; planName: string; period?: string; creations: number; amount: number; method: string; reference: string; paidOn: string; note: string; hasProof: boolean; status: 'pending' | 'approved' | 'rejected'; rejectReason: string; createdAt: string; reviewedAt: string | null }
 
 const npr = (n: number) => `NPR ${n.toLocaleString('en-IN')}`;
 const fmtDate = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '');
@@ -352,6 +353,8 @@ function SecuritySection({ data, reload }: { data: AccountData; reload: () => vo
 /* ---------------- plan & usage (with checkout) ---------------- */
 function UsageMeter({ u }: { u: Usage }) {
   const pct = u.limit ? Math.min(100, Math.round((u.used / u.limit) * 100)) : 0;
+  const f = u.features;
+  const paidUntil = u.expiresAt && !u.expired && u.plan !== 'free' ? u.expiresAt : null;
   return (
     <div className="usage">
       <div className="usage-top">
@@ -359,44 +362,72 @@ function UsageMeter({ u }: { u: Usage }) {
         <p className="usage-num"><b>{u.used}</b>{u.limit !== null && <> of {u.limit}</>} creations used</p>
       </div>
       {u.limit !== null && <div className="meter" role="meter" aria-valuemin={0} aria-valuemax={u.limit} aria-valuenow={u.used} aria-label="Creations used"><i style={{ transform: `scaleX(${pct / 100})` }} /></div>}
-      <p className="muted">{u.limit === null ? 'No limit on this account.' : u.remaining === 0 ? 'No creations left. Upgrade, or delete an app for good to free one.' : `${u.remaining} creation${u.remaining === 1 ? '' : 's'} remaining.`}{u.expired && ' Your paid plan has ended; you are on Free Forever.'}</p>
+      <p className="muted">{u.limit === null ? 'No limit on this account.' : u.remaining === 0 ? 'No creations left. Upgrade, or delete an app for good to free one.' : `${u.remaining} creation${u.remaining === 1 ? '' : 's'} remaining.`}{u.expired && ' Your paid plan has ended; you are on Free Forever. Your apps keep working.'}</p>
+      {f && u.limit !== null && (
+        <dl className="usage-more">
+          <div><dt>Addresses</dt><dd className="mono">{u.addressesUsed} / {f.addresses}</dd></div>
+          <div><dt>Short links</dt><dd className="mono">{u.linksUsed} / {f.shortLinks}</dd></div>
+          <div><dt>{paidUntil ? (u.period === 'year' ? 'Paid yearly, until' : 'Paid monthly, until') : 'Billing'}</dt><dd>{paidUntil ? fmtDate(paidUntil) : u.plan === 'free' ? 'Free, no end date' : 'No end date'}</dd></div>
+        </dl>
+      )}
+    </div>
+  );
+}
+
+function PeriodSwitch({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
+  return (
+    <div className="period-switch" role="radiogroup" aria-label="Billing period">
+      <button type="button" role="radio" aria-checked={value === 'month'} onClick={() => onChange('month')}>Monthly</button>
+      <button type="button" role="radio" aria-checked={value === 'year'} onClick={() => onChange('year')}>Yearly <small>2 months free</small></button>
     </div>
   );
 }
 
 function PlanSection({ data }: { data: AccountData }) {
   const [billing, setBilling] = useState<{ plans: Plan[]; usage: Usage; methods: Method[]; payments: Payment[]; pending: boolean } | null>(null);
-  const [choose, setChoose] = useState<string | null>(() => new URLSearchParams(location.search).get('choose'));
+  const q = new URLSearchParams(location.search);
+  const [choose, setChoose] = useState<string | null>(() => q.get('choose'));
+  const [period, setPeriod] = useState<Period>(() => (q.get('period') === 'year' ? 'year' : 'month'));
   const load = useCallback(() => get<typeof billing>('/api/billing').then(setBilling, () => {}), []);
   useEffect(() => { load(); }, [load]);
   if (!billing || !data.usage) return <div className="acc-skel" />;
   const u = billing.usage;
   const pending = billing.payments.find((p) => p.status === 'pending');
-  const plan = billing.plans.find((p) => p.id === choose && p.price > 0);
+  const card = PLAN_CARDS.find((p) => p.id === choose && p.monthly > 0);
+  const rank = { free: 0, plus: 1, pro: 2 } as Record<string, number>;
   return (
     <>
       <Section title="Plan & usage">
         <UsageMeter u={u} />
         {pending && <p className="notice-line"><Icon name="info" size={16} />Your payment of {npr(pending.amount)} for {pending.planName} is being verified. We will let you know as soon as it is reviewed. <Link to="/account/billing" className="link">See status</Link></p>}
       </Section>
-      {plan ? <Checkout plan={plan} methods={billing.methods} onCancel={() => setChoose(null)} onDone={() => { setChoose(null); load(); }} /> : (
-        <Section title="Plans" lede="Pay once by QR and upload the screenshot. We turn the plan on after checking the payment.">
-          <table className="plan-table">
-            <thead><tr><th>Plan</th><th>Price</th><th>Creations</th><th /></tr></thead>
-            <tbody>
-              {billing.plans.map((p) => {
-                const current = u.plan === p.id && u.limit !== null;
-                return (
-                  <tr key={p.id} className={current ? 'current' : ''}>
-                    <th scope="row"><b>{p.name}</b><small>{p.blurb}</small></th>
-                    <td className="mono">{p.price ? npr(p.price) : 'Free'}</td>
-                    <td className="mono">up to {p.creations}</td>
-                    <td>{current ? <span className="vtag ok">Your plan</span> : p.price > 0 ? <button className="btn sm primary" disabled={!!pending || u.limit === null} onClick={() => setChoose(p.id)}>Choose</button> : null}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {card ? <Checkout card={card} period={period} setPeriod={setPeriod} renewing={u.plan === card.id && !!u.expiresAt && !u.expired} methods={billing.methods} onCancel={() => setChoose(null)} onDone={() => { setChoose(null); load(); }} /> : (
+        <Section title="Plans" lede="Pay by QR for a month or a year and upload the screenshot. We turn the plan on after checking the payment. Paying again for your plan adds to its end date.">
+          <PeriodSwitch value={period} onChange={setPeriod} />
+          <div className="plan-cards">
+            {PLAN_CARDS.map((p) => {
+              const current = u.plan === p.id && u.limit !== null;
+              const price = priceFor(p, period);
+              const lower = rank[p.id] < rank[u.plan];
+              return (
+                <article key={p.id} className={`plan-card ${current ? 'current' : ''}`} aria-labelledby={`pc-${p.id}`}>
+                  <header>
+                    <h3 id={`pc-${p.id}`}>{p.name}</h3>
+                    {current && <span className="vtag ok">Your plan</span>}
+                  </header>
+                  <p className="pc-price"><b className="mono">{price ? `NPR ${nprAmount(price)}` : 'Free'}</b>{price > 0 && <span>/ {period}</span>}</p>
+                  <p className="pc-sub muted">{price > 0 && period === 'year' ? `NPR ${nprAmount(Math.round(price / 12))} a month, billed yearly` : p.blurb}</p>
+                  <ul className="pc-list">
+                    {p.features.map((f) => <li key={f}><Icon name="check" size={15} />{f}</li>)}
+                  </ul>
+                  <div className="pc-act">
+                    {p.monthly === 0 ? (current ? <span className="hint">Included for everyone</span> : null)
+                      : <button className={`btn ${current ? '' : 'primary'}`} disabled={!!pending || u.limit === null || lower} onClick={() => setChoose(p.id)}>{u.limit === null ? 'Not needed' : current ? `Renew ${p.name}` : lower ? 'Lower than your plan' : `Choose ${p.name}`}</button>}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
           {u.limit === null && <p className="hint">Super admin accounts have no limit.</p>}
         </Section>
       )}
@@ -404,10 +435,12 @@ function PlanSection({ data }: { data: AccountData }) {
   );
 }
 
-function Checkout({ plan, methods, onCancel, onDone }: { plan: Plan; methods: Method[]; onCancel: () => void; onDone: () => void }) {
+function Checkout({ card, period, setPeriod, renewing, methods, onCancel, onDone }: { card: PlanCard; period: Period; setPeriod: (p: Period) => void; renewing: boolean; methods: Method[]; onCancel: () => void; onDone: () => void }) {
   const toast = useToast();
+  const price = priceFor(card, period);
   const [methodId, setMethodId] = useState(methods[0]?.id ?? '');
-  const [f, setF] = useState({ amount: String(plan.price), reference: '', paidOn: new Date().toISOString().slice(0, 10), note: '' });
+  const [f, setF] = useState({ amount: String(price), reference: '', paidOn: new Date().toISOString().slice(0, 10), note: '' });
+  useEffect(() => { setF((x) => ({ ...x, amount: String(price) })); }, [price]);
   const [shot, setShot] = useState<File | null>(null);
   const [preview, setPreview] = useState('');
   const [busy, setBusy] = useState(false);
@@ -427,7 +460,7 @@ function Checkout({ plan, methods, onCancel, onDone }: { plan: Plan; methods: Me
     if (!shot) { setError('Upload a screenshot of the payment.'); return; }
     setBusy(true); setError('');
     const fd = new FormData();
-    fd.append('plan', plan.id); fd.append('amount', f.amount); fd.append('methodId', methodId); fd.append('reference', f.reference); fd.append('paidOn', f.paidOn); fd.append('note', f.note);
+    fd.append('plan', card.id); fd.append('period', period); fd.append('amount', f.amount); fd.append('methodId', methodId); fd.append('reference', f.reference); fd.append('paidOn', f.paidOn); fd.append('note', f.note);
     fd.append('proof', shot, shot.name);
     try { await api('POST', '/api/billing/payments', fd); setSent(true); toast('Payment submitted'); }
     catch (e2) { setError(err(e2, 'Could not submit the payment.')); }
@@ -445,7 +478,8 @@ function Checkout({ plan, methods, onCancel, onDone }: { plan: Plan; methods: Me
     );
   }
   return (
-    <Section title={`Upgrade to ${plan.name}`} lede={`${npr(plan.price)} · up to ${plan.creations} creations`}>
+    <Section title={renewing ? `Renew ${card.name}` : `Upgrade to ${card.name}`} lede={`NPR ${nprAmount(price)} for one ${period} · up to ${card.apps} apps${renewing ? ' · added to your current end date' : ''}`}>
+      <PeriodSwitch value={period} onChange={setPeriod} />
       {!methods.length ? (
         <div className="acc-muted-box">Payments are not open yet. Please write to us through <Link to="/account/help" className="link">Help</Link> and we will set up your plan. <div style={{ marginTop: 10 }}><button className="btn sm" onClick={onCancel}>Back</button></div></div>
       ) : (
@@ -459,7 +493,7 @@ function Checkout({ plan, methods, onCancel, onDone }: { plan: Plan; methods: Me
                 {m.bank && <div><dt>Bank / wallet</dt><dd>{m.bank}</dd></div>}
                 {m.accountName && <div><dt>Account name</dt><dd>{m.accountName}</dd></div>}
                 {m.accountNumber && <div><dt>Account number</dt><dd className="mono">{m.accountNumber}</dd></div>}
-                <div><dt>Amount</dt><dd className="mono"><b>{npr(plan.price)}</b></dd></div>
+                <div><dt>Amount</dt><dd className="mono"><b>NPR {nprAmount(price)}</b></dd></div>
               </dl>
               {m.instructions && <p className="pay-instr">{m.instructions}</p>}
               {m.notes && <p className="hint">{m.notes}</p>}
@@ -471,6 +505,7 @@ function Checkout({ plan, methods, onCancel, onDone }: { plan: Plan; methods: Me
               <label className="field"><span>Amount paid (NPR)</span><input className="input mono" inputMode="numeric" required value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value.replace(/[^\d]/g, '') })} /></label>
               <label className="field"><span>Payment date</span><input className="input" type="date" required max={new Date(Date.now() + 864e5).toISOString().slice(0, 10)} value={f.paidOn} onChange={(e) => setF({ ...f, paidOn: e.target.value })} /></label>
             </div>
+            {Number(f.amount) > 0 && Number(f.amount) !== price && <p className="hint warn-text">The {period === 'year' ? 'yearly' : 'monthly'} price is NPR {nprAmount(price)}. If you paid a different amount, add a note.</p>}
             <label className="field"><span>Transaction or reference ID <em>optional</em></span><input className="input mono" maxLength={80} value={f.reference} onChange={(e) => setF({ ...f, reference: e.target.value })} /></label>
             <div className="field">
               <span>Payment screenshot</span>
@@ -506,7 +541,7 @@ function BillingSection() {
           <div className="reject-box" role="status">
             <b>Your last payment could not be verified.</b>
             <p>{rejected.rejectReason}</p>
-            <Link to={`/account/plan?choose=${rejected.plan}`} className="btn sm">Submit corrected payment proof</Link>
+            <Link to={`/account/plan?choose=${rejected.plan}&period=${rejected.period ?? 'month'}`} className="btn sm">Submit corrected payment proof</Link>
           </div>
         )}
         <Link to="/account/plan" className="btn sm">Upgrade plan</Link>
@@ -519,7 +554,7 @@ function BillingSection() {
               {b.payments.map((p) => (
                 <tr key={p.id}>
                   <td>{fmtDate(p.createdAt)}</td>
-                  <td>{p.planName}</td>
+                  <td>{p.planName}<small className="muted"> · {p.period === 'year' ? 'year' : 'month'}</small></td>
                   <td className="mono">{npr(p.amount)}</td>
                   <td className="mono hide-sm">{p.reference || p.receiptNo}</td>
                   <td><span className={`status s-${p.status}`}>{STATUS_TEXT[p.status]}</span>{p.status === 'rejected' && <small className="reason">{p.rejectReason}</small>}</td>
@@ -556,7 +591,7 @@ export function ReceiptPage({ id }: { id: string }) {
           </dl>
           <table className="receipt-lines">
             <thead><tr><th>Item</th><th>Amount</th></tr></thead>
-            <tbody><tr><td>{p.planName} plan · up to {p.creations} creations</td><td className="mono">{npr(p.amount)}</td></tr></tbody>
+            <tbody><tr><td>{p.planName} plan, one {p.period === 'year' ? 'year' : 'month'} · up to {p.creations} creations</td><td className="mono">{npr(p.amount)}</td></tr></tbody>
             <tfoot><tr><th>Total paid</th><th className="mono">{npr(p.amount)}</th></tr></tfoot>
           </table>
           <p className="muted small">Thank you. Keep this receipt for your records.</p>

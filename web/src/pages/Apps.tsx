@@ -255,7 +255,7 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
         <Menu anchor={menu.el} onClose={() => setMenu(null)}>
           <button role="menuitem" onClick={() => go(`/apps/${menu.a.id}`)}>Open</button>
           <button role="menuitem" onClick={() => window.open(`/apps/${menu.a.id}`, '_blank', 'noopener')}>Open in a new tab</button>
-          <button role="menuitem" onClick={() => { downloadHtml(menu.a.id); setMenu(null); toast('Downloading. Open the file, sign in once, and it stays in sync.'); }}>Download as HTML file</button>
+          <button role="menuitem" onClick={async () => { const id = menu.a.id; setMenu(null); const fail = await downloadHtml(id); toast(fail ?? 'Downloaded. Open the file, sign in once, and it stays in sync.', !!fail); }}>Download as HTML file</button>
           {menu.a.role === 'owner' && <button role="menuitem" onClick={() => setShare(menu.a)}>Share and sign-ins</button>}
           {menu.a.role === 'owner' && menu.a.built && <button role="menuitem" onClick={() => go(`/apps/${menu.a.id}/blocks`)}>Edit features and design</button>}
           {menu.a.role === 'owner' && <><hr /><button role="menuitem" className="danger" onClick={() => trash(menu.a)}>Move to Trash</button></>}

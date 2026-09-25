@@ -3,6 +3,7 @@ import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { live } from '../live';
 import { Avatar, Icon, Menu, Modal, ago, useToast } from '../ui';
+import { AddressField, OpenChoice, addressPayload, openReady, slugify, useNameCheck, type OpenSettings } from './Address';
 
 /* ---------- upload ---------- */
 export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: File | null; onClose: () => void; replaceAppId?: string }) {
@@ -13,13 +14,21 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [limitHit, setLimitHit] = useState(false);
+  const [slug, setSlug] = useState('');
+  const [open, setOpen] = useState<OpenSettings>({ access: 'public', password: '' });
+  const check = useNameCheck(slug);
   const input = useRef<HTMLInputElement>(null);
+  const suggest = (f: File | null) => { if (f && !slug && !replaceAppId) setSlug(''); };
 
   const submit = async () => {
     if (!file) return;
     setBusy(true); setError('');
     const fd = new FormData();
-    if (!replaceAppId) fd.append('name', name);
+    if (!replaceAppId) {
+      // Fields go before the file: the server reads them first.
+      fd.append('name', name);
+      if (slug) { const a = addressPayload(slug, open); fd.append('slug', slug); fd.append('access', a.access); if (a.password) fd.append('password', a.password); }
+    }
     fd.append('file', file);
     try {
       const r = await api<{ app: AppSummary }>('POST', replaceAppId ? `/api/apps/${replaceAppId}/versions` : '/api/apps', fd);
@@ -39,13 +48,13 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
       onClose={onClose}
       footer={<>
         <button className="btn" onClick={onClose}>Cancel</button>
-        <button className="btn primary" onClick={submit} disabled={!file || busy}>
+        <button className="btn primary" onClick={submit} disabled={!file || busy || (!replaceAppId && !openReady(slug, check, open))}>
           {busy && <span className="spin" />}{replaceAppId ? 'Publish version' : 'Upload and publish'}
         </button>
       </>}
     >
       <div className="modal-body">
-        <input ref={input} type="file" accept=".html,.htm,.zip,text/html,application/zip" hidden onChange={(e) => { setFile(e.target.files?.[0] ?? null); setError(''); }} />
+        <input ref={input} type="file" accept=".html,.htm,.zip,text/html,application/zip" hidden onChange={(e) => { const f = e.target.files?.[0] ?? null; setFile(f); suggest(f); setError(''); }} />
         <button
           type="button"
           className="drop"
@@ -67,10 +76,15 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
           )}
         </button>
         {!replaceAppId && (
-          <label className="field">
-            <span>Name <span className="muted" style={{ fontWeight: 400 }}>(optional)</span></span>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Uses the page title" />
-          </label>
+          <>
+            <label className="field">
+              <span>Name <span className="muted" style={{ fontWeight: 400 }}>(optional)</span></span>
+              <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Uses the page title" />
+            </label>
+            <AddressField value={slug} onChange={setSlug} check={check} />
+            {!slug && file && <button type="button" className="link addr-suggest" onClick={() => setSlug(slugify(name || file.name.replace(/\.(zip|html?)$/i, '')))}>Use {location.host}/{slugify(name || file.name.replace(/\.(zip|html?)$/i, '')) || 'my-app'}</button>}
+            {slug && <OpenChoice value={open} onChange={setOpen} compact />}
+          </>
         )}
         {replaceAppId && <p className="hint">Everyone gets the new version. Saved data stays as it is.</p>}
         {error && <p className="error-text" role="alert">{error}{limitHit && <> <Link to="/account/plan" className="link" onClick={onClose}>See plans</Link></>}</p>}
@@ -134,6 +148,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <nav className="tabs" aria-label="Apps">
               {tab('/apps', 'My apps')}
               {tab('/shared', 'Shared with me')}
+              {tab('/links', 'Links')}
               {tab('/trash', 'Trash', 'tab-trash')}
             </nav>
           ) : <span className="who-tag hide-sm">Apps shared with you</span>}

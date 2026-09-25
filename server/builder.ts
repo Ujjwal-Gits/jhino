@@ -10,6 +10,7 @@ import { appDir } from './packages.js';
 import { validateManifest, type Manifest } from './manifest.js';
 import { publish } from './realtime.js';
 import { assertCanCreate } from './plans.js';
+import { assertNameFree, readAddressRequest, setSharing } from './publicshare.js';
 
 /*
  * The app builder. A person picks blocks and a design; Jhino writes a complete
@@ -236,7 +237,10 @@ export function registerBuilder(app: FastifyInstance) {
   app.post('/api/apps/build', async (req) => {
     const user = requireCreator(req);
     assertCanCreate(user.id);
-    const cfg = validateConfig((req.body as { config?: unknown })?.config);
+    const body = (req.body ?? {}) as { config?: unknown; address?: Record<string, unknown> };
+    const cfg = validateConfig(body.config);
+    // Its own address (jhino.com/<name>) and how it opens, checked before anything is made.
+    const addr = readAddressRequest(user, body.address ?? {}, null);
     const html = generateHtml(cfg);
     const manifest = manifestFor(cfg);
     const id = newId('app');
@@ -246,7 +250,8 @@ export function registerBuilder(app: FastifyInstance) {
     try {
     db.transaction(() => {
       assertCanCreate(user.id); // again inside the insert, so two requests at once cannot both pass
-      db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at,share_token) VALUES(?,?,?,?,1,?,?,?)').run(id, cfg.name, 0, user.id, t, t, crypto.randomBytes(10).toString('hex'));
+      if (addr.slug) assertNameFree(addr.slug);
+      db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at,share_token,slug) VALUES(?,?,?,?,1,?,?,?,?)').run(id, cfg.name, 0, user.id, t, t, crypto.randomBytes(10).toString('hex'), addr.slug);
       db.prepare('INSERT INTO app_versions(app_id,n,entry,file_count,size,features,source_name,uploaded_by,created_at,manifest,builder) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
         .run(id, 1, 'index.html', 1, Buffer.byteLength(html), FEATURES, 'Built in Jhino', user.id, t, JSON.stringify(manifest), JSON.stringify(cfg));
       db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?)').run(id, user.id, 'owner', t);
@@ -256,7 +261,8 @@ export function registerBuilder(app: FastifyInstance) {
       fs.rmSync(path.dirname(appDir(id, 1)), { recursive: true, force: true });
       throw e;
     }
-    return { app: { id, name: cfg.name } };
+    if (addr.access && addr.access !== 'private') await setSharing(id, { access: addr.access, publicRole: addr.publicRole, password: addr.password });
+    return { app: { id, name: cfg.name, slug: addr.slug } };
   });
 
   app.get('/api/apps/:id/build', async (req) => {

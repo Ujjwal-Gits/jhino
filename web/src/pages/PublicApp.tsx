@@ -1,13 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { ApiError, get, post, type User } from '../api';
-import { SessionCtx, useRoute } from '../context';
+import { SessionCtx } from '../context';
 import { live } from '../live';
 import { Player } from './Player';
 import { Link } from '../context';
 
 /*
  * A shared app opened by link: /s/<token> or a custom address like /your-studio.
- * Public links open straight away; password links ask once. Signed-in members go to the full app.
+ * Public links open straight away; password links ask once. Signed-in members get the full app, at the
+ * same address: the page never redirects, so jhino.com/your-studio stays jhino.com/your-studio.
  */
 
 interface PublicInfo { ready?: boolean; needsPassword?: boolean; member?: boolean; appId?: string; app?: { id: string; name: string; showBar?: boolean } }
@@ -15,7 +16,6 @@ interface PublicInfo { ready?: boolean; needsPassword?: boolean; member?: boolea
 const VISITOR: User = { id: 'visitor', email: '', name: 'Visitor', displayName: null, isAdmin: false, disabled: false, canCreate: false, emailIsAddress: false, emailVerified: null, hasAvatar: false, passwordSet: false, plan: 'free' };
 
 export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser: User | null }) {
-  const { go } = useRoute();
   const [info, setInfo] = useState<PublicInfo | null>(null);
   const [error, setError] = useState<{ title: string; text: string } | null>(null);
   const [pw, setPw] = useState('');
@@ -25,7 +25,6 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
   useEffect(() => {
     setInfo(null); setError(null);
     get<PublicInfo>(`/api/public/${encodeURIComponent(refId)}`).then((r) => {
-      if (r.member && r.appId && signedInUser) { go(`/apps/${r.appId}`, true); return; }
       setInfo(r);
     }, (e) => {
       const a = e as ApiError;
@@ -34,7 +33,7 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
         : a.status === 404 ? { title: 'Nothing here', text: 'This link does not exist, or the app was removed.' }
           : { title: 'Could not open this', text: a.message || 'Try again in a moment.' });
     });
-  }, [refId, signedInUser, go]);
+  }, [refId, signedInUser]);
 
   // A visitor's live updates are for this one app.
   useEffect(() => {
@@ -62,6 +61,7 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
     );
   }
   if (!info) return <main className="state-card" aria-busy="true"><span className="spin" /></main>;
+  if (info.member && info.appId && signedInUser) return <Player id={info.appId} />;
   if (info.needsPassword) {
     return (
       <main className="pw-gate">

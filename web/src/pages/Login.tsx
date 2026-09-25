@@ -103,7 +103,7 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
     try {
       await post('/api/auth/signup', form);
       await onDone();
-      go(plan === 'plus' || plan === 'pro' ? `/account/plan?choose=${plan}` : '/apps', true);
+      go(plan === 'plus' || plan === 'pro' ? `/account/plan?choose=${plan}&period=${new URLSearchParams(location.search).get('period') === 'year' ? 'year' : 'month'}` : '/apps', true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not create the account.');
       setBusy(false);

@@ -443,6 +443,33 @@ const MIGRATIONS: string[] = [
     PRIMARY KEY(app_id, record_id, fire_at)
   );
   `,
+  // 9: plans paid by the month or the year; short links (jhino.com/<code> to any web address).
+  `
+  ALTER TABLE users ADD COLUMN plan_period TEXT;
+  ALTER TABLE payments ADD COLUMN period TEXT NOT NULL DEFAULT 'month';
+  ALTER TABLE subscriptions ADD COLUMN period TEXT;
+  CREATE TABLE short_links(
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code TEXT NOT NULL,
+    url TEXT NOT NULL,
+    title TEXT,
+    clicks INTEGER NOT NULL DEFAULT 0,
+    last_click_at TEXT,
+    disabled INTEGER NOT NULL DEFAULT 0,
+    disabled_reason TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE UNIQUE INDEX short_links_code ON short_links(code COLLATE NOCASE);
+  CREATE INDEX short_links_owner ON short_links(owner_id, created_at);
+  CREATE TABLE link_clicks(
+    link_id TEXT NOT NULL REFERENCES short_links(id) ON DELETE CASCADE,
+    day TEXT NOT NULL,
+    n INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(link_id, day)
+  );
+  `,
 ];
 
 const current = db.pragma('user_version', { simple: true }) as number;
@@ -466,7 +493,7 @@ export interface UserRow {
   company?: string | null; job_title?: string | null; bio?: string | null; avatar?: string | null;
   email_verified_at?: string | null; password_set?: number; password_changed_at?: string | null;
   last_login_at?: string | null; last_login_ip?: string | null; last_login_ua?: string | null;
-  plan?: string; plan_started_at?: string | null; plan_expires_at?: string | null; extra_creations?: number;
+  plan?: string; plan_started_at?: string | null; plan_expires_at?: string | null; plan_period?: string | null; extra_creations?: number;
   suspended_reason?: string | null; kind?: string; notify_prefs?: string;
 }
 export interface AppRow {
