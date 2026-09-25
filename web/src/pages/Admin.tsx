@@ -22,15 +22,15 @@ const fmtBytes = (n: number | null | undefined) => {
   return b >= 1073741824 ? `${(b / 1073741824).toFixed(2)} GB` : b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : b >= 1024 ? `${Math.round(b / 1024)} KB` : `${b} B`;
 };
 
-type NavKey = 'overview' | 'users' | 'payments' | 'subscriptions' | 'plans' | 'methods' | 'apps' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
+type NavKey = 'overview' | 'analytics' | 'users' | 'payments' | 'subscriptions' | 'plans' | 'methods' | 'apps' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
 const NAV: { group: string; items: [NavKey, string, string][] }[] = [
-  { group: '', items: [['overview', 'Overview', 'chart']] },
+  { group: '', items: [['overview', 'Overview', 'chart'], ['analytics', 'Analytics', 'live']] },
   { group: 'Customers', items: [['payments', 'Plan requests', 'receipt'], ['subscriptions', 'Subscriptions', 'card'], ['users', 'Users', 'users']] },
   { group: 'Money', items: [['plans', 'Plans & pricing', 'chart'], ['methods', 'QR & payment methods', 'qr']] },
   { group: 'Platform', items: [['apps', 'Apps & data', 'grid'], ['hosting', 'Addresses', 'globe'], ['links', 'Short links', 'link']] },
   { group: 'Operations', items: [['support', 'Support', 'help'], ['audit', 'Audit log', 'audit'], ['settings', 'Settings', 'settings']] },
 ];
-const TITLES: Record<NavKey, string> = { overview: 'Overview', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', plans: 'Plans & pricing', apps: 'Apps & data', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
+const TITLES: Record<NavKey, string> = { overview: 'Overview', analytics: 'Analytics', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', plans: 'Plans & pricing', apps: 'Apps & data', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
 
 export function AdminPage({ section, sub }: { section: string; sub?: string }) {
   const { user, refresh } = useSession();
@@ -84,6 +84,7 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
         </header>
         <main className="adm-body">
           {cur === 'overview' && <Overview />}
+          {cur === 'analytics' && <SiteAnalytics />}
           {cur === 'users' && (sub ? <UserDetail id={sub} /> : <Users />)}
           {cur === 'payments' && (sub ? <PaymentDetail id={sub} onChanged={loadCounts} /> : <Payments />)}
           {cur === 'subscriptions' && <Subscriptions />}
@@ -173,6 +174,7 @@ function Lines({ a, b, labelA, labelB }: { a: { day: string; n: number }[]; b: {
 }
 
 function Overview() {
+  const { user: me } = useSession();
   const [o, setO] = useState<OverviewT | null>(null);
   useEffect(() => { get<OverviewT>('/api/admin/overview').then(setO, () => {}); }, []);
   if (!o) return <div className="dash-skel"><div className="acc-skel sm" /><div className="acc-skel" /></div>;
@@ -181,6 +183,13 @@ function Overview() {
   return (
     <div className="dash">
       <Head title="Overview" lede={`Today, ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`} />
+      {!me.twoFactor && (
+        <div className="adm-alert" role="note">
+          <Icon name="shield" size={16} />
+          <p><b>Turn on two-step sign-in.</b> A super admin can see and change everything; a code from your phone keeps a stolen password from being enough.</p>
+          <Link to="/account/security" className="btn sm">Turn it on</Link>
+        </div>
+      )}
 
       <section className="kpi-strip" aria-label="Key numbers">
         <div className="kpi2">
@@ -1306,7 +1315,8 @@ function Audit() {
 /* ---------------- settings ---------------- */
 function Settings() {
   const toast = useToast();
-  const [s, setS] = useState<{ uploads: boolean; signups: boolean; supportEmail: string; mailReady: boolean; google: boolean; apple: boolean; publicUrl: string } | null>(null);
+  const [s, setS] = useState<{ uploads: boolean; signups: boolean; supportEmail: string; mailReady: boolean; mailSender: string | null; mailFrom: string; google: boolean; apple: boolean; publicUrl: string } | null>(null);
+  const [testTo, setTestTo] = useState('');
   const [emails, setEmails] = useState<any[] | null>(null);
   const [support, setSupport] = useState('');
   const load = useCallback(() => { get<typeof s>('/api/admin/settings').then((r) => { setS(r); setSupport(r!.supportEmail); }, () => {}); get<{ emails: any[] }>('/api/admin/emails').then((r) => setEmails(r.emails), () => {}); }, []);
@@ -1338,10 +1348,16 @@ function Settings() {
       <h3 className="adm-sub">Server</h3>
       <dl className="facts wide">
         <div><dt>Address</dt><dd className="mono">{s.publicUrl}</dd></div>
-        <div><dt>Email delivery</dt><dd>{s.mailReady ? 'On (SMTP)' : 'Off: set SMTP_URL and MAIL_FROM'}</dd></div>
+        <div><dt>Email delivery</dt><dd>{s.mailReady ? `On (${s.mailSender === 'resend' ? 'Resend' : 'SMTP'}), from ${s.mailFrom}` : 'Off: set RESEND_API_KEY (or SMTP_URL) and MAIL_FROM'}</dd></div>
         <div><dt>Continue with Google</dt><dd>{s.google ? 'On' : 'Off: set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET'}</dd></div>
         <div><dt>Continue with Apple</dt><dd>{s.apple ? 'On' : 'Off: set APPLE_CLIENT_ID, APPLE_TEAM_ID, APPLE_KEY_ID and APPLE_PRIVATE_KEY'}</dd></div>
       </dl>
+      {s.mailReady && (
+        <form className="inline-form mail-test" onSubmit={async (e) => { e.preventDefault(); try { await post('/api/admin/mail/test', { to: testTo || undefined }); toast('Test email sent. See Recent emails for the result.'); setTimeout(load, 2500); } catch (e2) { toast(err(e2, 'Could not send.'), true); } }}>
+          <input className="input" type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="Send a test to (default: you)" aria-label="Send a test email to" />
+          <button className="btn sm"><Icon name="mail" size={15} />Send a test email</button>
+        </form>
+      )}
       <h3 className="adm-sub">Recent emails</h3>
       {!s.mailReady && <p className="hint">Emails are not delivered yet, so their text is shown here. You can pass a link on by hand. Treat these as private: they contain sign-in links.</p>}
       {!emails ? null : !emails.length ? <p className="muted">None yet.</p> : (
@@ -1353,4 +1369,134 @@ function Settings() {
       )}
     </>
   );
+}
+
+/* ---------------- Analytics: everything opened on Jhino, live and by day ---------------- */
+interface LiveT { active: number; areas: { key: string; n: number }[]; apps: { key: string; name: string; n: number }[]; pages: { key: string; n: number }[]; countries: { key: string; n: number }[]; devices: { key: string; n: number }[]; recent: { area: string; title: string; country: string | null; device: string; ago: number }[] }
+interface Top { key: string; views: number; visitors: number }
+interface SiteT { days: number; series: { day: string; views: number; visitors: number }[]; hours: { hour: string; views: number }[]; totals: { views: number; visitors: number }; previous: { views: number; visitors: number };
+  areas: Top[]; apps: (Top & { name: string; owner: string; address: string | null })[]; pages: Top[]; profiles: Top[]; countries: Top[]; refs: Top[]; devices: Top[]; browsers: Top[] }
+const AREA_NAME: Record<string, string> = { website: 'Website', dashboard: 'Dashboards', app: 'Apps', profile: 'Public pages', link: 'Short links' };
+const regionName = (() => { try { const d = new Intl.DisplayNames(['en'], { type: 'region' }); return (c: string) => (c === '—' ? 'Unknown' : d.of(c) ?? c); } catch { return (c: string) => c; } })();
+const agoShort = (s: number) => (s < 60 ? `${s}s` : s < 3600 ? `${Math.round(s / 60)}m` : `${Math.round(s / 3600)}h`);
+
+function SiteAnalytics() {
+  const [days, setDays] = useState(30);
+  const [d, setD] = useState<SiteT | null>(null);
+  const [lv, setLv] = useState<LiveT | null>(null);
+  useEffect(() => {
+    setD(null);
+    const load = () => get<SiteT>(`/api/admin/analytics?days=${days}`).then(setD, () => {});
+    load();
+    const t = setInterval(load, 60_000);
+    return () => clearInterval(t);
+  }, [days]);
+  useEffect(() => {
+    const load = () => { if (document.visibilityState === 'visible') get<LiveT>('/api/admin/analytics/live').then(setLv, () => {}); };
+    load();
+    const t = setInterval(load, 5_000);
+    return () => clearInterval(t);
+  }, []);
+  const list = (rows: Top[], name: (k: string) => string = (k) => k, empty = 'Nothing yet.') => {
+    const top = Math.max(1, ...rows.map((r) => r.views));
+    return !rows.length ? <p className="muted small">{empty}</p> : (
+      <ul className="an-bars">{rows.map((r) => <li key={r.key}><span className="an-l" title={name(r.key)}>{name(r.key)}</span><span className="an-track"><i style={{ transform: `scaleX(${r.views / top})` }} /></span><span className="mono an-n" title={`${r.visitors} visitors`}>{r.views.toLocaleString('en-IN')}</span></li>)}</ul>
+    );
+  };
+  const totalLive = lv?.active ?? 0;
+  const appViews = d?.areas.find((a) => a.key === 'app')?.views ?? 0;
+  return (
+    <div className="dash">
+      <Head title="Analytics" lede="Everything people open on Jhino: the website, dashboards, public pages and every app, whoever made it."
+        actions={<div className="seg range" role="group" aria-label="Range">{[1, 7, 30, 90, 365].map((n) => <button key={n} aria-pressed={days === n} onClick={() => setDays(n)}>{n === 1 ? 'Today' : n === 365 ? '1 year' : `${n} days`}</button>)}</div>} />
+
+      <section className="live-panel" aria-label="Right now">
+        <div className="live-now">
+          <p className="live-h"><span className="live-pulse" aria-hidden="true" />Right now</p>
+          <p className="live-n mono" aria-live="polite">{totalLive.toLocaleString('en-IN')}</p>
+          <p className="muted small">{totalLive === 1 ? 'person' : 'people'} on Jhino in the last 3 minutes</p>
+          {lv && totalLive > 0 && (
+            <>
+              <div className="live-split" role="img" aria-label={lv.areas.filter((a) => a.n).map((a) => `${AREA_NAME[a.key]} ${a.n}`).join(', ')}>
+                {lv.areas.filter((a) => a.n).map((a) => <i key={a.key} className={`ar-${a.key}`} style={{ flexGrow: a.n }} />)}
+              </div>
+              <ul className="live-legend">{lv.areas.filter((a) => a.n).map((a) => <li key={a.key}><i className={`ar-${a.key}`} />{AREA_NAME[a.key]} <b className="mono">{a.n}</b></li>)}</ul>
+            </>
+          )}
+        </div>
+        <div className="live-col">
+          <h2 className="live-sub">Open now</h2>
+          {!lv || (!lv.apps.length && !lv.pages.length) ? <p className="muted small">No one yet. This updates every few seconds.</p> : (
+            <ul className="live-list">
+              {lv.apps.map((a) => <li key={a.key}><Link to={`/admin/apps/${a.key}`} className="link">{a.name}</Link><span className="muted small">app</span><b className="mono">{a.n}</b></li>)}
+              {lv.pages.slice(0, Math.max(0, 8 - lv.apps.length)).map((p) => <li key={p.key}><span>{p.key}</span><span className="muted small">page</span><b className="mono">{p.n}</b></li>)}
+            </ul>
+          )}
+          {!!lv?.countries.length && <p className="live-where small muted">{lv.countries.slice(0, 5).map((c) => `${regionName(c.key)} ${c.n}`).join(' · ')}</p>}
+        </div>
+        <div className="live-col">
+          <h2 className="live-sub">Just now</h2>
+          {!lv?.recent.length ? <p className="muted small">Visits show here as they happen.</p> : (
+            <ol className="live-feed">
+              {lv.recent.slice(0, 9).map((h, i) => (
+                <li key={i}><span className={`dot ar-${h.area}`} aria-hidden="true" /><span className="lf-t"><span className="lf-l">{h.area === 'link' ? 'Clicked ' : 'Opened '}<b>{h.title}</b></span><small>{h.country ? regionName(h.country) : 'Somewhere'} · {h.device}</small></span><span className="mono muted small">{agoShort(h.ago)}</span></li>
+              ))}
+            </ol>
+          )}
+        </div>
+      </section>
+
+      {!d ? <div className="acc-skel" /> : (
+        <>
+          <section className="kpi-strip" aria-label="Totals">
+            <div className="kpi2"><p className="k-l">Visitors</p><p className="k-v mono">{d.totals.visitors.toLocaleString('en-IN')}</p><PeriodDelta now={d.totals.visitors} before={d.previous.visitors} days={d.days} /></div>
+            <div className="kpi2"><p className="k-l">Page views</p><p className="k-v mono">{d.totals.views.toLocaleString('en-IN')}</p><PeriodDelta now={d.totals.views} before={d.previous.views} days={d.days} /></div>
+            <div className="kpi2"><p className="k-l">Views per visitor</p><p className="k-v mono">{d.totals.visitors ? (d.totals.views / d.totals.visitors).toFixed(1) : '0'}</p><p className="k-s">pages each visit</p></div>
+            <div className="kpi2"><p className="k-l">Apps opened</p><p className="k-v mono">{appViews.toLocaleString('en-IN')}</p><p className="k-s">{d.apps.length} different {d.apps.length === 1 ? 'app' : 'apps'}</p></div>
+          </section>
+
+          <div className="dash-grid">
+            <section className="dpanel span2">
+              <div className="panel-h"><h2>Visitors and views</h2></div>
+              {d.days > 1 ? <Lines a={d.series.map((x) => ({ day: x.day, n: x.visitors }))} b={d.series.map((x) => ({ day: x.day, n: x.views }))} labelA="Visitors" labelB="Views" />
+                : <p className="muted small">Pick 7 days or more to see the trend. Today by hour is next to this.</p>}
+            </section>
+            <section className="dpanel">
+              <div className="panel-h"><h2>Last 24 hours</h2></div>
+              <Bars data={d.hours.map((h) => ({ key: h.hour, label: `${new Date(h.hour + ':00:00Z').getHours()}h`, n: h.views }))} label="Views each hour, last 24 hours" format={(n) => `${n} views`} />
+            </section>
+
+            <section className="dpanel span2">
+              <div className="panel-h"><h2>Apps getting traffic</h2><span className="muted small">every customer's apps</span></div>
+              {!d.apps.length ? <p className="muted small">No app has been opened in this time.</p> : (
+                <table className="adm-table">
+                  <thead><tr><th>App</th><th>Owner</th><th>Address</th><th className="num">Views</th><th className="num">Visitors</th></tr></thead>
+                  <tbody>{d.apps.map((a) => <tr key={a.key}><td><Link to={`/admin/apps/${a.key}`} className="link">{a.name}</Link></td><td className="small">{a.owner}</td><td className="mono small">{a.address ? <a className="link" href={a.address} target="_blank" rel="noopener">{a.address}</a> : <span className="muted">share link</span>}</td><td className="num mono">{a.views.toLocaleString('en-IN')}</td><td className="num mono">{a.visitors.toLocaleString('en-IN')}</td></tr>)}</tbody>
+                </table>
+              )}
+            </section>
+            <section className="dpanel">
+              <div className="panel-h"><h2>Where on Jhino</h2></div>
+              {list(d.areas, (k) => AREA_NAME[k] ?? k)}
+            </section>
+
+            <section className="dpanel"><div className="panel-h"><h2>Countries</h2></div>{list(d.countries, regionName, 'Countries show once visitors arrive through Cloudflare.')}</section>
+            <section className="dpanel"><div className="panel-h"><h2>Where they came from</h2></div>{list(d.refs)}</section>
+            <section className="dpanel"><div className="panel-h"><h2>Website pages</h2></div>{list(d.pages, (k) => (k === '/' ? 'Home page' : k))}</section>
+            <section className="dpanel"><div className="panel-h"><h2>Public pages</h2><span className="muted small">jhino.com/username</span></div>{list(d.profiles, (k) => `@${k}`)}</section>
+            <section className="dpanel"><div className="panel-h"><h2>Devices</h2></div>{list(d.devices)}</section>
+            <section className="dpanel"><div className="panel-h"><h2>Browsers</h2></div>{list(d.browsers)}</section>
+          </div>
+          <p className="hint">Visitors are counted once a day each, from a hash that changes daily; no addresses are stored. Bots and your own admin pages are left out.</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+function PeriodDelta({ now, before, days }: { now: number; before: number; days: number }) {
+  if (!before && !now) return <span className="kd flat">no change</span>;
+  const d = now - before;
+  const pct = before ? Math.round((d / before) * 100) : null;
+  return <span className={`kd ${d > 0 ? 'up' : d < 0 ? 'down' : 'flat'}`}>{d > 0 ? '+' : d < 0 ? '−' : ''}{Math.abs(d).toLocaleString('en-IN')}{pct !== null && d !== 0 ? ` (${d > 0 ? '+' : '−'}${Math.abs(pct)}%)` : ''} vs previous {days === 1 ? 'day' : `${days} days`}</span>;
 }

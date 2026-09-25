@@ -71,7 +71,7 @@ export function validateManifest(raw: unknown): Manifest {
 /** Read the embedded manifest and/or jhino.json. If both exist they must match. */
 export function extractManifest(root: string, entryHtml: string): Manifest | null {
   let embedded: unknown;
-  const tag = entryHtml.match(/<script[^>]*id=["']jhino-manifest["'][^>]*>([\s\S]*?)<\/script>/i);
+  const tag = entryHtml.match(/<script[^>]{0,300}id=["']jhino-manifest["'][^>]{0,300}>([\s\S]{0,1000000}?)<\/script>/i);
   if (tag) {
     try { embedded = JSON.parse(tag[1]); } catch { throw bad('The embedded jhino-manifest is not valid JSON.'); }
   }

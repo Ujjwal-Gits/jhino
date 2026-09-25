@@ -3,7 +3,10 @@ import { createRoot } from 'react-dom/client';
 import './styles.css';
 import './site.css';
 import './dash.css';
-import { get, setCsrf, type User } from './api';
+import { get, post, setCsrf, type User } from './api';
+
+/** Where the visitor came from: sent with the first page only. */
+let firstRef = document.referrer;
 import { live } from './live';
 import { ToastProvider } from './ui';
 import { Forgot, Login, Reset, Signup, Verify } from './pages/Login';
@@ -62,6 +65,15 @@ function App() {
     if (user && path === '/people') go('/admin/users', true);
   }, [user, path, go]);
 
+  // Site analytics (Super Admin): one count per page, then a quiet "still here" each minute while visible.
+  useEffect(() => {
+    if (user === undefined || path.startsWith('/admin')) return;
+    const r = firstRef; firstRef = '';
+    post('/api/t', { p: path, r }).catch(() => {});
+    const beat = setInterval(() => { if (document.visibilityState === 'visible') post('/api/t', { p: location.pathname, h: true }).catch(() => {}); }, 60_000);
+    return () => clearInterval(beat);
+  }, [path, user === undefined]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Signed out elsewhere or session ended: the live stream drops; re-check.
   useEffect(() => live.on((e) => { if (e === 'offline') setTimeout(refresh, 1500); }), [refresh]);
 
@@ -91,7 +103,7 @@ function App() {
   else if (person) page = <PersonPage name={person} user={user} />;
   else if (path === '/_themes' && user?.isAdmin) page = <ThemeGallery />;
   // The website is always at the main address; the dashboard lives at /apps.
-  else if (path === '/') page = <Landing signedIn={!!user} />;
+  else if (path === '/' || path === '/pricing') page = <Landing signedIn={!!user} at={path === '/pricing' ? 'pricing' : undefined} />;
   else if (!user) {
     if (path === '/signup') page = <Signup onDone={refresh} />;
     else if (path === '/forgot') page = <Forgot />;

@@ -3,6 +3,7 @@ import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { live } from '../live';
 import { Avatar, Icon, Menu, Modal, ago, useToast } from '../ui';
+import { VerifyGate } from './VerifyGate';
 import { AddressField, OpenChoice, addrBase, addressPayload, openReady, slugify, useNameCheck, type OpenSettings } from './Address';
 
 /* ---------- upload ---------- */
@@ -144,6 +145,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
   return (
     <>
+      {user.mustVerify && <VerifyGate user={user} onDone={refresh} />}
       <header className="topbar">
         <div className="topbar-inner">
           <Link to={user.username ? `/${user.username}` : '/apps'} className="wordmark" aria-label="Your Jhino home">jhino<i /></Link>

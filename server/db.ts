@@ -557,6 +557,9 @@ const MIGRATIONS: string[] = [
   `
   ALTER TABLE users ADD COLUMN username_changed_at TEXT;
   `,
+  // 12: taken by a release that was rolled back (some databases are already at 12). Nothing to do here;
+  // the columns that came after it are made sure of in ensureSchema() below. Add new migrations after this.
+  `SELECT 1;`,
 ];
 
 const current = db.pragma('user_version', { simple: true }) as number;
@@ -566,6 +569,34 @@ for (let v = current; v < MIGRATIONS.length; v++) {
     db.pragma(`user_version = ${v + 1}`);
   })();
 }
+
+/*
+ * Columns and tables made sure of on every start, whatever user_version says (a rolled-back release
+ * left some databases at version 12 without them). Each step only adds what is missing.
+ */
+function ensureSchema() {
+  const has = (table: string, col: string) => (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some((c) => c.name === col);
+  const add = (table: string, col: string, ddl: string) => { if (!has(table, col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${ddl}`); };
+  db.transaction(() => {
+    add('users', 'username_changed_at', 'TEXT');
+    // One-time codes live 5 minutes; asked again in that time, the same code is sent (up to 5 times).
+    add('auth_tokens', 'seed', 'TEXT');
+    add('auth_tokens', 'sends', 'INTEGER NOT NULL DEFAULT 1');
+    add('auth_tokens', 'last_sent_at', 'TEXT');
+    // New sign-ups confirm their email with a code before they get a session.
+    add('users', 'verify_required', 'INTEGER NOT NULL DEFAULT 0');
+    // A password the person chose (not one an app owner made for them): only they can reset it.
+    add('users', 'own_password', 'INTEGER NOT NULL DEFAULT 0');
+    // Two-step sign-in with an authenticator app (twofactor.ts). The secret is stored encrypted.
+    add('users', 'totp_secret', 'TEXT');
+    add('users', 'totp_pending', 'TEXT');
+    add('users', 'totp_enabled_at', 'TEXT');
+    add('users', 'totp_last_step', 'INTEGER');
+    add('users', 'totp_recovery', 'TEXT');
+    db.exec('CREATE TABLE IF NOT EXISTS code_usage(user_id TEXT NOT NULL, day TEXT NOT NULL, issued INTEGER NOT NULL DEFAULT 0, wrong INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(user_id, day))');
+  })();
+}
+ensureSchema();
 
 export const now = () => new Date().toISOString();
 export const newId = (prefix: string) => `${prefix}_${crypto.randomBytes(9).toString('base64url')}`;
@@ -578,7 +609,7 @@ export interface UserRow {
   created_by?: string | null;
   display_name?: string | null; phone?: string | null; country?: string | null; timezone?: string | null; language?: string;
   company?: string | null; job_title?: string | null; bio?: string | null; avatar?: string | null;
-  email_verified_at?: string | null; password_set?: number; password_changed_at?: string | null;
+  email_verified_at?: string | null; verify_required?: number; own_password?: number; totp_enabled_at?: string | null; password_set?: number; password_changed_at?: string | null;
   last_login_at?: string | null; last_login_ip?: string | null; last_login_ua?: string | null;
   plan?: string; plan_started_at?: string | null; plan_expires_at?: string | null; plan_period?: string | null; username?: string | null; extra_creations?: number;
   username_changed_at?: string | null;

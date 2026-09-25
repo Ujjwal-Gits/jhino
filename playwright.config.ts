@@ -28,6 +28,9 @@ export default defineConfig({
       ADMIN_NAME: 'Olivia Owner',
       ADMIN_PASSWORD: 'owner-password-123',
       PUBLIC_URL: '',
+      // Tests never send real email: codes stay readable in the Super Admin email log.
+      RESEND_API_KEY: '',
+      SMTP_URL: '',
       // Compress test videos from 1 MB up, so the real ffmpeg path runs in tests.
       COMPRESS_VIDEO_MB: '1',
       // Many tests run from one address: keep the general write limit out of their way.

@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type KeyboardEvent, type ReactNode } from 'react';
 import '../landing.css';
 import { ApiError, post } from '../api';
 import { Link, useRoute } from '../context';
@@ -333,7 +333,9 @@ const FAQ: [string, ReactNode][] = [
 
 /* ---------------- the page ---------------- */
 
-export function Landing({ signedIn = false }: { signedIn?: boolean }) {
+export function Landing({ signedIn = false, at }: { signedIn?: boolean; at?: string }) {
+  // jhino.com/pricing opens the website at the plans.
+  useEffect(() => { if (at) requestAnimationFrame(() => document.getElementById(at)?.scrollIntoView()); }, [at]);
   const [period, setPeriod] = useState<Period>('month');
   const plans = usePlans();
   const start = signedIn

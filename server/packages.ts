@@ -44,8 +44,9 @@ export async function installPackage(buf: Buffer, fileName: string, appId: strin
     const files = listFiles(root);
     const size = files.reduce((s, f) => s + fs.statSync(path.join(root, f)).size, 0);
     const features = scan(root, files);
-    const html = fs.readFileSync(path.join(root, entry), 'utf8');
-    const t = html.match(/<title[^>]*>([^<]{1,80})<\/title>/i);
+    // Only the start of the page is read for its title and manifest (a huge or hostile file cannot stall the server).
+    const html = readStart(path.join(root, entry), 4 * 1024 * 1024);
+    const t = html.slice(0, 512 * 1024).match(/<title[^>]{0,200}>([^<]{1,80})<\/title>/i);
     const manifest = extractManifest(root, html);
     if (manifest?.collections) features.jhinoSdk = true;
 
@@ -171,4 +172,14 @@ function scan(root: string, files: string[]): Features {
     if (/\bfetch\s*\(|XMLHttpRequest|\bWebSocket\s*\(/.test(src)) f.network = true;
   }
   return f;
+}
+
+/** The first `max` bytes of a file as text. */
+function readStart(file: string, max: number) {
+  const fd = fs.openSync(file, 'r');
+  try {
+    const buf = Buffer.alloc(Math.min(max, fs.fstatSync(fd).size));
+    fs.readSync(fd, buf, 0, buf.length, 0);
+    return buf.toString('utf8');
+  } finally { fs.closeSync(fd); }
 }

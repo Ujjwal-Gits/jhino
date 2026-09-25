@@ -192,7 +192,7 @@ function renderCustom(u: UserRow, html: string) {
     .replaceAll('{{name}}', esc(d.name)).replaceAll('{{username}}', esc(d.username)).replaceAll('{{bio}}', esc(d.bio))
     .replaceAll('{{location}}', esc(d.location)).replaceAll('{{avatar}}', esc(d.avatarUrl ?? '')).replaceAll('{{links}}', linksHtml).replaceAll('{{socials}}', socialsHtml);
   const boot = `<base target="_top"><script>window.JHINO=${data};</script>`;
-  return /<head[^>]*>/i.test(out) ? out.replace(/<head[^>]*>/i, (m) => m + boot) : boot + out;
+  return /<head[^>]{0,500}>/i.test(out) ? out.replace(/<head[^>]{0,500}>/i, (m) => m + boot) : boot + out;
 }
 const CUSTOM_STARTER = `<!doctype html>
 <html lang="en">

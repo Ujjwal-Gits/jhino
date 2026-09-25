@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ApiError, api, get, post, type AppDetail, type Role } from '../api';
 import { useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
+import { ShareOut } from './ShareOut';
 import { downloadHtml } from './Player';
 import { AddressField, HOST, PlanTag, addrBase, slugify, useNameCheck } from './Address';
 
@@ -160,6 +161,7 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
                     <Icon name={link ? 'copy' : 'plus'} size={16} />{link ? 'Copy' : 'Create link'}
                   </button>
                 </div>
+                {link && <ShareOut url={link} text={`You're invited to ${app.name} on Jhino:`} />}
                 {link && <button className="btn quiet sm" style={{ marginTop: 6 }} onClick={() => setLink('')}>Make another link</button>}
               </div>
             )}
@@ -425,6 +427,7 @@ function LinkSharing({ appId, appName }: { appId: string; appName: string }) {
               <button className="btn sm primary" type="button" onClick={() => copyText(url).then(() => toast('Link copied'))}><Icon name="copy" size={15} />Copy</button>
             </div>
           )}
+          <ShareOut url={url} text={`${appName}:`} />
           <div className="ls-row">
             <span>Visitors can</span>
             <Select size="sm" label="Visitors can" width={130} value={s.publicRole} options={[{ value: 'viewer', label: 'View' }, { value: 'contributor', label: 'Add' }, { value: 'editor', label: 'Edit' }]} onChange={(v) => save({ publicRole: v as Role })} />

@@ -22,6 +22,22 @@ export function limit(req: FastifyRequest, bucket: string, max: number, windowMs
   }
 }
 
+/**
+ * Count one attempt against `bucket` for a key that is not an address (an account, an email), so
+ * spreading tries over many addresses does not help. Throws 429 over the limit.
+ */
+export function limitKey(bucket: string, key: string, max: number, windowMs: number, message?: string) {
+  const k = `${bucket}|#${key.toLowerCase()}`;
+  const t = Date.now();
+  let h = hits.get(k);
+  if (!h || h.reset < t) { h = { n: 0, reset: t + windowMs }; hits.set(k, h); }
+  h.n++;
+  if (h.n > max * SCALE) {
+    const wait = Math.ceil((h.reset - t) / 1000);
+    throw new HttpError(429, 'TOO_MANY_REQUESTS', message ?? `Too many tries for this account. Please wait ${wait > 90 ? Math.ceil(wait / 60) + ' minutes' : wait + ' seconds'} and try again.`);
+  }
+}
+
 /* ---------------- who is asking ---------------- */
 export function clientInfo(req: FastifyRequest) {
   const ua = String(req.headers['user-agent'] ?? '').slice(0, 300);

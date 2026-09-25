@@ -3,6 +3,7 @@ import { db, now, type UserRow } from './db.js';
 import { HttpError, requireUser } from './auth.js';
 import { audit, limit, securityEvent } from './security.js';
 import { RESERVED, rootNameInUse } from './publicshare.js';
+import { reservedReason } from './reserved.js';
 
 /*
  * Usernames: the name in every address a person makes. jhino.com/<username> is their public page;
@@ -15,13 +16,22 @@ const MORE_RESERVED = new Set(['root', 'system', 'null', 'undefined', 'me', 'you
   'sales', 'info', 'noreply', 'no-reply', 'hello', 'email', 'contact', 'jhinoapp', 'jhino-app', 'jhinohq', 'webmaster', 'postmaster', 'abuse',
   'billing', 'payment', 'pay', 'store', 'shop', 'api-docs', 'developer', 'developers', 'test', 'demo', 'example', 'undefined', 'anonymous']);
 
-export function validUsername(v: unknown): string {
+/**
+ * A valid username. People choosing their own also stay off general words (faq, services, about-us…)
+ * and anything that reads as Jhino; `byAdmin` lets a super admin give those.
+ */
+export function validUsername(v: unknown, byAdmin = false): string {
   const s = String(v ?? '').trim().toLowerCase().replace(/^@/, '');
   if (!/^[a-z0-9](?:[a-z0-9_-]{1,28}[a-z0-9])$/.test(s)) {
     throw new HttpError(400, 'VALIDATION_FAILED', 'Use 3 to 30 lowercase letters, numbers, dashes or underscores, starting and ending with a letter or number.');
   }
   if (/[-_]{2}/.test(s)) throw new HttpError(400, 'VALIDATION_FAILED', 'Use one dash or underscore at a time.');
-  if (RESERVED.has(s) || MORE_RESERVED.has(s)) throw new HttpError(400, 'USERNAME_RESERVED', `"${s}" is kept by Jhino. Choose another username.`);
+  if (RESERVED.has(s)) throw new HttpError(400, 'USERNAME_RESERVED', `"${s}" is used by Jhino itself. Choose another username.`);
+  if (!byAdmin) {
+    if (MORE_RESERVED.has(s)) throw new HttpError(400, 'USERNAME_RESERVED', `"${s}" is kept by Jhino. Choose another username.`);
+    const why = reservedReason(s);
+    if (why) throw new HttpError(400, 'USERNAME_RESERVED', `"${s}" ${why}. Use your name or your studio's name.`);
+  }
   return s;
 }
 export const usernameFree = (name: string, exceptUserId?: string) => !rootNameInUse(name, { userId: exceptUserId });
@@ -59,9 +69,9 @@ export function nextUsernameChange(u: UserRow): string | null {
 }
 
 /** Set a username now (sign-up, admin-made accounts); falls back to a suggestion. */
-export function assignUsername(userId: string, wanted: string | null | undefined, from: string) {
+export function assignUsername(userId: string, wanted: string | null | undefined, from: string, byAdmin = false) {
   let name: string;
-  if (wanted) { name = validUsername(wanted); assertUsernameFree(name, userId); } else name = suggestUsername(from);
+  if (wanted) { name = validUsername(wanted, byAdmin); assertUsernameFree(name, userId); } else name = suggestUsername(from);
   db.prepare('UPDATE users SET username=? WHERE id=?').run(name, userId);
   return name;
 }
@@ -71,8 +81,10 @@ export function registerUsernames(app: FastifyInstance) {
   app.get('/api/usernames/check', async (req) => {
     limit(req, 'username-check', 120, 60_000);
     const raw = String((req.query as { name?: string }).name ?? '');
+    // A super admin (setting someone's name) may use general words; everyone else may not.
+    const admin = (req.query as { admin?: string }).admin === '1' && !!req.user?.is_admin && !req.pub && !req.desk;
     let name: string;
-    try { name = validUsername(raw); } catch (e) { return { name: raw.toLowerCase(), available: false, reason: (e as Error).message }; }
+    try { name = validUsername(raw, admin); } catch (e) { return { name: raw.toLowerCase(), available: false, reason: (e as Error).message }; }
     const me = req.user && !req.pub && !req.desk ? req.user.id : undefined;
     if (me && req.user?.username?.toLowerCase() === name) return { name, available: true, yours: true };
     return usernameFree(name, me) ? { name, available: true } : { name, available: false, reason: `@${name} is taken.` };

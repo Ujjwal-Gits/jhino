@@ -3,9 +3,10 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { config, makePassword } from './config.js';
 import { db, now, sha256, type UserRow } from './db.js';
 import { afterLogin, createSession, createUser, revokeSessions } from './auth.js';
-import { baseUrl } from './mail.js';
+import { baseUrl, sendMail, mails } from './mail.js';
 import { limit, securityEvent, setting } from './security.js';
 import { assignUsername } from './usernames.js';
+import { startTicket, twoFactorOn } from './twofactor.js';
 
 /*
  * Continue with Google / Apple (OpenID Connect, authorization code flow).
@@ -112,8 +113,11 @@ async function finish(req: FastifyRequest, reply: FastifyReply, p: Provider, par
   if (row.link_user) {
     // Adding Google/Apple to the signed-in account (from Security).
     if (linked && linked.user_id !== row.link_user) return reply.redirect('/account/security?error=oauth_taken');
+    const owner = db.prepare('SELECT * FROM users WHERE id=?').get(row.link_user) as UserRow | undefined;
+    if (!owner) return fail(reply, 'oauth_failed');
     if (!linked) db.prepare('INSERT INTO identities(provider,subject,user_id,email,created_at) VALUES(?,?,?,?,?)').run(p, claims.sub, row.link_user, claims.email, now());
     securityEvent(row.link_user, 'sign_in_method_added', req, p);
+    sendMail(owner.email, 'sign_in_method', mails.methodChanged(owner.name, p === 'google' ? 'Google' : 'Apple', claims.email ?? '', true));
     return landHome(reply, `/account/security?linked=${p}`);
   }
   if (linked) user = db.prepare('SELECT * FROM users WHERE id=?').get(linked.user_id) as UserRow | undefined;
@@ -124,6 +128,7 @@ async function finish(req: FastifyRequest, reply: FastifyReply, p: Provider, par
       if (!same.email_verified_at) {
         // We never confirmed who set this account's password: the provider just proved the email, so start clean.
         db.prepare('UPDATE users SET password_hash=?, password_set=0, email_verified_at=? WHERE id=?').run(sha256(makePassword(24)), now(), same.id);
+        db.prepare('DELETE FROM identities WHERE user_id=?').run(same.id);
         revokeSessions(same.id);
       }
       db.prepare('INSERT INTO identities(provider,subject,user_id,email,created_at) VALUES(?,?,?,?,?)').run(p, claims.sub, same.id, claims.email, now());
@@ -140,6 +145,7 @@ async function finish(req: FastifyRequest, reply: FastifyReply, p: Provider, par
   }
   if (!user) return fail(reply, 'oauth_no_email');
   if (user.disabled) return fail(reply, 'suspended');
+  if (twoFactorOn(user)) return landHome(reply, `/login?twofa=${encodeURIComponent(startTicket(user.id, p))}`);
   createSession(reply, user.id, req);
   afterLogin(req, user, p);
   // Home is their page (jhino.com/<username>); client accounts without one go to their apps.
@@ -168,6 +174,12 @@ export function registerOAuth(app: FastifyInstance) {
     if ((p !== 'google' && p !== 'apple') || !providerReady(p)) return fail(reply, 'oauth_off');
     limit(req, 'oauth-start', 30, 15 * 60_000);
     const link = (req.query as { link?: string }).link === '1' && req.user && !req.pub ? req.user.id : null;
+    if (link) {
+      // Adding a way in needs a confirmed email and a password check in the last 10 minutes.
+      if (!req.user!.email_verified_at) return reply.redirect('/account/security?error=verify_first');
+      const s = req.sessionHash ? db.prepare('SELECT auth_at FROM sessions WHERE id_hash=?').get(req.sessionHash) as { auth_at: string | null } | undefined : undefined;
+      if (!s?.auth_at || Date.parse(s.auth_at) < Date.now() - 10 * 60_000) return reply.redirect('/account/security?error=reauth');
+    }
     const state = crypto.randomBytes(24).toString('base64url');
     const nonce = crypto.randomBytes(24).toString('base64url');
     const verifier = crypto.randomBytes(32).toString('base64url');
@@ -201,8 +213,9 @@ export function registerOAuth(app: FastifyInstance) {
     if (u.password_set === 0 && (db.prepare('SELECT COUNT(*) n FROM identities WHERE user_id=?').get(u.id) as { n: number }).n <= 1) {
       return { ok: false, message: 'Set a password first, so you can still sign in.' };
     }
-    db.prepare('DELETE FROM identities WHERE user_id=? AND provider=?').run(u.id, p);
+    const gone = db.prepare('DELETE FROM identities WHERE user_id=? AND provider=?').run(u.id, p).changes;
     securityEvent(u.id, 'sign_in_method_removed', req, p);
+    if (gone) sendMail(u.email, 'sign_in_method', mails.methodChanged(u.name, p === 'google' ? 'Google' : 'Apple', '', false));
     return { ok: true };
   });
 }

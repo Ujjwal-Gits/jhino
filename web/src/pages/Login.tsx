@@ -2,6 +2,43 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, get, post } from '../api';
 import { Link, useRoute } from '../context';
 import { UsernameField, suggestFrom, useUsernameCheck } from './Username';
+import { CodeBoxes, CodeStep, type CodeInfo } from './CodeEntry';
+
+type SignInResult = { ok?: boolean; verify?: boolean; email?: string; twofa?: boolean; ticket?: string } & CodeInfo;
+
+/** The second step: a code from the authenticator app, or one of the recovery codes. */
+function TwoFactorStep({ ticket, onDone, onBack }: { ticket: string; onDone: () => Promise<void>; onBack: () => void }) {
+  const [code, setCode] = useState('');
+  const [recovery, setRecovery] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const submit = async (e?: FormEvent, v = code) => {
+    e?.preventDefault();
+    if (busy) return;
+    setBusy(true); setError('');
+    try { await post('/api/auth/2fa', { ticket, code: v }); await onDone(); }
+    catch (err) { setError(err instanceof ApiError ? err.message : 'Could not check the code.'); setCode(''); setBusy(false); }
+  };
+  return (
+    <form className="code-step" onSubmit={submit} noValidate>
+      <h2>Two-step sign-in</h2>
+      {recovery ? (
+        <>
+          <p className="muted">Enter one of the recovery codes you saved when you turned this on. Each works once.</p>
+          <label className="field"><span>Recovery code</span><input className="input mono" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="one-time-code" autoFocus placeholder="xxxxx-xxxxx" /></label>
+        </>
+      ) : (
+        <>
+          <p className="muted">Open your authenticator app and enter the 6-digit code for Jhino.</p>
+          <CodeBoxes value={code} onChange={(v) => { setCode(v); setError(''); }} onComplete={(v) => submit(undefined, v)} disabled={busy} invalid={!!error} label="Code from your authenticator app" />
+        </>
+      )}
+      {error && <p className="error-text" role="alert">{error}</p>}
+      <button className="btn primary lg" disabled={busy || (recovery ? code.trim().length < 8 : code.length !== 6)}>{busy && <span className="spin" />}Sign in</button>
+      <p className="hint"><button type="button" className="link" onClick={() => { setRecovery(!recovery); setCode(''); setError(''); }}>{recovery ? 'Use the app instead' : 'No phone? Use a recovery code'}</button> · <button type="button" className="link" onClick={onBack}>Start over</button></p>
+    </form>
+  );
+}
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -55,18 +92,36 @@ export function Login({ onDone }: { onDone: () => Promise<void> }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(() => OAUTH_ERRORS[new URLSearchParams(location.search).get('error') ?? ''] ?? '');
   const [busy, setBusy] = useState(false);
+  const [code, setCode] = useState<{ email: string; info: CodeInfo } | null>(null);
+  const [ticket, setTicket] = useState<string | null>(() => new URLSearchParams(location.search).get('twofa'));
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true); setError('');
     try {
-      await post('/api/auth/login', { email, password });
+      const r = await post<SignInResult>('/api/auth/login', { email, password });
+      if (r.verify) { setCode({ email: r.email ?? email, info: r }); setBusy(false); return; }
+      if (r.twofa && r.ticket) { setTicket(r.ticket); setBusy(false); return; }
       await onDone();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not sign in.');
       setBusy(false);
     }
   };
+
+  if (ticket) {
+    return <AuthLayout><TwoFactorStep ticket={ticket} onDone={onDone} onBack={() => { setTicket(null); history.replaceState(null, '', '/login'); }} /></AuthLayout>;
+  }
+  if (code) {
+    return (
+      <AuthLayout>
+        <CodeStep title="Confirm your email" email={code.email} info={code.info} submitLabel="Confirm and sign in"
+          onSubmit={async (c) => { await post('/api/auth/verify-login', { email: code.email, code: c }); await onDone(); }}
+          onResend={() => post<SignInResult>('/api/auth/login', { email, password })}
+          extra={<p className="hint">Your account opens once this email is confirmed. <button type="button" className="link" onClick={() => setCode(null)}>Use another account</button></p>} />
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout>
@@ -99,21 +154,34 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
   const check = useUsernameCheck(form.username);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [code, setCode] = useState<CodeInfo | null>(null);
   const plan = new URLSearchParams(location.search).get('plan');
+  const next = () => (plan === 'plus' || plan === 'pro' ? `/account/plan?choose=${plan}&period=${new URLSearchParams(location.search).get('period') === 'year' ? 'year' : 'month'}` : `/${form.username}`);
   // Suggest a username from the email until they type their own.
   const setEmail = (email: string) => setForm((f) => ({ ...f, email, username: touched ? f.username : suggestFrom(email) }));
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true); setError('');
     try {
-      await post('/api/auth/signup', form);
+      const r = await post<SignInResult>('/api/auth/signup', form);
+      if (r.verify) { setCode(r); setBusy(false); return; }
       await onDone();
-      go(plan === 'plus' || plan === 'pro' ? `/account/plan?choose=${plan}&period=${new URLSearchParams(location.search).get('period') === 'year' ? 'year' : 'month'}` : `/${form.username}`, true);
+      go(next(), true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not create the account.');
       setBusy(false);
     }
   };
+  if (code) {
+    return (
+      <AuthLayout>
+        <CodeStep title="Confirm your email" email={form.email} info={code} submitLabel="Confirm and open Jhino"
+          onSubmit={async (c) => { await post('/api/auth/verify-login', { email: form.email, code: c }); await onDone(); go(next(), true); }}
+          onResend={() => post<SignInResult>('/api/auth/login', { email: form.email, password: form.password })}
+          extra={<p className="hint">Wrong address? <button type="button" className="link" onClick={() => setCode(null)}>Go back and change it</button></p>} />
+      </AuthLayout>
+    );
+  }
   if (!o.signups) {
     return <AuthLayout><div className="auth-note"><h2>Accounts are by invitation</h2><p className="muted">New accounts are not open right now. If a studio gave you a sign-in, use it to sign in.</p><Link to="/login" className="btn primary lg">Sign in</Link></div></AuthLayout>;
   }
@@ -166,13 +234,13 @@ export function Forgot() {
       {sent ? (
         <form onSubmit={reset} noValidate>
           <h2>Enter the code</h2>
-          <p className="muted">If an account uses <b>{email}</b>, we sent it a 6-digit code (and a link). It works once, for 30 minutes.</p>
-          <label className="field"><span>Code from the email</span><input className="input mono code-input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.replace(/\D/g, '') })} required autoFocus /></label>
+          <p className="muted">If an account uses <b>{email}</b>, we sent it a 6-digit code. It works once, for 5 minutes; asked again within that time, you get the same code.</p>
+          <CodeBoxes value={f.code} onChange={(v) => setF({ ...f, code: v })} label="Code from the email" />
           <label className="field"><span>New password</span><input className="input" type="password" autoComplete="new-password" value={f.a} onChange={(e) => setF({ ...f, a: e.target.value })} required minLength={10} /><small className="hint">At least 10 characters.</small></label>
           <label className="field"><span>The same again</span><input className="input" type="password" autoComplete="new-password" value={f.b} onChange={(e) => setF({ ...f, b: e.target.value })} required /></label>
           {error && <p className="error-text" role="alert">{error}</p>}
           <button className="btn primary lg" disabled={busy || f.code.length !== 6 || f.a.length < 10 || !f.b}>{busy && <span className="spin" />}Change password</button>
-          <p className="hint">No email? Check spam, or <button type="button" className="link" onClick={() => send()} disabled={busy}>send a new code</button>. Signed in with a sign-in ID from a studio (not an email)? Ask them for a new password.</p>
+          <p className="hint">No email? Check spam, or <button type="button" className="link" onClick={() => send()} disabled={busy}>send it again</button>. Signed in with a sign-in ID from a studio (not an email)? Ask them for a new password.</p>
         </form>
       ) : (
         <form onSubmit={send} noValidate>
@@ -223,33 +291,18 @@ export function Reset() {
 export function Verify({ signedIn, onDone }: { signedIn: boolean; onDone: () => Promise<void> }) {
   const token = new URLSearchParams(location.search).get('token') ?? '';
   const [state, setState] = useState<{ ok?: boolean; kind?: string; email?: string; error?: string }>({});
-  const [code, setCode] = useState('');
-  const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (!token) return;
     post<{ kind: string; email?: string }>('/api/auth/verify', { token })
       .then((r) => { setState({ ok: true, kind: r.kind, email: r.email }); onDone().catch(() => {}); }, (e) => setState({ error: e instanceof ApiError ? e.message : 'Could not confirm.' }));
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
-  const byCode = async (e: FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
-    try { const r = await post<{ kind: string; email?: string }>('/api/auth/verify-code', { code }); setState({ ok: true, kind: r.kind, email: r.email }); onDone().catch(() => {}); }
-    catch (err) { setState({ error: err instanceof ApiError ? err.message : 'Could not confirm.' }); }
-    setBusy(false);
-  };
-  const resend = async () => { try { await post('/api/account/verify/resend'); setState({}); setCode(''); } catch (err) { setState({ error: err instanceof ApiError ? err.message : 'Could not send.' }); } };
   if (!token && !state.ok) {
     return (
       <AuthLayout>
         {signedIn ? (
-          <form onSubmit={byCode} noValidate>
-            <h2>Confirm your email</h2>
-            <p className="muted">Enter the 6-digit code from the email we sent you.</p>
-            <label className="field"><span>Code</span><input className="input mono code-input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} autoFocus /></label>
-            {state.error && <p className="error-text" role="alert">{state.error}</p>}
-            <button className="btn primary lg" disabled={busy || code.length !== 6}>{busy && <span className="spin" />}Confirm</button>
-            <p className="hint">No email? Check spam, or <button type="button" className="link" onClick={resend}>send a new code</button>.</p>
-          </form>
+          <CodeStep title="Confirm your email" email="your email" info={{}}
+            onSubmit={async (c) => { const r = await post<{ kind: string; email?: string }>('/api/auth/verify-code', { code: c }); setState({ ok: true, kind: r.kind, email: r.email }); onDone().catch(() => {}); }}
+            onResend={() => post<CodeInfo>('/api/account/verify/resend')} />
         ) : (
           <div className="auth-note"><h2>Sign in to confirm</h2><p className="muted">Sign in, then enter the code from the email. Or open the link in the email.</p><Link to="/login" className="btn primary lg">Sign in</Link></div>
         )}

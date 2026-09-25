@@ -109,7 +109,7 @@ export function uploadLimitBytes(owner: PlanFields | undefined, uploader: Pick<U
   return Math.min(serverCap, featuresOf(owner).maxUploadMB * 1048576);
 }
 type PlanFields = Pick<UserRow, 'plan' | 'plan_expires_at' | 'is_admin'>;
-export const isPlan = (p: unknown): p is PlanId => typeof p === 'string' && p in PLANS;
+export const isPlan = (p: unknown): p is PlanId => typeof p === 'string' && Object.hasOwn(PLANS, p);
 export const isPeriod = (p: unknown): p is Period => p === 'month' || p === 'year';
 export const priceOf = (plan: PlanId, period: Period) => (period === 'year' ? PLANS[plan].yearly : PLANS[plan].price);
 export const npr = (n: number) => `NPR ${n.toLocaleString('en-IN')}`;

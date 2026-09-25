@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { track } from './analytics.js';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { db, newId, now, type UserRow } from './db.js';
 import { HttpError, requireAdmin, requireCreator } from './auth.js';
@@ -34,9 +35,12 @@ function validTarget(raw: unknown, req: FastifyRequest) {
   if (s.length > 2000) throw new HttpError(400, 'VALIDATION_FAILED', 'That address is too long (up to 2,000 characters).');
   // A link to another short link on this site would only loop.
   const here = new URL(baseFor(req));
-  if (u.host === here.host) {
-    const first = u.pathname.split('/').filter(Boolean);
-    if (first.length === 1 && db.prepare('SELECT 1 FROM short_links WHERE code=? COLLATE NOCASE').get(first[0])) throw new HttpError(400, 'VALIDATION_FAILED', 'That is already a short link.');
+  if (u.host === here.host || u.host === `www.${here.host}`) {
+    const seg = u.pathname.split('/').filter(Boolean).map((x) => decodeURIComponent(x));
+    const loop = seg[0] === 'go' || seg[0] === 'u'
+      || (seg.length === 1 && db.prepare('SELECT 1 FROM short_links WHERE code=? COLLATE NOCASE AND root=1').get(seg[0]))
+      || (seg.length === 2 && db.prepare('SELECT 1 FROM short_links l JOIN users o ON o.id=l.owner_id WHERE l.code=? COLLATE NOCASE AND o.username=? COLLATE NOCASE').get(seg[1], seg[0]));
+    if (loop) throw new HttpError(400, 'VALIDATION_FAILED', 'That is already a short link here. Link to where it goes instead.');
   }
   return u.toString();
 }
@@ -83,7 +87,11 @@ export function registerLinks(app: FastifyInstance) {
     if (!m || RESERVED.has(m[1].toLowerCase())) return;
     const l = (m[2] ? findAt.get(m[1], m[2]) : findRoot.get(m[1])) as { id: string; url: string } | undefined;
     if (!l) return;
-    if (req.method === 'GET') { const t = now(); db.transaction(() => { count.run(t, l.id); day.run(l.id, t.slice(0, 10)); })(); }
+    if (req.method === 'GET') {
+      const t = now();
+      db.transaction(() => { count.run(t, l.id); day.run(l.id, t.slice(0, 10)); })();
+      track(req, { area: 'link', key: l.id, title: m[2] ? `/${m[1]}/${m[2]}` : `/${m[1]}`, ref: req.headers.referer });
+    }
     reply.header('Cache-Control', 'no-store').header('Referrer-Policy', 'strict-origin-when-cross-origin').redirect(l.url, 302);
     return reply;
   });

@@ -14,57 +14,12 @@ import { clientInfo, deviceName, imageType, limit, maskIp, securityEvent, settin
 import { ESSENTIAL, notifyAdmins, prefsOf, usage, type Category } from './plans.js';
 import { closeUser } from './realtime.js';
 import { assertUsernameFree, assignUsername, nextUsernameChange, validUsername } from './usernames.js';
+import { codeInfo, issueCode, mustVerifyToSignIn, sendVerifyCode, useCode, useToken } from './codes.js';
+import { beginSetup, checkSecondFactor, finishSetup, recoveryLeft, turnOff } from './twofactor.js';
 
-/* ---------------- single-use links ---------------- */
-type Purpose = 'verify' | 'reset' | 'email_change';
-/** An email link and, with it, a 6-digit code that does the same (typed where the email was asked for). */
-function makeToken(userId: string, purpose: Purpose, hours: number, data: string | null = null) {
-  // A new link replaces older unused ones for the same purpose.
-  db.prepare('DELETE FROM auth_tokens WHERE user_id=? AND purpose=? AND used_at IS NULL').run(userId, purpose);
-  const token = crypto.randomBytes(32).toString('base64url');
-  const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
-  db.prepare('INSERT INTO auth_tokens(token_hash,user_id,purpose,data,created_at,expires_at,code_hash) VALUES(?,?,?,?,?,?,?)')
-    .run(sha256(token), userId, purpose, data, now(), new Date(Date.now() + hours * 3600e3).toISOString(), codeHash(userId, purpose, code));
-  return { token, code };
-}
-const codeHash = (userId: string, purpose: string, code: string) => sha256(`code:${userId}:${purpose}:${code}`);
-/**
- * Use a 6-digit code. Five wrong tries and the code stops working (ask for a new one), so it cannot be
- * guessed; the same single use and expiry as the link.
- */
-function useCode(userId: string, purposes: Purpose[], code: unknown) {
-  const c = String(code ?? '').replace(/\s+/g, '');
-  const row = db.prepare(`SELECT * FROM auth_tokens WHERE user_id=? AND purpose IN (${purposes.map(() => '?').join(',')}) AND used_at IS NULL ORDER BY created_at DESC LIMIT 1`)
-    .get(userId, ...purposes) as { token_hash: string; user_id: string; purpose: Purpose; data: string | null; expires_at: string; used_at: string | null; code_hash: string | null; attempts: number } | undefined;
-  const bad = () => new HttpError(400, 'CODE_INVALID', 'That code is not right. Check the latest email, or ask for a new code.');
-  if (!row || !row.code_hash) throw bad();
-  if (Date.parse(row.expires_at) < Date.now()) throw new HttpError(400, 'CODE_EXPIRED', 'That code has expired. Ask for a new one.');
-  if (row.attempts >= 5) throw new HttpError(429, 'CODE_LOCKED', 'Too many wrong codes. Ask for a new one.');
-  if (!/^\d{6}$/.test(c) || !crypto.timingSafeEqual(Buffer.from(codeHash(userId, row.purpose, c)), Buffer.from(row.code_hash))) {
-    db.prepare('UPDATE auth_tokens SET attempts=attempts+1 WHERE token_hash=?').run(row.token_hash);
-    throw bad();
-  }
-  if (!db.prepare('UPDATE auth_tokens SET used_at=? WHERE token_hash=? AND used_at IS NULL').run(now(), row.token_hash).changes) throw bad();
-  return row;
-}
-function useToken(token: unknown, purposes: Purpose[]) {
-  const t = String(token ?? '');
-  if (!/^[\w-]{20,100}$/.test(t)) throw new HttpError(400, 'TOKEN_INVALID', 'This link is not valid. Ask for a new one.');
-  const row = db.prepare('SELECT * FROM auth_tokens WHERE token_hash=?').get(sha256(t)) as { token_hash: string; user_id: string; purpose: Purpose; data: string | null; expires_at: string; used_at: string | null } | undefined;
-  if (!row || !purposes.includes(row.purpose)) throw new HttpError(400, 'TOKEN_INVALID', 'This link is not valid. Ask for a new one.');
-  if (row.used_at) throw new HttpError(400, 'TOKEN_USED', 'This link was already used. Ask for a new one if you need it.');
-  if (Date.parse(row.expires_at) < Date.now()) throw new HttpError(400, 'TOKEN_EXPIRED', 'This link has expired. Ask for a new one.');
-  // Only one request can use it.
-  if (!db.prepare('UPDATE auth_tokens SET used_at=? WHERE token_hash=? AND used_at IS NULL').run(now(), row.token_hash).changes) {
-    throw new HttpError(400, 'TOKEN_USED', 'This link was already used.');
-  }
-  return row;
-}
-setInterval(() => db.prepare('DELETE FROM auth_tokens WHERE expires_at < ?').run(new Date(Date.now() - 7 * 864e5).toISOString()), 6 * 3600e3).unref();
-
+/* ---------------- one-time codes: see codes.ts ---------------- */
 export function sendVerification(req: FastifyRequest | null, u: UserRow) {
-  const { token, code } = makeToken(u.id, 'verify', 48);
-  sendMail(u.email, 'verify', mails.verify(u.name, `${baseUrl(req)}/verify?token=${token}`, code));
+  return sendVerifyCode(req, u);
 }
 
 /* ---------------- avatars ---------------- */
@@ -157,13 +112,20 @@ export function registerAccount(app: FastifyInstance) {
     // The username is the name in every address they make (jhino.com/<username>): unique, checked first.
     const username = b.username ? validUsername(b.username) : null;
     if (username) assertUsernameFree(username);
-    if (db.prepare('SELECT 1 FROM users WHERE email=?').get(email)) throw new HttpError(409, 'EMAIL_TAKEN', 'An account with this email already exists. Sign in, or reset your password.');
+    const existing = db.prepare("SELECT * FROM users WHERE email=? AND kind='person'").get(email) as UserRow | undefined;
+    if (existing) {
+      limit(req, 'signup-existing', 3, 3600_000, existing.id);
+      sendMail(existing.email, 'signup_existing', mails.signupExisting(existing.name, `${baseUrl(req)}/login`, `${baseUrl(req)}/forgot`));
+      return { ok: true, verify: true, email, sends: 1, maxSends: 5, expiresAt: new Date(Date.now() + 5 * 60_000).toISOString(), again: false };
+    }
     const u = await createUser(email, name, password, false, { plan: 'free' });
     try { assignUsername(u.id, username, email); } catch (e) { db.prepare('DELETE FROM users WHERE id=?').run(u.id); throw e; }
-    createSession(reply, u.id, req);
-    afterLogin(req, u, 'signup');
-    sendVerification(req, u);
-    return { ok: true };
+    // The account opens once the email is confirmed with the code (POST /api/auth/verify-login).
+    db.prepare('UPDATE users SET verify_required=1 WHERE id=?').run(u.id);
+    securityEvent(u.id, 'signup', req);
+    const c = sendVerifyCode(req, u);
+    void reply;
+    return { ok: true, verify: true, email, ...codeInfo(c) };
   });
 
   /* ---------- confirm email (new account, or a changed email) ---------- */
@@ -184,6 +146,22 @@ export function registerAccount(app: FastifyInstance) {
     sendMail(u.email, 'email_changed', mails.emailChanged(u.name, next));
     sendMail(next, 'email_changed', mails.emailChanged(u.name, next));
     return { ok: true, kind: 'email_change', email: next };
+  });
+
+  /** Signed out: the code that confirms a new account's email, which also signs the person in. */
+  app.post('/api/auth/verify-login', async (req, reply) => {
+    limit(req, 'verify-login', 20, 15 * 60_000);
+    const b = (req.body ?? {}) as { email?: string; code?: string };
+    const email = String(b.email ?? '').trim();
+    const u = email ? db.prepare("SELECT * FROM users WHERE email=? AND kind='person'").get(email) as UserRow | undefined : undefined;
+    if (!u || !mustVerifyToSignIn(u)) throw new HttpError(400, 'CODE_INVALID', 'That code is not right. Check the latest email, or ask for the code again.');
+    if (u.disabled) throw new HttpError(403, 'SUSPENDED', 'This account is suspended. Contact support if you think this is a mistake.');
+    useCode(u.id, ['verify'], b.code);
+    db.prepare('UPDATE users SET email_verified_at=? WHERE id=?').run(now(), u.id);
+    securityEvent(u.id, 'email_verified', req);
+    createSession(reply, u.id, req);
+    afterLogin(req, u, 'code');
+    return { ok: true, username: u.username ?? null };
   });
 
   /** Confirm the email (or a new email) with the 6-digit code from the email, signed in. */
@@ -208,23 +186,26 @@ export function registerAccount(app: FastifyInstance) {
 
   app.post('/api/account/verify/resend', async (req) => {
     const u = requireUser(req);
-    limit(req, 'verify-resend', 3, 3600_000, u.id);
+    limit(req, 'verify-resend', 20, 3600_000, u.id);
     if (u.email_verified_at) return { ok: true, already: true };
     if (!/@/.test(u.email)) throw new HttpError(400, 'VALIDATION_FAILED', 'Your sign-in ID is not an email address. Add an email in Account first.');
-    sendVerification(req, u);
-    return { ok: true };
+    return { ok: true, email: u.email, ...codeInfo(sendVerification(req, u)) };
   });
 
   /* ---------- forgot / reset password ---------- */
   app.post('/api/auth/forgot', async (req) => {
-    limit(req, 'forgot', 5, 15 * 60_000);
+    limit(req, 'forgot', 10, 15 * 60_000);
     const email = String((req.body as { email?: string })?.email ?? '').trim();
     const u = email ? db.prepare("SELECT * FROM users WHERE email=? AND kind='person' AND disabled=0").get(email) as UserRow | undefined : undefined;
     if (u && /@/.test(u.email)) {
-      limit(req, 'forgot-user', 3, 3600_000, u.id);
-      const { token, code } = makeToken(u.id, 'reset', 0.5);
-      sendMail(u.email, 'reset', mails.reset(u.name, `${baseUrl(req)}/reset?token=${token}`, code));
-      securityEvent(u.id, 'reset_requested', req);
+      try {
+        const { token, code } = issueCode(u.id, 'reset');
+        sendMail(u.email, 'reset', mails.reset(u.name, `${baseUrl(req)}/reset?token=${token}`, code));
+        securityEvent(u.id, 'reset_requested', req);
+      } catch (e) {
+        // Sent 5 times, or asked again within seconds: say nothing different, or this would reveal the account.
+        if (!(e instanceof HttpError && e.status === 429)) throw e;
+      }
     }
     // The same answer either way, so this cannot be used to find out who has an account.
     return { ok: true };
@@ -237,8 +218,9 @@ export function registerAccount(app: FastifyInstance) {
     const row = useToken(b.token, ['reset']);
     const u = db.prepare('SELECT * FROM users WHERE id=?').get(row.user_id) as UserRow | undefined;
     if (!u) throw new HttpError(400, 'TOKEN_INVALID', 'This link is not valid.');
-    db.prepare('UPDATE users SET password_hash=?, password_set=1, password_changed_at=?, email_verified_at=COALESCE(email_verified_at, ?) WHERE id=?')
+    db.prepare('UPDATE users SET password_hash=?, password_set=1, own_password=1, password_changed_at=?, email_verified_at=COALESCE(email_verified_at, ?) WHERE id=?')
       .run(await hashPassword(password), now(), now(), u.id);
+    if (!u.email_verified_at) db.prepare('DELETE FROM identities WHERE user_id=?').run(u.id);
     revokeSessions(u.id);
     securityEvent(u.id, 'password_reset', req);
     sendMail(u.email, 'password_changed', mails.passwordChanged(u.name, deviceName(clientInfo(req).ua), `${baseUrl(req)}/forgot`));
@@ -255,8 +237,9 @@ export function registerAccount(app: FastifyInstance) {
     if (!u) throw new HttpError(400, 'CODE_INVALID', 'That code is not right. Check the latest email, or ask for a new code.');
     limit(req, 'reset-code-user', 10, 3600_000, u.id);
     useCode(u.id, ['reset'], b.code);
-    db.prepare('UPDATE users SET password_hash=?, password_set=1, password_changed_at=?, email_verified_at=COALESCE(email_verified_at, ?) WHERE id=?')
+    db.prepare('UPDATE users SET password_hash=?, password_set=1, own_password=1, password_changed_at=?, email_verified_at=COALESCE(email_verified_at, ?) WHERE id=?')
       .run(await hashPassword(password), now(), now(), u.id);
+    if (!u.email_verified_at) db.prepare('DELETE FROM identities WHERE user_id=?').run(u.id);
     revokeSessions(u.id);
     securityEvent(u.id, 'password_reset', req, 'code');
     sendMail(u.email, 'password_changed', mails.passwordChanged(u.name, deviceName(clientInfo(req).ua), `${baseUrl(req)}/forgot`));
@@ -325,7 +308,7 @@ export function registerAccount(app: FastifyInstance) {
     const b = (req.body ?? {}) as { current?: string; next?: string };
     const next = validatePassword(b.next);
     await reauth(req, b.current);
-    db.prepare('UPDATE users SET password_hash=?, password_set=1, password_changed_at=? WHERE id=?').run(await hashPassword(next), now(), u.id);
+    db.prepare('UPDATE users SET password_hash=?, password_set=1, own_password=1, password_changed_at=? WHERE id=?').run(await hashPassword(next), now(), u.id);
     revokeSessions(u.id, req.sessionHash);
     securityEvent(u.id, 'password_changed', req);
     sendMail(u.email, 'password_changed', mails.passwordChanged(u.name, deviceName(clientInfo(req).ua), `${baseUrl(req)}/forgot`));
@@ -337,18 +320,55 @@ export function registerAccount(app: FastifyInstance) {
     const b = (req.body ?? {}) as { email?: string; password?: string };
     const email = validateRealEmail(b.email);
     await reauth(req, b.password);
-    limit(req, 'email-change', 5, 3600_000, u.id);
+    limit(req, 'email-change', 15, 3600_000, u.id);
     if (email === u.email.toLowerCase()) throw new HttpError(400, 'VALIDATION_FAILED', 'That is already your email.');
     if (db.prepare('SELECT 1 FROM users WHERE email=?').get(email)) throw new HttpError(409, 'EMAIL_TAKEN', 'Another account uses that email.');
-    const { token, code } = makeToken(u.id, 'email_change', 48, email);
-    sendMail(email, 'email_change', mails.emailChangeConfirm(u.name, `${baseUrl(req)}/verify?token=${token}`, code));
-    sendMail(u.email, 'email_change_requested', mails.emailChangeRequested(u.name, email));
+    const c = issueCode(u.id, 'email_change', email);
+    sendMail(email, 'email_change', mails.emailChangeConfirm(u.name, `${baseUrl(req)}/verify?token=${c.token}`, c.code));
+    if (!c.again && u.email_verified_at) sendMail(u.email, 'email_change_requested', mails.emailChangeRequested(u.name, email));
     securityEvent(u.id, 'email_change_requested', req, email);
-    return { ok: true, pendingEmail: email };
+    return { ok: true, pendingEmail: email, ...codeInfo(c) };
   });
   app.delete('/api/account/email/pending', async (req) => {
     const u = requireUser(req);
     db.prepare("DELETE FROM auth_tokens WHERE user_id=? AND purpose='email_change' AND used_at IS NULL").run(u.id);
+    return { ok: true };
+  });
+
+  /* ---------- two-step sign-in ---------- */
+  app.get('/api/account/2fa', async (req) => {
+    const u = requireUser(req);
+    return { enabled: !!u.totp_enabled_at, enabledAt: u.totp_enabled_at ?? null, recoveryLeft: u.totp_enabled_at ? recoveryLeft(u.id) : 0 };
+  });
+  app.post('/api/account/2fa/setup', async (req) => {
+    const u = requireUser(req);
+    if (req.pub || req.desk) throw new HttpError(403, 'FORBIDDEN', 'Not here.');
+    await reauth(req, (req.body as { password?: string } | undefined)?.password);
+    return beginSetup(u);
+  });
+  app.post('/api/account/2fa/enable', async (req) => {
+    const u = requireUser(req);
+    limit(req, '2fa-enable', 10, 15 * 60_000, u.id);
+    const codes = finishSetup(u, (req.body as { code?: string } | undefined)?.code);
+    securityEvent(u.id, '2fa_enabled', req);
+    sendMail(u.email, '2fa', mails.twoFactor(u.name, true));
+    return { ok: true, recovery: codes };
+  });
+  app.post('/api/account/2fa/disable', async (req) => {
+    const u = requireUser(req);
+    const b = (req.body ?? {}) as { password?: string; code?: string };
+    await reauth(req, b.password);
+    limit(req, '2fa-disable', 10, 15 * 60_000, u.id);
+    checkSecondFactor(u.id, b.code);
+    turnOff(u.id);
+    securityEvent(u.id, '2fa_disabled', req);
+    sendMail(u.email, '2fa', mails.twoFactor(u.name, false));
+    return { ok: true };
+  });
+
+  /** Check the password again (before adding a sign-in method); valid for 10 minutes. */
+  app.post('/api/account/reauth', async (req) => {
+    await reauth(req, (req.body as { password?: string } | undefined)?.password);
     return { ok: true };
   });
 

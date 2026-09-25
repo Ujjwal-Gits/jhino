@@ -4,10 +4,10 @@ import type { FastifyInstance } from 'fastify';
 import { config, makePassword } from './config.js';
 import { db, newId, now, type AppRow, type UserRow } from './db.js';
 import { HttpError, canCreateApps, createUser, hashPassword, requireAdmin, revokeSessions, validateEmail, validateName, validatePassword } from './auth.js';
-import { audit, deviceName, maskIp, setSetting, setting } from './security.js';
+import { audit, deviceName, limit, maskIp, setSetting, setting } from './security.js';
 import { PLANS, activePlan, isPeriod, isPlan, notify, periodEnd, planLimitsInfo, publicPlans, savePlans, usage, type Category, type PlanId } from './plans.js';
 import { deleteAccount } from './account.js';
-import { mailReady, mails, sendMail } from './mail.js';
+import { mailReady, mailSender, mails, sendMail } from './mail.js';
 import { providerReady } from './oauth.js';
 import { RESERVED, assertRootFree, baseFor, setSharing, shareInfo, validSlug } from './publicshare.js';
 import { assertUsernameFree, assignUsername, validUsername } from './usernames.js';
@@ -144,7 +144,7 @@ export function registerSuperAdmin(app: FastifyInstance) {
     const plan = isPlan(b.plan) ? b.plan : 'free';
     const password = b.password ? validatePassword(b.password) : makePassword(12);
     const u = await createUser(validateEmail(b.email), validateName(b.name), password, !!b.superAdmin, { verified: true, plan });
-    try { assignUsername(u.id, b.username || null, u.email); } catch (e) { db.prepare('DELETE FROM users WHERE id=?').run(u.id); throw e; }
+    try { assignUsername(u.id, b.username || null, u.email, true); } catch (e) { db.prepare('DELETE FROM users WHERE id=?').run(u.id); throw e; }
     if (plan !== 'free' && !b.superAdmin) {
       grant(u.id, plan, admin.id, 'admin');
       // Paid for a month or a year: the plan ends then. No period: it runs until changed.
@@ -178,7 +178,7 @@ export function registerSuperAdmin(app: FastifyInstance) {
     if (b.name !== undefined) { db.prepare('UPDATE users SET name=? WHERE id=?').run(validateName(b.name), u.id); audit(req, 'user.rename', 'user', u.id, `${u.name} → ${b.name}`); }
     // A super admin can set anyone's username, any time.
     if (b.username !== undefined && String(b.username).trim().toLowerCase() !== (u.username ?? '').toLowerCase()) {
-      const name = validUsername(b.username);
+      const name = validUsername(b.username, true);
       assertUsernameFree(name, u.id);
       db.prepare('UPDATE users SET username=? WHERE id=?').run(name, u.id);
       audit(req, 'user.username', 'user', u.id, `${u.username ?? ''} → ${name}`);
@@ -480,11 +480,21 @@ export function registerSuperAdmin(app: FastifyInstance) {
   });
 
   /* ---------- settings ---------- */
+  /** Send a test email (to check Resend or SMTP). The result shows in Recent emails. */
+  app.post('/api/admin/mail/test', async (req) => {
+    const admin = requireAdmin(req);
+    limit(req, 'mail-test', 10, 3600_000, admin.id);
+    const to = validateEmail((req.body as { to?: string } | undefined)?.to ?? admin.email);
+    sendMail(to, 'test', mails.test(to));
+    audit(req, 'mail.test', 'user', admin.id, to);
+    return { ok: true, to, sender: mailSender() };
+  });
+
   app.get('/api/admin/settings', async (req) => {
     requireAdmin(req);
     return {
       uploads: setting('uploads') === 'on', signups: setting('signups') === 'on', supportEmail: setting('support_email') || config.mail.supportEmail,
-      mailReady: mailReady(), google: providerReady('google'), apple: providerReady('apple'), publicUrl: config.publicUrl || baseFor(req),
+      mailReady: mailReady(), mailSender: mailSender(), mailFrom: config.mail.from, google: providerReady('google'), apple: providerReady('apple'), publicUrl: config.publicUrl || baseFor(req),
     };
   });
   app.put('/api/admin/settings', async (req) => {

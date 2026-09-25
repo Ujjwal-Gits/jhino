@@ -91,7 +91,9 @@ async function compress(id: string) {
   const out = `${target}.part.mp4`;
   fs.rmSync(out, { force: true });
   const args = [
-    '-hide_banner', '-nostdin', '-y', '-i', src,
+    '-hide_banner', '-nostdin', '-y',
+    '-protocol_whitelist', 'file', '-format_whitelist', 'mov,mp4,m4a,3gp,3g2,mj2,matroska,webm,avi,flv,mpegts,mpeg',
+    '-i', src,
     '-map', '0:v:0', '-map', '0:a:0?',
     '-vf', "scale=w='if(gte(iw,ih),min(1920,iw),-2)':h='if(gte(iw,ih),-2,min(1920,ih))':flags=lanczos,format=yuv420p",
     '-c:v', 'libx264', '-preset', 'faster', '-crf', '24', '-profile:v', 'high',

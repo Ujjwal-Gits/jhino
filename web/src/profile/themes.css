@@ -2079,874 +2079,286 @@
    PRO NEPALI HERITAGE (10 authentic artisan designs)
    ============================================================================================= */
 
-/* ---- 1. Bhaktapur Terracotta: Multi-tiered Newari Nyatapola pagoda, baked clay Dachi Appa bricks, brass temple bells. ---- */
+/* ======================================================================
+   Pro: ten designs from Nepal. Each is a real material with one ornament
+   (drawn as a small SVG), flat surfaces and a highlight that stays readable.
+   ====================================================================== */
+/* ---- Bhaktapur Terracotta: Newari brickwork and lime mortar; carved-wood serif; clay-red buttons. ---- */
 .pf[data-theme='bhaktapur-terracotta'] {
-  --pf-bg: #2d100b;
-  --pf-fg: #fbf3ec;
-  --pf-muted: #c99a8b;
-  --pf-accent: #d85d38;
-  --pf-accent-fg: #ffffff;
-  --pf-card: #4a1c15;
-  --pf-card-fg: #fbf3ec;
-  --pf-card-muted: #c99a8b;
-  --pf-line: #6b281c;
-  --pf-radius: 4px;
-  --pf-font-display: var(--f-dm);
-  --pf-name-size: 34px;
-  --pf-name-weight: 500;
-  --pf-avatar-bg: #220c08;
-  --pf-avatar-fg: #e5b25d;
-  --pf-gap: 14px;
-  --nyatapola: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='96' viewBox='0 0 720 96'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23ffe49e'/%3E%3Cstop offset='100%25' stop-color='%23c28c2e'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M360 4l6 14h-12zM360 18a4 4 0 1 0 0 8 4 4 0 0 0 0-8z' fill='url(%23g)'/%3E%3Cpath d='M360 26L260 48c20 3 40 4 60 4h80c20 0 40-1 60-4L360 26z' fill='%23b84328'/%3E%3Cpath d='M255 48c-12-6-20-14-22-20 4 8 14 16 27 20zM465 48c12-6 20-14 22-20-4 8-14 16-27 20z' fill='url(%23g)'/%3E%3Crect x='310' y='52' width='100' height='10' fill='%23220c08'/%3E%3Cpath d='M360 56L180 84c45 4 90 6 135 6h90c45 0 90-2 135-6L360 56z' fill='%238c2f1a'/%3E%3Cpath d='M175 84c-18-8-30-18-34-26 6 10 20 20 38 26zM545 84c18-8 30-18 34-26-6 10-20 20-38 26z' fill='url(%23g)'/%3E%3Cpath d='M220 86l3 7h-6zM220 93a2 2 0 1 0 0 3 2 2 0 0 0 0-3z M290 88l3 7h-6zM290 95a2 2 0 1 0 0 3 2 2 0 0 0 0-3z M360 90l3 7h-6zM360 97a2 2 0 1 0 0 3 2 2 0 0 0 0-3z M430 88l3 7h-6zM430 95a2 2 0 1 0 0 3 2 2 0 0 0 0-3z M500 86l3 7h-6zM500 93a2 2 0 1 0 0 3 2 2 0 0 0 0-3z' fill='url(%23g)'/%3E%3Crect x='280' y='90' width='160' height='6' fill='%23190805'/%3E%3C/svg%3E");
+  --pf-bg: #efe2d3;
+  --pf-fg: #2b1712;
+  --pf-muted: #7a5a4c;
+  --pf-accent: #9c3b24;
+  --pf-accent-fg: #fff7f0;
+  --pf-card: #f8f0e6;
+  --pf-card-fg: #2b1712;
+  --pf-line: #d7bfa9;
+  --pf-radius: 3px;
+  --pf-shadow: none;
+  --pf-font-display: var(--f-fraunces);
+  --pf-name-weight: 600;
+  --pf-name-track: -0.02em;
+  --pf-avatar-radius: 6px;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='40' viewBox='0 0 96 40'%3E%3Crect width='96' height='40' fill='%23b8603f'/%3E%3Cg fill='none' stroke='%23e9d8c4' stroke-width='1.5'%3E%3Cpath d='M0 10.5h96M0 20.5h96M0 30.5h96M0 39.5h96'/%3E%3Cpath d='M24 0v10M72 0v10M0 10v10M48 10v10M96 10v10M24 20v10M72 20v10M12 30v10M36 30v10M60 30v10M84 30v10'/%3E%3C/g%3E%3Cg fill='%23973f27'%3E%3Crect x='1' y='1' width='22' height='9'/%3E%3Crect x='49' y='11' width='46' height='9'/%3E%3Crect x='25' y='21' width='46' height='9'/%3E%3Crect x='37' y='31' width='22' height='8'/%3E%3C/g%3E%3C/svg%3E");
 }
-.pf[data-theme='bhaktapur-terracotta'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 96px;
-  background: var(--nyatapola) 50% 0 / 720px 96px repeat-x;
-  pointer-events: none;
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-bg {
-  background:
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(216, 93, 56, 0.3) 0%, transparent 75%),
-    repeating-linear-gradient(0deg, transparent 0 46px, rgba(18, 6, 4, 0.35) 46px 48px),
-    repeating-linear-gradient(90deg, transparent 0 94px, rgba(18, 6, 4, 0.25) 94px 96px),
-    linear-gradient(180deg, #34130d 0%, #200a06 100%),
-    var(--noise);
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-page { padding-top: 104px; }
-.pf[data-theme='bhaktapur-terracotta'] .pf-avatar {
-  border-radius: 14px;
-  box-shadow: 0 0 0 3px #2d100b, 0 0 0 6px #d85d38, 0 0 0 9px #e5b25d, 0 8px 24px rgba(216, 93, 56, 0.45);
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-name { letter-spacing: -0.01em; color: #fbf3ec; }
-.pf[data-theme='bhaktapur-terracotta'] .pf-handle { color: #e5b25d; font-weight: 600; }
-.pf[data-theme='bhaktapur-terracotta'] .pf-link {
-  clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
-  background: linear-gradient(180deg, #521e16 0%, #3a140f 100%);
-  border: 1px solid #782c1f;
-  box-shadow: inset 0 1px 0 rgba(255, 185, 140, 0.25), inset 0 -2px 0 rgba(15, 4, 2, 0.7), 0 6px 18px rgba(18, 6, 4, 0.5);
-  transition: all 180ms var(--ease);
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-link:hover {
-  transform: translateY(-2px);
-  border-color: #e5b25d;
-  box-shadow: 0 8px 28px rgba(20, 7, 5, 0.6), 0 0 16px rgba(229, 178, 93, 0.35);
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-link-icon {
-  background: #240c08;
-  color: #e5b25d;
-  border-radius: 4px;
-  border: 1px solid rgba(229, 178, 93, 0.35);
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-link[data-highlight] {
-  background: linear-gradient(180deg, #66271c 0%, #4a1912 100%);
-  border-color: #e5b25d;
-  box-shadow: 0 8px 28px rgba(216, 93, 56, 0.4), inset 0 0 0 1.5px #e5b25d;
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-link[data-highlight] .pf-link-icon {
-  background: #e5b25d;
-  color: #240c08;
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-section {
-  font-family: var(--f-dm);
-  color: #e5b25d;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: 15px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-section::before,
-.pf[data-theme='bhaktapur-terracotta'] .pf-section::after {
-  content: '🔔';
-  font-size: 11px;
-  opacity: 0.75;
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-social {
-  background: #4a1c15;
-  color: #fbf3ec;
-  border: 1px solid #782c1f;
-  border-radius: 6px;
-}
-.pf[data-theme='bhaktapur-terracotta'] .pf-social:hover {
-  background: #5a221a;
-  color: #e5b25d;
-  border-color: #e5b25d;
-}
+.pf[data-theme='bhaktapur-terracotta'] .pf-bg::before { content: ''; position: absolute; inset: 0 0 auto; height: 40px; background: var(--band) 0 0 / 96px 40px repeat-x; }
+.pf[data-theme='bhaktapur-terracotta'] .pf-bg::after { content: ''; position: absolute; left: 0; right: 0; top: 40px; height: 6px; background: #2b1712; }
+.pf[data-theme='bhaktapur-terracotta'] .pf-page { padding-top: 84px; }
+.pf[data-theme='bhaktapur-terracotta'] .pf-name { font-variation-settings: 'SOFT' 0, 'WONK' 1; }
+.pf[data-theme='bhaktapur-terracotta'] .pf-link { border-bottom-width: 3px; border-bottom-color: #b8603f; }
+.pf[data-theme='bhaktapur-terracotta'] .pf-link[data-highlight] { border-bottom-color: #6e2616; }
+.pf[data-theme='bhaktapur-terracotta'] .pf-section { text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: #9c3b24; }
+.pf[data-theme='bhaktapur-terracotta'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='bhaktapur-terracotta'] .pf-social:hover { color: var(--pf-accent); }
 
-/* ---- 2. Patan Patina: Repoussé golden torana archway, oxidized turquoise verdigris on cast bronze. ---- */
+/* ---- Patan Patina: Cast bronze gone green, brass lotus petals, a Bodoni cut like a temple inscription. ---- */
 .pf[data-theme='patan-patina'] {
-  --pf-bg: #0d1715;
-  --pf-fg: #eef6f3;
-  --pf-muted: #84a89f;
-  --pf-accent: #1cbda4;
-  --pf-accent-fg: #0d1715;
-  --pf-card: #152723;
-  --pf-card-fg: #eef6f3;
-  --pf-card-muted: #84a89f;
-  --pf-line: rgba(28, 189, 164, 0.35);
-  --pf-radius: 6px;
-  --pf-font-display: var(--f-dm);
-  --pf-name-size: 33px;
-  --pf-name-weight: 500;
-  --pf-avatar-bg: #0c2621;
-  --pf-avatar-fg: #d8b146;
-  --pf-gap: 14px;
-  --torana: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='104' viewBox='0 0 720 104'%3E%3Cdefs%3E%3ClinearGradient id='gd' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23f5d56b'/%3E%3Cstop offset='100%25' stop-color='%23a37d22'/%3E%3C/linearGradient%3E%3ClinearGradient id='pt' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%231cbda4'/%3E%3Cstop offset='100%25' stop-color='%230e5246'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M360 6c-8 6-18 12-24 16 12 2 20 6 24 12 4-6 12-10 24-12-6-4-16-10-24-16z' fill='url(%23gd)'/%3E%3Ccircle cx='360' cy='22' r='4' fill='%231cbda4'/%3E%3Cpath d='M360 30C260 30 180 50 140 84c40-16 120-28 220-28s180 12 220 28C540 50 460 30 360 30z' fill='url(%23gd)'/%3E%3Cpath d='M360 36C270 36 200 54 160 84c36-12 110-22 200-22s164 10 200 22C520 54 450 36 360 36z' fill='url(%23pt)'/%3E%3Cpath d='M140 84c-16-10-32-8-44 4 14 2 24 10 28 20 6-10 10-18 16-24z' fill='url(%23gd)'/%3E%3Cpath d='M580 84c16-10 32-8 44 4-14 2-24 10-28 20-6-10-10-18-16-24z' fill='url(%23gd)'/%3E%3Ccircle cx='200' cy='62' r='3' fill='url(%23gd)'/%3E%3Ccircle cx='240' cy='52' r='3' fill='url(%23gd)'/%3E%3Ccircle cx='280' cy='45' r='3' fill='url(%23gd)'/%3E%3Ccircle cx='320' cy='40' r='3' fill='url(%23gd)'/%3E%3Ccircle cx='360' cy='38' r='3.5' fill='url(%23gd)'/%3E%3Ccircle cx='400' cy='40' r='3' fill='url(%23gd)'/%3E%3Ccircle cx='440' cy='45' r='3' fill='url(%23gd)'/%3E%3Ccircle cx='480' cy='52' r='3' fill='url(%23gd)'/%3E%3Ccircle cx='520' cy='62' r='3' fill='url(%23gd)'/%3E%3C/svg%3E");
-}
-.pf[data-theme='patan-patina'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 104px;
-  background: var(--torana) 50% 0 / 720px 104px no-repeat;
-  pointer-events: none;
-}
-.pf[data-theme='patan-patina'] .pf-bg {
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(28, 189, 164, 0.25) 0%, transparent 70%),
-    radial-gradient(circle 400px at 85% 85%, rgba(216, 177, 70, 0.12), transparent 70%),
-    linear-gradient(180deg, #101c19 0%, #080f0d 100%),
-    var(--noise);
-}
-.pf[data-theme='patan-patina'] .pf-page { padding-top: 112px; }
-.pf[data-theme='patan-patina'] .pf-avatar {
-  box-shadow: 0 0 0 3px #0d1715, 0 0 0 6px #1cbda4, 0 0 0 9px #d8b146, 0 0 25px rgba(28, 189, 164, 0.45);
-}
-.pf[data-theme='patan-patina'] .pf-handle { color: #1cbda4; font-weight: 600; }
-.pf[data-theme='patan-patina'] .pf-link {
-  background: linear-gradient(135deg, #162a25 0%, #0e1c18 100%);
-  border: 1px solid rgba(28, 189, 164, 0.35);
-  border-left: 4px solid #d8b146;
-  box-shadow: inset 0 1px 0 rgba(28, 189, 164, 0.2), 0 6px 20px rgba(7, 14, 12, 0.6);
-  transition: all 180ms var(--ease);
-}
-.pf[data-theme='patan-patina'] .pf-link:hover {
-  transform: translateY(-2px);
-  border-color: #1cbda4;
-  border-left-color: #f5d56b;
-  box-shadow: 0 8px 25px rgba(7, 14, 12, 0.8), 0 0 20px rgba(28, 189, 164, 0.3);
-}
-.pf[data-theme='patan-patina'] .pf-link-icon {
-  background: #0c2621;
-  color: #d8b146;
-  border-radius: 4px;
-  border: 1px solid rgba(216, 177, 70, 0.35);
-}
-.pf[data-theme='patan-patina'] .pf-link[data-highlight] {
-  background: linear-gradient(135deg, #1b362f 0%, #122420 100%);
-  border-color: #1cbda4;
-  border-left-color: #f5d56b;
-  box-shadow: 0 8px 25px rgba(28, 189, 164, 0.35), inset 0 0 0 1px rgba(245, 213, 107, 0.4);
-}
-.pf[data-theme='patan-patina'] .pf-section {
-  font-family: var(--f-dm);
-  color: #1cbda4;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: 15px;
-}
-.pf[data-theme='patan-patina'] .pf-social {
-  background: #152723;
-  color: #eef6f3;
-  border: 1px solid rgba(28, 189, 164, 0.35);
-  border-radius: 6px;
-}
-.pf[data-theme='patan-patina'] .pf-social:hover {
-  background: #1c3630;
-  color: #d8b146;
-  border-color: #d8b146;
-}
-
-/* ---- 3. Pokhara Lakeside: Machhapuchhre reflection on dawn waters, painted paddle boat trim. ---- */
-.pf[data-theme='pokhara-phewa'] {
-  --pf-bg: #071526;
-  --pf-fg: #f2f7fc;
-  --pf-muted: #8eaec9;
-  --pf-accent: #4fa8e0;
-  --pf-accent-fg: #071526;
-  --pf-card: rgba(11, 29, 52, 0.82);
-  --pf-card-fg: #f2f7fc;
-  --pf-card-muted: #8eaec9;
-  --pf-line: rgba(79, 168, 224, 0.28);
-  --pf-radius: 6px;
-  --pf-font-display: var(--f-sans);
-  --pf-name-size: 32px;
-  --pf-name-weight: 650;
-  --pf-avatar-bg: #091a2e;
-  --pf-avatar-fg: #f5af38;
-  --pf-gap: 13px;
-  --machhapuchhre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='180' viewBox='0 0 1200 180'%3E%3Cpath d='M0 130L120 100L240 120L360 90L480 115L600 80L720 110L840 95L960 125L1080 105L1200 130V180H0z' fill='%23132e4e'/%3E%3Cpath d='M420 120L580 20L596 42L612 20L770 120z' fill='%233a699c'/%3E%3Cpath d='M580 20L565 65L580 80L570 110L596 42z M612 20L627 65L612 80L622 110L596 42z' fill='%23f0f7ff'/%3E%3Cpath d='M580 20L596 42L612 20L604 55L596 70L588 55z' fill='%23d9ebfc'/%3E%3Crect y='126' width='1200' height='54' fill='%2308182b'/%3E%3Cpath d='M460 132h270M500 138h190M530 144h130M560 150h70M580 156h30' stroke='%234fa8e0' stroke-width='2' stroke-linecap='round' opacity='0.7'/%3E%3Cpath d='M820 136c12 0 24 4 36 8h-48c-12-4-24-8-36-8 16-1 32 0 48 0z' fill='%23e53935'/%3E%3Cpath d='M816 130l-8 14' stroke='%23fdd835' stroke-width='2'/%3E%3C/svg%3E");
-}
-.pf[data-theme='pokhara-phewa'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 180px;
-  background: var(--machhapuchhre) 50% 0 / 1200px 180px no-repeat;
-  pointer-events: none;
-}
-.pf[data-theme='pokhara-phewa'] .pf-bg {
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(79, 168, 224, 0.28) 0%, transparent 70%),
-    linear-gradient(180deg, #091a2e 0%, #030a13 100%),
-    var(--noise);
-}
-.pf[data-theme='pokhara-phewa'] .pf-page { padding-top: 140px; }
-.pf[data-theme='pokhara-phewa'] .pf-avatar {
-  box-shadow: 0 0 0 3px #071526, 0 0 0 6px #4fa8e0, 0 0 0 10px rgba(79, 168, 224, 0.25), 0 0 28px rgba(79, 168, 224, 0.5);
-}
-.pf[data-theme='pokhara-phewa'] .pf-handle { color: #f5af38; font-weight: 600; }
-.pf[data-theme='pokhara-phewa'] .pf-link {
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(79, 168, 224, 0.28);
-  border-left: 5px solid #00acc1;
-  border-image: linear-gradient(180deg, #e53935 0 33%, #fdd835 33% 66%, #00acc1 66% 100%) 1;
-  box-shadow: inset 0 1px 0 rgba(79, 168, 224, 0.35), 0 6px 20px rgba(3, 10, 18, 0.6);
-  transition: all 180ms var(--ease);
-}
-.pf[data-theme='pokhara-phewa'] .pf-link:hover {
-  transform: translateY(-2px);
-  border-color: #4fa8e0;
-  box-shadow: 0 8px 25px rgba(3, 10, 18, 0.8), 0 0 20px rgba(79, 168, 224, 0.35);
-}
-.pf[data-theme='pokhara-phewa'] .pf-link-icon {
-  background: #091a2e;
-  color: #f5af38;
-  border-radius: 4px;
-  border: 1px solid rgba(245, 175, 56, 0.35);
-}
-.pf[data-theme='pokhara-phewa'] .pf-link[data-highlight] {
-  background: rgba(16, 42, 74, 0.92);
-  border-color: #4fa8e0;
-  box-shadow: 0 8px 26px rgba(79, 168, 224, 0.35), inset 0 0 0 1px rgba(79, 168, 224, 0.4);
-}
-.pf[data-theme='pokhara-phewa'] .pf-section {
-  color: #4fa8e0;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-}
-.pf[data-theme='pokhara-phewa'] .pf-social {
-  background: rgba(11, 29, 52, 0.82);
-  backdrop-filter: blur(8px);
-  color: #f2f7fc;
-  border: 1px solid rgba(79, 168, 224, 0.3);
-  border-radius: 6px;
-}
-.pf[data-theme='pokhara-phewa'] .pf-social:hover {
-  color: #f5af38;
-  border-color: #f5af38;
-}
-
-/* ---- 4. Mustang Ochre: Lo Manthang sky caves, sacred 3 mineral stripe chorten, chiseled sandstone. ---- */
-.pf[data-theme='mustang-ochre'] {
-  --pf-bg: #26160c;
-  --pf-fg: #f8f2e7;
-  --pf-muted: #c49d7c;
-  --pf-accent: #9e3518;
-  --pf-accent-fg: #f8f2e7;
-  --pf-card: #3d2013;
-  --pf-card-fg: #f8f2e7;
-  --pf-card-muted: #c49d7c;
-  --pf-line: #8c4e26;
-  --pf-radius: 4px;
-  --pf-font-display: var(--f-dm);
-  --pf-name-size: 33px;
-  --pf-name-weight: 600;
-  --pf-avatar-bg: #1c0f08;
-  --pf-avatar-fg: #dab273;
-  --pf-gap: 14px;
-  --mustang-chorten: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='110' viewBox='0 0 800 110'%3E%3Cpath d='M0 65C120 50 200 70 320 55S520 70 660 50 800 65V110H0z' fill='%23381e13'/%3E%3Cellipse cx='100' cy='78' rx='10' ry='14' fill='%231a0d07'/%3E%3Cellipse cx='140' cy='74' rx='8' ry='12' fill='%231a0d07'/%3E%3Cellipse cx='220' cy='76' rx='9' ry='13' fill='%231a0d07'/%3E%3Cellipse cx='680' cy='74' rx='10' ry='14' fill='%231a0d07'/%3E%3Cellipse cx='730' cy='78' rx='8' ry='11' fill='%231a0d07'/%3E%3Crect x='370' y='60' width='60' height='12' fill='%239e3518'/%3E%3Crect x='370' y='72' width='60' height='12' fill='%233a414d'/%3E%3Crect x='370' y='84' width='60' height='12' fill='%23f7f2e7'/%3E%3Cpath d='M380 60L400 32L420 60z' fill='%23f7f2e7'/%3E%3Ccircle cx='400' cy='22' r='4' fill='%23dab273'/%3E%3Cpath d='M396 24a5 5 0 0 0 8 0 4 4 0 0 1-8 0z' fill='%23dab273'/%3E%3C/svg%3E");
-}
-.pf[data-theme='mustang-ochre'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 110px;
-  background: var(--mustang-chorten) 50% 0 / 800px 110px no-repeat;
-  pointer-events: none;
-}
-.pf[data-theme='mustang-ochre'] .pf-bg {
-  background:
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(218, 178, 115, 0.25) 0%, transparent 75%),
-    linear-gradient(180deg, #2c1a0e 0%, #180d07 100%),
-    var(--noise);
-}
-.pf[data-theme='mustang-ochre'] .pf-page { padding-top: 118px; }
-.pf[data-theme='mustang-ochre'] .pf-avatar {
-  border-radius: 12px;
-  box-shadow: 0 0 0 3px #26160c, 0 0 0 6px #9e3518, 0 0 0 9px #dab273, 0 8px 24px rgba(38, 22, 12, 0.7);
-}
-.pf[data-theme='mustang-ochre'] .pf-handle { color: #dab273; font-weight: 600; }
-.pf[data-theme='mustang-ochre'] .pf-link {
-  background: linear-gradient(180deg, #442416 0%, #2e170d 100%);
-  border: 2px solid #8c4e26;
-  box-shadow: 4px 4px 0 #180c06, inset 0 1px 0 rgba(247, 242, 231, 0.2);
-  transition: all 150ms ease-out;
-}
-.pf[data-theme='mustang-ochre'] .pf-link:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 #180c06;
-  border-color: #dab273;
-}
-.pf[data-theme='mustang-ochre'] .pf-link-icon {
-  background: #9e3518;
-  color: #f7f2e7;
-  border-radius: 2px;
-  border: 1px solid rgba(247, 242, 231, 0.35);
-}
-.pf[data-theme='mustang-ochre'] .pf-link[data-highlight] {
-  background: linear-gradient(180deg, #592e1a 0%, #3e1e10 100%);
-  border-color: #dab273;
-}
-.pf[data-theme='mustang-ochre'] .pf-section {
-  font-family: var(--f-dm);
-  color: #dab273;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: 15px;
-}
-.pf[data-theme='mustang-ochre'] .pf-social {
-  background: #3d2013;
-  color: #f8f2e7;
-  border: 2px solid #8c4e26;
-  box-shadow: 2px 2px 0 #180c06;
-  border-radius: 4px;
-}
-.pf[data-theme='mustang-ochre'] .pf-social:hover {
-  background: #4a2817;
-  color: #dab273;
-  border-color: #dab273;
-}
-
-/* ---- Palpali Dhaka: Handloom geometric diamond weave on midnight cloth. ---- */
-/* ---- 5. Palpali Dhaka: Authentic handloom geometric diamond weave tapestry, stitched cloth edges. ---- */
-.pf[data-theme='dhaka-topi'] {
-  --pf-bg: #0e121a;
-  --pf-fg: #f5f6fa;
-  --pf-muted: #9fa5b5;
-  --pf-accent: #cf2237;
-  --pf-accent-fg: #ffffff;
-  --pf-card: #151a24;
-  --pf-card-fg: #f5f6fa;
-  --pf-card-muted: #9fa5b5;
-  --pf-line: rgba(240, 168, 36, 0.45);
-  --pf-radius: 6px;
-  --pf-font-display: var(--f-dm);
-  --pf-name-size: 33px;
-  --pf-name-weight: 600;
-  --pf-avatar-bg: #0e121a;
-  --pf-avatar-fg: #f0a824;
-  --pf-gap: 14px;
-  --palpali-dhaka: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Crect width='96' height='96' fill='%230e121a'/%3E%3Crect width='96' height='4' fill='%23cf2237'/%3E%3Crect y='6' width='96' height='2' fill='%23f0a824'/%3E%3Crect y='88' width='96' height='2' fill='%23f0a824'/%3E%3Crect y='92' width='96' height='4' fill='%23cf2237'/%3E%3Cpath d='M48 18L74 48 48 78 22 48z' fill='%23cf2237'/%3E%3Cpath d='M48 24L68 48 48 72 28 48z' fill='%230e121a'/%3E%3Cpath d='M48 30L62 48 48 66 34 48z' fill='%23f0a824'/%3E%3Cpath d='M48 36L56 48 48 60 40 48z' fill='%231e824c'/%3E%3Crect x='46' y='46' width='4' height='4' fill='%23ffffff'/%3E%3Cpath d='M0 18L14 34 0 50z M96 18L82 34 96 50z' fill='%23f0a824'/%3E%3Cpath d='M0 46L14 62 0 78z M96 46L82 62 96 78z' fill='%231e824c'/%3E%3Cpath d='M2 10l6 6 6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6' stroke='%23ffffff' stroke-width='1.5' fill='none'/%3E%3Cpath d='M2 86l6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6 6-6 6 6' stroke='%23ffffff' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-}
-.pf[data-theme='dhaka-topi'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 88px;
-  background: var(--palpali-dhaka) 50% 0 / 96px 96px repeat-x;
-  pointer-events: none;
-}
-.pf[data-theme='dhaka-topi'] .pf-bg::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 48px;
-  background: var(--palpali-dhaka) 50% bottom / 96px 96px repeat-x;
-  pointer-events: none;
-}
-.pf[data-theme='dhaka-topi'] .pf-bg {
-  background:
-    radial-gradient(circle 500px at 50% 20%, rgba(207, 34, 55, 0.16), transparent 70%),
-    linear-gradient(180deg, #111522 0%, #090c12 100%),
-    var(--noise);
-}
-.pf[data-theme='dhaka-topi'] .pf-page { padding-top: 96px; padding-bottom: 60px; }
-.pf[data-theme='dhaka-topi'] .pf-avatar {
-  box-shadow: 0 0 0 3px #0e121a, 0 0 0 6px #cf2237, 0 0 0 9px #f0a824, 0 8px 25px rgba(207, 34, 55, 0.4);
-}
-.pf[data-theme='dhaka-topi'] .pf-handle { color: #f0a824; font-weight: 600; }
-.pf[data-theme='dhaka-topi'] .pf-link {
-  border: 1.5px dashed rgba(240, 168, 36, 0.45);
-  background: #151a24;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-  transition: all 180ms var(--ease);
-}
-.pf[data-theme='dhaka-topi'] .pf-link:hover {
-  transform: translateY(-2px);
-  border-color: #f0a824;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(240, 168, 36, 0.35);
-}
-.pf[data-theme='dhaka-topi'] .pf-link-icon {
-  transform: rotate(45deg);
-  width: 32px;
-  height: 32px;
-  margin: 0 4px;
-  border-radius: 4px;
-  background: #cf2237;
-  color: #ffffff;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.pf[data-theme='dhaka-topi'] .pf-link-icon > * { transform: rotate(-45deg); }
-.pf[data-theme='dhaka-topi'] a:nth-of-type(3n + 1) .pf-link-icon { background: #cf2237; }
-.pf[data-theme='dhaka-topi'] a:nth-of-type(3n + 2) .pf-link-icon { background: #f0a824; color: #0e121a; }
-.pf[data-theme='dhaka-topi'] a:nth-of-type(3n + 3) .pf-link-icon { background: #1e824c; }
-.pf[data-theme='dhaka-topi'] .pf-section {
-  font-family: var(--f-dm);
-  color: #f0a824;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: 15px;
-}
-.pf[data-theme='dhaka-topi'] .pf-social {
-  background: #151a24;
-  color: #f5f6fa;
-  border: 1px dashed rgba(240, 168, 36, 0.45);
-  border-radius: 6px;
-}
-.pf[data-theme='dhaka-topi'] .pf-social:hover {
-  background: #cf2237;
-  color: #ffffff;
-  border-color: #cf2237;
-}
-
-/* ---- 6. Mithila Folk: Sacred Janakpur ritual mural, double-line contour ink, peacocks and fish. ---- */
-.pf[data-theme='mithila-art'] {
-  --pf-bg: #faf4e8;
-  --pf-fg: #181614;
-  --pf-muted: #6e6459;
-  --pf-accent: #d93826;
-  --pf-accent-fg: #ffffff;
-  --pf-card: #fffdf8;
-  --pf-card-fg: #181614;
-  --pf-card-muted: #6e6459;
-  --pf-line: #181614;
+  --pf-bg: #1d2b27;
+  --pf-fg: #efe6cf;
+  --pf-muted: #a8b3a0;
+  --pf-accent: #c9a24a;
+  --pf-accent-fg: #1d2b27;
+  --pf-card: #243631;
+  --pf-card-fg: #efe6cf;
+  --pf-line: #3a4f47;
   --pf-radius: 2px;
-  --pf-font-display: var(--f-dm);
-  --pf-name-size: 34px;
-  --pf-name-weight: 600;
-  --pf-avatar-bg: #181614;
-  --pf-avatar-fg: #d93826;
-  --pf-gap: 14px;
-  --mithila-mural: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='110' viewBox='0 0 800 110'%3E%3Crect x='4' y='4' width='792' height='102' fill='%23faf3e5' stroke='%23181614' stroke-width='2'/%3E%3Crect x='10' y='10' width='780' height='90' fill='none' stroke='%23d93826' stroke-width='1.5'/%3E%3Cpath d='M100 55c25-18 60-18 85 0-25 18-60 18-85 0z' fill='none' stroke='%23181614' stroke-width='2'/%3E%3Cpath d='M106 55c20-13 48-13 68 0-20 13-48 13-68 0z' fill='none' stroke='%23d93826' stroke-width='1.5'/%3E%3Ccircle cx='170' cy='55' r='5' fill='%23181614'/%3E%3Ccircle cx='171' cy='54' r='1.5' fill='%23ffffff'/%3E%3Cpath d='M145 44c4 6 4 16 0 22M135 45c4 5 4 15 0 20M125 47c3 4 3 12 0 16' stroke='%23181614' stroke-width='1.5' fill='none'/%3E%3Cpath d='M100 55l-20-14v28z' fill='%23d93826' stroke='%23181614' stroke-width='1.5'/%3E%3Cpath d='M400 32c-15 16-15 32 0 46 15-14 15-30 0-46z' fill='%23d93826' stroke='%23181614' stroke-width='1.5'/%3E%3Cpath d='M382 44c-16 10-18 24-4 34 8-12 14-22 4-34z M418 44c16 10 18 24 4 34-8-12-14-22-4-34z' fill='%23e09f18' stroke='%23181614' stroke-width='1.5'/%3E%3Cpath d='M700 55c-25-18-60-18-85 0 25 18 60 18 85 0z' fill='none' stroke='%23181614' stroke-width='2'/%3E%3Cpath d='M694 55c-20-13-48-13-68 0 20 13 48 13 68 0z' fill='none' stroke='%23d93826' stroke-width='1.5'/%3E%3Ccircle cx='630' cy='55' r='5' fill='%23181614'/%3E%3Ccircle cx='629' cy='54' r='1.5' fill='%23ffffff'/%3E%3Cpath d='M655 44c-4 6-4 16 0 22M665 45c-4 5-4 15 0 20M675 47c-3 4-3 12 0 16' stroke='%23181614' stroke-width='1.5' fill='none'/%3E%3Cpath d='M700 55l20-14v28z' fill='%23d93826' stroke='%23181614' stroke-width='1.5'/%3E%3C/svg%3E");
-}
-.pf[data-theme='mithila-art'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 110px;
-  background: var(--mithila-mural) 50% 0 / 800px 110px no-repeat;
-  pointer-events: none;
-}
-.pf[data-theme='mithila-art'] .pf-bg {
-  background:
-    radial-gradient(circle 500px at 50% 0%, rgba(217, 56, 38, 0.1) 0%, transparent 70%),
-    #faf4e8,
-    var(--noise);
-}
-.pf[data-theme='mithila-art'] .pf-page { padding-top: 118px; }
-.pf[data-theme='mithila-art'] .pf-avatar {
-  box-shadow: 0 0 0 3px #faf4e8, 0 0 0 5px #181614, 0 0 0 8px #d93826, 0 0 0 11px #faf4e8, 0 0 0 13px #181614;
-}
-.pf[data-theme='mithila-art'] .pf-handle { color: #d93826; font-weight: 700; letter-spacing: 0.04em; }
-.pf[data-theme='mithila-art'] .pf-link {
-  border: 3px double #181614;
-  outline: 1.5px solid #d93826;
-  outline-offset: 3px;
-  box-shadow: 4px 4px 0 rgba(24, 22, 20, 0.12);
-  transition: all 150ms ease-out;
-}
-.pf[data-theme='mithila-art'] .pf-link:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 rgba(24, 22, 20, 0.2);
-  outline-color: #181614;
-}
-.pf[data-theme='mithila-art'] .pf-link-icon {
-  background: #181614;
-  color: #d93826;
-  border-radius: 2px;
-}
-.pf[data-theme='mithila-art'] .pf-link[data-highlight] {
-  background: #faf2e1;
-  outline-color: #181614;
-  border-color: #d93826;
-}
-.pf[data-theme='mithila-art'] .pf-section {
-  font-family: var(--f-dm);
-  color: #d93826;
-  font-size: 15px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.pf[data-theme='mithila-art'] .pf-section::before,
-.pf[data-theme='mithila-art'] .pf-section::after {
-  content: '';
-  flex: 1;
-  height: 3px;
-  border-block: 1px solid #181614;
-}
-.pf[data-theme='mithila-art'] .pf-social {
-  background: #fffdf8;
-  color: #181614;
-  border: 2px solid #181614;
-  border-radius: 2px;
-}
-.pf[data-theme='mithila-art'] .pf-social:hover {
-  background: #d93826;
-  color: #ffffff;
-  border-color: #d93826;
-}
-
-/* ---- 7. Khumbu Tweed: Sherpa Pangden rainbow apron band, heavy yak wool brushed twill with crimson whipstitches. ---- */
-.pf[data-theme='yak-wool'] {
-  --pf-bg: #16181b;
-  --pf-fg: #f2ece2;
-  --pf-muted: #9fa4ac;
-  --pf-accent: #cf3225;
-  --pf-accent-fg: #ffffff;
-  --pf-card: #22252a;
-  --pf-card-fg: #f2ece2;
-  --pf-card-muted: #9fa4ac;
-  --pf-line: rgba(207, 50, 37, 0.7);
-  --pf-radius: 8px;
-  --pf-font-display: var(--f-archivo);
-  --pf-name-size: 32px;
-  --pf-name-weight: 700;
-  --pf-avatar-bg: #1a1d22;
-  --pf-avatar-fg: #e6a824;
-  --pf-gap: 14px;
-  --sherpa-pangden: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='72' viewBox='0 0 120 72'%3E%3Crect y='0' width='120' height='10' fill='%23cf3225'/%3E%3Crect y='10' width='120' height='3' fill='%23ffffff'/%3E%3Crect y='13' width='120' height='12' fill='%23209fa8'/%3E%3Crect y='25' width='120' height='4' fill='%23192238'/%3E%3Crect y='29' width='120' height='14' fill='%23e6a824'/%3E%3Crect y='43' width='120' height='3' fill='%23ffffff'/%3E%3Crect y='46' width='120' height='12' fill='%23226a45'/%3E%3Crect y='58' width='120' height='4' fill='%23192238'/%3E%3Crect y='62' width='120' height='10' fill='%23cf3225'/%3E%3C/svg%3E");
-}
-.pf[data-theme='yak-wool'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 72px;
-  background: var(--sherpa-pangden) 50% 0 / 120px 72px repeat-x;
-  pointer-events: none;
-}
-.pf[data-theme='yak-wool'] .pf-bg {
-  background:
-    radial-gradient(circle 500px at 50% 0%, rgba(207, 50, 37, 0.22), transparent 70%),
-    linear-gradient(180deg, #1b1e22 0%, #101214 100%),
-    var(--noise);
-}
-.pf[data-theme='yak-wool'] .pf-page { padding-top: 86px; }
-.pf[data-theme='yak-wool'] .pf-avatar {
-  border: 3px dashed #f2ece2;
-  box-shadow: 0 0 0 3px #16181b, 0 0 0 6px #cf3225;
-}
-.pf[data-theme='yak-wool'] .pf-handle { color: #e6a824; font-weight: 650; }
-.pf[data-theme='yak-wool'] .pf-link {
-  background: linear-gradient(180deg, #24282e 0%, #191b1f 100%);
-  border: 2px dashed rgba(207, 50, 37, 0.75);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-  transition: all 180ms var(--ease);
-}
-.pf[data-theme='yak-wool'] .pf-link:hover {
-  transform: translateY(-2px);
-  border-color: #cf3225;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.8), 0 0 16px rgba(207, 50, 37, 0.4);
-}
-.pf[data-theme='yak-wool'] .pf-link-icon {
-  background: #1a1d22;
-  color: #e6a824;
-  border-radius: 4px;
-  border: 1px solid rgba(230, 168, 36, 0.4);
-}
-.pf[data-theme='yak-wool'] .pf-link[data-highlight] {
-  background: linear-gradient(180deg, #2e333b 0%, #202328 100%);
-  border-color: #e6a824;
-  box-shadow: 0 8px 25px rgba(207, 50, 37, 0.35), inset 0 0 0 1px rgba(230, 168, 36, 0.4);
-}
-.pf[data-theme='yak-wool'] .pf-section {
-  color: #e6a824;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.pf[data-theme='yak-wool'] .pf-social {
-  background: #22252a;
-  color: #f2ece2;
-  border: 1.5px dashed rgba(207, 50, 37, 0.6);
-  border-radius: 6px;
-}
-.pf[data-theme='yak-wool'] .pf-social:hover {
-  background: #cf3225;
-  color: #ffffff;
-  border-color: #cf3225;
-}
-
-/* ---- 8. Boudha Harmika: Golden stupa harmika with all-seeing Buddha wisdom eyes and Ekata nose. ---- */
-.pf[data-theme='bodhi-stupa'] {
-  --pf-bg: #20080d;
-  --pf-fg: #fcf7eb;
-  --pf-muted: #c49ea5;
-  --pf-accent: #f2c03f;
-  --pf-accent-fg: #20080d;
-  --pf-card: #2e0c14;
-  --pf-card-fg: #fcf7eb;
-  --pf-card-muted: #c49ea5;
-  --pf-line: rgba(242, 192, 63, 0.45);
-  --pf-radius: 6px;
-  --pf-font-display: var(--f-dm);
-  --pf-name-size: 34px;
+  --pf-shadow: none;
+  --pf-font-display: var(--f-bodoni);
   --pf-name-weight: 500;
-  --pf-avatar-bg: #24080e;
-  --pf-avatar-fg: #f2c03f;
-  --pf-gap: 14px;
-  --boudha-eyes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='120' viewBox='0 0 600 120'%3E%3Cdefs%3E%3ClinearGradient id='sg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23fae17d'/%3E%3Cstop offset='100%25' stop-color='%23c99a22'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M294 2h12v6h-12z M288 8h24v4h-24z M282 12h36v4h-36z M276 16h48v4h-48z M270 20h60v4h-60z M264 24h72v4h-72z' fill='url(%23sg)'/%3E%3Crect x='220' y='28' width='160' height='84' rx='2' fill='url(%23sg)' stroke='%238c6411' stroke-width='2'/%3E%3Crect x='216' y='28' width='168' height='6' fill='%238f1827'/%3E%3Ccircle cx='300' cy='52' r='3.5' fill='%238f1827'/%3E%3Cpath d='M246 62c14-10 32-10 44 0-14 8-32 8-44 0z' fill='%23ffffff' stroke='%23180c05' stroke-width='2'/%3E%3Cellipse cx='268' cy='62' rx='6' ry='5' fill='%23180c05'/%3E%3Ccircle cx='269' cy='61' r='2' fill='%23ffffff'/%3E%3Cpath d='M244 58c14-14 34-14 48 0' stroke='%23180c05' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M310 62c14-10 32-10 44 0-14 8-32 8-44 0z' fill='%23ffffff' stroke='%23180c05' stroke-width='2'/%3E%3Cellipse cx='332' cy='62' rx='6' ry='5' fill='%23180c05'/%3E%3Ccircle cx='333' cy='61' r='2' fill='%23ffffff'/%3E%3Cpath d='M308 58c14-14 34-14 48 0' stroke='%23180c05' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M300 70c-4 5-4 12 1 16 5 4 10 0 10-6s-5-9-11-9' stroke='%238f1827' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  --pf-name-track: -0.01em;
+  --pf-avatar-radius: 50%;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='28' viewBox='0 0 40 28'%3E%3Cg fill='none' stroke='%23c9a24a' stroke-width='1.4'%3E%3Cpath d='M0 23c6-12 14-12 20 0M20 23c6-12 14-12 20 0'/%3E%3Cpath d='M6 23c3-6 5-6 8 0M26 23c3-6 5-6 8 0'/%3E%3C/g%3E%3Cpath d='M0 26.5h40' stroke='%23c9a24a' stroke-width='1'/%3E%3Ccircle cx='20' cy='6' r='1.6' fill='%23c9a24a'/%3E%3C/svg%3E");
 }
-.pf[data-theme='bodhi-stupa'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 120px;
-  background: var(--boudha-eyes) 50% 0 / 600px 120px no-repeat;
-  pointer-events: none;
-}
-.pf[data-theme='bodhi-stupa'] .pf-bg {
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(242, 192, 63, 0.28) 0%, transparent 70%),
-    radial-gradient(circle 450px at 50% 50%, rgba(122, 31, 46, 0.25), transparent 75%),
-    linear-gradient(180deg, #280b11 0%, #150508 100%),
-    var(--noise);
-}
-.pf[data-theme='bodhi-stupa'] .pf-page { padding-top: 130px; }
-.pf[data-theme='bodhi-stupa'] .pf-avatar {
-  box-shadow: 0 0 0 3px #20080d, 0 0 0 6px #f2c03f, 0 0 0 9px #7a1f2e, 0 0 30px rgba(242, 192, 63, 0.45);
-}
-.pf[data-theme='bodhi-stupa'] .pf-handle { color: #f2c03f; font-weight: 600; }
-.pf[data-theme='bodhi-stupa'] .pf-link {
-  background: linear-gradient(180deg, #320c15 0%, #1f070c 100%);
-  border: 1px solid rgba(242, 192, 63, 0.5);
-  box-shadow: 0 6px 24px rgba(15, 3, 6, 0.7), inset 0 1px 0 rgba(242, 192, 63, 0.35);
-  transition: all 180ms var(--ease);
-}
-.pf[data-theme='bodhi-stupa'] .pf-link:hover {
-  transform: translateY(-2px);
-  border-color: #f2c03f;
-  box-shadow: 0 8px 28px rgba(15, 3, 6, 0.9), 0 0 24px rgba(242, 192, 63, 0.4);
-}
-.pf[data-theme='bodhi-stupa'] .pf-link-icon {
-  background: #24080e;
-  color: #f2c03f;
-  border-radius: 4px;
-  border: 1px solid rgba(242, 192, 63, 0.45);
-}
-.pf[data-theme='bodhi-stupa'] .pf-link[data-highlight] {
-  background: linear-gradient(180deg, #44111d 0%, #290a12 100%);
-  border-color: #f2c03f;
-  box-shadow: 0 8px 28px rgba(242, 192, 63, 0.4), inset 0 0 0 1px #f2c03f;
-}
-.pf[data-theme='bodhi-stupa'] .pf-section {
-  font-family: var(--f-dm);
-  color: #f2c03f;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: 15px;
-}
-.pf[data-theme='bodhi-stupa'] .pf-social {
-  background: #2e0c14;
-  color: #fcf7eb;
-  border: 1px solid rgba(242, 192, 63, 0.45);
-  border-radius: 6px;
-}
-.pf[data-theme='bodhi-stupa'] .pf-social:hover {
-  background: #f2c03f;
-  color: #20080d;
-  border-color: #f2c03f;
-}
+.pf[data-theme='patan-patina'] .pf-bg::before { content: ''; position: absolute; inset: 0 0 auto; height: 28px; top: 14px; background: var(--band) 50% 0 / 40px 28px repeat-x; }
+.pf[data-theme='patan-patina'] .pf-page { padding-top: 76px; }
+.pf[data-theme='patan-patina'] .pf-avatar { box-shadow: 0 0 0 1.5px #1d2b27, 0 0 0 3px #c9a24a; }
+.pf[data-theme='patan-patina'] .pf-name { font-size: 36px; font-style: italic; }
+.pf[data-theme='patan-patina'] .pf-link { border-color: #3a4f47; }
+.pf[data-theme='patan-patina'] .pf-link-icon { background: transparent; border: 1px solid #c9a24a; color: #c9a24a; border-radius: 50%; }
+.pf[data-theme='patan-patina'] .pf-link[data-highlight] .pf-link-icon { border-color: #1d2b27; color: #1d2b27; }
+.pf[data-theme='patan-patina'] .pf-section { font-family: var(--f-bodoni); font-style: italic; font-weight: 500; font-size: 17px; color: #c9a24a; }
+.pf[data-theme='patan-patina'] .pf-social { color: #c9a24a; }
+.pf[data-theme='patan-patina'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='patan-patina'] .pf-social:hover { color: var(--pf-accent); }
 
-/* ---- 9. Tihar Diyo: Draped Sayapatri marigold garlands, burning terracotta clay oil lamps. ---- */
-.pf[data-theme='tihar-deusi'] {
-  --pf-bg: #080914;
-  --pf-fg: #fff8eb;
-  --pf-muted: #d4a574;
-  --pf-accent: #ff8800;
-  --pf-accent-fg: #080914;
-  --pf-card: #181122;
-  --pf-card-fg: #fff8eb;
-  --pf-card-muted: #d4a574;
-  --pf-line: rgba(255, 190, 26, 0.5);
-  --pf-radius: 8px;
+/* ---- Pokhara Lakeside: Fishtail peak drawn in one line over still water; the red trim of a painted boat. ---- */
+.pf[data-theme='pokhara-phewa'] {
+  --pf-bg: #eef3f1;
+  --pf-fg: #16323a;
+  --pf-muted: #56707a;
+  --pf-accent: #c8432b;
+  --pf-accent-fg: #ffffff;
+  --pf-card: #ffffff;
+  --pf-card-fg: #16323a;
+  --pf-line: #d5e1de;
+  --pf-radius: 10px;
+  --pf-shadow: none;
+  --pf-font-display: var(--f-news);
+  --pf-name-weight: 500;
+  --pf-name-track: -0.015em;
+  --pf-avatar-radius: 50%;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='96' viewBox='0 0 640 96'%3E%3Cpath d='M0 70 L150 70 L212 38 L236 10 L246 26 L256 6 L272 34 L330 52 L390 44 L470 70 L640 70' fill='none' stroke='%2316323a' stroke-width='1.6' stroke-linejoin='round'/%3E%3Cpath d='M190 80h110M205 86h80M222 92h46' stroke='%2316323a' stroke-width='1.2' opacity='.35'/%3E%3C/svg%3E");
+}
+.pf[data-theme='pokhara-phewa'] .pf-bg::before { content: ''; position: absolute; inset: 0 0 auto; height: 96px; background: var(--band) 50% 0 / 640px 96px no-repeat; }
+.pf[data-theme='pokhara-phewa'] .pf-page { padding-top: 108px; }
+.pf[data-theme='pokhara-phewa'] .pf-name { font-size: 34px; }
+.pf[data-theme='pokhara-phewa'] .pf-link { border-left: 4px solid #c8432b; }
+.pf[data-theme='pokhara-phewa'] .pf-link:nth-child(3n+2) { border-left-color: #2a5c8a; }
+.pf[data-theme='pokhara-phewa'] .pf-link:nth-child(3n) { border-left-color: #d9a52c; }
+.pf[data-theme='pokhara-phewa'] .pf-section { font-family: var(--f-news); font-style: italic; font-weight: 500; font-size: 17px; color: #16323a; }
+.pf[data-theme='pokhara-phewa'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='pokhara-phewa'] .pf-social:hover { color: var(--pf-accent); }
+
+/* ---- Mustang Ochre: Lo Manthang walls: ochre, lime white and slate grey; stone-cut capitals. ---- */
+.pf[data-theme='mustang-ochre'] {
+  --pf-bg: #f3ede2;
+  --pf-fg: #2d241c;
+  --pf-muted: #6f6356;
+  --pf-accent: #a3472a;
+  --pf-accent-fg: #fff8f1;
+  --pf-card: #fbf7f0;
+  --pf-card-fg: #2d241c;
+  --pf-line: #2d241c;
+  --pf-radius: 0px;
+  --pf-shadow: none;
+  --pf-font-display: var(--f-archivo);
+  --pf-name-weight: 800;
+  --pf-name-track: 0.01em;
+  --pf-avatar-radius: 0px;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='12' viewBox='0 0 36 12'%3E%3Crect width='12' height='12' fill='%23a3472a'/%3E%3Crect x='12' width='12' height='12' fill='%23f3ede2'/%3E%3Crect x='24' width='12' height='12' fill='%23626d78'/%3E%3C/svg%3E");
+}
+.pf[data-theme='mustang-ochre'] .pf-bg::before { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 12px; background: var(--band) 0 0 / 36px 12px; transform-origin: 0 0; }
+.pf[data-theme='mustang-ochre'] .pf-bg::after { content: ''; position: absolute; inset: 0 0 auto; height: 12px; background: linear-gradient(90deg, #a3472a 0 33.3%, #f3ede2 33.3% 66.6%, #626d78 66.6%); }
+.pf[data-theme='mustang-ochre'] .pf-page { padding-top: 60px; }
+.pf[data-theme='mustang-ochre'] .pf-name { text-transform: uppercase; font-stretch: 80%; font-size: 34px; line-height: 0.98; }
+.pf[data-theme='mustang-ochre'] .pf-link { border-width: 1.5px; }
+.pf[data-theme='mustang-ochre'] .pf-link:hover { transform: translate(-2px, -2px); box-shadow: 3px 3px 0 #2d241c; }
+.pf[data-theme='mustang-ochre'] .pf-section { text-transform: uppercase; letter-spacing: 0.16em; font-size: 12px; color: #2d241c; }
+.pf[data-theme='mustang-ochre'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='mustang-ochre'] .pf-social:hover { color: var(--pf-accent); }
+
+/* ---- Palpali Dhaka: A handloom dhaka band in red, black, ochre and green, on unbleached cotton. ---- */
+.pf[data-theme='dhaka-topi'] {
+  --pf-bg: #f6f0e6;
+  --pf-fg: #1d1a17;
+  --pf-muted: #6b6259;
+  --pf-accent: #b1242e;
+  --pf-accent-fg: #ffffff;
+  --pf-card: #fffaf2;
+  --pf-card-fg: #1d1a17;
+  --pf-line: #1d1a17;
+  --pf-radius: 4px;
+  --pf-shadow: none;
+  --pf-font-display: var(--f-brico);
+  --pf-name-weight: 700;
+  --pf-name-track: -0.03em;
+  --pf-avatar-radius: 50%;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='36' viewBox='0 0 32 36'%3E%3Crect width='32' height='36' fill='%23f6f0e6'/%3E%3Crect width='32' height='4' fill='%23b1242e'/%3E%3Crect y='32' width='32' height='4' fill='%23b1242e'/%3E%3Cpath d='M0 6h32M0 30h32' stroke='%231d1a17' stroke-width='1.2'/%3E%3Cpath d='M8 10l8 8-8 8-8-8z' fill='%231d1a17'/%3E%3Cpath d='M8 14l4 4-4 4-4-4z' fill='%23d49a2a'/%3E%3Cpath d='M24 10l8 8-8 8-8-8z' fill='%23b1242e'/%3E%3Cpath d='M24 14l4 4-4 4-4-4z' fill='%23f6f0e6'/%3E%3Cpath d='M24 16.5l1.5 1.5-1.5 1.5-1.5-1.5z' fill='%232e6b45'/%3E%3C/svg%3E");
+}
+.pf[data-theme='dhaka-topi'] .pf-bg::before { content: ''; position: absolute; inset: 0 0 auto; height: 36px; background: var(--band) 0 0 / 32px 36px repeat-x; }
+.pf[data-theme='dhaka-topi'] .pf-page { padding-top: 80px; }
+.pf[data-theme='dhaka-topi'] .pf-avatar { box-shadow: 0 0 0 3px #f6f0e6, 0 0 0 5px #b1242e; }
+.pf[data-theme='dhaka-topi'] .pf-link { border-width: 1.5px; }
+.pf[data-theme='dhaka-topi'] .pf-section { display: flex; align-items: center; gap: 10px; justify-content: center; text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; color: #1d1a17; }
+.pf[data-theme='dhaka-topi'] .pf-section::before, .pf[data-theme='dhaka-topi'] .pf-section::after { content: ''; flex: 0 1 48px; height: 9px; background: var(--band) 0 -13px / 32px 36px repeat-x; }
+.pf[data-theme='dhaka-topi'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='dhaka-topi'] .pf-social:hover { color: var(--pf-accent); }
+
+/* ---- Mithila Folk: Janakpur line work: double contours, hatched borders, red and turmeric on handmade paper. ---- */
+.pf[data-theme='mithila-art'] {
+  --pf-bg: #f4ead6;
+  --pf-fg: #1c1814;
+  --pf-muted: #6d6152;
+  --pf-accent: #b8322a;
+  --pf-accent-fg: #fff8ee;
+  --pf-card: #fbf4e6;
+  --pf-card-fg: #1c1814;
+  --pf-line: #1c1814;
+  --pf-radius: 2px;
+  --pf-shadow: none;
   --pf-font-display: var(--f-dm);
-  --pf-name-size: 33px;
-  --pf-name-weight: 600;
-  --pf-avatar-bg: #421508;
-  --pf-avatar-fg: #ffbe1a;
-  --pf-gap: 14px;
-  --sayapatri-diyo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='108' viewBox='0 0 720 108'%3E%3Cpath d='M0 24Q90 70 180 24Q270 70 360 24Q450 70 540 24Q630 70 720 24' stroke='%23ff5500' stroke-width='14' fill='none' stroke-linecap='round' stroke-dasharray='10 6'/%3E%3Cpath d='M0 24Q90 70 180 24Q270 70 360 24Q450 70 540 24Q630 70 720 24' stroke='%23ffcc00' stroke-width='10' fill='none' stroke-linecap='round' stroke-dasharray='8 8'/%3E%3Cellipse cx='90' cy='62' rx='16' ry='7' fill='%23b8431e'/%3E%3Cpath d='M90 44c-5 8-2 13 0 16 2-3 5-8 0-16z' fill='%23ffbe1a'/%3E%3Ccircle cx='90' cy='52' r='10' fill='%23ff8800' opacity='0.35'/%3E%3Cellipse cx='270' cy='62' rx='16' ry='7' fill='%23b8431e'/%3E%3Cpath d='M270 44c-5 8-2 13 0 16 2-3 5-8 0-16z' fill='%23ffbe1a'/%3E%3Ccircle cx='270' cy='52' r='10' fill='%23ff8800' opacity='0.35'/%3E%3Cellipse cx='360' cy='36' rx='16' ry='7' fill='%23b8431e'/%3E%3Cpath d='M360 18c-5 8-2 13 0 16 2-3 5-8 0-16z' fill='%23ffbe1a'/%3E%3Ccircle cx='360' cy='26' r='10' fill='%23ff8800' opacity='0.35'/%3E%3Cellipse cx='450' cy='62' rx='16' ry='7' fill='%23b8431e'/%3E%3Cpath d='M450 44c-5 8-2 13 0 16 2-3 5-8 0-16z' fill='%23ffbe1a'/%3E%3Ccircle cx='450' cy='52' r='10' fill='%23ff8800' opacity='0.35'/%3E%3Cellipse cx='630' cy='62' rx='16' ry='7' fill='%23b8431e'/%3E%3Cpath d='M630 44c-5 8-2 13 0 16 2-3 5-8 0-16z' fill='%23ffbe1a'/%3E%3Ccircle cx='630' cy='52' r='10' fill='%23ff8800' opacity='0.35'/%3E%3C/svg%3E");
+  --pf-name-weight: 400;
+  --pf-name-track: 0em;
+  --pf-avatar-radius: 50%;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='22' viewBox='0 0 40 22'%3E%3Cpath d='M0 20l10-16 10 16z' fill='none' stroke='%231c1814' stroke-width='1.2'/%3E%3Cpath d='M5 20l5-8 5 8' fill='%23c0392b'/%3E%3Cpath d='M20 4l10 16 10-16' fill='none' stroke='%231c1814' stroke-width='1.2'/%3E%3Cpath d='M25 4l5 8 5-8' fill='%23e0a526'/%3E%3C/svg%3E");
 }
-.pf[data-theme='tihar-deusi'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 108px;
-  background: var(--sayapatri-diyo) 50% 0 / 720px 108px repeat-x;
-  pointer-events: none;
-}
-.pf[data-theme='tihar-deusi'] .pf-bg {
-  background:
-    radial-gradient(ellipse 90% 50% at 50% 0%, rgba(255, 136, 0, 0.35) 0%, transparent 70%),
-    radial-gradient(circle 450px at 50% 50%, rgba(255, 85, 0, 0.15), transparent 75%),
-    linear-gradient(180deg, #100e1f 0%, #05050a 100%),
-    var(--noise);
-}
-.pf[data-theme='tihar-deusi'] .pf-page { padding-top: 116px; }
-.pf[data-theme='tihar-deusi'] .pf-avatar {
-  box-shadow: 0 0 0 3px #080914, 0 0 0 6px #ff5500, 0 0 0 9px #ffcc00, 0 0 30px rgba(255, 136, 0, 0.5);
-}
-.pf[data-theme='tihar-deusi'] .pf-handle { color: #ffbe1a; font-weight: 600; }
-.pf[data-theme='tihar-deusi'] .pf-link {
-  background: linear-gradient(180deg, #181122 0%, #0d0a14 100%);
-  border: 1px solid rgba(255, 190, 26, 0.5);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7), 0 0 22px rgba(255, 136, 0, 0.25);
-  transition: all 180ms var(--ease);
-}
-.pf[data-theme='tihar-deusi'] .pf-link:hover {
-  transform: translateY(-2px);
-  border-color: #ffbe1a;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 136, 0, 0.6);
-}
-.pf[data-theme='tihar-deusi'] .pf-link-icon {
-  background: #421508;
-  color: #ffbe1a;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 190, 26, 0.5);
-}
-.pf[data-theme='tihar-deusi'] .pf-link[data-highlight] {
-  background: linear-gradient(180deg, #281938 0%, #150d1e 100%);
-  border-color: #ffbe1a;
-  box-shadow: 0 8px 30px rgba(255, 136, 0, 0.5), inset 0 0 0 1px #ffbe1a;
-}
-.pf[data-theme='tihar-deusi'] .pf-section {
-  font-family: var(--f-dm);
-  color: #ffbe1a;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: 15px;
-}
-.pf[data-theme='tihar-deusi'] .pf-social {
-  background: #181122;
-  color: #fff8eb;
-  border: 1px solid rgba(255, 190, 26, 0.5);
-  border-radius: 6px;
-}
-.pf[data-theme='tihar-deusi'] .pf-social:hover {
-  background: #ff8800;
-  color: #080914;
-  border-color: #ffbe1a;
-}
+.pf[data-theme='mithila-art'] .pf-bg::before { content: ''; position: absolute; inset: 0 0 auto; height: 22px; top: 12px; background: var(--band) 50% 0 / 40px 22px repeat-x; }
+.pf[data-theme='mithila-art'] .pf-bg::after { content: ''; position: absolute; inset: 40px 0 auto; height: 5px; border-top: 1.2px solid #1c1814; border-bottom: 1.2px solid #1c1814; }
+.pf[data-theme='mithila-art'] .pf-page { padding-top: 84px; }
+.pf[data-theme='mithila-art'] .pf-avatar { box-shadow: 0 0 0 3px #f4ead6, 0 0 0 4.5px #1c1814, 0 0 0 7px #f4ead6, 0 0 0 8.5px #1c1814; }
+.pf[data-theme='mithila-art'] .pf-name { font-size: 34px; }
+.pf[data-theme='mithila-art'] .pf-link { box-shadow: inset 0 0 0 3px #fbf4e6, inset 0 0 0 4.2px #1c1814; }
+.pf[data-theme='mithila-art'] .pf-link[data-highlight] { box-shadow: inset 0 0 0 3px #b8322a, inset 0 0 0 4.2px #fff8ee; }
+.pf[data-theme='mithila-art'] .pf-link-icon { background: #e0a526; color: #1c1814; border-radius: 50%; }
+.pf[data-theme='mithila-art'] .pf-section { font-family: var(--f-dm); font-weight: 400; font-size: 20px; color: #b8322a; }
+.pf[data-theme='mithila-art'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='mithila-art'] .pf-social:hover { color: var(--pf-accent); }
 
-/* ---- 10. Rara Alpine: Himalayan blue pines overlooking pristine high-altitude sapphire waters. ---- */
+/* ---- Khumbu Tweed: Charcoal yak-wool twill and the striped pangden apron of Sherpa women. ---- */
+.pf[data-theme='yak-wool'] {
+  --pf-bg: #1f2023;
+  --pf-fg: #ede6d9;
+  --pf-muted: #a39c90;
+  --pf-accent: #d8a334;
+  --pf-accent-fg: #1f2023;
+  --pf-card: #28292d;
+  --pf-card-fg: #ede6d9;
+  --pf-line: #393a3f;
+  --pf-radius: 6px;
+  --pf-shadow: none;
+  --pf-font-display: var(--f-archivo);
+  --pf-name-weight: 700;
+  --pf-name-track: -0.01em;
+  --pf-avatar-radius: 12px;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14' viewBox='0 0 28 14'%3E%3Crect width='4' height='14' y='0' fill='%23b8322a'/%3E%3Crect x='4' width='3' height='14' fill='%23e9e2d2'/%3E%3Crect x='7' width='4' height='14' fill='%231f6f5a'/%3E%3Crect x='11' width='3' height='14' fill='%23d8a334'/%3E%3Crect x='14' width='4' height='14' fill='%232f4f8a'/%3E%3Crect x='18' width='3' height='14' fill='%23e9e2d2'/%3E%3Crect x='21' width='4' height='14' fill='%23b8322a'/%3E%3Crect x='25' width='3' height='14' fill='%23d8a334'/%3E%3C/svg%3E");
+}
+.pf[data-theme='yak-wool'] .pf-bg { background: repeating-linear-gradient(45deg, rgba(255,255,255,0.018) 0 2px, transparent 2px 5px), #1f2023; }
+.pf[data-theme='yak-wool'] .pf-bg::before { content: ''; position: absolute; inset: 0 0 auto; height: 14px; background: var(--band) 0 0 / 28px 14px repeat-x; }
+.pf[data-theme='yak-wool'] .pf-page { padding-top: 66px; }
+.pf[data-theme='yak-wool'] .pf-link { padding-left: 16px; }
+.pf[data-theme='yak-wool'] .pf-link::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 2px 2px 0; background: var(--band) 0 0 / 28px 14px; }
+.pf[data-theme='yak-wool'] .pf-link[data-highlight]::before { display: none; }
+.pf[data-theme='yak-wool'] .pf-section { text-transform: uppercase; letter-spacing: 0.16em; font-size: 12px; color: #d8a334; }
+.pf[data-theme='yak-wool'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='yak-wool'] .pf-social:hover { color: var(--pf-accent); }
+
+/* ---- Boudha Harmika: The white dome and gilt harmika drawn in a few gold lines; quiet, like the kora at dawn. ---- */
+.pf[data-theme='bodhi-stupa'] {
+  --pf-bg: #f8f6f1;
+  --pf-fg: #1f1b16;
+  --pf-muted: #6e675c;
+  --pf-accent: #8f2f24;
+  --pf-accent-fg: #fffaf2;
+  --pf-card: #ffffff;
+  --pf-card-fg: #1f1b16;
+  --pf-line: #e4ddcf;
+  --pf-radius: 14px;
+  --pf-shadow: none;
+  --pf-font-display: var(--f-news);
+  --pf-name-weight: 500;
+  --pf-name-track: -0.02em;
+  --pf-avatar-radius: 50%;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='74' viewBox='0 0 120 74'%3E%3Cg fill='none' stroke='%23b0802a' stroke-width='1.4' stroke-linejoin='round'%3E%3Cpath d='M8 70h104M16 70v-6h88v6M24 64c4-22 20-30 36-30s32 8 36 30'/%3E%3Crect x='50' y='24' width='20' height='10'/%3E%3Cpath d='M53 24l7-18 7 18M55 19h10M56.5 15h7M58 11h4'/%3E%3C/g%3E%3Ccircle cx='60' cy='4' r='2' fill='%23b0802a'/%3E%3C/svg%3E");
+}
+.pf[data-theme='bodhi-stupa'] .pf-bg::before { content: ''; position: absolute; left: 50%; top: 22px; width: 120px; height: 74px; margin-left: -60px; background: var(--band) 0 0 / 120px 74px no-repeat; }
+.pf[data-theme='bodhi-stupa'] .pf-page { padding-top: 120px; }
+.pf[data-theme='bodhi-stupa'] .pf-name { font-size: 34px; }
+.pf[data-theme='bodhi-stupa'] .pf-link { border-color: #e4ddcf; }
+.pf[data-theme='bodhi-stupa'] .pf-link-icon { background: #f3ecdd; color: #8a6420; border-radius: 50%; }
+.pf[data-theme='bodhi-stupa'] .pf-section { font-family: var(--f-news); font-style: italic; font-weight: 500; font-size: 17px; color: #8a6420; }
+.pf[data-theme='bodhi-stupa'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='bodhi-stupa'] .pf-social:hover { color: var(--pf-accent); }
+
+/* ---- Tihar Diyo: A Tihar night: sayapatri and makhamali garlands, and buttons lit like clay diyo. ---- */
+.pf[data-theme='tihar-deusi'] {
+  --pf-bg: #1a1320;
+  --pf-fg: #f6ecdc;
+  --pf-muted: #b3a4a8;
+  --pf-accent: #f0a02a;
+  --pf-accent-fg: #1a1320;
+  --pf-card: #231a2a;
+  --pf-card-fg: #f6ecdc;
+  --pf-line: #3a2d40;
+  --pf-radius: 12px;
+  --pf-shadow: none;
+  --pf-font-display: var(--f-dm);
+  --pf-name-weight: 400;
+  --pf-name-track: 0em;
+  --pf-avatar-radius: 50%;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='24' viewBox='0 0 60 24'%3E%3Cpath d='M0 4 Q30 26 60 4' fill='none' stroke='%235d3f2a' stroke-width='1'/%3E%3Ccircle cx='4' cy='6.4' r='4.2' fill='%23f0a02a'/%3E%3Ccircle cx='11' cy='11.6' r='4.2' fill='%23e8791e'/%3E%3Ccircle cx='18.5' cy='15.4' r='4.2' fill='%23f0a02a'/%3E%3Ccircle cx='26' cy='17.6' r='4.2' fill='%23e8791e'/%3E%3Ccircle cx='34' cy='17.6' r='4.2' fill='%237b2d6a'/%3E%3Ccircle cx='41.5' cy='15.4' r='4.2' fill='%23e8791e'/%3E%3Ccircle cx='49' cy='11.6' r='4.2' fill='%23f0a02a'/%3E%3Ccircle cx='56' cy='6.4' r='4.2' fill='%23e8791e'/%3E%3C/svg%3E");
+}
+.pf[data-theme='tihar-deusi'] .pf-bg::before { content: ''; position: absolute; inset: 0 0 auto; height: 24px; top: 6px; background: var(--band) 0 0 / 60px 24px repeat-x; }
+.pf[data-theme='tihar-deusi'] .pf-page { padding-top: 72px; }
+.pf[data-theme='tihar-deusi'] .pf-avatar { box-shadow: 0 0 0 3px #1a1320, 0 0 0 5px #f0a02a; }
+.pf[data-theme='tihar-deusi'] .pf-name { font-size: 36px; }
+.pf[data-theme='tihar-deusi'] .pf-link-icon { background: #33253b; color: #f0a02a; border-radius: 50%; }
+.pf[data-theme='tihar-deusi'] .pf-link[data-highlight] .pf-link-icon { background: #1a1320; }
+.pf[data-theme='tihar-deusi'] .pf-section { font-family: var(--f-dm); font-weight: 400; font-size: 20px; color: #f0a02a; }
+.pf[data-theme='tihar-deusi'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='tihar-deusi'] .pf-social:hover { color: var(--pf-accent); }
+
+/* ---- Rara Alpine: Blue pines on the shore of Rara, and the cold, still colour of the lake. ---- */
 .pf[data-theme='rara-azure'] {
-  --pf-bg: #04101e;
-  --pf-fg: #f0f7fe;
-  --pf-muted: #82a8cb;
-  --pf-accent: #38bdf8;
-  --pf-accent-fg: #04101e;
-  --pf-card: rgba(8, 26, 50, 0.8);
-  --pf-card-fg: #f0f7fe;
-  --pf-card-muted: #82a8cb;
-  --pf-line: rgba(56, 189, 248, 0.4);
-  --pf-radius: 8px;
-  --pf-font-display: var(--f-sans);
-  --pf-name-size: 32px;
-  --pf-name-weight: 650;
-  --pf-avatar-bg: #0b2648;
-  --pf-avatar-fg: #38bdf8;
-  --pf-gap: 13px;
-  --rara-pines: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='160' viewBox='0 0 1200 160'%3E%3Cpath d='M0 110L200 70L360 95L520 50L680 85L840 45L1020 80L1200 60V160H0z' fill='%2314355a'/%3E%3Cpath d='M520 50l-30 25 30 10 30-10z M840 45l-35 25 35 10 35-10z' fill='%23eaf4fd'/%3E%3Cpath d='M40 120l15-40 15 40z M90 120l18-48 18 48z M160 120l16-44 16 44z M230 120l20-52 20 52z M310 120l16-42 16 42z M400 120l22-56 22 56z M490 120l18-46 18 46z M570 120l20-50 20 50z M660 120l18-45 18 45z M740 120l22-54 22 54z M830 120l18-48 18 48z M920 120l20-50 20 50z M1000 120l18-44 18 44z M1080 120l20-52 20 52z M1150 120l16-40 16 40z' fill='%230b221d'/%3E%3Cpath d='M10 135l18-50 18 50z M65 135l22-60 22 60z M130 135l20-55 20 55z M200 135l24-64 24 64z M280 135l20-52 20 52z M360 135l26-68 26 68z M450 135l22-58 22 58z M530 135l24-62 24 62z M620 135l22-56 22 56z M700 135l26-66 26 66z M790 135l22-60 22 60z M880 135l24-62 24 62z M960 135l20-54 20 54z M1040 135l24-64 24 64z M1120 135l20-52 20 52z' fill='%23051410'/%3E%3Crect y='124' width='1200' height='36' fill='%23030c17'/%3E%3Cpath d='M0 128C300 125 600 130 900 126S1150 128 1200 126' stroke='%2338bdf8' stroke-width='2' opacity='0.75'/%3E%3Cpath d='M200 136h200M600 138h250M100 144h150M750 146h200' stroke='%230ea5e9' stroke-width='1.5' opacity='0.5'/%3E%3C/svg%3E");
+  --pf-bg: #eef1ee;
+  --pf-fg: #13262b;
+  --pf-muted: #58686a;
+  --pf-accent: #1f5f7a;
+  --pf-accent-fg: #ffffff;
+  --pf-card: #ffffff;
+  --pf-card-fg: #13262b;
+  --pf-line: #d8e0dc;
+  --pf-radius: 14px;
+  --pf-shadow: none;
+  --pf-font-display: var(--f-news);
+  --pf-name-weight: 500;
+  --pf-name-track: -0.02em;
+  --pf-avatar-radius: 50%;
+  --band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='50' viewBox='0 0 104 50'%3E%3Cg fill='%231d3b33'%3E%3Cpath d='M8 42l7-26 7 26z'/%3E%3Cpath d='M20 42l9-34 9 34z'/%3E%3Cpath d='M36 42l6-20 6 20z'/%3E%3Cpath d='M50 42l8-30 8 30z'/%3E%3Cpath d='M64 42l6-18 6 18z'/%3E%3Cpath d='M74 42l9-36 9 36z'/%3E%3Cpath d='M90 42l5-16 5 16z'/%3E%3C/g%3E%3Cpath d='M0 42.5h104' stroke='%231d3b33' stroke-width='1'/%3E%3Cpath d='M14 47h30M58 47h26' stroke='%231f5f7a' stroke-width='1' opacity='.5'/%3E%3C/svg%3E");
 }
-.pf[data-theme='rara-azure'] .pf-bg::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 160px;
-  background: var(--rara-pines) 50% 0 / 1200px 160px no-repeat;
-  pointer-events: none;
-}
-.pf[data-theme='rara-azure'] .pf-bg {
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(56, 189, 248, 0.28) 0%, transparent 70%),
-    linear-gradient(180deg, #06182e 0%, #02070f 100%),
-    var(--noise);
-}
-.pf[data-theme='rara-azure'] .pf-page { padding-top: 138px; }
-.pf[data-theme='rara-azure'] .pf-avatar {
-  box-shadow: 0 0 0 3px #04101e, 0 0 0 5px #38bdf8, 0 0 0 8px rgba(56, 189, 248, 0.25), 0 0 30px rgba(56, 189, 248, 0.5);
-}
-.pf[data-theme='rara-azure'] .pf-handle { color: #38bdf8; font-weight: 600; }
-.pf[data-theme='rara-azure'] .pf-link {
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  box-shadow: 0 10px 30px rgba(2, 10, 20, 0.7), inset 0 1px 0 rgba(240, 249, 255, 0.3);
-  transition: all 180ms var(--ease);
-}
-.pf[data-theme='rara-azure'] .pf-link:hover {
-  transform: translateY(-2px);
-  border-color: #38bdf8;
-  box-shadow: 0 12px 35px rgba(2, 10, 20, 0.9), 0 0 25px rgba(56, 189, 248, 0.45);
-}
-.pf[data-theme='rara-azure'] .pf-link-icon {
-  background: #0b2648;
-  color: #38bdf8;
-  border-radius: 6px;
-  border: 1px solid rgba(56, 189, 248, 0.4);
-}
-.pf[data-theme='rara-azure'] .pf-link[data-highlight] {
-  background: rgba(14, 46, 84, 0.9);
-  border-color: #38bdf8;
-  box-shadow: 0 10px 32px rgba(56, 189, 248, 0.4), inset 0 0 0 1px #38bdf8;
-}
-.pf[data-theme='rara-azure'] .pf-section {
-  color: #38bdf8;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-}
-.pf[data-theme='rara-azure'] .pf-social {
-  background: rgba(8, 26, 50, 0.8);
-  backdrop-filter: blur(8px);
-  color: #f0f7fe;
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  border-radius: 6px;
-}
-.pf[data-theme='rara-azure'] .pf-social:hover {
-  color: #38bdf8;
-  border-color: #38bdf8;
-}
+.pf[data-theme='rara-azure'] .pf-bg::before { content: ''; position: absolute; inset: 0 0 auto; height: 50px; top: 14px; background: var(--band) 0 0 / 104px 50px repeat-x; opacity: 0.9; }
+.pf[data-theme='rara-azure'] .pf-page { padding-top: 96px; }
+.pf[data-theme='rara-azure'] .pf-name { font-size: 34px; }
+.pf[data-theme='rara-azure'] .pf-link-icon { background: #e3ecea; color: #1d3b33; border-radius: 50%; }
+.pf[data-theme='rara-azure'] .pf-section { font-family: var(--f-news); font-style: italic; font-weight: 500; font-size: 17px; color: #1f5f7a; }
+.pf[data-theme='rara-azure'] .pf-social { color: var(--pf-fg); }
+.pf[data-theme='rara-azure'] .pf-social:hover { color: var(--pf-accent); }

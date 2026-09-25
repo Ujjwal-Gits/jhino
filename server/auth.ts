@@ -8,12 +8,15 @@ import { HttpError } from './errors.js';
 import { clientInfo, deviceName, limit, securityEvent, audit } from './security.js';
 import { sendMail, mails } from './mail.js';
 import { activePlan, featuresOf } from './plans.js';
+import { codeInfo, mustVerifyToSignIn, sendVerifyCode } from './codes.js';
+import { startTicket, twoFactorOn, useTicket } from './twofactor.js';
 
 export { HttpError };
 
 export const COOKIE = 'jhino_sid';
 // Sign in once: a session lasts 60 days and renews itself while it is used.
 const SESSION_DAYS = 60;
+const ADMIN_SESSION_HOURS = 72;
 const RENEW_BELOW_DAYS = 45;
 // Sensitive changes without a password (accounts that sign in with Google/Apple only) need a sign-in this recent.
 const REAUTH_MINUTES = 10;
@@ -47,6 +50,9 @@ export function publicUser(u: UserRow) {
     id: u.id, email: u.email, name: u.name, displayName: u.display_name || null,
     isAdmin: !!u.is_admin, disabled: !!u.disabled, canCreate: canCreateApps(u),
     emailIsAddress: looksLikeEmail(u.email), emailVerified: looksLikeEmail(u.email) ? !!u.email_verified_at : null,
+    // Customers (not super admins, not a studio's clients) confirm their email; the dashboard asks until they do.
+    mustVerify: !u.is_admin && canCreateApps(u) && looksLikeEmail(u.email) && !u.email_verified_at,
+    twoFactor: !!u.totp_enabled_at,
     hasAvatar: !!u.avatar, passwordSet: u.password_set !== 0, plan: activePlan(u), username: u.username ?? null,
     // What the plan includes, so screens can show what is on and what needs an upgrade. The server checks again.
     features: canCreateApps(u) ? featuresOf(u) : null,
@@ -107,6 +113,9 @@ export function createSession(reply: FastifyReply, userId: string, req?: Fastify
 export function revokeSessions(userId: string, keepHash: string | null = null, keys = true) {
   db.prepare('DELETE FROM sessions WHERE user_id=? AND id_hash IS NOT ?').run(userId, keepHash);
   if (keys) db.prepare('DELETE FROM app_keys WHERE user_id=?').run(userId);
+  // Unused codes and email links (a pending email change, a reset) and open app links go with the sessions.
+  db.prepare('DELETE FROM auth_tokens WHERE user_id=? AND used_at IS NULL').run(userId);
+  if (!keepHash) db.prepare('DELETE FROM runs WHERE user_id=?').run(userId);
   if (!keepHash) closeUser(userId);
 }
 
@@ -131,10 +140,14 @@ export async function bootstrapAdmin() {
   if (!config.admin.password) console.log(`  Generated admin password (shown once, change it after signing in): ${password}`);
 }
 
-// Sign-in throttle: after 5 misses for one ID from one address, wait (longer with each miss).
-const misses = new Map<string, { n: number; until: number }>();
-function throttleKey(req: FastifyRequest, email: string) { return `${req.ip}|${email.toLowerCase()}`; }
-setInterval(() => { const t = Date.now(); for (const [k, v] of misses) if (v.until && v.until < t - 3600e3) misses.delete(k); }, 600_000).unref();
+// Sign-in throttle, per account whatever the address: after 5 misses, wait (longer with each miss, up to
+// 15 minutes). Entries are forgotten an hour after the last miss, and the map is bounded.
+const misses = new Map<string, { n: number; until: number; at: number }>();
+function throttleKey(_req: FastifyRequest, email: string) { return email.toLowerCase().slice(0, 200); }
+setInterval(() => { const t = Date.now(); for (const [k, v] of misses) if (v.at < t - 3600e3 && v.until < t) misses.delete(k); }, 600_000).unref();
+// A hash to check against when the account does not exist, so the answer takes as long either way.
+let dummyHash: Promise<string> | null = null;
+const dummy = () => (dummyHash ??= hash(crypto.randomBytes(16).toString('hex')));
 
 /** Check a sign-in ID and password, with the throttle. Used by the web sign-in and by downloaded files. */
 export async function checkLogin(req: FastifyRequest, emailIn: unknown, password: unknown): Promise<UserRow> {
@@ -146,12 +159,15 @@ export async function checkLogin(req: FastifyRequest, emailIn: unknown, password
     throw new HttpError(429, 'TOO_MANY_ATTEMPTS', `Too many tries. Wait ${Math.ceil((m.until - Date.now()) / 1000)} seconds.`);
   }
   const u = db.prepare("SELECT * FROM users WHERE email=? AND kind='person'").get(email) as UserRow | undefined;
-  const ok = u && u.password_set !== 0 && await verify(u.password_hash, String(password ?? ''));
+  const pw = String(password ?? '').slice(0, 200);
+  const ok = u && u.password_set !== 0 ? await verify(u.password_hash, pw) : (await verify(await dummy(), pw), false);
   if (!ok) {
+    if (misses.size > 100_000) misses.clear(); // a flood of made-up IDs: start over rather than grow
     const n = (m?.n ?? 0) + 1;
-    misses.set(key, { n, until: n >= 5 ? Date.now() + Math.min(15 * 60, 2 ** (n - 4) * 15) * 1000 : 0 });
+    misses.set(key, { n, at: Date.now(), until: n >= 5 ? Date.now() + Math.min(15 * 60, 2 ** (n - 4) * 15) * 1000 : 0 });
     if (u) securityEvent(u.id, 'login_failed', req);
-    throw new HttpError(401, 'BAD_LOGIN', u && u.password_set === 0 ? 'This account signs in with Google or Apple. Use that button, or reset your password to add one.' : 'That sign-in ID and password do not match.');
+    // One answer for every miss, so this cannot tell which IDs have accounts.
+    throw new HttpError(401, 'BAD_LOGIN', 'That sign-in ID and password do not match. If you signed up with Google or Apple, use that button.');
   }
   misses.delete(key);
   if (u!.disabled) throw new HttpError(403, 'SUSPENDED', `This account is suspended${u!.suspended_reason ? ': ' + u!.suspended_reason : ''}. Contact support if you think this is a mistake.`);
@@ -203,10 +219,13 @@ export function registerAuth(app: FastifyInstance) {
     const token = req.cookies?.[COOKIE];
     if (!token) return;
     const h = sha256(token);
-    const s = db.prepare(`SELECT s.csrf, s.expires_at, s.last_seen_at, u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id_hash=?`)
-      .get(h) as (UserRow & { csrf: string; expires_at: string; last_seen_at: string | null }) | undefined;
+    const s = db.prepare(`SELECT s.csrf, s.expires_at, s.last_seen_at, s.created_at session_at, u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id_hash=?`)
+      .get(h) as (UserRow & { csrf: string; expires_at: string; last_seen_at: string | null; session_at: string }) | undefined;
     if (!s || s.disabled || s.kind === 'visitor' || Date.parse(s.expires_at) < Date.now()) return;
-    const { csrf, expires_at: exp, last_seen_at: seen, ...user } = s;
+    // A super admin signs in again every 3 days, however active the session.
+    if (s.is_admin && Date.parse(s.session_at) < Date.now() - ADMIN_SESSION_HOURS * 3600e3) { db.prepare('DELETE FROM sessions WHERE id_hash=?').run(h); return; }
+    const { csrf, expires_at: exp, last_seen_at: seen, session_at: _sa, ...user } = s;
+    void _sa;
     req.user = user as UserRow;
     req.csrf = csrf;
     req.sessionHash = h;
@@ -234,9 +253,29 @@ export function registerAuth(app: FastifyInstance) {
   app.post('/api/auth/login', async (req, reply) => {
     const body = (req.body ?? {}) as { email?: string; password?: string };
     const u = await checkLogin(req, body.email, body.password);
+    // A new account opens after its email is confirmed: the password was right, so send the code
+    // (the same one again within its 5 minutes) and ask for it; no session yet.
+    if (mustVerifyToSignIn(u)) {
+      try { return { verify: true, email: u.email, ...codeInfo(sendVerifyCode(req, u)) }; }
+      catch (e) { if (e instanceof HttpError && e.status === 429) return { verify: true, email: u.email, note: e.message }; throw e; }
+    }
+    if (twoFactorOn(u)) return { twofa: true, ticket: startTicket(u.id, 'password') };
     createSession(reply, u.id, req);
     afterLogin(req, u);
     return { ok: true };
+  });
+
+  /** The second step: the ticket from the password step and a code from the authenticator app (or a recovery code). */
+  app.post('/api/auth/2fa', async (req, reply) => {
+    limit(req, '2fa', 20, 15 * 60_000);
+    const b = (req.body ?? {}) as { ticket?: string; code?: string };
+    const t = useTicket(b.ticket, b.code);
+    const u = db.prepare('SELECT * FROM users WHERE id=?').get(t.userId) as UserRow | undefined;
+    if (!u || u.disabled) throw new HttpError(403, 'SUSPENDED', 'This account cannot sign in.');
+    createSession(reply, u.id, req);
+    afterLogin(req, u, `${t.how}+2fa`);
+    if (t.via === 'recovery') securityEvent(u.id, '2fa_recovery_used', req);
+    return { ok: true, username: u.username ?? null };
   });
 
   app.post('/api/auth/logout', async (req, reply) => {
@@ -259,7 +298,7 @@ export function registerAuth(app: FastifyInstance) {
     if (b.name !== undefined) db.prepare('UPDATE users SET name=? WHERE id=?').run(validateName(b.name), u.id);
     if (b.newPassword !== undefined) {
       await reauth(req, b.currentPassword);
-      db.prepare('UPDATE users SET password_hash=?, password_set=1, password_changed_at=? WHERE id=?').run(await hashPassword(validatePassword(b.newPassword)), now(), u.id);
+      db.prepare('UPDATE users SET password_hash=?, password_set=1, own_password=1, password_changed_at=? WHERE id=?').run(await hashPassword(validatePassword(b.newPassword)), now(), u.id);
       revokeSessions(u.id, req.sessionHash);
       securityEvent(u.id, 'password_changed', req);
     }
@@ -299,7 +338,7 @@ export function registerAuth(app: FastifyInstance) {
     let password: string | undefined;
     if (b.resetPassword) {
       password = makePassword(12);
-      db.prepare('UPDATE users SET password_hash=?, password_set=1, password_changed_at=? WHERE id=?').run(await hashPassword(password), now(), id);
+      db.prepare('UPDATE users SET password_hash=?, password_set=1, own_password=1, password_changed_at=? WHERE id=?').run(await hashPassword(password), now(), id);
       revokeSessions(id);
       audit(req, 'user.reset_password', 'user', id, u.email);
     }

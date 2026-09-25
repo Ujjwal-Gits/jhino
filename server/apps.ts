@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { trackRun } from './analytics.js';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
@@ -127,6 +128,22 @@ const TYPES: Record<string, string> = {
 };
 export const SANDBOX = 'allow-scripts allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads';
 
+/**
+ * Where the first <name ...> tag ends (the index after its ">"), looking only at the start of the page
+ * and without a regex, so a hostile page cannot make this slow. -1 when there is none.
+ */
+function openTag(html: string, name: string) {
+  const lower = html.slice(0, 256 * 1024).toLowerCase();
+  for (let i = lower.indexOf('<' + name); i >= 0; i = lower.indexOf('<' + name, i + 1)) {
+    const c = lower[i + name.length + 1];
+    if (c !== '>' && !/\s/.test(c ?? '')) continue;
+    const end = lower.indexOf('>', i);
+    if (end < 0 || end - i > 2000) continue;
+    return end + 1;
+  }
+  return -1;
+}
+
 /** Put the Jhino bridge first in <head> so it runs before any app script. */
 function inject(html: string, boot: unknown, idb = false) {
   // Escape "<" and the two JS line separators so data can never close the script tag.
@@ -134,10 +151,10 @@ function inject(html: string, boot: unknown, idb = false) {
   const json = JSON.stringify(boot).replace(unsafe, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
   // Apps that use IndexedDB get one that works in the sandbox and saves to the server (loaded before the shim).
   const tag = `<script id="__jhino_boot">window.__JHINO_BOOT__=${json}</script>${idb ? '<script src="/_jhino/idb.js"></script>' : ''}<script src="/_jhino/shim.js"></script>`;
-  const head = html.match(/<head(\s[^>]*)?>/i);
-  if (head && head.index !== undefined) return html.slice(0, head.index + head[0].length) + tag + html.slice(head.index + head[0].length);
-  const root = html.match(/<html(\s[^>]*)?>/i);
-  if (root && root.index !== undefined) return html.slice(0, root.index + root[0].length) + `<head>${tag}</head>` + html.slice(root.index + root[0].length);
+  const head = openTag(html, 'head');
+  if (head >= 0) return html.slice(0, head) + tag + html.slice(head);
+  const root = openTag(html, 'html');
+  if (root >= 0) return html.slice(0, root) + `<head>${tag}</head>` + html.slice(root);
   const dt = html.match(/^\s*<!doctype[^>]*>/i);
   return dt ? dt[0] + tag + html.slice(dt[0].length) : tag + html;
 }
@@ -366,6 +383,9 @@ export function registerApps(app: FastifyInstance) {
     const { user } = access(req, id, 'owner');
     const u = db.prepare('SELECT * FROM users WHERE id=?').get(userId) as (UserRow & { created_by: string | null }) | undefined;
     if (!u || !roleOf(id, userId) || u.created_by !== user.id || u.is_admin) throw new HttpError(403, 'FORBIDDEN', 'You can only reset passwords for sign-ins you made.');
+    // A person with their own (confirmed or linked) email account resets it themselves, by email.
+    const own = u.own_password || u.email_verified_at || db.prepare('SELECT 1 FROM identities WHERE user_id=? LIMIT 1').get(userId);
+    if (own) throw new HttpError(403, 'FORBIDDEN', 'This person manages their own password. They can reset it from the sign-in page.');
     const password = makePassword(12);
     db.prepare('UPDATE users SET password_hash=? WHERE id=?').run(await hashPassword(password), userId);
     db.prepare('DELETE FROM sessions WHERE user_id=?').run(userId);
@@ -432,8 +452,9 @@ export function registerApps(app: FastifyInstance) {
     if (!user) {
       const b = (req.body ?? {}) as { name?: string; email?: string; password?: string };
       user = await createUser(validateEmail(b.email), validateName(b.name), validatePassword(b.password));
-      // Someone who joins through an invite is a client of that app's owner.
-      db.prepare('UPDATE users SET created_by=? WHERE id=?').run(inv.created_by, user.id);
+      // Someone who joins through an invite is a client of that app's owner, but chose their own email
+      // and password: the owner cannot reset it (own_password).
+      db.prepare('UPDATE users SET created_by=?, own_password=1 WHERE id=?').run(inv.created_by, user.id);
       user = db.prepare('SELECT * FROM users WHERE id=?').get(user.id) as UserRow;
       createSession(reply, user.id, req);
     }
@@ -549,6 +570,7 @@ export function registerApps(app: FastifyInstance) {
       };
       let usesIdb = false;
       try { usesIdb = !!JSON.parse(v.features).indexedDB; } catch { /* old version row */ }
+      if (file === path.join(root, v.entry)) trackRun(req, a.id, a.name);
       return inject(fs.readFileSync(file, 'utf8'), boot, usesIdb);
     }
     reply.header('Cache-Control', 'private, max-age=3600');

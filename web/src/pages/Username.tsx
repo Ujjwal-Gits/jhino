@@ -11,7 +11,8 @@ type Check = { state: 'idle' | 'checking' | 'ok' | 'bad'; reason?: string };
 export const cleanUsername = (s: string) => s.toLowerCase().replace(/^@/, '').replace(/[^a-z0-9_-]/g, '').slice(0, 30);
 export const suggestFrom = (s: string) => cleanUsername(s.split('@')[0].normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, ''));
 
-export function useUsernameCheck(name: string, current?: string | null): Check {
+/** `admin`: a super admin setting someone's name, who may use general words (faq, services…). */
+export function useUsernameCheck(name: string, current?: string | null, admin = false): Check {
   const [c, setC] = useState<Check>({ state: 'idle' });
   useEffect(() => {
     if (!name) { setC({ state: 'idle' }); return; }
@@ -19,13 +20,13 @@ export function useUsernameCheck(name: string, current?: string | null): Check {
     setC({ state: 'checking' });
     let live = true;
     const t = setTimeout(() => {
-      get<{ available: boolean; reason?: string }>(`/api/usernames/check?name=${encodeURIComponent(name)}`).then(
+      get<{ available: boolean; reason?: string }>(`/api/usernames/check?name=${encodeURIComponent(name)}${admin ? '&admin=1' : ''}`).then(
         (r) => { if (live) setC(r.available ? { state: 'ok' } : { state: 'bad', reason: r.reason }); },
         () => { if (live) setC({ state: 'idle' }); },
       );
     }, 280);
     return () => { live = false; clearTimeout(t); };
-  }, [name, current]);
+  }, [name, current, admin]);
   return c;
 }
 

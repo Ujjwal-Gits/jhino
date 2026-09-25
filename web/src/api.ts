@@ -1,6 +1,10 @@
 export interface User {
   id: string; email: string; name: string; displayName: string | null; isAdmin: boolean; disabled: boolean; canCreate: boolean;
   emailIsAddress: boolean; emailVerified: boolean | null; hasAvatar: boolean; passwordSet: boolean; plan: string;
+  /** A customer whose email is not confirmed yet: the dashboard asks for the code until it is. */
+  mustVerify?: boolean;
+  /** Two-step sign-in (authenticator app) is on. */
+  twoFactor?: boolean;
   /** The name in their addresses: jhino.com/<username> is their page. Null for client accounts. */
   username?: string | null;
   /** What the person's plan includes (null for client accounts). The server checks again on every action. */

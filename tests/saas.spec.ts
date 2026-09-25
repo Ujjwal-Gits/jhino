@@ -35,7 +35,17 @@ async function signup(name: string) {
   const s = await session();
   const r = await s.ctx.post('/api/auth/signup', { data: { name, email, password: 'a-good-password-1', terms: true } });
   expect(r.status(), await r.text()).toBe(200);
+  expect((await r.json()).verify).toBe(true);
+  // The account opens once the email is confirmed with the code from the email.
+  const code = await mailCode(await session(OWNER), email, 'verify');
+  const v = await s.ctx.post('/api/auth/verify-login', { data: { email, code } });
+  expect(v.status(), await v.text()).toBe(200);
   return { email, password: 'a-good-password-1' };
+}
+/** The 6-digit code in the latest email of a kind (the log keeps it when no email service is set). */
+async function mailCode(admin: Api, to: string, kind: string) {
+  const m = await lastMail(admin, to, kind);
+  return /Your code: (\d{6})/.exec(m.body)![1];
 }
 /** The latest email to someone, from the log (no SMTP in tests). */
 async function lastMail(admin: Api, to: string, kind?: string) {
@@ -48,31 +58,24 @@ test('accounts: sign up, confirm email, reset password once, change password, se
   const admin = await session(OWNER);
   const who = await signup('Maya');
   const maya = await session(who);
-  let acc = (await maya.call('GET', '/api/account')).json;
-  expect(acc.user.emailVerified).toBe(false);
-  expect(acc.usage).toMatchObject({ plan: 'free', used: 0, limit: 1, remaining: 1 });
-
-  // Confirm the email with the link from the email.
-  const verify = await lastMail(admin, who.email, 'verify');
-  const vtoken = linkIn(verify.body, '/verify');
-  expect((await maya.call('POST', '/api/auth/verify', { token: vtoken })).status).toBe(200);
-  expect((await maya.call('POST', '/api/auth/verify', { token: vtoken })).json.error).toBe('TOKEN_USED');
-  acc = (await maya.call('GET', '/api/account')).json;
+  // Confirmed with the code at sign-up (the account opens only then).
+  const acc = (await maya.call('GET', '/api/account')).json;
   expect(acc.user.emailVerified).toBe(true);
+  expect(acc.usage).toMatchObject({ plan: 'free', used: 0, limit: 1, remaining: 1 });
 
   // Profile: saved, and checked.
   expect((await maya.call('PATCH', '/api/account/profile', { name: 'Maya Gurung', phone: '+977 9801234567', country: 'NP', timezone: 'Asia/Kathmandu', language: 'en', company: 'Sur Studio', bio: 'Sound' })).status).toBe(200);
   expect((await maya.call('PATCH', '/api/account/profile', { name: 'Maya', timezone: 'Mars/Olympus' })).status).toBe(400);
   expect((await maya.call('PATCH', '/api/account/profile', { name: 'Maya', phone: 'call me <b>' })).status).toBe(400);
 
-  // Forgot password: the same answer for unknown emails; the link works once.
+  // Forgot password: the same answer for unknown emails; the code works once.
   const anon = await session();
   expect((await anon.call('POST', '/api/auth/forgot', { email: 'nobody.' + uniq() + '@example.com' })).status).toBe(200);
   expect((await anon.call('POST', '/api/auth/forgot', { email: who.email })).status).toBe(200);
-  const rtoken = linkIn((await lastMail(admin, who.email, 'reset')).body, '/reset');
-  expect((await anon.call('POST', '/api/auth/reset', { token: rtoken, password: 'short' })).status).toBe(400);
-  expect((await anon.call('POST', '/api/auth/reset', { token: rtoken, password: 'a-newer-password-2' })).status).toBe(200);
-  expect((await anon.call('POST', '/api/auth/reset', { token: rtoken, password: 'a-newer-password-3' })).json.error).toBe('TOKEN_USED');
+  const rcode = await mailCode(admin, who.email, 'reset');
+  expect((await anon.call('POST', '/api/auth/reset-code', { email: who.email, code: rcode, password: 'short' })).status).toBe(400);
+  expect((await anon.call('POST', '/api/auth/reset-code', { email: who.email, code: rcode, password: 'a-newer-password-2' })).status).toBe(200);
+  expect((await anon.call('POST', '/api/auth/reset-code', { email: who.email, code: rcode, password: 'a-newer-password-3' })).json.error).toBe('CODE_INVALID');
   // Resetting signed Maya out everywhere.
   expect((await maya.call('GET', '/api/account')).status).toBe(401);
   const maya2 = await session({ email: who.email, password: 'a-newer-password-2' });
@@ -340,6 +343,9 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   await expect(page.locator('#uname')).toHaveValue(uname);
   await expect(page.locator('.addr-input.ok')).toBeVisible();
   await page.click('button:has-text("Create account")');
+  // The account opens after the code from the email.
+  await expect(page.locator('.otp')).toBeVisible();
+  await page.locator('.otp-input').fill(await mailCode(await session(OWNER), email, 'verify'));
   // Home is their own page, at jhino.com/<username>.
   await expect(page.getByRole('heading', { name: 'My page' })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/${uname}$`));
@@ -414,6 +420,7 @@ test('usernames and addresses: unique usernames; each person\'s addresses live u
   expect(dup.status()).toBe(409);
   expect((await dup.json()).error).toBe('USERNAME_TAKEN');
   expect((await anon.call('GET', `/api/usernames/check?name=${wanted}`)).json.available).toBe(false);
+  expect((await s1.ctx.post('/api/auth/verify-login', { data: { email, code: await mailCode(await session(OWNER), email, 'verify') } })).status()).toBe(200);
   const anu = await session({ email, password: 'a-good-password-1' });
   expect((await anu.call('GET', '/api/me')).json.user.username).toBe(wanted);
 
@@ -779,15 +786,20 @@ test('my page: links, socials, video, design by plan, public at /<username>, cli
 
 test('email codes: confirm email, reset password and change email with a 6-digit code; five wrong tries lock it', async () => {
   const admin = await session(OWNER);
-  const who = await signup('Otp');
+  const code = (to: string, kind: string) => mailCode(admin, to, kind);
+  // Sign-up gives no session: the code from the email opens the account.
+  const who = { email: `otp.${uniq()}@example.com`, password: 'a-good-password-1' };
+  const s = await session();
+  const up = await s.ctx.post('/api/auth/signup', { data: { name: 'Otp', ...who, terms: true } });
+  expect(await up.json()).toMatchObject({ verify: true, sends: 1, maxSends: 5 });
+  expect((await s.ctx.get('/api/me').then((r) => r.json())).user).toBeNull();
+  // Signing in before that asks for the code again (the same one, and not within seconds).
+  const early = await (await s.ctx.post('/api/auth/login', { data: who })).json();
+  expect(early.verify).toBe(true);
+  expect(early.note).toMatch(/ask again in/);
+  expect((await s.ctx.post('/api/auth/verify-login', { data: { email: who.email, code: '000000' } })).status()).toBe(400);
+  expect((await s.ctx.post('/api/auth/verify-login', { data: { email: who.email, code: await code(who.email, 'verify') } })).status()).toBe(200);
   const me = await session(who);
-  const code = async (to: string, kind: string) => {
-    const m = await lastMail(admin, to, kind);
-    return /Your code: (\d{6})/.exec(m.body)![1];
-  };
-  // Confirm the email with the code.
-  expect((await me.call('POST', '/api/auth/verify-code', { code: '000000' })).json.error).toBe('CODE_INVALID');
-  expect((await me.call('POST', '/api/auth/verify-code', { code: await code(who.email, 'verify') })).json.kind).toBe('verify');
   expect((await me.call('GET', '/api/account')).json.user.emailVerified).toBe(true);
   // Forgot password: the code and a new password, signed out.
   const anon = await session();
@@ -832,4 +844,51 @@ test('designs: the server and the editor list the same 40 designs and tiers (5 f
   expect(web).toHaveLength(40);
   expect(web.filter((x) => x.endsWith(':free'))).toHaveLength(5);
   expect(web.filter((x) => x.endsWith(':plus'))).toHaveLength(10);
+});
+
+test('security: general words are not usernames (super admins may), two-step sign-in, analytics for super admins only', async () => {
+  const crypto = await import('node:crypto');
+  const admin = await session(OWNER);
+  // People cannot take company words, however they are dressed up; a super admin can give one.
+  for (const n of ['faq', 'our-services', 'contact-us', 'services2', 'jhino-help']) {
+    expect((await (await session()).call('GET', `/api/usernames/check?name=${n}`)).json.available).toBe(false);
+  }
+  const who = await signup('Twofa');
+  const me = await session(who);
+  expect((await me.call('PUT', '/api/account/username', { username: 'pricing-page' })).json.error).toBe('USERNAME_RESERVED');
+  const uid = (await me.call('GET', '/api/account')).json.account.id;
+  expect((await admin.call('PATCH', `/api/admin/users/${uid}`, { username: 'our-work-' + uniq().slice(-6) })).status).toBe(200);
+
+  // Two-step: set up with the password, confirm with a code from the app, then every sign-in asks for one.
+  const setup = (await me.call('POST', '/api/account/2fa/setup', { password: who.password })).json;
+  const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const key = (() => { let bits = 0, v = 0; const out: number[] = []; for (const ch of setup.secret) { v = (v << 5) | B32.indexOf(ch); bits += 5; if (bits >= 8) { out.push((v >>> (bits - 8)) & 255); bits -= 8; } } return Buffer.from(out); })();
+  const totp = (offset = 0) => {
+    const c = Buffer.alloc(8); c.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30000) + offset));
+    const h = crypto.createHmac('sha1', key).update(c).digest(); const o = h[h.length - 1] & 15;
+    return String((h.readUInt32BE(o) & 0x7fffffff) % 1_000_000).padStart(6, '0');
+  };
+  expect((await me.call('POST', '/api/account/2fa/enable', { code: '000000' })).status).toBe(400);
+  const on = (await me.call('POST', '/api/account/2fa/enable', { code: totp() })).json;
+  expect(on.recovery).toHaveLength(8);
+  const s = await session();
+  const first = await (await s.ctx.post('/api/auth/login', { data: who })).json();
+  expect(first).toMatchObject({ twofa: true });
+  expect((await (await s.ctx.get('/api/me')).json()).user).toBeNull();
+  expect((await s.ctx.post('/api/auth/2fa', { data: { ticket: first.ticket, code: '123456' } })).status()).toBe(400);
+  // The code just used to turn it on cannot be used again; the next one (or a recovery code) works.
+  const t2 = await (await s.ctx.post('/api/auth/login', { data: who })).json();
+  expect((await s.ctx.post('/api/auth/2fa', { data: { ticket: t2.ticket, code: on.recovery[0] } })).status()).toBe(200);
+  expect((await (await s.ctx.get('/api/me')).json()).user.twoFactor).toBe(true);
+  const t3 = await (await (await session()).ctx.post('/api/auth/login', { data: who })).json();
+  const s3 = await session();
+  expect((await s3.ctx.post('/api/auth/2fa', { data: { ticket: t3.ticket, code: on.recovery[0] } })).status()).toBe(400); // used once
+
+  // Analytics: super admins only.
+  expect((await me.call('GET', '/api/admin/analytics')).status).toBe(403);
+  expect((await me.call('GET', '/api/admin/analytics/live')).status).toBe(403);
+  await (await session()).call('POST', '/api/t', { p: '/pricing', r: 'https://www.instagram.com/' });
+  const a = (await admin.call('GET', '/api/admin/analytics?days=1')).json;
+  expect(a.pages.some((p: any) => p.key === '/pricing')).toBe(true);
+  expect((await admin.call('GET', '/api/admin/analytics/live')).json.active).toBeGreaterThan(0);
 });

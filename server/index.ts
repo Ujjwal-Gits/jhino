@@ -25,13 +25,21 @@ import { registerProfiles } from './profiles.js';
 import { startPlanNotices } from './plans.js';
 import { startBookingReminders } from './booking.js';
 import { limit } from './security.js';
+import { trustHop } from './clientip.js';
+import { registerSiteAnalytics } from './analytics.js';
+import { startAutoBackups } from './autobackup.js';
 import { closeAllStreams } from './realtime.js';
 import { stopVideo } from './video.js';
 
 const app = Fastify({
-  logger: { level: config.isProd ? 'info' : 'warn', redact: ['req.headers.cookie', 'req.headers["x-csrf-token"]'] },
+  logger: {
+    level: config.isProd ? 'info' : 'warn', redact: ['req.headers.cookie', 'req.headers["x-csrf-token"]'],
+    // Logged addresses keep their path only: tokens in ?token= and /run/<token>/ never reach the logs.
+    serializers: { req: (r: { method: string; url: string; id?: string }) => ({ method: r.method, url: r.url.split('?')[0].replace(/^\/(run|s|u|invite|preview)\/[^/]+/, '/$1/…'), id: r.id }) },
+  },
   bodyLimit: 8 * 1024 * 1024,
-  trustProxy: true,
+  // Only local proxies and Cloudflare are trusted to say who the visitor is (clientip.ts).
+  trustProxy: (address: string) => trustHop(address),
   // On shutdown, idle keep-alive connections close at once; requests already running are allowed to finish.
   forceCloseConnections: 'idle',
   genReqId: () => Math.random().toString(36).slice(2, 10),
@@ -60,7 +68,7 @@ app.setErrorHandler((err, req, reply) => {
 // Security headers for the Jhino pages themselves (uploaded apps get their own in /run).
 app.addHook('onSend', async (req, reply) => {
   // Uploaded apps (/run), previews and Pro pages made from their own HTML (/p/…/custom) set their own sandbox.
-  if (req.url.startsWith('/run/') || req.url.startsWith('/preview/') || req.url.startsWith('/p/')) return;
+  if (req.url.startsWith('/run/') || req.url.startsWith('/preview/') || /^\/p\/[^/?]+\/custom(\?|$)/.test(req.url)) return;
   reply.header('X-Content-Type-Options', 'nosniff');
   reply.header('Referrer-Policy', 'same-origin');
   if (!req.url.startsWith('/api/') && !req.url.startsWith('/_jhino/')) {
@@ -78,6 +86,23 @@ registerPublicShare(app);
 registerLinks(app);
 registerUsernames(app);
 registerProfiles(app);
+registerSiteAnalytics(app);
+
+// Search engines: the website is public; dashboards, apps, links and the API are not for indexing.
+app.get('/robots.txt', async (req, reply) => {
+  const base = config.publicUrl || `${req.protocol}://${req.headers.host}`;
+  reply.type('text/plain; charset=utf-8').header('Cache-Control', 'public, max-age=86400');
+  return ['User-agent: *', 'Allow: /$', 'Allow: /pricing', 'Allow: /help', 'Allow: /terms', 'Allow: /privacy', 'Allow: /signup',
+    'Disallow: /api/', 'Disallow: /run/', 'Disallow: /s/', 'Disallow: /apps', 'Disallow: /account', 'Disallow: /admin', 'Disallow: /invite/', 'Disallow: /go/', 'Disallow: /p/',
+    '', `Sitemap: ${base}/sitemap.xml`, ''].join('\n');
+});
+app.get('/sitemap.xml', async (req, reply) => {
+  const base = config.publicUrl || `${req.protocol}://${req.headers.host}`;
+  const urls = ['/', '/pricing', '/help', '/signup', '/terms', '/privacy'];
+  reply.type('application/xml; charset=utf-8').header('Cache-Control', 'public, max-age=86400');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${base}${u}</loc></url>`).join('\n')}\n</urlset>\n`;
+});
+startAutoBackups();
 // A ceiling on changes from one address (sign-in, payments and links have their own, tighter limits).
 app.addHook('onRequest', async (req) => {
   if (req.url.startsWith('/api/') && !['GET', 'HEAD', 'OPTIONS'].includes(req.method)) limit(req, 'api-write', Number(process.env.API_WRITES_PER_MIN) || 900, 60_000);
@@ -133,6 +158,11 @@ const named = ensureUsernames();
 if (named) console.log(`  Gave ${named} account${named === 1 ? '' : 's'} a username.`);
 startBookingReminders();
 startPlanNotices();
+if (config.isProd && !config.publicUrl.startsWith('https://')) {
+  // Without it: session cookies are not marked Secure, no HSTS, and email links would follow the Host header.
+  console.warn('  [security] PUBLIC_URL is not an https address. Set PUBLIC_URL=https://your-domain in the environment.');
+}
+if (!config.mail.resendKey && !config.mail.smtpUrl) console.warn('  [mail] No RESEND_API_KEY or SMTP_URL: emails (codes) are only logged for Super Admin.');
 await app.listen({ port: config.port, host: config.host });
 console.log(`  Jhino is running at ${config.publicUrl || `http://${config.host === '0.0.0.0' ? 'localhost' : config.host}:${config.port}`}`);
 

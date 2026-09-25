@@ -73,6 +73,8 @@ export const config = {
   },
   // Email (verification, password reset, receipts). Without SMTP_URL, emails are only logged for Super Admin.
   mail: {
+    // Resend's HTTP API (preferred when set); otherwise SMTP_URL.
+    resendKey: env.RESEND_API_KEY || '',
     smtpUrl: env.SMTP_URL || '',
     from: env.MAIL_FROM || 'Jhino <no-reply@jhino.local>',
     supportEmail: env.SUPPORT_EMAIL || '',

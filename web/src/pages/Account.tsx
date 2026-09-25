@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 import { ApiError, api, avatarUrl, get, post, type PlanFeatures } from '../api';
 import { Link, applyTheme, readTheme, useRoute, useSession, type Theme } from '../context';
 import { Avatar, Icon, Select, ago, copyText, useToast } from '../ui';
+import { Qr } from '../Qr';
+import { CodeBoxes } from './CodeEntry';
 import { bestFreeMonths, freeMonthsText, nprAmount, priceFor, usePlans, type Period, type PlanCard } from '../plans';
 import { AvatarViewerModal, AvatarPositionModal, validatePhotoFile, ACCEPT_PHOTO_TYPES } from '../AvatarModal';
 
@@ -328,6 +330,16 @@ function SecuritySection({ data, reload }: { data: AccountData; reload: () => vo
   const [sessions, setSessions] = useState<{ sessions: Session[]; downloadedFiles: number } | null>(null);
   const [events, setEvents] = useState<{ kind: string; device: string; ip: string; detail: string; at: string }[]>([]);
   const [pw, setPw] = useState({ open: false, current: '', next: '', again: '', busy: false, error: '' });
+  // Linking Google/Apple asks for the password first (the server allows it for 10 minutes after).
+  const [link, setLink] = useState<{ p: 'google' | 'apple'; pw: string; busy: boolean; error: string } | null>(null);
+  const linkError = ({ verify_first: 'Confirm your email first, then link Google or Apple.', reauth: 'Enter your password again to link Google or Apple.', oauth_taken: 'That Google or Apple account is already linked to another Jhino account.' } as Record<string, string>)[new URLSearchParams(location.search).get('error') ?? ''];
+  const startLink = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!link) return;
+    setLink({ ...link, busy: true, error: '' });
+    try { await post('/api/account/reauth', { password: link.pw }); location.href = `/api/auth/oauth/${link.p}/start?link=1`; }
+    catch (err) { setLink({ ...link, busy: false, error: err instanceof ApiError ? err.message : 'Could not check the password.' }); }
+  };
   const loadAll = useCallback(() => {
     get<{ sessions: Session[]; downloadedFiles: number }>('/api/account/sessions').then(setSessions, () => {});
     get<{ events: typeof events }>('/api/account/security').then((r) => setEvents(r.events), () => {});
@@ -379,16 +391,24 @@ function SecuritySection({ data, reload }: { data: AccountData; reload: () => vo
             {(['google', 'apple'] as const).filter((p) => data.providers[p] || linked.has(p)).map((p) => (
               <li key={p}>
                 <span><b>{p === 'google' ? 'Google' : 'Apple'}</b><small>{linked.has(p) ? data.identities.find((i) => i.provider === p)?.email || 'Linked' : 'Not linked'}</small></span>
-                {linked.has(p) ? <button className="btn sm quiet" onClick={() => unlink(p)}>Remove</button> : <a className="btn sm" href={`/api/auth/oauth/${p}/start?link=1`}>Link</a>}
+                {linked.has(p) ? <button className="btn sm quiet" onClick={() => unlink(p)}>Remove</button>
+                  : data.user.passwordSet ? <button className="btn sm" onClick={() => setLink({ p, pw: '', busy: false, error: '' })}>Link</button>
+                  : <a className="btn sm" href={`/api/auth/oauth/${p}/start?link=1`}>Link</a>}
               </li>
             ))}
           </ul>
+          {linkError && !link && <p className="error-text" role="alert">{linkError}</p>}
+          {link && (
+            <form className="acc-form tight" onSubmit={startLink}>
+              <label className="field"><span>Your password, to link {link.p === 'google' ? 'Google' : 'Apple'}</span><input className="input" type="password" autoComplete="current-password" value={link.pw} onChange={(e) => setLink({ ...link, pw: e.target.value })} required autoFocus /></label>
+              {link.error && <p className="error-text" role="alert">{link.error}</p>}
+              <div className="actions-row"><button className="btn primary sm" disabled={link.busy || !link.pw}>{link.busy && <span className="spin" />}Continue</button><button type="button" className="btn sm quiet" onClick={() => setLink(null)}>Cancel</button></div>
+            </form>
+          )}
         </Section>
       )}
 
-      <Section title="Two-step sign-in" lede="An extra code when you sign in on a new device.">
-        <p className="acc-muted-box">Not available yet. Your account is ready for it, and we will tell you in the app when you can turn it on.</p>
-      </Section>
+      <TwoFactorSection passwordSet={data.user.passwordSet} />
 
       <Section title="Where you are signed in" lede="End any session you do not recognise.">
         {!sessions ? <div className="acc-skel sm" /> : (
@@ -773,6 +793,75 @@ function HelpSection() {
         <li><Link to="/terms"><b>Terms of Service</b></Link></li>
         <li><Link to="/privacy"><b>Privacy Policy</b></Link></li>
       </ul>
+    </Section>
+  );
+}
+
+/* ---------------- two-step sign-in (authenticator app) ---------------- */
+function TwoFactorSection({ passwordSet }: { passwordSet: boolean }) {
+  const toast = useToast();
+  const [st, setSt] = useState<{ enabled: boolean; enabledAt: string | null; recoveryLeft: number } | null>(null);
+  const [step, setStep] = useState<'idle' | 'password' | 'scan' | 'codes' | 'off'>('idle');
+  const [pw, setPw] = useState('');
+  const [code, setCode] = useState('');
+  const [setup, setSetup] = useState<{ secret: string; uri: string } | null>(null);
+  const [recovery, setRecovery] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const load = useCallback(() => get<{ enabled: boolean; enabledAt: string | null; recoveryLeft: number }>('/api/account/2fa').then(setSt, () => {}), []);
+  useEffect(() => { load(); }, [load]);
+  const run = async (f: () => Promise<void>) => { setBusy(true); setError(''); try { await f(); } catch (e) { setError(err(e, 'Could not do that.')); } setBusy(false); };
+  const begin = (e: FormEvent) => { e.preventDefault(); run(async () => { setSetup(await post('/api/account/2fa/setup', { password: pw })); setPw(''); setStep('scan'); }); };
+  const enable = (e?: FormEvent, v = code) => { e?.preventDefault(); run(async () => { const r = await post<{ recovery: string[] }>('/api/account/2fa/enable', { code: v }); setRecovery(r.recovery); setCode(''); setStep('codes'); load(); }); };
+  const disable = (e: FormEvent) => { e.preventDefault(); run(async () => { await post('/api/account/2fa/disable', { password: pw, code }); setPw(''); setCode(''); setStep('idle'); load(); toast('Two-step sign-in is off'); }); };
+  const cancel = () => { setStep('idle'); setPw(''); setCode(''); setError(''); setSetup(null); };
+  return (
+    <Section title="Two-step sign-in" lede="After your password, a 6-digit code from an authenticator app on your phone (Google Authenticator, Microsoft Authenticator, 1Password…). A stolen password alone cannot open your account.">
+      {!st ? <div className="acc-skel sm" /> : step === 'idle' ? (
+        st.enabled ? (
+          <div className="tf-on">
+            <p><span className="vtag ok"><Icon name="check" size={13} />On</span> since {fmtDate(st.enabledAt!)} · {st.recoveryLeft} recovery code{st.recoveryLeft === 1 ? '' : 's'} left</p>
+            <button className="btn sm quiet" onClick={() => setStep('off')}>Turn off</button>
+          </div>
+        ) : <button className="btn sm" onClick={() => setStep(passwordSet ? 'password' : 'scan')} disabled={!passwordSet} title={passwordSet ? undefined : 'Set a password first'}><Icon name="shield" size={15} />Turn on two-step sign-in</button>
+      ) : step === 'password' ? (
+        <form className="acc-form tight" onSubmit={begin}>
+          <label className="field"><span>Your password</span><input className="input" type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} required autoFocus /></label>
+          {error && <p className="error-text" role="alert">{error}</p>}
+          <div className="actions-row"><button className="btn primary sm" disabled={busy || !pw}>{busy && <span className="spin" />}Continue</button><button type="button" className="btn sm quiet" onClick={cancel}>Cancel</button></div>
+        </form>
+      ) : step === 'scan' && setup ? (
+        <form className="tf-setup" onSubmit={enable}>
+          <div className="tf-qr"><Qr text={setup.uri} size={184} label="QR code to add Jhino to your authenticator app" /></div>
+          <div className="tf-steps">
+            <ol>
+              <li>Open your authenticator app and add an account.</li>
+              <li>Scan this code. On this phone? Enter the key instead: <code className="tf-key">{setup.secret.replace(/(.{4})/g, '$1 ').trim()}</code></li>
+              <li>Enter the 6-digit code the app shows.</li>
+            </ol>
+            <CodeBoxes value={code} onChange={setCode} onComplete={(v) => enable(undefined, v)} disabled={busy} invalid={!!error} label="Code from your authenticator app" />
+            {error && <p className="error-text" role="alert">{error}</p>}
+            <div className="actions-row"><button className="btn primary sm" disabled={busy || code.length !== 6}>{busy && <span className="spin" />}Turn on</button><button type="button" className="btn sm quiet" onClick={cancel}>Cancel</button></div>
+          </div>
+        </form>
+      ) : step === 'codes' ? (
+        <div className="tf-codes">
+          <p><b>Two-step sign-in is on.</b> Save these recovery codes somewhere safe (a password manager is best). Each one signs you in once if you lose your phone. They are shown only now.</p>
+          <ul className="mono">{recovery.map((c) => <li key={c}>{c}</li>)}</ul>
+          <div className="actions-row">
+            <button className="btn sm" onClick={() => copyText(recovery.join('\n')).then(() => toast('Recovery codes copied'))}><Icon name="copy" size={15} />Copy codes</button>
+            <button className="btn primary sm" onClick={() => { setRecovery([]); setStep('idle'); }}>I saved them</button>
+          </div>
+        </div>
+      ) : step === 'off' ? (
+        <form className="acc-form tight" onSubmit={disable}>
+          <p className="hint">To turn it off, enter your password and a code from the app (or a recovery code).</p>
+          <label className="field"><span>Your password</span><input className="input" type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} required autoFocus /></label>
+          <label className="field"><span>Code</span><input className="input mono" value={code} onChange={(e) => setCode(e.target.value)} autoComplete="one-time-code" required /></label>
+          {error && <p className="error-text" role="alert">{error}</p>}
+          <div className="actions-row"><button className="btn danger sm" disabled={busy || !pw || code.trim().length < 6}>{busy && <span className="spin" />}Turn off</button><button type="button" className="btn sm quiet" onClick={cancel}>Cancel</button></div>
+        </form>
+      ) : null}
     </Section>
   );
 }
