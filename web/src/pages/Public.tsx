@@ -56,67 +56,47 @@ export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
   );
 }
 
-/* ---------------- hero: the studio's screen and the client's phone ---------------- */
+/* ---------------- hero: a clapperboard for the job ---------------- */
 
-function LiveBoard() {
-  const slots: [string, ReactNode][] = [
-    ['10:00', <span className="lv-bk">Podcast · Anish K.</span>],
-    ['11:00', null],
-    ['12:00', <span className="lv-bk lv-bk-soft">Hold · Everest Films</span>],
-    ['13:00', <><span className="lv-bk lv-new lv-new-desk">Recording · Himalayan Coffee</span><span className="lv-tap" /></>],
-    ['14:00', null],
-    ['15:00', null],
-  ];
+/**
+ * The hero is the job's slate: what it is, which take, the date in BS and AD, and the one field a studio
+ * waits for: the client's answer. The one moving moment: the stick claps shut, then "Waiting" turns
+ * into "Approved". With reduced motion it is shown shut and approved.
+ */
+function Slate({ start }: { start: ReactNode }) {
   return (
-    <figure className="lv" aria-labelledby="lv-cap">
-      <div className="lv-desk" aria-hidden="true">
-        <div className="lv-bar">
-          <span className="lv-addr mono">jhino.com/<b>sur-studio</b></span>
-          <span className="lv-state mono">
-            <span className="lv-saving">Saving</span>
-            <span className="lv-synced"><i className="lv-dot" />Live on 2 screens</span>
-          </span>
-        </div>
-        <div className="lv-body">
-          <div className="lv-main">
-            <div className="lv-title">
-              <b>Bookings</b>
-              <span className="lv-date mono"><b>Bihibar, 8 Asoj 2083</b><span>Thu 24 Sep 2026</span></span>
+    <div className="slate">
+      <div className="slate-stick" aria-hidden="true"><span className="slate-hinge" /></div>
+      <div className="slate-board">
+        <dl className="sl-row sl-head">
+          <div className="sl-cell"><dt>production</dt><dd>Himalayan Coffee, spring film</dd></div>
+          <div className="sl-cell"><dt>room</dt><dd className="mono">jhino.com/<b>sur-studio</b></dd></div>
+        </dl>
+        <div className="sl-main">
+          <h1 id="hero-h">Send the work. <span>Get the yes.</span></h1>
+          <div className="sl-copy">
+            <p className="lp-lede">Every client gets one live page. The cut, the photos, the booking and the bill sit on it, and their answer reaches you the moment they give it.</p>
+            <div className="lp-cta">
+              {start}
+              <a href="#pricing" className="sl-plans">See the plans</a>
             </div>
-            <div className="lv-tabs mono"><span className="on">Day</span><span>Month</span><span>Upcoming</span><span>History</span></div>
-            <ol className="lv-slots">
-              {slots.map(([t, b]) => <li key={t}><span className="mono">{t}</span>{b}</li>)}
-            </ol>
-          </div>
-          <div className="lv-side">
-            <span className="mono lv-k">Next session</span>
-            <b>13:00 Recording</b>
-            <span>Himalayan Coffee, 2 hrs</span>
-            <span>Reminder 1 hr before</span>
+            <p className="lp-hint mono">Free for one client, for good. No card.</p>
           </div>
         </div>
+        <dl className="sl-row sl-foot">
+          <div className="sl-cell"><dt>scene</dt><dd>Final cut</dd></div>
+          <div className="sl-cell"><dt>take</dt><dd className="mono">v3</dd></div>
+          <div className="sl-cell"><dt>date</dt><dd><span className="mono">8 Asoj 2083</span><small className="mono">24 Sep 2026</small></dd></div>
+          <div className="sl-cell sl-client">
+            <dt>client</dt>
+            <dd aria-label="Approved at 13:02">
+              <span className="sl-wait" aria-hidden="true">Waiting…</span>
+              <span className="sl-yes"><i className="lp-dot" aria-hidden="true" />Approved <small className="mono">13:02</small></span>
+            </dd>
+          </div>
+        </dl>
       </div>
-
-      <div className="lv-phone" aria-hidden="true">
-        <div className="lv-toast"><i className="lv-dot" /><span><b>New booking</b> 13:00<span className="lv-toast-x"> Recording</span></span></div>
-        <div className="lv-ph-head">
-          <span className="mono">Sur Studio</span>
-          <b>Himalayan Coffee</b>
-        </div>
-        <div className="lv-ph-date mono"><b>8 Asoj 2083</b><span>24 Sep 2026</span></div>
-        <ul className="lv-ph-list">
-          <li><span className="mono">10:00</span><span>Studio busy</span></li>
-          <li className="lv-new lv-new-ph"><span className="mono">13:00</span><span><b>Recording</b><small>Reminder at 12:00</small></span></li>
-          <li><span className="mono">Mon</span><span>Final cut due</span></li>
-        </ul>
-        <div className="lv-ph-foot mono"><span>Advance</span><span>NPR 5,000 paid</span></div>
-      </div>
-
-      <figcaption id="lv-cap" className="lv-cap mono">
-        <b>Fig. 1, one booking</b>
-        The studio books 13:00. The client’s phone shows it a moment later, with no refresh.
-      </figcaption>
-    </figure>
+    </div>
   );
 }
 
@@ -264,7 +244,7 @@ function PriceCard({ plan, period, signedIn }: { plan: PlanCard; period: Period;
     <article className={`price-card${rec ? ' is-rec' : ''}`} aria-labelledby={`plan-${plan.id}`}>
       <div className="pcard-top">
         <h3 id={`plan-${plan.id}`}>{plan.name}</h3>
-        {rec && <span className="pcard-rec mono"><i className="lv-dot" />Recommended</span>}
+        {rec && <span className="pcard-rec mono"><i className="lp-dot" />Recommended</span>}
       </div>
       <p className="pcard-blurb">{plan.blurb}</p>
       <p className="pcard-price">
@@ -359,32 +339,8 @@ export function Landing({ signedIn = false }: { signedIn?: boolean }) {
         {/* 1. hero */}
         <section className="lp-hero" aria-labelledby="hero-h">
           <div className="lp-wrap">
-            <div className="lp-hero-grid">
-              <div className="lp-hero-copy">
-                <p className="lp-eyebrow"><i className="lv-dot" aria-hidden="true" />Client rooms for studios and agencies</p>
-                <h1 id="hero-h">Get every client on the <span className="lp-mark">same page</span>.</h1>
-                <p className="lp-lede">One live page for each client. They approve the cut, pick the photos and book the session right there, and you see every answer the moment they give it.</p>
-                <ul className="lp-nots mono" aria-label="What you stop doing">
-                  <li><s>long email threads</s></li>
-                  <li><s>final_v3_REAL.mp4</s></li>
-                  <li><s>“did you see my message?”</s></li>
-                </ul>
-                <div className="lp-cta">
-                  {start}
-                  <a href="#pricing" className="btn lg quiet">See plans</a>
-                </div>
-                <p className="lp-hint mono">Free for one client, for good. No card needed.</p>
-              </div>
-              <LiveBoard />
-            </div>
-          </div>
-          <div className="lp-wrap">
-            <ul className="lp-facts mono" aria-label="Made for Nepal">
-              <li><b>NPR</b>Prices in rupees</li>
-              <li><b>BS / AD</b>Bikram Sambat dates, AD beside</li>
-              <li><b>QR</b>Pay by QR, approved by a person</li>
-              <li><b>HTML</b>Any app you already have</li>
-            </ul>
+            <Slate start={start} />
+            <p className="sl-under">For video, photo and design studios, agencies and their clients. Upload the HTML you already have, or build one here in a few minutes. Prices in rupees, dates in Bikram Sambat.</p>
           </div>
         </section>
 
