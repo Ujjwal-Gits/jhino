@@ -493,6 +493,21 @@ test('plans: monthly and yearly payments set the end date; paying again adds to 
   const yid = (await y.call('GET', '/api/account')).json.account.id;
   await admin.call('PATCH', `/api/admin/users/${yid}`, { planExpiresAt: '2020-01-01' });
   expect((await y.call('GET', '/api/me')).json.user).toMatchObject({ plan: 'free', features: { passwordLinks: false } });
+  // Subscriptions: ended plans are listed as ended; an admin upgrades for a year, extends, then downgrades to Free.
+  expect((await admin.call('GET', `/api/admin/subscriptions?status=ended&q=${encodeURIComponent(who.email)}`)).json.subscriptions.map((s: any) => s.id)).toContain(yid);
+  expect((await y.call('GET', '/api/admin/subscriptions')).status).toBe(403);
+  expect((await admin.call('PATCH', `/api/admin/users/${yid}`, { plan: 'pro', period: 'year' })).status).toBe(200);
+  let sub = (await admin.call('GET', `/api/admin/subscriptions?q=${encodeURIComponent(who.email)}`)).json.subscriptions[0];
+  expect(sub).toMatchObject({ id: yid, plan: 'pro', period: 'year', status: 'active' });
+  expect(Math.abs(Date.parse(sub.expiresAt) - (Date.now() + 365 * 864e5))).toBeLessThan(2 * 864e5);
+  const ext = (await admin.call('POST', `/api/admin/users/${yid}/extend`, { period: 'month' })).json;
+  expect(Date.parse(ext.expiresAt) - Date.parse(sub.expiresAt)).toBeGreaterThan(27 * 864e5);
+  expect((await y.call('GET', '/api/me')).json.user.plan).toBe('pro');
+  expect((await y.call('GET', '/api/notifications')).json.items.some((n: any) => /Pro/.test(n.title))).toBe(true);
+  await admin.call('PATCH', `/api/admin/users/${yid}`, { plan: 'free' });
+  expect((await y.call('GET', '/api/billing')).json.usage).toMatchObject({ plan: 'free', expiresAt: null });
+  expect((await admin.call('GET', `/api/admin/subscriptions?status=all&q=${encodeURIComponent(who.email)}`)).json.subscriptions).toHaveLength(0);
+  expect((await admin.call('GET', '/api/admin/audit?q=user.plan_extend')).json.entries.length).toBeGreaterThan(0);
   // The dashboard's numbers.
   const o = (await admin.call('GET', '/api/admin/overview')).json;
   expect(o.revenueByMonth).toHaveLength(12);

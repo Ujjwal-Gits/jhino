@@ -277,3 +277,15 @@ a.kpi2:hover { background: var(--paper-2); }
 .pc-act .btn { width: 100%; justify-content: center; }
 @media (max-width: 900px) { .plan-cards { grid-template-columns: minmax(0, 1fr); } .usage-more { grid-template-columns: 1fr 1fr; } }
 @media (prefers-reduced-motion: reduce) { .period-switch button { transition: none; } }
+
+/* ---------- subscriptions ---------- */
+.sub-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border: 1px solid var(--rule); border-radius: var(--r-lg); overflow: hidden; }
+.sub-sum > div { padding: 14px 18px; border-left: 1px solid var(--rule); }
+.sub-sum > div:first-child { border-left: 0; }
+.sub-sum dt { font-size: 12.5px; color: var(--ink-3); }
+.sub-sum dd { margin: 4px 0 0; font-size: 22px; letter-spacing: -0.02em; }
+.plan-now { margin: 0; padding: 12px 14px; border-radius: var(--r); background: var(--paper-2); font-size: 14px; }
+.plan-sec { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--rule); }
+.plan-sec h3 { font-size: 14.5px; font-weight: 650; }
+.plan-sec .hint { margin: -4px 0 0; }
+@media (max-width: 720px) { .sub-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sub-sum > div:nth-child(3) { border-left: 0; } .sub-sum > div:nth-child(n+3) { border-top: 1px solid var(--rule); } }

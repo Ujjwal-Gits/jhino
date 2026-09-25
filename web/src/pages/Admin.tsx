@@ -17,14 +17,14 @@ const PLAN_OPTS = [{ value: 'free', label: 'Free Forever · 1 app' }, { value: '
 const planName = (p: string) => ({ free: 'Free Forever', plus: 'Plus', pro: 'Pro' }[p] ?? p);
 const periodName = (p: string | undefined) => (p === 'year' ? 'year' : 'month');
 
-type NavKey = 'overview' | 'users' | 'payments' | 'methods' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
+type NavKey = 'overview' | 'users' | 'payments' | 'subscriptions' | 'methods' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
 const NAV: { group: string; items: [NavKey, string, string][] }[] = [
   { group: '', items: [['overview', 'Overview', 'chart']] },
-  { group: 'Customers', items: [['users', 'Users', 'users'], ['payments', 'Payments', 'receipt'], ['methods', 'QR & payment methods', 'qr']] },
+  { group: 'Customers', items: [['payments', 'Plan requests', 'receipt'], ['subscriptions', 'Subscriptions', 'card'], ['users', 'Users', 'users'], ['methods', 'QR & payment methods', 'qr']] },
   { group: 'Platform', items: [['hosting', 'Addresses', 'globe'], ['links', 'Short links', 'link']] },
   { group: 'Operations', items: [['support', 'Support', 'help'], ['audit', 'Audit log', 'audit'], ['settings', 'Settings', 'settings']] },
 ];
-const TITLES: Record<NavKey, string> = { overview: 'Overview', users: 'Users', payments: 'Payments', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
+const TITLES: Record<NavKey, string> = { overview: 'Overview', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
 
 export function AdminPage({ section, sub }: { section: string; sub?: string }) {
   const { user, refresh } = useSession();
@@ -72,12 +72,13 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
           <button className="icon-btn adm-menu" onClick={() => setDrawer(true)} aria-label="Open menu" aria-expanded={drawer}><Icon name="list" /></button>
           <p className="adm-where"><span className="muted">Super Admin</span><span className="muted" aria-hidden="true">/</span><b>{TITLES[cur]}</b></p>
           <div className="spacer" />
-          {!!counts?.pendingPayments && cur !== 'payments' && <Link to="/admin/payments" className="adm-pill"><i className="live-dot" />{counts.pendingPayments} to review</Link>}
+          {!!counts?.pendingPayments && cur !== 'payments' && <Link to="/admin/payments" className="adm-pill"><i className="live-dot" />{counts.pendingPayments} plan {counts.pendingPayments === 1 ? 'request' : 'requests'}</Link>}
         </header>
         <main className="adm-body">
           {cur === 'overview' && <Overview />}
           {cur === 'users' && (sub ? <UserDetail id={sub} /> : <Users />)}
           {cur === 'payments' && (sub ? <PaymentDetail id={sub} onChanged={loadCounts} /> : <Payments />)}
+          {cur === 'subscriptions' && <Subscriptions />}
           {cur === 'methods' && <Methods />}
           {cur === 'hosting' && <Hosting />}
           {cur === 'links' && <AdminLinks />}
@@ -186,7 +187,7 @@ function Overview() {
           <Delta now={o.newUsers30} before={o.newUsersPrev30} />
         </Link>
         <Link to="/admin/payments" className={`kpi2 ${o.pendingPayments ? 'hot' : ''}`}>
-          <p className="k-l">Payments to review</p>
+          <p className="k-l">Plan requests to review</p>
           <p className="k-v mono">{o.pendingPayments}</p>
           <p className="k-s">{o.pendingPayments ? 'Oldest first in the queue' : 'Nothing waiting'}</p>
         </Link>
@@ -397,6 +398,7 @@ function UserDetail({ id }: { id: string }) {
   const [d, setD] = useState<Record<string, any> | null>(null);
   const [secret, setSecret] = useState<{ email: string; password: string } | null>(null);
   const [edit, setEdit] = useState<{ plan: string; expires: string; extra: string } | null>(null);
+  const [changing, setChanging] = useState(false);
   const load = useCallback(() => get(`/api/admin/users/${id}`).then((r) => { setD(r); setEdit({ plan: r.user.usage?.plan ?? 'free', expires: r.user.planExpiresAt ? r.user.planExpiresAt.slice(0, 10) : '', extra: String(r.user.extraCreations ?? 0) }); }, (e) => toast(err(e, 'Not found.'), true)), [id, toast]);
   useEffect(() => { load(); }, [load]);
   if (!d || !edit) return <div className="acc-skel" />;
@@ -440,6 +442,8 @@ function UserDetail({ id }: { id: string }) {
             <label className="field"><span>Ends <em>optional</em></span><input className="input" type="date" value={edit.expires} onChange={(e) => setEdit({ ...edit, expires: e.target.value })} /></label>
             <label className="field"><span>Extra creations</span><input className="input mono" inputMode="numeric" value={edit.extra} onChange={(e) => setEdit({ ...edit, extra: e.target.value.replace(/[^\d-]/g, '') })} /></label>
           </div>
+          <div className="actions-row"><button className="btn sm primary" onClick={() => setChanging(true)}>Upgrade, downgrade or extend…</button><span className="hint">or edit the fields above and save</span></div>
+          {changing && <PlanDialog sub={{ id: u.id, name: u.name, email: u.email, plan: u.usage.plan, planName: u.usage.planName, period: null, expiresAt: u.planExpiresAt }} onClose={() => { setChanging(false); load(); }} />}
           <button className="btn sm" onClick={() => {
             const body: Record<string, unknown> = {};
             if (edit.plan !== u.usage.plan) body.plan = edit.plan;
@@ -486,7 +490,7 @@ function Payments() {
   useEffect(() => { const t = setTimeout(() => get<typeof d>(`/api/admin/payments?status=${status}&q=${encodeURIComponent(q)}`).then(setD, () => {}), 150); return () => clearTimeout(t); }, [status, q]);
   return (
     <>
-      <Head title="Payments" lede="Check each screenshot against your bank or wallet, then approve or reject." />
+      <Head title="Plan requests" lede="Everyone who paid for a plan and sent a screenshot. Check it against your bank or wallet, then approve (the plan turns on at once) or reject with a reason." actions={<Link to="/admin/subscriptions" className="btn sm">Subscriptions</Link>} />
       <div className="adm-tools">
         <div className="seg" role="group" aria-label="Status">
           {[['pending', 'To review'], ['approved', 'Approved'], ['rejected', 'Rejected'], ['all', 'All']].map(([k, l]) => (
@@ -544,7 +548,7 @@ function PaymentDetail({ id, onChanged }: { id: string; onChanged: () => void })
   };
   return (
     <>
-      <div className="crumb"><Link to="/admin/payments" className="link">Payments</Link> / {p.receiptNo}</div>
+      <div className="crumb"><Link to="/admin/payments" className="link">Plan requests</Link> / {p.receiptNo}</div>
       <Head title={`${p.planName} · ${npr(p.amount)}`} lede={<><span className={`status s-${p.status}`}>{p.status}</span> · submitted {fmtDateTime(p.createdAt)}{p.reviewedAt && ` · reviewed by ${p.reviewedBy} ${fmtDateTime(p.reviewedAt)}`}</>} />
       <div className="pay-review">
         <div className="proof">
@@ -582,6 +586,124 @@ function PaymentDetail({ id, onChanged }: { id: string; onChanged: () => void })
       {!!d.history.length && <section className="adm-block"><h3 className="adm-sub">History</h3><ul className="acc-list compact">{d.history.map((h, i) => <li key={i}><span><b>{h.action.replace(/[._]/g, ' ')}</b><small>{h.actor}</small></span><span className="muted small">{fmtDateTime(h.at)}</span></li>)}</ul></section>}
       {!!d.earlier.length && <section className="adm-block"><h3 className="adm-sub">Earlier payments by this customer</h3><ul className="acc-list compact">{d.earlier.map((e) => <li key={e.id}><Link to={`/admin/payments/${e.id}`} className="cell-main"><b>{e.planName} · {npr(e.amount)}</b><small>{fmtDate(e.createdAt)}</small></Link><span className={`status s-${e.status}`}>{e.status}</span></li>)}</ul></section>}
     </>
+  );
+}
+
+/* ---------------- subscriptions: who is on which plan, until when ---------------- */
+interface SubT { id: string; name: string; email: string; plan: string; planName: string; period: string | null; startedAt?: string | null; expiresAt: string | null; status?: string; used?: number; limit?: number | null; suspended?: boolean; lastPayment?: { id: string; amount: number; period: string; status: string; createdAt: string } | null; pendingPaymentId?: string | null }
+const daysFrom = (iso: string) => Math.round((Date.parse(iso) - Date.now()) / 864e5);
+function endsText(iso: string | null) {
+  if (!iso) return 'No end date';
+  const d = daysFrom(iso);
+  return d < 0 ? `Ended ${-d} day${d === -1 ? '' : 's'} ago` : d === 0 ? 'Ends today' : `Ends in ${d} day${d === 1 ? '' : 's'}`;
+}
+function Subscriptions() {
+  const { go } = useRoute();
+  const [status, setStatus] = useState('active');
+  const [q, setQ] = useState('');
+  const [d, setD] = useState<{ subscriptions: SubT[]; counts: Record<string, number> } | null>(null);
+  const [edit, setEdit] = useState<SubT | null>(null);
+  const load = useCallback(() => get<typeof d>(`/api/admin/subscriptions?status=${status}&q=${encodeURIComponent(q)}`).then(setD, () => {}), [status, q]);
+  useEffect(() => { const t = setTimeout(load, 150); return () => clearTimeout(t); }, [load]);
+  return (
+    <>
+      <Head title="Subscriptions" lede="Everyone on a paid plan: since when, until when, and what they last paid. Upgrade, downgrade or extend a plan here. New requests wait in Plan requests." actions={<Link to="/admin/payments" className="btn sm">Plan requests</Link>} />
+      {d && (
+        <dl className="sub-sum">
+          <div><dt>Plus</dt><dd className="mono">{d.counts.plus}</dd></div>
+          <div><dt>Pro</dt><dd className="mono">{d.counts.pro}</dd></div>
+          <div><dt>Ending in 14 days</dt><dd className={`mono ${d.counts.ending ? 'warn-text' : ''}`}>{d.counts.ending}</dd></div>
+          <div><dt>Ended, not renewed</dt><dd className="mono">{d.counts.ended}</dd></div>
+        </dl>
+      )}
+      <div className="adm-tools">
+        <div className="seg" role="group" aria-label="Show">
+          {[['active', 'Active'], ['ending', 'Ending soon'], ['ended', 'Ended'], ['all', 'All']].map(([k, l]) => (
+            <button key={k} aria-pressed={status === k} onClick={() => setStatus(k)}>{l}{d && k !== 'all' && d.counts[k] ? <span className="n">{d.counts[k]}</span> : null}</button>
+          ))}
+        </div>
+        <label className="ix-search"><Icon name="search" size={16} /><span className="sr-only">Search subscriptions</span><input placeholder="Customer name or email" value={q} onChange={(e) => setQ(e.target.value)} /></label>
+      </div>
+      {!d ? <div className="acc-skel" /> : !d.subscriptions.length ? <p className="muted">{status === 'active' ? 'No one is on a paid plan yet. Approved plan requests show up here.' : 'None.'}</p> : (
+        <table className="adm-table">
+          <thead><tr><th>Customer</th><th>Plan</th><th className="hide-sm">Since</th><th>Ends</th><th className="hide-sm">Apps</th><th className="hide-sm">Last payment</th><th /></tr></thead>
+          <tbody>
+            {d.subscriptions.map((s) => (
+              <tr key={s.id}>
+                <td><Link to={`/admin/users/${s.id}`} className="cell-main"><b>{s.name}{s.suspended && <span className="status s-rejected">suspended</span>}</b><small>{s.email}</small></Link></td>
+                <td>{s.planName}{s.period && <small className="muted"> · {s.period === 'year' ? 'yearly' : 'monthly'}</small>}</td>
+                <td className="hide-sm muted">{fmtDate(s.startedAt)}</td>
+                <td><span className={s.status === 'ended' ? 'warn-text' : s.status === 'ending' ? 'warn-text' : ''}>{endsText(s.expiresAt)}</span>{s.expiresAt && <small className="reason">{fmtDate(s.expiresAt)}</small>}</td>
+                <td className="hide-sm mono">{s.used} / {s.limit}</td>
+                <td className="hide-sm">{s.pendingPaymentId ? <Link to={`/admin/payments/${s.pendingPaymentId}`} className="status s-pending">request waiting</Link> : s.lastPayment ? <><span className="mono">{npr(s.lastPayment.amount)}</span><small className="reason">{fmtDate(s.lastPayment.createdAt)} · {s.lastPayment.status}</small></> : <span className="muted">given by an admin</span>}</td>
+                <td><div className="actions-row"><button className="btn sm" onClick={() => setEdit(s)}>Change…</button>{s.pendingPaymentId && <button className="btn sm quiet" onClick={() => go(`/admin/payments/${s.pendingPaymentId}`)}>Review</button>}</div></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {edit && <PlanDialog sub={edit} onClose={() => { setEdit(null); load(); }} />}
+    </>
+  );
+}
+
+/** Upgrade, downgrade, extend or end one customer's plan. The customer is told in their bell and by email. */
+function PlanDialog({ sub, onClose }: { sub: SubT; onClose: () => void }) {
+  const toast = useToast();
+  const [plan, setPlan] = useState(sub.plan === 'free' ? 'plus' : sub.plan);
+  const [period, setPeriod] = useState<'month' | 'year' | 'keep' | 'none'>(sub.plan === 'free' ? 'month' : 'keep');
+  const [busy, setBusy] = useState('');
+  const run = async (what: string, fn: () => Promise<unknown>, msg: string) => {
+    setBusy(what);
+    try { await fn(); toast(msg); onClose(); } catch (e) { toast(err(e, 'Could not change it.'), true); setBusy(''); }
+  };
+  const rank: Record<string, number> = { free: 0, plus: 1, pro: 2 };
+  const verb = rank[plan] > rank[sub.plan] ? 'Upgrade' : rank[plan] < rank[sub.plan] ? 'Downgrade' : 'Update';
+  const save = () => run('save', async () => {
+    const body: Record<string, unknown> = { plan };
+    if (period === 'month' || period === 'year') body.period = period;
+    await api('PATCH', `/api/admin/users/${sub.id}`, body);
+    if (period === 'none') await api('PATCH', `/api/admin/users/${sub.id}`, { planExpiresAt: null });
+  }, `${sub.name} is now on ${planName(plan)}`);
+  const paid = sub.plan !== 'free';
+  return (
+    <Modal title={`${sub.name}'s plan`} onClose={onClose}>
+      <div className="modal-body">
+        <p className="plan-now"><span className="muted">Now</span> <b>{sub.planName}</b>{sub.period && <> · {sub.period === 'year' ? 'yearly' : 'monthly'}</>} · {endsText(sub.expiresAt)}{sub.expiresAt && ` (${fmtDate(sub.expiresAt)})`}</p>
+
+        {paid && (
+          <section className="plan-sec">
+            <h3>Extend</h3>
+            <p className="hint">Adds to the end date (or starts from today if it has ended). Use this when they paid you outside Jhino.</p>
+            <div className="actions-row">
+              <button className="btn sm" disabled={!!busy} onClick={() => run('m', () => post(`/api/admin/users/${sub.id}/extend`, { period: 'month' }), 'Extended by a month')}>{busy === 'm' && <span className="spin" />}+1 month</button>
+              <button className="btn sm" disabled={!!busy} onClick={() => run('y', () => post(`/api/admin/users/${sub.id}/extend`, { period: 'year' }), 'Extended by a year')}>{busy === 'y' && <span className="spin" />}+1 year</button>
+            </div>
+          </section>
+        )}
+
+        <section className="plan-sec">
+          <h3>Upgrade or downgrade</h3>
+          <div className="grid2">
+            <div className="field"><span>Plan</span><Select label="Plan" value={plan} options={PLAN_OPTS.filter((o) => o.value !== 'free')} onChange={setPlan} /></div>
+            <div className="field"><span>For</span><Select label="For" value={period} options={[
+              ...(paid ? [{ value: 'keep', label: 'Keep the current end date' }] : []),
+              { value: 'month', label: 'One month from today' }, { value: 'year', label: 'One year from today' }, { value: 'none', label: 'No end date' },
+            ]} onChange={(v) => setPeriod(v as typeof period)} /></div>
+          </div>
+          <div className="actions-row"><button className="btn sm primary" disabled={!!busy || (plan === sub.plan && period === 'keep')} onClick={save}>{busy === 'save' && <span className="spin" />}{verb} to {planName(plan)}</button></div>
+        </section>
+
+        {paid && (
+          <section className="plan-sec">
+            <h3>End the plan</h3>
+            <p className="hint">Moves them to Free Forever now. Their apps keep working; they cannot add more than the free allowance.</p>
+            <div className="actions-row"><button className="btn sm quiet danger" disabled={!!busy} onClick={() => { if (confirm(`Move ${sub.name} to Free Forever now?`)) run('end', () => api('PATCH', `/api/admin/users/${sub.id}`, { plan: 'free' }), `${sub.name} is on Free Forever`); }}>Downgrade to Free Forever</button></div>
+          </section>
+        )}
+        <p className="hint">They get a notification (and an email) about the change. Every change is in the audit log.</p>
+      </div>
+    </Modal>
   );
 }
 

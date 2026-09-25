@@ -3,7 +3,7 @@ import { config, makePassword } from './config.js';
 import { db, newId, now, type AppRow, type UserRow } from './db.js';
 import { HttpError, canCreateApps, createUser, hashPassword, requireAdmin, revokeSessions, validateEmail, validateName, validatePassword } from './auth.js';
 import { audit, deviceName, maskIp, setSetting, setting } from './security.js';
-import { PLANS, isPeriod, isPlan, periodEnd, usage } from './plans.js';
+import { PLANS, activePlan, isPeriod, isPlan, notify, periodEnd, usage, type PlanId } from './plans.js';
 import { mailReady } from './mail.js';
 import { providerReady } from './oauth.js';
 import { RESERVED, assertNameFree, baseFor, setSharing, shareInfo, validSlug } from './publicshare.js';
@@ -144,14 +144,27 @@ export function registerSuperAdmin(app: FastifyInstance) {
   app.patch('/api/admin/users/:id', async (req) => {
     const admin = requireAdmin(req);
     const u = getUser((req.params as { id: string }).id);
-    const b = (req.body ?? {}) as { name?: string; plan?: string; planExpiresAt?: string | null; extraCreations?: number; suspended?: boolean; reason?: string; superAdmin?: boolean; emailVerified?: boolean };
+    const b = (req.body ?? {}) as { name?: string; plan?: string; period?: string; planExpiresAt?: string | null; extraCreations?: number; suspended?: boolean; reason?: string; superAdmin?: boolean; emailVerified?: boolean };
     const self = u.id === admin.id;
     if (b.name !== undefined) { db.prepare('UPDATE users SET name=? WHERE id=?').run(validateName(b.name), u.id); audit(req, 'user.rename', 'user', u.id, `${u.name} → ${b.name}`); }
     if (b.plan !== undefined) {
       if (!isPlan(b.plan)) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a plan.');
-      db.prepare('UPDATE users SET plan=?, plan_started_at=? WHERE id=?').run(b.plan, now(), u.id);
+      const from = PLANS[activePlan(u)].name;
+      if (b.plan === 'free') {
+        // Down to Free Forever: no end date, nothing to renew. Apps stay; only new ones need room.
+        db.prepare('UPDATE users SET plan=?, plan_started_at=?, plan_expires_at=NULL, plan_period=NULL WHERE id=?').run('free', now(), u.id);
+      } else if (isPeriod(b.period)) {
+        // For a month or a year from today (or from the current end date, when it is the same plan).
+        const ends = periodEnd(u, b.plan, b.period);
+        db.prepare('UPDATE users SET plan=?, plan_started_at=CASE WHEN plan=? THEN plan_started_at ELSE ? END, plan_expires_at=?, plan_period=? WHERE id=?').run(b.plan, b.plan, now(), ends, b.period, u.id);
+      } else {
+        db.prepare('UPDATE users SET plan=?, plan_started_at=CASE WHEN plan=? THEN plan_started_at ELSE ? END WHERE id=?').run(b.plan, b.plan, now(), u.id);
+      }
       grant(u.id, b.plan, admin.id, 'admin');
-      audit(req, 'user.plan', 'user', u.id, `${u.email}: ${PLANS[(u.plan ?? 'free') as keyof typeof PLANS]?.name ?? u.plan} → ${PLANS[b.plan].name}`);
+      audit(req, 'user.plan', 'user', u.id, `${u.email}: ${from} → ${PLANS[b.plan].name}${isPeriod(b.period) && b.plan !== 'free' ? ` (${b.period})` : ''}`);
+      const after = db.prepare('SELECT plan_expires_at FROM users WHERE id=?').get(u.id) as { plan_expires_at: string | null };
+      const until = after.plan_expires_at ? ` until ${new Date(after.plan_expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}` : '';
+      notify(u.id, 'billing', b.plan === 'free' ? 'Your plan is now Free Forever.' : `Your plan is now ${PLANS[b.plan].name}${until}.`, `Changed by Jhino from ${from}.`, '/account/plan');
     }
     if (b.planExpiresAt !== undefined) {
       const v = b.planExpiresAt ? String(b.planExpiresAt) : null;
@@ -181,6 +194,56 @@ export function registerSuperAdmin(app: FastifyInstance) {
       audit(req, b.emailVerified ? 'user.mark_verified' : 'user.mark_unverified', 'user', u.id, u.email);
     }
     return { user: userRow(getUser(u.id)) };
+  });
+
+  /** Everyone on a paid plan (or whose plan ended): when it started, when it ends, what they last paid. */
+  app.get('/api/admin/subscriptions', async (req) => {
+    requireAdmin(req);
+    const q = req.query as { status?: string; q?: string };
+    const t = now();
+    const soon = new Date(Date.now() + 14 * 864e5).toISOString();
+    const base = "kind='person' AND is_admin=0 AND created_by IS NULL AND plan IN ('plus','pro')";
+    const cond: Record<string, string> = {
+      active: '(plan_expires_at IS NULL OR plan_expires_at > @t)',
+      ending: '(plan_expires_at > @t AND plan_expires_at <= @soon)',
+      ended: '(plan_expires_at IS NOT NULL AND plan_expires_at <= @t)',
+    };
+    const status = q.status === 'all' || cond[String(q.status)] ? String(q.status) : 'active';
+    const s = String(q.q ?? '').trim().toLowerCase();
+    const rows = db.prepare(`SELECT * FROM users WHERE ${base} AND ${status === 'all' ? '1' : cond[status]}
+      AND (@s = '' OR lower(email) LIKE @like OR lower(name) LIKE @like) ORDER BY COALESCE(plan_expires_at, '9999') ASC LIMIT 500`)
+      .all({ t, soon, s, like: `%${s}%` }) as UserRow[];
+    const count = (c: string) => (db.prepare(`SELECT COUNT(*) n FROM users WHERE ${base} AND ${c}`).get({ t, soon }) as { n: number }).n;
+    const lastPay = db.prepare("SELECT id, amount, period, status, created_at createdAt FROM payments WHERE user_id=? AND status='approved' ORDER BY created_at DESC LIMIT 1");
+    const pending = db.prepare("SELECT id FROM payments WHERE user_id=? AND status='pending' LIMIT 1");
+    return {
+      counts: { active: count(cond.active), ending: count(cond.ending), ended: count(cond.ended), plus: count(`plan='plus' AND ${cond.active}`), pro: count(`plan='pro' AND ${cond.active}`) },
+      subscriptions: rows.map((u) => {
+        const us = usage(u);
+        const ended = !!u.plan_expires_at && u.plan_expires_at <= t;
+        return {
+          id: u.id, name: u.name, email: u.email, plan: u.plan as PlanId, planName: PLANS[u.plan as PlanId]?.name ?? u.plan,
+          period: u.plan_period === 'year' ? 'year' : u.plan_period === 'month' ? 'month' : null,
+          startedAt: u.plan_started_at ?? null, expiresAt: u.plan_expires_at ?? null, status: ended ? 'ended' : u.plan_expires_at && u.plan_expires_at <= soon ? 'ending' : 'active',
+          used: us.used, limit: PLANS[u.plan as PlanId]?.creations ?? null, suspended: !!u.disabled,
+          lastPayment: lastPay.get(u.id) ?? null, pendingPaymentId: (pending.get(u.id) as { id: string } | undefined)?.id ?? null,
+        };
+      }),
+    };
+  });
+
+  /** Add a month or a year to someone's paid plan (from its end date, or from today if it has ended). */
+  app.post('/api/admin/users/:id/extend', async (req) => {
+    requireAdmin(req);
+    const u = getUser((req.params as { id: string }).id);
+    const period = (req.body as { period?: string })?.period;
+    if (!isPeriod(period)) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a month or a year.');
+    if (!isPlan(u.plan) || u.plan === 'free') throw new HttpError(400, 'VALIDATION_FAILED', 'They are on Free Forever. Choose a paid plan first.');
+    const ends = periodEnd(u, u.plan, period);
+    db.prepare('UPDATE users SET plan_expires_at=?, plan_period=COALESCE(plan_period, ?) WHERE id=?').run(ends, period, u.id);
+    audit(req, 'user.plan_extend', 'user', u.id, `${u.email}: +1 ${period} → ends ${ends.slice(0, 10)}`);
+    notify(u.id, 'billing', `Your ${PLANS[u.plan].name} plan now runs until ${new Date(ends).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`, 'Extended by Jhino.', '/account/plan');
+    return { expiresAt: ends };
   });
 
   app.post('/api/admin/users/:id/password', async (req) => {
