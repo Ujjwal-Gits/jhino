@@ -5,6 +5,7 @@ import { db, now, sha256, type UserRow } from './db.js';
 import { afterLogin, createSession, createUser, revokeSessions } from './auth.js';
 import { baseUrl } from './mail.js';
 import { limit, securityEvent, setting } from './security.js';
+import { assignUsername } from './usernames.js';
 
 /*
  * Continue with Google / Apple (OpenID Connect, authorization code flow).
@@ -132,6 +133,7 @@ async function finish(req: FastifyRequest, reply: FastifyReply, p: Provider, par
       if (setting('signups') !== 'on') return fail(reply, 'signups_closed');
       const created = await createUser(claims.email, name || claims.email.split('@')[0], makePassword(24), false, { verified: true, plan: 'free' });
       db.prepare('UPDATE users SET password_set=0 WHERE id=?').run(created.id);
+      assignUsername(created.id, null, claims.email);
       db.prepare('INSERT INTO identities(provider,subject,user_id,email,created_at) VALUES(?,?,?,?,?)').run(p, claims.sub, created.id, claims.email, now());
       user = db.prepare('SELECT * FROM users WHERE id=?').get(created.id) as UserRow;
     }
@@ -140,7 +142,9 @@ async function finish(req: FastifyRequest, reply: FastifyReply, p: Provider, par
   if (user.disabled) return fail(reply, 'suspended');
   createSession(reply, user.id, req);
   afterLogin(req, user, p);
-  return landHome(reply, '/apps');
+  // Home is their page (jhino.com/<username>); client accounts without one go to their apps.
+  const uname = (db.prepare('SELECT username FROM users WHERE id=?').get(user.id) as { username: string | null }).username;
+  return landHome(reply, uname ? `/${uname}` : '/apps');
 }
 
 /**

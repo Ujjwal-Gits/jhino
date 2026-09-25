@@ -979,7 +979,7 @@
         return null;
       default: {
         const type = f.type === 'url' ? 'url' : f.type === 'email' ? 'email' : f.type === 'phone' ? 'tel' : 'text';
-        control = h('input', { class: 'input', id, type, value: v || '', disabled, placeholder: f.type === 'url' ? 'https://' : null, onInput: (e) => set(e.target.value) });
+        control = h('input', { class: 'input', id, type, value: v || '', disabled, placeholder: f.placeholder || (f.type === 'url' ? 'https://' : null), onInput: (e) => set(e.target.value) });
       }
     }
     if (f.type === 'boolean') return h('div', { class: 'field' }, control);
@@ -1435,7 +1435,8 @@
       }
     }
     const mainCol = h('div', { class: 'ip-main' });
-    if (hero && rec.data[hero.key]) mainCol.appendChild(heroView(rec.data[hero.key]));
+    if (b.videoField && safeUrl(rec.data[b.videoField])) mainCol.appendChild(videoHero(rec.data[b.videoField], titleOf(b, rec)));
+    else if (hero && rec.data[hero.key]) mainCol.appendChild(heroView(rec.data[hero.key]));
     else if (b.engine === 'files' && safeUrl(rec.data.link)) mainCol.appendChild(linkHero({ url: rec.data.link, title: rec.data.title }));
     else if (hero && fieldOf(b, 'attachments')) { const hl = attachmentsOf(rec).find((a) => a.t === 'link' && a.hero) || attachmentsOf(rec).find((a) => a.t === 'link'); if (hl) mainCol.appendChild(linkHero(hl)); }
     if (b.mode === 'proofing') mainCol.appendChild(pickBar(b, rec, false, () => renderMain()));
@@ -1726,6 +1727,30 @@
     if (last < text.length) out.push(text.slice(last));
     return out;
   }
+  /** A video link as a player: YouTube, Vimeo and Google Drive embed; Dropbox and direct files play natively. */
+  function videoEmbed(url) {
+    const u = safeUrl(url);
+    if (!u) return null;
+    const yt = ytId(u);
+    if (yt) return { kind: 'frame', src: 'https://www.youtube-nocookie.com/embed/' + yt + '?rel=0' };
+    const vm = /vimeo\.com\/(?:video\/)?(\d{6,12})/.exec(u);
+    if (vm) return { kind: 'frame', src: 'https://player.vimeo.com/video/' + vm[1] };
+    const gd = /drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]{10,})/.exec(u);
+    if (gd) return { kind: 'frame', src: 'https://drive.google.com/file/d/' + gd[1] + '/preview' };
+    if (/^https:\/\/(www\.)?dropbox\.com\//.test(u)) return { kind: 'video', src: u.replace(/^https:\/\/(www\.)?dropbox\.com\//, 'https://dl.dropboxusercontent.com/').replace(/[?&]dl=0/, '') };
+    if (/\.(mp4|webm|m4v|mov)(\?|#|$)/i.test(u)) return { kind: 'video', src: u };
+    return null;
+  }
+  function videoHero(url, title) {
+    const e = videoEmbed(url);
+    if (!e) return linkHero({ url, title });
+    const player = e.kind === 'frame'
+      ? h('iframe', { src: e.src, title: title || 'Video', loading: 'lazy', allow: 'autoplay; encrypted-media; picture-in-picture; fullscreen', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin' })
+      : h('video', { src: e.src, controls: true, preload: 'metadata', playsinline: true });
+    return h('div', { class: 'ip-hero vhero' }, player,
+      h('div', { class: 'ip-herobar' }, h('span', { class: 'muted', text: hostOf(url) }), h('span', { class: 'grow' }),
+        h('a', { class: 'btn sm', href: url, target: '_blank', rel: 'noopener' }, icon('external', 14), 'Open')));
+  }
   function linkHero(a) {
     const yt = ytId(a.url);
     return h('a', { class: 'ip-hero linkhero', href: a.url, target: '_blank', rel: 'noopener' },
@@ -1979,8 +2004,10 @@
     return h('div', { class: 'cards' }, items.map((r) => {
       const fm = b.imageField ? fileMeta(r.data[b.imageField]) : null;
       const link = b.linkField ? r.data[b.linkField] : null;
+      const vlink = b.videoField ? safeUrl(r.data[b.videoField]) : null;
       const open = () => (link && !canChange(b, r) ? window.open(link, '_blank', 'noopener') : openRecord(b, r.id));
       return h('button', { class: 'card', onClick: open },
+        vlink ? h('div', { class: 'cover vcover' }, ytId(vlink) ? h('img', { src: 'https://i.ytimg.com/vi/' + ytId(vlink) + '/hqdefault.jpg', alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }) : h('span', { class: 'vhost', text: hostOf(vlink) }), h('span', { class: 'play' }, h('span', null, icon('play', 18)))) : null,
         fm ? h('div', { class: 'cover' }, isImage(fm) ? h('img', { src: fm.url, alt: '', loading: 'lazy' }) : isVideo(fm) ? videoThumb(fm, 'fill') : icon('file', 28), procBadge(fm)) : null,
         h('div', { class: 'cb' }, h('h4', null, titleOf(b, r), commentCount(b, r)),
           link ? h('a', { href: link, target: '_blank', rel: 'noopener', onClick: (e) => e.stopPropagation(), class: 'muted', style: { fontSize: '12.5px', display: 'inline-flex', gap: '5px', alignItems: 'center' } }, icon('external', 13), link.replace(/^https?:\/\/(www\.)?/, '').slice(0, 36)) : null,

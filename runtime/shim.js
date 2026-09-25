@@ -637,7 +637,7 @@
         fire(fr, 'load', total, total); fire(fr, 'loadend', total, total);
       }, function (err) {
         set('readyState', 2); set('error', err);
-        if (err && err.code !== 'FORBIDDEN') note('error', { message: 'Could not upload ' + (blob.name || 'the file') + ': ' + (err.message || 'unknown error') });
+        // uploadBlob already told the page why (one message, not two).
         fire(fr, 'error', 0, total); fire(fr, 'loadend', 0, total);
       });
     };

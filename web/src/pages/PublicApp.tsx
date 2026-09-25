@@ -6,12 +6,15 @@ import { Player } from './Player';
 import { Link } from '../context';
 
 /*
- * A shared app opened by link: /s/<token> or a custom address like /your-studio.
+ * A shared app opened by link: /s/<token>, an address like /your-studio/client-room, or a top-level one.
  * Public links open straight away; password links ask once. Signed-in members get the full app, at the
  * same address: the page never redirects, so jhino.com/your-studio stays jhino.com/your-studio.
  */
 
 interface PublicInfo { ready?: boolean; needsPassword?: boolean; member?: boolean; appId?: string; app?: { id: string; name: string; showBar?: boolean } }
+
+/** A share token, a top-level address, or <username>/<name>. */
+const refPath = (ref: string) => ref.split('/').map(encodeURIComponent).join('/');
 
 const VISITOR: User = { id: 'visitor', email: '', name: 'Visitor', displayName: null, isAdmin: false, disabled: false, canCreate: false, emailIsAddress: false, emailVerified: null, hasAvatar: false, passwordSet: false, plan: 'free' };
 
@@ -24,7 +27,7 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
 
   useEffect(() => {
     setInfo(null); setError(null);
-    get<PublicInfo>(`/api/public/${encodeURIComponent(refId)}`).then((r) => {
+    get<PublicInfo>(`/api/public/${refPath(refId)}`).then((r) => {
       setInfo(r);
     }, (e) => {
       const a = e as ApiError;
@@ -46,7 +49,7 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
   const unlock = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true); setPwError('');
-    try { setInfo(await post<PublicInfo>(`/api/public/${encodeURIComponent(refId)}/unlock`, { password: pw })); }
+    try { setInfo(await post<PublicInfo>(`/api/public/${refPath(refId)}/unlock`, { password: pw })); }
     catch (err) { setPwError(err instanceof ApiError ? err.message : 'Could not open it.'); }
     setBusy(false);
   };

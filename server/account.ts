@@ -12,16 +12,39 @@ import { baseUrl, mailReady, mails, sendMail } from './mail.js';
 import { clientInfo, deviceName, imageType, limit, maskIp, securityEvent, setting, audit } from './security.js';
 import { ESSENTIAL, notifyAdmins, prefsOf, usage, type Category } from './plans.js';
 import { closeUser } from './realtime.js';
+import { assertUsernameFree, assignUsername, validUsername } from './usernames.js';
 
 /* ---------------- single-use links ---------------- */
 type Purpose = 'verify' | 'reset' | 'email_change';
+/** An email link and, with it, a 6-digit code that does the same (typed where the email was asked for). */
 function makeToken(userId: string, purpose: Purpose, hours: number, data: string | null = null) {
   // A new link replaces older unused ones for the same purpose.
   db.prepare('DELETE FROM auth_tokens WHERE user_id=? AND purpose=? AND used_at IS NULL').run(userId, purpose);
   const token = crypto.randomBytes(32).toString('base64url');
-  db.prepare('INSERT INTO auth_tokens(token_hash,user_id,purpose,data,created_at,expires_at) VALUES(?,?,?,?,?,?)')
-    .run(sha256(token), userId, purpose, data, now(), new Date(Date.now() + hours * 3600e3).toISOString());
-  return token;
+  const code = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
+  db.prepare('INSERT INTO auth_tokens(token_hash,user_id,purpose,data,created_at,expires_at,code_hash) VALUES(?,?,?,?,?,?,?)')
+    .run(sha256(token), userId, purpose, data, now(), new Date(Date.now() + hours * 3600e3).toISOString(), codeHash(userId, purpose, code));
+  return { token, code };
+}
+const codeHash = (userId: string, purpose: string, code: string) => sha256(`code:${userId}:${purpose}:${code}`);
+/**
+ * Use a 6-digit code. Five wrong tries and the code stops working (ask for a new one), so it cannot be
+ * guessed; the same single use and expiry as the link.
+ */
+function useCode(userId: string, purposes: Purpose[], code: unknown) {
+  const c = String(code ?? '').replace(/\s+/g, '');
+  const row = db.prepare(`SELECT * FROM auth_tokens WHERE user_id=? AND purpose IN (${purposes.map(() => '?').join(',')}) AND used_at IS NULL ORDER BY created_at DESC LIMIT 1`)
+    .get(userId, ...purposes) as { token_hash: string; user_id: string; purpose: Purpose; data: string | null; expires_at: string; used_at: string | null; code_hash: string | null; attempts: number } | undefined;
+  const bad = () => new HttpError(400, 'CODE_INVALID', 'That code is not right. Check the latest email, or ask for a new code.');
+  if (!row || !row.code_hash) throw bad();
+  if (Date.parse(row.expires_at) < Date.now()) throw new HttpError(400, 'CODE_EXPIRED', 'That code has expired. Ask for a new one.');
+  if (row.attempts >= 5) throw new HttpError(429, 'CODE_LOCKED', 'Too many wrong codes. Ask for a new one.');
+  if (!/^\d{6}$/.test(c) || !crypto.timingSafeEqual(Buffer.from(codeHash(userId, row.purpose, c)), Buffer.from(row.code_hash))) {
+    db.prepare('UPDATE auth_tokens SET attempts=attempts+1 WHERE token_hash=?').run(row.token_hash);
+    throw bad();
+  }
+  if (!db.prepare('UPDATE auth_tokens SET used_at=? WHERE token_hash=? AND used_at IS NULL').run(now(), row.token_hash).changes) throw bad();
+  return row;
 }
 function useToken(token: unknown, purposes: Purpose[]) {
   const t = String(token ?? '');
@@ -39,8 +62,8 @@ function useToken(token: unknown, purposes: Purpose[]) {
 setInterval(() => db.prepare('DELETE FROM auth_tokens WHERE expires_at < ?').run(new Date(Date.now() - 7 * 864e5).toISOString()), 6 * 3600e3).unref();
 
 export function sendVerification(req: FastifyRequest | null, u: UserRow) {
-  const token = makeToken(u.id, 'verify', 48);
-  sendMail(u.email, 'verify', mails.verify(u.name, `${baseUrl(req)}/verify?token=${token}`));
+  const { token, code } = makeToken(u.id, 'verify', 48);
+  sendMail(u.email, 'verify', mails.verify(u.name, `${baseUrl(req)}/verify?token=${token}`, code));
 }
 
 /* ---------------- avatars ---------------- */
@@ -124,13 +147,17 @@ export function registerAccount(app: FastifyInstance) {
   app.post('/api/auth/signup', async (req, reply) => {
     if (setting('signups') !== 'on') throw new HttpError(403, 'SIGNUPS_CLOSED', 'New accounts are not open right now.');
     limit(req, 'signup', 5, 3600_000);
-    const b = (req.body ?? {}) as { name?: string; email?: string; password?: string; terms?: boolean };
+    const b = (req.body ?? {}) as { name?: string; email?: string; username?: string; password?: string; terms?: boolean };
     if (b.terms !== true) throw new HttpError(400, 'VALIDATION_FAILED', 'Please accept the Terms of Service and Privacy Policy.');
     const email = validateRealEmail(b.email);
     const name = validateName(b.name);
     const password = validatePassword(b.password);
+    // The username is the name in every address they make (jhino.com/<username>): unique, checked first.
+    const username = b.username ? validUsername(b.username) : null;
+    if (username) assertUsernameFree(username);
     if (db.prepare('SELECT 1 FROM users WHERE email=?').get(email)) throw new HttpError(409, 'EMAIL_TAKEN', 'An account with this email already exists. Sign in, or reset your password.');
     const u = await createUser(email, name, password, false, { plan: 'free' });
+    try { assignUsername(u.id, username, email); } catch (e) { db.prepare('DELETE FROM users WHERE id=?').run(u.id); throw e; }
     createSession(reply, u.id, req);
     afterLogin(req, u, 'signup');
     sendVerification(req, u);
@@ -143,6 +170,26 @@ export function registerAccount(app: FastifyInstance) {
     const row = useToken((req.body as { token?: string })?.token, ['verify', 'email_change']);
     const u = db.prepare('SELECT * FROM users WHERE id=?').get(row.user_id) as UserRow | undefined;
     if (!u) throw new HttpError(400, 'TOKEN_INVALID', 'This link is not valid.');
+    if (row.purpose === 'verify') {
+      db.prepare('UPDATE users SET email_verified_at=? WHERE id=?').run(now(), u.id);
+      securityEvent(u.id, 'email_verified', req);
+      return { ok: true, kind: 'verify' };
+    }
+    const next = String(row.data ?? '');
+    if (db.prepare('SELECT 1 FROM users WHERE email=? AND id<>?').get(next, u.id)) throw new HttpError(409, 'EMAIL_TAKEN', 'Another account uses that email now.');
+    db.prepare('UPDATE users SET email=?, email_verified_at=? WHERE id=?').run(next, now(), u.id);
+    securityEvent(u.id, 'email_changed', req, `${u.email} → ${next}`);
+    sendMail(u.email, 'email_changed', mails.emailChanged(u.name, next));
+    sendMail(next, 'email_changed', mails.emailChanged(u.name, next));
+    return { ok: true, kind: 'email_change', email: next };
+  });
+
+  /** Confirm the email (or a new email) with the 6-digit code from the email, signed in. */
+  app.post('/api/auth/verify-code', async (req) => {
+    const u = requireUser(req);
+    if (req.pub || req.desk) throw new HttpError(403, 'FORBIDDEN', 'Not here.');
+    limit(req, 'verify-code', 20, 15 * 60_000, u.id);
+    const row = useCode(u.id, u.email_verified_at ? ['email_change'] : ['verify', 'email_change'], (req.body as { code?: string })?.code);
     if (row.purpose === 'verify') {
       db.prepare('UPDATE users SET email_verified_at=? WHERE id=?').run(now(), u.id);
       securityEvent(u.id, 'email_verified', req);
@@ -173,8 +220,8 @@ export function registerAccount(app: FastifyInstance) {
     const u = email ? db.prepare("SELECT * FROM users WHERE email=? AND kind='person' AND disabled=0").get(email) as UserRow | undefined : undefined;
     if (u && /@/.test(u.email)) {
       limit(req, 'forgot-user', 3, 3600_000, u.id);
-      const token = makeToken(u.id, 'reset', 0.5);
-      sendMail(u.email, 'reset', mails.reset(u.name, `${baseUrl(req)}/reset?token=${token}`));
+      const { token, code } = makeToken(u.id, 'reset', 0.5);
+      sendMail(u.email, 'reset', mails.reset(u.name, `${baseUrl(req)}/reset?token=${token}`, code));
       securityEvent(u.id, 'reset_requested', req);
     }
     // The same answer either way, so this cannot be used to find out who has an account.
@@ -192,6 +239,24 @@ export function registerAccount(app: FastifyInstance) {
       .run(await hashPassword(password), now(), now(), u.id);
     revokeSessions(u.id);
     securityEvent(u.id, 'password_reset', req);
+    sendMail(u.email, 'password_changed', mails.passwordChanged(u.name, deviceName(clientInfo(req).ua), `${baseUrl(req)}/forgot`));
+    return { ok: true };
+  });
+
+  /** Reset the password with the email and the 6-digit code from the email (no link needed). */
+  app.post('/api/auth/reset-code', async (req) => {
+    limit(req, 'reset-code', 15, 15 * 60_000);
+    const b = (req.body ?? {}) as { email?: string; code?: string; password?: string };
+    const password = validatePassword(b.password);
+    const email = String(b.email ?? '').trim();
+    const u = email ? db.prepare("SELECT * FROM users WHERE email=? AND kind='person' AND disabled=0").get(email) as UserRow | undefined : undefined;
+    if (!u) throw new HttpError(400, 'CODE_INVALID', 'That code is not right. Check the latest email, or ask for a new code.');
+    limit(req, 'reset-code-user', 10, 3600_000, u.id);
+    useCode(u.id, ['reset'], b.code);
+    db.prepare('UPDATE users SET password_hash=?, password_set=1, password_changed_at=?, email_verified_at=COALESCE(email_verified_at, ?) WHERE id=?')
+      .run(await hashPassword(password), now(), now(), u.id);
+    revokeSessions(u.id);
+    securityEvent(u.id, 'password_reset', req, 'code');
     sendMail(u.email, 'password_changed', mails.passwordChanged(u.name, deviceName(clientInfo(req).ua), `${baseUrl(req)}/forgot`));
     return { ok: true };
   });
@@ -273,8 +338,8 @@ export function registerAccount(app: FastifyInstance) {
     limit(req, 'email-change', 5, 3600_000, u.id);
     if (email === u.email.toLowerCase()) throw new HttpError(400, 'VALIDATION_FAILED', 'That is already your email.');
     if (db.prepare('SELECT 1 FROM users WHERE email=?').get(email)) throw new HttpError(409, 'EMAIL_TAKEN', 'Another account uses that email.');
-    const token = makeToken(u.id, 'email_change', 48, email);
-    sendMail(email, 'email_change', mails.emailChangeConfirm(u.name, `${baseUrl(req)}/verify?token=${token}`));
+    const { token, code } = makeToken(u.id, 'email_change', 48, email);
+    sendMail(email, 'email_change', mails.emailChangeConfirm(u.name, `${baseUrl(req)}/verify?token=${token}`, code));
     sendMail(u.email, 'email_change_requested', mails.emailChangeRequested(u.name, email));
     securityEvent(u.id, 'email_change_requested', req, email);
     return { ok: true, pendingEmail: email };

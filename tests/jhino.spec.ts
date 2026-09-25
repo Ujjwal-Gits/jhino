@@ -43,6 +43,9 @@ async function signIn(browser: Browser, email: string, password: string): Promis
   await page.fill('input[autocomplete=username]', email);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');
+  // Home after signing in is your page (jhino.com/<username>); clients without one land on their apps.
+  await page.waitForURL((u) => !u.pathname.startsWith('/login'));
+  if (!/\/apps$/.test(new URL(page.url()).pathname)) await page.goto('/apps');
   await expect(page.getByRole('heading', { name: 'My apps' })).toBeVisible();
   return page;
 }

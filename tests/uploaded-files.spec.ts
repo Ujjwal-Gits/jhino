@@ -11,6 +11,9 @@ async function signIn(browser: Browser, login: string, password: string, mobile 
   await page.fill('input[autocomplete=username]', login);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');
+  // Studios land on their page (jhino.com/<username>); go on to My apps. Clients land in their app.
+  await page.waitForURL((u) => !u.pathname.startsWith('/login'));
+  if (/^\/[\w-]+$/.test(new URL(page.url()).pathname) && new URL(page.url()).pathname !== '/apps') await page.goto('/apps');
   await page.waitForSelector('h1');
   return page;
 }
@@ -72,17 +75,16 @@ test('uploaded HTML: photos and videos picked in the app are stored on the serve
   await expect(fc.locator('.item .title', { hasText: 'Studio rent receipt' })).toBeVisible();
   await expect.poll(() => fc.locator('.item img').first().evaluate((i: HTMLImageElement) => i.naturalWidth)).toBeGreaterThan(800);
 
-  // The client adds a video (where the browser can record one) and a canvas-shrunk photo; we see both.
+  // Videos are shared as links, never stored: a video file picked in the app is refused, and the app says so.
   if (media.video) {
     await fc.locator('#title').fill('Final cut v2');
     await fc.locator('#file').setInputFiles({ name: 'final-cut-v2.webm', mimeType: 'video/webm', buffer: Buffer.from(media.video, 'base64') });
-    await expect(fc.locator('#status')).toContainText('ready', { timeout: 30_000 });
-    await fc.locator('button:has-text("Add")').click();
-    await expect(fa.locator('.item .title', { hasText: 'Final cut v2' })).toBeVisible({ timeout: 20_000 });
-    if (browserName === 'chromium' || browserName === 'firefox') {
-      await expect.poll(() => fa.locator('.item video').first().evaluate((v: HTMLVideoElement) => v.readyState), { timeout: 15_000 }).toBeGreaterThan(0);
-    }
+    await expect(c.locator('.toast.error', { hasText: 'Videos are added as links' })).toHaveCount(1, { timeout: 20_000 });
+    // The message goes after a few seconds (it sits over the app on a phone).
+    await expect(c.locator('.toast.error')).toHaveCount(0, { timeout: 15_000 });
   }
+  void browserName;
+  // The client adds a canvas-shrunk photo; we see it.
   await fc.locator('#title').fill('Site photo');
   await fc.locator('#shrink').setInputFiles(photo);
   await expect(fc.locator('#status')).toContainText('shrunk', { timeout: 30_000 });
@@ -106,7 +108,7 @@ test('uploaded HTML: photos and videos picked in the app are stored on the serve
   expect(saved.length).toBeLessThan(5000);
   expect(saved).toContain('__jhino/files/');
   const files = await a.evaluate(async (id) => (await (await fetch(`/api/apps/${id}/files`)).json()).files.length as number, appId);
-  expect(files).toBeGreaterThanOrEqual(media.video ? 3 : 2);
+  expect(files).toBeGreaterThanOrEqual(2); // the photos; the video was refused (videos are links)
 
   // Clients cannot put their own apps on the server.
   const status = await c.evaluate(async () => {

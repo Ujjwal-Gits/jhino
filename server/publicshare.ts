@@ -17,9 +17,10 @@ import { revoke, publish } from './realtime.js';
  * (view, add or edit), so every existing check applies to them unchanged. Their cookie works for
  * that one app's data only.
  *
- * Addresses: an app can have its own address, jhino.com/<name>, chosen when it is created or later in
- * Share. It opens the app at that exact address (no redirect). Addresses and short links share one set
- * of names, so a name is never used twice.
+ * Addresses: every person has a username, and their app addresses and short links live under it:
+ * jhino.com/<username>/<name>. An app opens at that exact address (no redirect). A person's app
+ * addresses and short links share one set of names. At the top level (jhino.com/<name>) there are
+ * only usernames, plus the few addresses super admins host there (and those made before usernames).
  */
 
 export const RESERVED = new Set(['api', 'run', 'apps', 'app', 'build', 'shared', 'trash', 'people', 'invite', 's', 'admin', 'account', 'login', 'signin',
@@ -27,42 +28,60 @@ export const RESERVED = new Set(['api', 'run', 'apps', 'app', 'build', 'shared',
   'assets', 'static', 'logout', 'settings', 'dashboard', 'home', 'about', 'contact', 'blog', 'docs', 'status', 'www', 'mail', 'jhino', 'favicon.ico',
   'robots.txt', 'sitemap.xml', 'manifest.json', 'new', 'create', 'upload', 'download', 'files', 'public', 'p', 'u', 'user', 'users', 'auth', 'oauth',
   'links', 'link', 'go', 'l', 'admin-links', 'addresses', 'receipt', 'receipts', 'payments', 'checkout', 'plan', 'features', 'index.html', 'img', 'images', 'fonts']);
-export function validSlug(s: unknown): string {
+/** Names Jhino keeps under a username (jhino.com/<username>/<name>). */
+const SUB_RESERVED = new Set(['edit', 'settings', 'analytics', 'apps', 'links', 'link', 'go', 'api', 's', 'p', 'admin', 'profile', 'page', 'design', 'custom', 'new', 'www', 'avatar']);
+/** An address name. `top` = a top-level address (jhino.com/<name>), which only super admins give out. */
+export function validSlug(s: unknown, top = false): string {
   const v = String(s ?? '').trim().toLowerCase();
   if (!/^[a-z0-9](?:[a-z0-9-]{0,48}[a-z0-9])?$/.test(v) || v.length < 2) throw new HttpError(400, 'VALIDATION_FAILED', 'Use 2 to 50 lowercase letters, numbers and dashes (not at the start or end).');
-  if (RESERVED.has(v)) throw new HttpError(400, 'VALIDATION_FAILED', `"${v}" is used by Jhino itself. Choose another address.`);
+  if (top ? RESERVED.has(v) : SUB_RESERVED.has(v)) throw new HttpError(400, 'VALIDATION_FAILED', `"${v}" is used by Jhino itself. Choose another address.`);
   return v;
 }
 
-/** Is this name already an app's address or a short link? (Apps in Trash keep their address.) */
-export function nameInUse(name: string, except: { appId?: string; linkId?: string } = {}) {
-  return !!db.prepare('SELECT 1 FROM apps WHERE slug=? COLLATE NOCASE AND id<>?').get(name, except.appId ?? '')
-    || !!db.prepare('SELECT 1 FROM short_links WHERE code=? COLLATE NOCASE AND id<>?').get(name, except.linkId ?? '');
+export const usernameOf = (userId: string) => (db.prepare('SELECT username FROM users WHERE id=?').get(userId) as { username: string | null } | undefined)?.username ?? null;
+
+/** Is this name already one of this person's app addresses or short links? (Apps in Trash keep theirs.) */
+export function nameInUse(ownerId: string, name: string, except: { appId?: string; linkId?: string } = {}) {
+  return !!db.prepare('SELECT 1 FROM apps WHERE owner_id=? AND slug=? COLLATE NOCASE AND id<>?').get(ownerId, name, except.appId ?? '')
+    || !!db.prepare('SELECT 1 FROM short_links WHERE owner_id=? AND root=0 AND code=? COLLATE NOCASE AND id<>?').get(ownerId, name, except.linkId ?? '');
 }
-export function assertNameFree(name: string, except: { appId?: string; linkId?: string } = {}) {
-  if (nameInUse(name, except)) throw new HttpError(409, 'SLUG_TAKEN', `jhino.com/${name} is already taken. Try another name.`);
+export function assertNameFree(ownerId: string, name: string, except: { appId?: string; linkId?: string } = {}) {
+  if (nameInUse(ownerId, name, except)) {
+    const u = usernameOf(ownerId);
+    throw new HttpError(409, 'SLUG_TAKEN', `jhino.com/${u ? u + '/' : ''}${name} is already one of your addresses. Try another name.`);
+  }
+}
+/** Is jhino.com/<name> taken at the top: a username, a hosted address, or an older short link? */
+export function rootNameInUse(name: string, except: { appId?: string; linkId?: string; userId?: string } = {}) {
+  return !!db.prepare('SELECT 1 FROM users WHERE username=? COLLATE NOCASE AND id<>?').get(name, except.userId ?? '')
+    || !!db.prepare('SELECT 1 FROM apps WHERE root_slug=? COLLATE NOCASE AND id<>?').get(name, except.appId ?? '')
+    || !!db.prepare('SELECT 1 FROM short_links WHERE root=1 AND code=? COLLATE NOCASE AND id<>?').get(name, except.linkId ?? '');
+}
+export function assertRootFree(name: string, except: { appId?: string; linkId?: string } = {}) {
+  if (rootNameInUse(name, except)) throw new HttpError(409, 'SLUG_TAKEN', `jhino.com/${name} is already taken (a username or another address). Try another name.`);
 }
 
 export type Access = 'private' | 'public' | 'password';
 export interface AddressRequest { slug: string | null; access?: Access; publicRole?: Role; password?: string }
 /**
  * Check an address (and how it opens) before an app is created or changed, so nothing is half done.
- * `u` is the owner; super admins have no limits.
+ * `owner` owns the app (the address lives under their username); super admins acting have no limits.
  */
-export function readAddressRequest(u: UserRow, raw: { slug?: unknown; access?: unknown; publicRole?: unknown; password?: unknown }, appId: string | null, prevAccess: string | null = null): AddressRequest {
+export function readAddressRequest(owner: UserRow, raw: { slug?: unknown; access?: unknown; publicRole?: unknown; password?: unknown }, appId: string | null, prevAccess: string | null = null, byAdmin = false): AddressRequest {
   const slug = raw.slug === null || raw.slug === undefined || String(raw.slug).trim() === '' ? null : validSlug(raw.slug);
-  if (slug) { assertNameFree(slug, { appId: appId ?? undefined }); assertAddressAllowance(u, appId); }
+  if (slug) { assertNameFree(owner.id, slug, { appId: appId ?? undefined }); if (!byAdmin) assertAddressAllowance(owner, appId); }
   const access = raw.access === undefined || raw.access === '' ? undefined : String(raw.access) as Access;
   if (access && !['private', 'public', 'password'].includes(access)) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose who can open it.');
-  if (access === 'password' && prevAccess !== 'password') assertFeature(u, 'passwordLinks', 'A password link');
+  if (access === 'password' && prevAccess !== 'password' && !byAdmin) assertFeature(owner, 'passwordLinks', 'A password link');
   const role = raw.publicRole === undefined || raw.publicRole === '' ? undefined : String(raw.publicRole) as Role;
   const password = raw.password === undefined || raw.password === null || raw.password === '' ? undefined : String(raw.password);
   return { slug, access, publicRole: role, password };
 }
 /** Give an app its address and link settings, after readAddressRequest said yes. */
 export async function applyAddress(appId: string, r: AddressRequest) {
+  const owner = (db.prepare('SELECT owner_id FROM apps WHERE id=?').get(appId) as { owner_id: string }).owner_id;
   db.transaction(() => {
-    if (r.slug) assertNameFree(r.slug, { appId });
+    if (r.slug) assertNameFree(owner, r.slug, { appId });
     db.prepare('UPDATE apps SET slug=? WHERE id=?').run(r.slug, appId);
   })();
   if (r.access || r.publicRole || r.password) return setSharing(appId, { access: r.access, publicRole: r.publicRole, password: r.password });
@@ -82,10 +101,12 @@ export function ensureShareToken(appId: string): string {
 }
 export function shareInfo(a: AppRow, base: string) {
   const token = a.share_token || ensureShareToken(a.id);
+  const username = usernameOf(a.owner_id);
   return {
     access: (a.access ?? 'private') as 'private' | 'public' | 'password', publicRole: (a.public_role ?? 'viewer') as Role,
     hasPassword: !!a.share_password_hash, showBar: a.show_bar !== 0,
-    shareUrl: `${base}/s/${token}`, slug: a.slug ?? null, slugUrl: a.slug ? `${base}/${a.slug}` : null,
+    shareUrl: `${base}/s/${token}`, username, slug: a.slug ?? null, slugUrl: a.slug && username ? `${base}/${username}/${a.slug}` : null,
+    rootSlug: a.root_slug ?? null, rootUrl: a.root_slug ? `${base}/${a.root_slug}` : null,
   };
 }
 
@@ -141,11 +162,17 @@ function allowedPath(appId: string, method: string, url: string) {
   return rest !== null && /^(kv|records|files|people|activity|trash|launch|watch|unwatch|logo)(\/|$)/.test(rest);
 }
 
+/** A share token (/s/<token>) or a top-level address (jhino.com/<name>). */
 function resolve(ref: string) {
   const r = String(ref ?? '').trim();
   if (!/^[\w-]{2,64}$/.test(r)) return undefined;
   return (db.prepare('SELECT * FROM apps WHERE share_token=? AND deleted_at IS NULL').get(r)
-    ?? db.prepare('SELECT * FROM apps WHERE slug=? COLLATE NOCASE AND deleted_at IS NULL').get(r)) as AppRow | undefined;
+    ?? db.prepare('SELECT * FROM apps WHERE root_slug=? COLLATE NOCASE AND deleted_at IS NULL').get(r)) as AppRow | undefined;
+}
+/** jhino.com/<username>/<name> */
+function resolveAt(username: string, name: string) {
+  if (!/^[\w-]{2,64}$/.test(username) || !/^[\w-]{2,64}$/.test(name)) return undefined;
+  return db.prepare(`SELECT a.* FROM apps a JOIN users u ON u.id=a.owner_id WHERE u.username=? COLLATE NOCASE AND a.slug=? COLLATE NOCASE AND a.deleted_at IS NULL`).get(username, name) as AppRow | undefined;
 }
 function startVisit(reply: FastifyReply, a: AppRow, req: FastifyRequest) {
   const token = crypto.randomBytes(32).toString('base64url');
@@ -184,10 +211,9 @@ export function registerPublicShare(app: FastifyInstance) {
     req.user = v; req.pub = appId; req.csrf = null; req.desk = null; req.sessionHash = null;
   });
 
-  /** Open a shared link: /s/<token> or a custom address. */
-  app.get('/api/public/:ref', async (req, reply) => {
+  /** Open a shared link: /s/<token>, jhino.com/<username>/<name>, or a top-level address. */
+  const open = async (req: FastifyRequest, reply: FastifyReply, a: AppRow | undefined) => {
     limit(req, 'public-open', 120, 60_000);
-    const a = resolve((req.params as { ref: string }).ref);
     if (!a) throw new HttpError(404, 'NOT_FOUND', 'This link does not exist or the app was removed.');
     if (req.user && !req.pub && req.user.kind !== 'visitor' && roleOf(a.id, req.user.id)) return { member: true, appId: a.id, app: visitorApp(a) };
     if (a.access === 'private' || !a.access) throw new HttpError(403, 'NOT_PUBLIC', 'This app is private. Ask its owner to add you, then sign in.');
@@ -195,16 +221,19 @@ export function registerPublicShare(app: FastifyInstance) {
     if (a.access === 'password') return { needsPassword: true, app: { id: a.id, name: a.name } };
     startVisit(reply, a, req);
     return { ready: true, app: visitorApp(a) };
-  });
-  app.post('/api/public/:ref/unlock', async (req, reply) => {
-    const a = resolve((req.params as { ref: string }).ref);
+  };
+  app.get('/api/public/:ref', async (req, reply) => open(req, reply, resolve((req.params as { ref: string }).ref)));
+  app.get('/api/public/:user/:name', async (req, reply) => { const p = req.params as { user: string; name: string }; return open(req, reply, resolveAt(p.user, p.name)); });
+  const unlock = async (req: FastifyRequest, reply: FastifyReply, a: AppRow | undefined) => {
     if (!a || a.access !== 'password' || !a.share_password_hash) throw new HttpError(404, 'NOT_FOUND', 'This link does not need a password.');
     limit(req, 'public-unlock', 10, 15 * 60_000, a.id);
     const ok = await verify(a.share_password_hash, String((req.body as { password?: string })?.password ?? ''));
     if (!ok) throw new HttpError(401, 'BAD_PASSWORD', 'That password is not right.');
     startVisit(reply, a, req);
     return { ready: true, app: visitorApp(a) };
-  });
+  };
+  app.post('/api/public/:ref/unlock', async (req, reply) => unlock(req, reply, resolve((req.params as { ref: string }).ref)));
+  app.post('/api/public/:user/:name/unlock', async (req, reply) => { const p = req.params as { user: string; name: string }; return unlock(req, reply, resolveAt(p.user, p.name)); });
 
   /* ---------- the owner's link settings ---------- */
   app.get('/api/apps/:id/sharing', async (req) => {
@@ -236,11 +265,18 @@ export function registerPublicShare(app: FastifyInstance) {
     const u = requireUser(req);
     if (req.pub || req.desk) throw new HttpError(403, 'FORBIDDEN', 'Not here.');
     limit(req, 'address-check', 240, 60_000, u.id);
-    const q = req.query as { name?: string; app?: string; link?: string };
-    const url = (n: string) => `${baseFor(req).replace(/^https?:\/\//, '')}/${n}`;
+    const q = req.query as { name?: string; app?: string; link?: string; top?: string };
+    const top = q.top === '1' && !!u.is_admin;
+    // An app's address lives under its owner's username (a super admin may be checking someone else's app).
+    let owner = u.id;
+    if (q.app) { const a = db.prepare('SELECT owner_id FROM apps WHERE id=?').get(q.app) as { owner_id: string } | undefined; if (a && (a.owner_id === u.id || u.is_admin)) owner = a.owner_id; }
+    const host = baseFor(req).replace(/^https?:\/\//, '');
+    const uname = usernameOf(owner);
+    const url = (n: string) => (top ? `${host}/${n}` : `${host}/${uname}/${n}`);
     let name: string;
-    try { name = validSlug(q.name); } catch (e) { return { name: String(q.name ?? ''), available: false, reason: (e as Error).message }; }
-    if (nameInUse(name, { appId: q.app, linkId: q.link })) return { name, available: false, reason: `${url(name)} is already taken.` };
+    try { name = validSlug(q.name, top); } catch (e) { return { name: String(q.name ?? ''), available: false, reason: (e as Error).message }; }
+    const taken = top ? rootNameInUse(name, { appId: q.app, linkId: q.link }) : nameInUse(owner, name, { appId: q.app, linkId: q.link });
+    if (taken) return { name, available: false, reason: `${url(name)} is already taken.` };
     return { name, available: true, url: url(name) };
   });
   /** The owner sets or removes their app's address. */
@@ -250,7 +286,7 @@ export function registerPublicShare(app: FastifyInstance) {
     const a = db.prepare('SELECT * FROM apps WHERE id=? AND deleted_at IS NULL').get(id) as AppRow | undefined;
     if (!a || (roleOf(id, u.id) !== 'owner' && !u.is_admin) || req.pub || req.desk) throw new HttpError(404, 'NOT_FOUND', 'That app does not exist.');
     const owner = db.prepare('SELECT * FROM users WHERE id=?').get(a.owner_id) as UserRow;
-    const r = readAddressRequest(u.is_admin ? u : owner, (req.body ?? {}) as Record<string, unknown>, id, a.access ?? 'private');
+    const r = readAddressRequest(owner, (req.body ?? {}) as Record<string, unknown>, id, a.access ?? 'private', !!u.is_admin && u.id !== owner.id);
     const next = await applyAddress(id, r);
     if ((a.slug ?? null) !== r.slug) {
       logActivity(id, u.id, r.slug ? `set the address to /${r.slug}` : 'removed the address', '');

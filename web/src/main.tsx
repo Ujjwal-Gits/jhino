@@ -1,4 +1,4 @@
-import { StrictMode, useCallback, useEffect, useState, type ReactNode } from 'react';
+import { StrictMode, Suspense, lazy, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 import './site.css';
@@ -17,11 +17,12 @@ import { Player } from './pages/Player';
 import { Shell } from './pages/Shell';
 import { Builder } from './pages/Builder';
 import { LinksPage } from './pages/Links';
+import { PersonPage } from './pages/PersonPage';
 import { RouteCtx, SessionCtx, applyTheme, readTheme, useRoute } from './context';
 
 applyTheme(readTheme());
 
-const KNOWN = new Set(['links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing']);
+const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing']);
 
 function App() {
   const [path, setPath] = useState(location.pathname);
@@ -56,7 +57,8 @@ function App() {
 
   // Signed in: the sign-in pages lead home.
   useEffect(() => {
-    if (user && ['/login', '/signup', '/forgot'].includes(path)) go('/apps', true);
+    // Home is their own page (jhino.com/<username>); client accounts go to the apps shared with them.
+    if (user && ['/login', '/signup', '/forgot'].includes(path)) go(user.username ? `/${user.username}` : '/apps', true);
     if (user && path === '/people') go('/admin/users', true);
   }, [user, path, go]);
 
@@ -72,9 +74,11 @@ function App() {
   const accountMatch = path.match(/^\/account(?:\/([\w-]+))?\/?$/);
   const receiptMatch = path.match(/^\/account\/receipt\/([\w-]+)$/);
   const adminMatch = path.match(/^\/admin(?:\/([\w-]+))?(?:\/([\w-]+))?\/?$/);
-  // A single path segment that is not a page of Jhino is a hosted address (jhino.com/your-studio).
+  // One segment that is not a page of Jhino: someone's page (jhino.com/<username>), or a top-level address.
+  // Two: an app address under a username (jhino.com/<username>/<name>).
   const seg = path.split('/').filter(Boolean);
-  const slug = seg.length === 1 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9-]{1,49}$/i.test(seg[0]) ? seg[0] : null;
+  const person = seg.length === 1 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) ? seg[0] : null;
+  const under = seg.length === 2 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) && /^[a-z0-9][a-z0-9-]{1,49}$/i.test(seg[1]) ? `${seg[0]}/${seg[1]}` : null;
   const shell = (n: ReactNode) => (user ? <Shell>{n}</Shell> : n);
   if (user === undefined) page = null;
   else if (invite) page = <Invite token={invite[1]} user={user} onJoined={refresh} />;
@@ -83,7 +87,9 @@ function App() {
   else if (path === '/help') page = shell(<HelpPage signedIn={!!user} />);
   else if (path === '/terms') page = shell(<TermsPage signedIn={!!user} />);
   else if (path === '/privacy') page = shell(<PrivacyPage signedIn={!!user} />);
-  else if (shareMatch || slug) page = <PublicApp refId={shareMatch ? shareMatch[1] : slug!} signedInUser={user} />;
+  else if (shareMatch || under) page = <PublicApp refId={shareMatch ? shareMatch[1] : under!} signedInUser={user} />;
+  else if (person) page = <PersonPage name={person} user={user} />;
+  else if (path === '/_themes' && user?.isAdmin) page = <ThemeGallery />;
   // The website is always at the main address; the dashboard lives at /apps.
   else if (path === '/') page = <Landing signedIn={!!user} />;
   else if (!user) {
@@ -108,7 +114,7 @@ function App() {
   return (
     <RouteCtx.Provider value={{ path, go }}>
       <ToastProvider>
-        {user ? <SessionCtx.Provider value={{ user, refresh }}>{page}</SessionCtx.Provider> : page}
+        <Suspense fallback={null}>{user ? <SessionCtx.Provider value={{ user, refresh }}>{page}</SessionCtx.Provider> : page}</Suspense>
       </ToastProvider>
     </RouteCtx.Provider>
   );
@@ -119,5 +125,7 @@ function GoTo({ to }: { to: string }) {
   useEffect(() => { go(to, true); }, [go, to]);
   return null;
 }
+
+const ThemeGallery = lazy(() => import('./profile/Gallery').then((m) => ({ default: m.ProfileGallery })));
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

@@ -40,6 +40,9 @@ async function signIn(browser: Browser, login: string, password: string, width =
   await page.fill('input[autocomplete=username]', login);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');
+  // Studios land on their page (jhino.com/<username>); go on to My apps. Clients land in their app.
+  await page.waitForURL((u) => !u.pathname.startsWith('/login'));
+  if (/^\/[\w-]+$/.test(new URL(page.url()).pathname) && new URL(page.url()).pathname !== '/apps') await page.goto('/apps');
   await page.waitForSelector('h1');
   return page;
 }
@@ -79,7 +82,8 @@ test('activity: lines point at their item, private items stay private, and "seen
   // Comments are activity on the item they belong to.
   const withComments = await build(owner, 'Comment activity', ['video_review']);
   const up2 = await owner.ctx.post(`/api/apps/${withComments.id}/files`, { multipart: { file: { name: 'cut.mp4', mimeType: 'video/mp4', buffer: Buffer.from('not really a video') } }, headers: { 'x-csrf-token': owner.csrf } });
-  const vid = await owner.call('POST', `/api/apps/${withComments.id}/records/${withComments.col('video_review')}`, { data: { title: 'Cut 1', video: (await up2.json()).file.id } });
+  void up2;
+  const vid = await owner.call('POST', `/api/apps/${withComments.id}/records/${withComments.col('video_review')}`, { data: { title: 'Cut 1', video: 'https://youtu.be/aqz-KE-bpKQ' } });
   await owner.call('POST', `/api/apps/${withComments.id}/records/${withComments.col('video_review')}_comments`, { data: { rec: vid.json.record.id, body: 'Check the ending' } });
   const c = (await owner.call('GET', `/api/apps/${withComments.id}/activity`)).json.activity.find((l: any) => l.kind === 'comment');
   expect(c.recordId).toBe(vid.json.record.id);
@@ -178,7 +182,7 @@ test('trash: deleted items (with their comments) and files wait in Trash; restor
   const V = `/api/apps/${app.id}/records/${app.col('video_review')}`;
   const up = await owner.ctx.post(`/api/apps/${app.id}/files`, { multipart: { file: { name: 'cut.mp4', mimeType: 'video/mp4', buffer: Buffer.from('not really a video') } }, headers: { 'x-csrf-token': owner.csrf } });
   const fileId = (await up.json()).file.id as string;
-  const vid = await owner.call('POST', V, { data: { title: 'Cut 1', video: fileId } });
+  const vid = await owner.call('POST', V, { data: { title: 'Cut 1', video: 'https://youtu.be/aqz-KE-bpKQ' } });
   await owner.call('POST', `${V.replace(app.col('video_review'), app.col('video_review') + '_comments')}`, { data: { rec: vid.json.record.id, body: 'Warmer at the end' } });
   // Delete the video item: it and its comment go to Trash.
   expect((await owner.call('DELETE', `${V}/${vid.json.record.id}`)).status).toBe(200);

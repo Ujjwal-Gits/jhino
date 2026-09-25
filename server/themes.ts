@@ -1,0 +1,37 @@
+/*
+ * The public page designs and the plan tier each needs. Made from web/src/profile/themes.ts by
+ * scripts/sync-themes.mjs; a test keeps the two in step.
+ */
+export const DEFAULT_THEME = 'paper';
+export const THEME_TIERS: Record<string, 'free' | 'plus' | 'pro'> = {
+  'paper': 'free',
+  'night': 'free',
+  'newsprint': 'free',
+  'clay': 'free',
+  'marigold': 'free',
+  'letterpress': 'plus',
+  'swiss': 'plus',
+  'darkroom': 'plus',
+  'blueprint': 'plus',
+  'linen': 'plus',
+  'terminal': 'plus',
+  'risograph': 'plus',
+  'gallery': 'plus',
+  'monsoon': 'plus',
+  'tea-estate': 'plus',
+  'kathmandu-morning': 'pro',
+  'himalaya': 'pro',
+  'film-slate': 'pro',
+  'studio-black': 'pro',
+  'paper-cut': 'pro',
+  'brutalist': 'pro',
+  'neon-night': 'pro',
+  'index-cards': 'pro',
+  'ticket-stub': 'pro',
+  'quarterly': 'pro',
+  'receipt': 'pro',
+  'bauhaus': 'pro',
+  'velvet': 'pro',
+  'prayer-flags': 'pro',
+  'cyanotype': 'pro',
+};

@@ -470,6 +470,89 @@ const MIGRATIONS: string[] = [
     PRIMARY KEY(link_id, day)
   );
   `,
+  // 10: usernames; addresses live under them (jhino.com/<username>/<name>); a public page per person
+  // (jhino.com/<username>) with its links and designs; page analytics; one-time email codes.
+  `
+  ALTER TABLE users ADD COLUMN username TEXT;
+  CREATE UNIQUE INDEX users_username ON users(username COLLATE NOCASE);
+
+  -- App addresses were one set of names for everyone; now each person has their own. Addresses made
+  -- before this keep working at the top (root_slug), and also under the owner's username.
+  ALTER TABLE apps ADD COLUMN root_slug TEXT;
+  UPDATE apps SET root_slug = slug WHERE slug IS NOT NULL;
+  DROP INDEX apps_slug;
+  CREATE UNIQUE INDEX apps_root_slug ON apps(root_slug COLLATE NOCASE);
+  CREATE UNIQUE INDEX apps_owner_slug ON apps(owner_id, slug COLLATE NOCASE);
+
+  -- Short links too: old ones stay at the top (root = 1), new ones live under the username.
+  ALTER TABLE short_links ADD COLUMN root INTEGER NOT NULL DEFAULT 0;
+  UPDATE short_links SET root = 1;
+  DROP INDEX short_links_code;
+  CREATE UNIQUE INDEX short_links_owner_code ON short_links(owner_id, code COLLATE NOCASE);
+  CREATE UNIQUE INDEX short_links_root_code ON short_links(code COLLATE NOCASE) WHERE root = 1;
+
+  -- The public page.
+  CREATE TABLE profiles(
+    user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    bio TEXT NOT NULL DEFAULT '',
+    location TEXT NOT NULL DEFAULT '',
+    theme TEXT NOT NULL DEFAULT 'paper',
+    layout TEXT NOT NULL DEFAULT 'links',
+    socials TEXT NOT NULL DEFAULT '[]',
+    published INTEGER NOT NULL DEFAULT 1,
+    custom_html TEXT,
+    use_custom INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL
+  );
+  CREATE TABLE profile_items(
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    position INTEGER NOT NULL DEFAULT 0,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL DEFAULT '',
+    subtitle TEXT NOT NULL DEFAULT '',
+    url TEXT,
+    text TEXT,
+    app_id TEXT,
+    highlight INTEGER NOT NULL DEFAULT 0,
+    visible INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX profile_items_user ON profile_items(user_id, position);
+
+  -- Page analytics, counted per day. Visitors are counted once a day from a daily-salted hash; the
+  -- hashes are kept two days only.
+  CREATE TABLE page_days(
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    day TEXT NOT NULL,
+    views INTEGER NOT NULL DEFAULT 0,
+    visitors INTEGER NOT NULL DEFAULT 0,
+    clicks INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(user_id, day)
+  );
+  CREATE TABLE page_seen(user_id TEXT NOT NULL, day TEXT NOT NULL, visitor TEXT NOT NULL, PRIMARY KEY(user_id, day, visitor));
+  CREATE TABLE item_days(
+    item_id TEXT NOT NULL,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    day TEXT NOT NULL,
+    clicks INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(item_id, day)
+  );
+  CREATE INDEX item_days_user ON item_days(user_id, day);
+  CREATE TABLE page_dims(
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    day TEXT NOT NULL,
+    dim TEXT NOT NULL,
+    value TEXT NOT NULL,
+    n INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(user_id, day, dim, value)
+  );
+
+  -- A 6-digit code sent with every email link (confirm email, reset password, change email).
+  ALTER TABLE auth_tokens ADD COLUMN code_hash TEXT;
+  ALTER TABLE auth_tokens ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 const current = db.pragma('user_version', { simple: true }) as number;
@@ -493,14 +576,14 @@ export interface UserRow {
   company?: string | null; job_title?: string | null; bio?: string | null; avatar?: string | null;
   email_verified_at?: string | null; password_set?: number; password_changed_at?: string | null;
   last_login_at?: string | null; last_login_ip?: string | null; last_login_ua?: string | null;
-  plan?: string; plan_started_at?: string | null; plan_expires_at?: string | null; plan_period?: string | null; extra_creations?: number;
+  plan?: string; plan_started_at?: string | null; plan_expires_at?: string | null; plan_period?: string | null; username?: string | null; extra_creations?: number;
   suspended_reason?: string | null; kind?: string; notify_prefs?: string;
 }
 export interface AppRow {
   id: string; name: string; color: number; owner_id: string; live_version: number;
   private_keys: string; created_at: string; updated_at: string; deleted_at: string | null;
   access?: string; public_role?: string; share_token?: string | null; share_password_hash?: string | null;
-  slug?: string | null; show_bar?: number; visitor_id?: string | null;
+  slug?: string | null; root_slug?: string | null; show_bar?: number; visitor_id?: string | null;
 }
 
 export function roleOf(appId: string, userId: string): Role | null {

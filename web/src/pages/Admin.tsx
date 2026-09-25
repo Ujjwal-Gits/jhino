@@ -331,7 +331,7 @@ function AdminLinks() {
 }
 
 /* ---------------- users ---------------- */
-interface UserRowT { id: string; name: string; email: string; storage: number; emailVerified: boolean | null; createdAt: string; status: string; role: string; usage: { planName: string; plan: string; used: number; limit: number | null } | null; lastLoginAt: string | null; lastPayment: string | null }
+interface UserRowT { id: string; name: string; email: string; username: string | null; storage: number; emailVerified: boolean | null; createdAt: string; status: string; role: string; usage: { planName: string; plan: string; used: number; limit: number | null } | null; lastLoginAt: string | null; lastPayment: string | null }
 function Users() {
   const toast = useToast();
   const { go } = useRoute();
@@ -359,7 +359,7 @@ function Users() {
           <tbody>
             {rows.users.map((u) => (
               <tr key={u.id} className="clickable" onClick={() => go(`/admin/users/${u.id}`)}>
-                <td><Link to={`/admin/users/${u.id}`} className="cell-main"><b>{u.name}</b><small>{u.email}{u.emailVerified === false ? ' · unverified' : ''}{u.role === 'super_admin' ? ' · super admin' : u.role === 'client' ? ' · client' : ''}</small></Link></td>
+                <td><Link to={`/admin/users/${u.id}`} className="cell-main"><b>{u.name}{u.username && <span className="mono muted small"> @{u.username}</span>}</b><small>{u.email}{u.emailVerified === false ? ' · unverified' : ''}{u.role === 'super_admin' ? ' · super admin' : u.role === 'client' ? ' · client' : ''}</small></Link></td>
                 <td className="hide-sm">{u.usage ? u.usage.planName : '—'}</td>
                 <td className="hide-sm mono">{u.usage ? (u.usage.limit === null ? `${u.usage.used} / ∞` : `${u.usage.used} / ${u.usage.limit}`) : '—'}</td>
                 <td className="hide-sm mono">{u.usage ? fmtBytes(u.storage) : '—'}</td>
@@ -378,14 +378,14 @@ function Users() {
 
 function CreateUser({ onClose }: { onClose: (madeId?: string) => void }) {
   const toast = useToast();
-  const [f, setF] = useState({ name: '', email: '', password: '', plan: 'plus', period: 'month', superAdmin: false });
+  const [f, setF] = useState({ name: '', email: '', username: '', password: '', plan: 'plus', period: 'month', superAdmin: false });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [made, setMade] = useState<{ id: string; email: string; password: string; signInUrl: string; name: string } | null>(null);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true); setError('');
-    try { const r = await post<{ user: UserRowT; password: string; signInUrl: string }>('/api/admin/users', { ...f, password: f.password || undefined, period: f.period === 'none' ? undefined : f.period }); setMade({ id: r.user.id, email: r.user.email, password: r.password, signInUrl: r.signInUrl, name: r.user.name }); }
+    try { const r = await post<{ user: UserRowT; password: string; signInUrl: string }>('/api/admin/users', { ...f, username: f.username || undefined, password: f.password || undefined, period: f.period === 'none' ? undefined : f.period }); setMade({ id: r.user.id, email: r.user.email, password: r.password, signInUrl: r.signInUrl, name: r.user.name }); }
     catch (e2) { setError(err(e2, 'Could not create it.')); }
     setBusy(false);
   };
@@ -404,6 +404,7 @@ function CreateUser({ onClose }: { onClose: (madeId?: string) => void }) {
             <p className="hint">Makes a ready account with a password you pass on. Use it for customers who paid you directly, for a teammate (tick super admin), or to set someone up.</p>
             <label className="field"><span>Name</span><input className="input" required maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoFocus /></label>
             <label className="field"><span>Email or sign-in ID</span><input className="input" required autoComplete="off" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
+            <label className="field"><span>Username <em>optional: made from the email if empty</em></span><input className="input mono" autoComplete="off" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') })} placeholder="their-studio" /></label>
             <label className="field"><span>Password <em>optional</em></span><input className="input" autoComplete="new-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} placeholder="Leave empty to generate one" /></label>
             {!f.superAdmin && (
               <div className="grid2">
@@ -455,6 +456,7 @@ function UserDetail({ id }: { id: string }) {
       <ProfileEdit u={u} onSaved={load} />
       <dl className="facts wide">
         <div><dt>User ID</dt><dd className="mono">{u.id}</dd></div>
+        {u.username && <div><dt>Username and page</dt><dd><a className="link mono" href={`/${u.username}`} target="_blank" rel="noopener">{location.host}/{u.username}</a></dd></div>}
         <div><dt>Email</dt><dd>{u.emailVerified === null ? 'Sign-in ID (no email)' : u.emailVerified ? 'Verified' : 'Not verified'}</dd></div>
         <div><dt>Joined</dt><dd>{fmtDate(u.createdAt)}</dd></div>
         <div><dt>Last sign-in</dt><dd>{u.lastLoginAt ? `${fmtDateTime(u.lastLoginAt)} · ${u.lastLoginDevice}${u.lastLoginIp ? ' · ' + u.lastLoginIp : ''}` : 'Never'}</dd></div>
@@ -586,7 +588,7 @@ function DeleteUser({ u }: { u: any }) {
 }
 
 /* ---------------- apps & data: every app, and what it holds ---------------- */
-interface AppNumT { id: string; name: string; slug: string | null; access: string; createdAt: string; updatedAt: string; deletedAt: string | null; ownerId: string; ownerName: string; ownerEmail: string; members: number; versions: number; appBytes: number; records: number; recordBytes: number; kvKeys: number; kvBytes: number; files: number; fileBytes: number; lastActivity: string | null; built: number }
+interface AppNumT { id: string; name: string; slug: string | null; rootSlug: string | null; ownerUsername: string | null; access: string; createdAt: string; updatedAt: string; deletedAt: string | null; ownerId: string; ownerName: string; ownerEmail: string; members: number; versions: number; appBytes: number; records: number; recordBytes: number; kvKeys: number; kvBytes: number; files: number; fileBytes: number; lastActivity: string | null; built: number }
 const appTotal = (a: AppNumT) => a.appBytes + a.fileBytes + a.kvBytes + a.recordBytes;
 
 function AppTable({ rows, showOwner = true }: { rows: AppNumT[]; showOwner?: boolean }) {
@@ -597,7 +599,7 @@ function AppTable({ rows, showOwner = true }: { rows: AppNumT[]; showOwner?: boo
       <tbody>
         {rows.map((a) => (
           <tr key={a.id} className="clickable" onClick={() => go(`/admin/apps/${a.id}`)}>
-            <td><Link to={`/admin/apps/${a.id}`} className="cell-main"><b>{a.name}{a.deletedAt && <span className="status s-rejected">in Trash</span>}</b><small>{a.built ? 'Create HTML' : 'uploaded HTML'}{a.slug ? ` · /${a.slug}` : ''}{a.access !== 'private' ? ` · ${a.access} link` : ''}</small></Link></td>
+            <td><Link to={`/admin/apps/${a.id}`} className="cell-main"><b>{a.name}{a.deletedAt && <span className="status s-rejected">in Trash</span>}</b><small>{a.built ? 'Create app' : 'uploaded HTML'}{a.rootSlug ? ` · /${a.rootSlug}` : ''}{a.slug ? ` · /${a.ownerUsername}/${a.slug}` : ''}{a.access !== 'private' ? ` · ${a.access} link` : ''}</small></Link></td>
             {showOwner && <td className="hide-sm small">{a.ownerEmail}</td>}
             <td className="hide-sm mono">{a.members}</td>
             <td className="hide-sm mono small">{a.records + a.kvKeys} items · {fmtBytes(a.kvBytes + a.recordBytes)}</td>
@@ -686,15 +688,15 @@ function AppDetailAdmin({ id }: { id: string }) {
         </section>
       )}
       <section className="adm-block"><h3 className="adm-sub">Versions</h3>
-        <ul className="acc-list compact">{d.versions.map((v: any) => <li key={v.n}><span><b>Version {v.n}{v.n === (a as any).liveVersion ? ' · live' : ''}</b><small>{v.built ? 'Built with Create HTML' : v.source} · {v.fileCount} file{v.fileCount === 1 ? '' : 's'} · {fmtBytes(v.size)}</small></span><span className="muted small">{fmtDate(v.createdAt)}</span></li>)}</ul>
+        <ul className="acc-list compact">{d.versions.map((v: any) => <li key={v.n}><span><b>Version {v.n}{v.n === (a as any).liveVersion ? ' · live' : ''}</b><small>{v.built ? 'Built with Create app' : v.source} · {v.fileCount} file{v.fileCount === 1 ? '' : 's'} · {fmtBytes(v.size)}</small></span><span className="muted small">{fmtDate(v.createdAt)}</span></li>)}</ul>
       </section>
     </>
   );
 }
 
 /* ---------------- plans & pricing ---------------- */
-interface PlanEdit { id: string; name: string; price: number; yearly: number; creations: number; blurb: string; features: Record<string, number | boolean> }
-const FLAG_FIELDS: [string, string][] = [['passwordLinks', 'Password links'], ['hideBar', 'Hide the top bar'], ['download', 'Download as an HTML file'], ['customCodes', 'Short links with their own names'], ['linkStats', 'Daily click history'], ['prioritySupport', 'Priority support']];
+interface PlanEdit { id: string; name: string; price: number; yearly: number; creations: number; blurb: string; features: Record<string, number | boolean | string> }
+const FLAG_FIELDS: [string, string][] = [['customPage', 'Own HTML page design'], ['passwordLinks', 'Password links'], ['hideBar', 'Hide the top bar'], ['download', 'Download as an HTML file'], ['customCodes', 'Short links with their own names'], ['linkStats', 'Daily click history'], ['prioritySupport', 'Priority support']];
 function PlansAdmin() {
   const toast = useToast();
   const [d, setD] = useState<{ plans: PlanEdit[]; serverMaxMB: number; customers: Record<string, number> } | null>(null);
@@ -705,7 +707,7 @@ function PlansAdmin() {
   useEffect(() => { load(); }, [load]);
   if (!d || !draft) return <div className="acc-skel" />;
   const set = (i: number, patch: Partial<PlanEdit>) => setDraft(draft.map((p, j) => (j === i ? { ...p, ...patch } : p)));
-  const setF = (i: number, k: string, v: number | boolean) => setDraft(draft.map((p, j) => (j === i ? { ...p, features: { ...p.features, [k]: v } } : p)));
+  const setF = (i: number, k: string, v: number | boolean | string) => setDraft(draft.map((p, j) => (j === i ? { ...p, features: { ...p.features, [k]: v } } : p)));
   const num = (v: string) => Number(v.replace(/[^\d]/g, '') || 0);
   const dirty = JSON.stringify(draft) !== JSON.stringify(d.plans);
   const save = async () => {
@@ -739,6 +741,11 @@ function PlansAdmin() {
                 <label className="field"><span>Addresses</span><input className="input mono" inputMode="numeric" value={Number(p.features.addresses)} onChange={(e) => setF(i, 'addresses', num(e.target.value))} /></label>
                 <label className="field"><span>Short links</span><input className="input mono" inputMode="numeric" value={Number(p.features.shortLinks)} onChange={(e) => setF(i, 'shortLinks', num(e.target.value))} /></label>
                 <label className="field"><span>Largest file (MB)</span><input className="input mono" inputMode="numeric" value={Number(p.features.maxUploadMB)} onChange={(e) => setF(i, 'maxUploadMB', num(e.target.value))} /></label>
+              </div>
+              <div className="grid2">
+                <div className="field"><span>Page designs</span><Select label="Page designs" value={String(p.features.themeTier)} options={[{ value: 'free', label: '5 (free designs)' }, { value: 'plus', label: '15 (free + plus)' }, { value: 'pro', label: 'All 30' }]} onChange={(v) => setF(i, 'themeTier', v as never)} /></div>
+                <div className="field"><span>Jhino branding on the page</span><Select label="Jhino branding" value={String(p.features.branding)} options={[{ value: 'popup', label: 'Badge and popup' }, { value: 'badge', label: 'Small badge' }, { value: 'none', label: 'None' }]} onChange={(v) => setF(i, 'branding', v as never)} /></div>
+                <label className="field"><span>Analytics (days)</span><input className="input mono" inputMode="numeric" value={Number(p.features.analyticsDays)} onChange={(e) => setF(i, 'analyticsDays', num(e.target.value))} /></label>
               </div>
               <div className="plan-flags">
                 {FLAG_FIELDS.map(([k, l]) => (
@@ -1106,7 +1113,7 @@ function MethodEditor({ method, onClose }: { method: MethodT | null; onClose: ()
 }
 
 /* ---------------- hosting ---------------- */
-interface HostedT { id: string; name: string; ownerEmail: string; access: string; publicRole: string; hasPassword: boolean; shareUrl: string; slug: string | null; slugUrl: string | null; updatedAt: string }
+interface HostedT { id: string; name: string; ownerEmail: string; access: string; publicRole: string; hasPassword: boolean; shareUrl: string; slug: string | null; slugUrl: string | null; rootSlug: string | null; rootUrl: string | null; username: string | null; updatedAt: string }
 function Hosting() {
   const toast = useToast();
   const [d, setD] = useState<{ apps: HostedT[] } | null>(null);
@@ -1116,14 +1123,14 @@ function Hosting() {
   useEffect(() => { load(); }, [load]);
   return (
     <>
-      <Head title="Addresses" lede="Apps with their own address, like jhino.com/your-studio. Owners pick them when they create an app or in Share; you can change any of them." actions={<><button className="btn sm" onClick={() => setDialog('assign')}>Give an app an address</button><button className="btn primary sm" onClick={() => setDialog('host')}><Icon name="upload" size={15} />Host an HTML</button></>} />
+      <Head title="Addresses" lede="Owners give their apps addresses under their username (jhino.com/their-name/room). Only super admins give top-level ones, jhino.com/name, which can never be a username." actions={<><button className="btn sm" onClick={() => setDialog('assign')}>Give an app an address</button><button className="btn primary sm" onClick={() => setDialog('host')}><Icon name="upload" size={15} />Host an HTML</button></>} />
       {!d ? <div className="acc-skel" /> : !d.apps.length ? <p className="muted">No app has an address or a public link yet.</p> : (
         <table className="adm-table">
           <thead><tr><th>Address</th><th>App</th><th className="hide-sm">Owner</th><th>Access</th><th /></tr></thead>
           <tbody>
             {d.apps.map((a) => (
               <tr key={a.id}>
-                <td>{a.slugUrl ? <a className="mono link" href={a.slugUrl} target="_blank" rel="noopener">/{a.slug}</a> : <span className="muted">share link only</span>}</td>
+                <td>{a.rootUrl && <a className="mono link" href={a.rootUrl} target="_blank" rel="noopener">/{a.rootSlug}</a>}{a.rootUrl && a.slugUrl && <br />}{a.slugUrl ? <a className="mono link small" href={a.slugUrl} target="_blank" rel="noopener">/{a.username}/{a.slug}</a> : !a.rootUrl ? <span className="muted">share link only</span> : null}</td>
                 <td><b>{a.name}</b></td>
                 <td className="hide-sm muted">{a.ownerEmail}</td>
                 <td>{a.access === 'password' ? 'Password' : a.access === 'public' ? 'Public' : 'Private'}{a.access !== 'private' && <small className="muted"> · {a.publicRole === 'viewer' ? 'view' : a.publicRole === 'contributor' ? 'add' : 'edit'}</small>}</td>
@@ -1213,7 +1220,7 @@ function AssignDialog({ onClose }: { onClose: () => void }) {
 
 function AddressDialog({ app, onClose }: { app: HostedT; onClose: () => void }) {
   const toast = useToast();
-  const [slug, setSlug] = useState(app.slug ?? slugify(app.name));
+  const [slug, setSlug] = useState(app.rootSlug ?? slugify(app.name));
   const [v, setV] = useState({ access: app.access === 'private' ? 'public' : app.access, publicRole: app.publicRole, password: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -1221,7 +1228,7 @@ function AddressDialog({ app, onClose }: { app: HostedT; onClose: () => void }) 
     setBusy(true); setError('');
     try {
       await api('PUT', `/api/admin/apps/${app.id}/address`, remove ? { slug: null } : { slug: slug || null, access: v.access, publicRole: v.publicRole, password: v.password || undefined });
-      toast(remove ? 'Address removed' : `Saved: /${slug}`); onClose();
+      toast(remove ? 'Top-level address removed' : `Saved: ${location.host}/${slug}`); onClose();
     } catch (e) { setError(err(e, 'Could not save.')); }
     setBusy(false);
   };
@@ -1229,11 +1236,11 @@ function AddressDialog({ app, onClose }: { app: HostedT; onClose: () => void }) 
     <Modal title={app.name} onClose={onClose}>
       <div className="modal-body">
         <div className="acc-form">
-          <label className="field"><span>Address</span><div className="slug-input"><span className="mono muted">{location.host}/</span><input className="input mono" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} /></div><small className="hint">Lowercase letters, numbers and dashes.</small></label>
+          <label className="field"><span>Top-level address</span><div className="slug-input"><span className="mono muted">{location.host}/</span><input className="input mono" value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase())} /></div><small className="hint">Lowercase letters, numbers and dashes. It cannot be anyone's username.</small></label>
           <AccessFields v={v} set={setV} />
           <p className="hint">Its share link keeps working too: <span className="mono">{app.shareUrl}</span></p>
           {error && <p className="error-text" role="alert">{error}</p>}
-          <div className="actions-row"><button className="btn primary" disabled={busy || slug.length < 2} onClick={() => save()}>{busy && <span className="spin" />}Save</button>{app.slug && <button className="btn quiet danger" disabled={busy} onClick={() => save(true)}>Remove address</button>}<button className="btn quiet" onClick={onClose}>Cancel</button></div>
+          <div className="actions-row"><button className="btn primary" disabled={busy || slug.length < 2} onClick={() => save()}>{busy && <span className="spin" />}Save</button>{app.rootSlug && <button className="btn quiet danger" disabled={busy} onClick={() => save(true)}>Remove address</button>}<button className="btn quiet" onClick={onClose}>Cancel</button></div>
         </div>
       </div>
     </Modal>

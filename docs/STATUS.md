@@ -83,6 +83,13 @@ Measured against the product brief plus the owner's direction:
 - New website with plan cards and a monthly/yearly switch. The Super Admin workspace has a sidebar and a dashboard. Owners pick addresses when they create an app. Short links. Plan features are checked by the server. Plans are paid for a month or a year and have end dates.
 - Playwright: 40 tests × 3 browsers = 120 passing. The new tests cover address uniqueness across apps and short links, the exact-address opening, short link redirects, click counts and plan limits, yearly and monthly payment end dates, and the admin layout on desktop and phone.
 
+## Usernames, My page, email codes round (2026-09-25)
+
+- Unique usernames. Addresses and short links live under them (jhino.com/<username>/<name>); top-level addresses are for super admins only.
+- My page at jhino.com/<username> is a link in bio with socials, video, apps, two layouts, 30 designs by plan, Pro own HTML (sandboxed), and analytics.
+- 6-digit email codes for confirming an email, resetting a password and changing an email. Videos are shared as links only (super admins excepted). "Create HTML" is now "Create app".
+- Playwright: 47 tests × 3 browsers = 141 passing.
+
 ## Known limits
 
 - **Built apps on HTTP/1.1:** each open tab holds one live connection. Browsers allow about six per server, so use HTTPS with HTTP/2 in production. Background tabs release their connection after 15 seconds.

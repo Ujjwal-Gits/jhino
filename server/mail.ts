@@ -23,16 +23,17 @@ export function baseUrl(req?: FastifyRequest | null) {
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
-export interface Mail { subject: string; lines: string[]; action?: { label: string; url: string }; footer?: string }
+export interface Mail { subject: string; lines: string[]; action?: { label: string; url: string }; footer?: string; code?: string }
 
 function render(m: Mail) {
-  const text = [...m.lines, ...(m.action ? ['', `${m.action.label}: ${m.action.url}`] : []), '', m.footer ?? 'Jhino'].join('\n');
+  const text = [...m.lines, ...(m.code ? ['', `Your code: ${m.code}`] : []), ...(m.action ? ['', `${m.action.label}: ${m.action.url}`] : []), '', m.footer ?? 'Jhino'].join('\n');
   const html = `<!doctype html><html><body style="margin:0;background:#f6f6f4;font:15px/1.55 -apple-system,'Helvetica Neue',Arial,sans-serif;color:#141414">
 <div style="max-width:520px;margin:0 auto;padding:32px 20px">
 <p style="font-weight:700;font-size:18px;margin:0 0 24px">jhino<span style="color:#e0461f">.</span></p>
 <div style="background:#fff;border:1px solid #e6e4df;border-radius:10px;padding:24px">
 <h1 style="font-size:19px;margin:0 0 14px">${esc(m.subject)}</h1>
 ${m.lines.map((l) => (l ? `<p style="margin:0 0 12px">${esc(l)}</p>` : '')).join('')}
+${m.code ? `<p style="margin:18px 0 8px;font:600 32px/1 'SFMono-Regular',Menlo,Consolas,monospace;letter-spacing:8px;color:#141414">${esc(m.code)}</p>` : ''}
 ${m.action ? `<p style="margin:20px 0 6px"><a href="${esc(m.action.url)}" style="display:inline-block;background:#141414;color:#fff;text-decoration:none;padding:11px 18px;border-radius:7px;font-weight:600">${esc(m.action.label)}</a></p>
 <p style="margin:10px 0 0;font-size:12px;color:#75736e;word-break:break-all">${esc(m.action.url)}</p>` : ''}
 </div>
@@ -58,15 +59,17 @@ setInterval(() => db.prepare("UPDATE email_outbox SET body='' WHERE created_at <
 
 /* ---------------- the emails ---------------- */
 export const mails = {
-  verify: (name: string, url: string): Mail => ({
-    subject: 'Confirm your email for Jhino',
-    lines: [`Hi ${name},`, 'Welcome to Jhino. Please confirm this is your email address. The link works for 48 hours.'],
+  verify: (name: string, url: string, code?: string): Mail => ({
+    subject: code ? `${code} is your Jhino code` : 'Confirm your email for Jhino',
+    code,
+    lines: [`Hi ${name},`, code ? 'Welcome to Jhino. Enter this code to confirm your email, or use the button. Both work for 48 hours.' : 'Welcome to Jhino. Please confirm this is your email address. The link works for 48 hours.'],
     action: { label: 'Confirm email', url },
     footer: 'If you did not create a Jhino account, you can ignore this email.',
   }),
-  reset: (name: string, url: string): Mail => ({
-    subject: 'Reset your Jhino password',
-    lines: [`Hi ${name},`, 'Someone asked to reset the password for your Jhino account. The link works once, for 30 minutes.'],
+  reset: (name: string, url: string, code?: string): Mail => ({
+    subject: code ? `${code} is your Jhino password reset code` : 'Reset your Jhino password',
+    code,
+    lines: [`Hi ${name},`, 'Someone asked to reset the password for your Jhino account. Enter this code on the reset page, or use the button. It works once, for 30 minutes.'],
     action: { label: 'Choose a new password', url },
     footer: 'If this was not you, ignore this email. Your password stays the same.',
   }),
@@ -75,9 +78,10 @@ export const mails = {
     lines: [`Hi ${name},`, `Your password was changed from ${device}. Other devices were signed out.`, 'If this was not you, reset your password now and contact support.'],
     action: { label: 'Reset password', url },
   }),
-  emailChangeConfirm: (name: string, url: string): Mail => ({
-    subject: 'Confirm your new email for Jhino',
-    lines: [`Hi ${name},`, 'Confirm this address to make it the email for your Jhino account. Until you do, your old email stays in use. The link works for 48 hours.'],
+  emailChangeConfirm: (name: string, url: string, code?: string): Mail => ({
+    subject: code ? `${code} confirms your new Jhino email` : 'Confirm your new email for Jhino',
+    code,
+    lines: [`Hi ${name},`, 'Confirm this address to make it the email for your Jhino account: enter this code in Account, or use the button. Until then your old email stays in use. Both work for 48 hours.'],
     action: { label: 'Confirm new email', url },
     footer: 'If you did not ask for this, ignore this email.',
   }),

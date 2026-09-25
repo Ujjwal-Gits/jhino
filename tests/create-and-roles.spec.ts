@@ -24,6 +24,9 @@ async function signIn(browser: Browser, login: string, password: string): Promis
   await page.fill('input[autocomplete=username]', login);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');
+  // Home after signing in is your page (jhino.com/<username>); clients without one land on their apps.
+  await page.waitForURL((u) => !u.pathname.startsWith('/login'));
+  if (!/\/apps$/.test(new URL(page.url()).pathname)) await page.goto('/apps');
   await expect(page.getByRole('heading', { name: 'My apps' })).toBeVisible();
   return page;
 }
@@ -60,7 +63,7 @@ const tick = (page: Page, name: string) => page.locator('label.fcard', { has: pa
 test('Create HTML: say who it is for, tick features, create, it opens directly, data saves, editing features keeps data', async ({ browser }) => {
   const a = await signIn(browser, OWNER.email, OWNER.password);
   await expect(a.locator('.strip, .rail')).toHaveCount(0); // no dashboard on the home page
-  await a.click('header button:has-text("Create HTML")');
+  await a.click('header button:has-text("Create app")');
   await a.getByLabel('Client or brand').fill('Test Brand');
   await expect(a.locator('#c-name')).toHaveValue('Test Brand');
   await a.getByRole('radio', { name: /Something else/ }).click();
@@ -69,7 +72,7 @@ test('Create HTML: say who it is for, tick features, create, it opens directly, 
   for (const name of ['Receipts and expenses', 'Project ledger', 'Big file transfer']) await tick(a, name);
   await expect(a.locator('label.fcard input:checked')).toHaveCount(3);
   await expect(a.frameLocator('.builder-preview iframe').locator('.nav button:not(.nav-trash)')).toHaveCount(3, { timeout: 15_000 });
-  await a.locator('header button:has-text("Create HTML")').click();
+  await a.locator('header button:has-text("Create app")').click();
   await a.waitForURL(/\/apps\/[\w-]+(#.*)?$/);
   const f = a.frameLocator('iframe');
   await expect(f.locator('.head h2').first()).toHaveText('Receipts and expenses');

@@ -20,23 +20,31 @@ export interface Features {
   /** Clicks per day for each short link (everyone sees the total). */
   linkStats: boolean;
   prioritySupport: boolean;
-  /** Largest single upload (a photo, a video, an app's ZIP) for people on this plan, in MB. */
+  /** Largest single upload (a photo, a file, an app's ZIP) for people on this plan, in MB. */
   maxUploadMB: number;
+  /** Public page designs: the highest tier of design this plan can use. */
+  themeTier: 'free' | 'plus' | 'pro';
+  /** Jhino's mark on the public page: a popup and badge, a small badge, or nothing. */
+  branding: 'popup' | 'badge' | 'none';
+  /** A public page made from the person's own HTML. */
+  customPage: boolean;
+  /** How far back page analytics go, in days. */
+  analyticsDays: number;
 }
 export interface Plan { id: PlanId; name: string; price: number; yearly: number; creations: number; blurb: string; features: Features }
 /** The starting plans. Super admins change prices and limits in Super Admin → Plans & pricing (kept in settings). */
 const DEFAULT_PLANS: Record<PlanId, Plan> = {
   free: { id: 'free', name: 'Free Forever', price: 0, yearly: 0, creations: 1, blurb: 'One client room, free for as long as you like.',
-    features: { addresses: 1, shortLinks: 5, customCodes: false, passwordLinks: false, hideBar: false, download: false, linkStats: false, prioritySupport: false, maxUploadMB: 20 } },
+    features: { addresses: 1, shortLinks: 5, customCodes: false, passwordLinks: false, hideBar: false, download: false, linkStats: false, prioritySupport: false, maxUploadMB: 20, themeTier: 'free', branding: 'popup', customPage: false, analyticsDays: 7 } },
   plus: { id: 'plus', name: 'Plus', price: 500, yearly: 5000, creations: 10, blurb: 'A freelancer or a small studio with a handful of clients.',
-    features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false, maxUploadMB: 50 } },
+    features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false, maxUploadMB: 50, themeTier: 'plus', branding: 'badge', customPage: false, analyticsDays: 30 } },
   pro: { id: 'pro', name: 'Pro', price: 2000, yearly: 20000, creations: 50, blurb: 'A studio or agency with a room for every client.',
-    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50 } },
+    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50, themeTier: 'pro', branding: 'none', customPage: true, analyticsDays: 365 } },
 };
 /** The plans in force. Everything reads them at call time, so a saved change applies at once. */
 export const PLANS: Record<PlanId, Plan> = JSON.parse(JSON.stringify(DEFAULT_PLANS));
 /** Super admins: everything, no limits (uploads only up to the server's own MAX_FILE_MB). */
-const UNLIMITED: Features = { addresses: 1e9, shortLinks: 1e9, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 1e9 };
+const UNLIMITED: Features = { addresses: 1e9, shortLinks: 1e9, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 1e9, themeTier: 'pro', branding: 'none', customPage: true, analyticsDays: 365 };
 const PLAN_IDS: PlanId[] = ['free', 'plus', 'pro'];
 const serverMaxMB = () => Math.floor(config.limits.fileBytes / 1048576);
 
@@ -78,6 +86,10 @@ export function savePlans(input: unknown) {
         customCodes: !!(f.customCodes ?? cur.features.customCodes), passwordLinks: !!(f.passwordLinks ?? cur.features.passwordLinks),
         hideBar: !!(f.hideBar ?? cur.features.hideBar), download: !!(f.download ?? cur.features.download),
         linkStats: !!(f.linkStats ?? cur.features.linkStats), prioritySupport: !!(f.prioritySupport ?? cur.features.prioritySupport),
+        themeTier: (['free', 'plus', 'pro'] as const).includes(f.themeTier as 'free') ? f.themeTier as Features['themeTier'] : cur.features.themeTier,
+        branding: (['popup', 'badge', 'none'] as const).includes(f.branding as 'none') ? f.branding as Features['branding'] : cur.features.branding,
+        customPage: !!(f.customPage ?? cur.features.customPage),
+        analyticsDays: int(f.analyticsDays ?? cur.features.analyticsDays, 1, 3650, `${label} analytics days`),
       },
     };
   }
@@ -110,7 +122,7 @@ export function activePlan(u: Pick<UserRow, 'plan' | 'plan_expires_at'>): PlanId
 export function featuresOf(u: PlanFields): Features {
   return u.is_admin ? UNLIMITED : PLANS[activePlan(u)].features;
 }
-type Gate = 'customCodes' | 'passwordLinks' | 'hideBar' | 'download' | 'linkStats';
+type Gate = 'customCodes' | 'passwordLinks' | 'hideBar' | 'download' | 'linkStats' | 'customPage';
 /** Refuse an action the person's plan does not include. `what` starts the sentence "... is on Plus and Pro." */
 export function assertFeature(u: PlanFields, key: Gate, what: string) {
   if (featuresOf(u)[key]) return;

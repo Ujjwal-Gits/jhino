@@ -3,7 +3,7 @@ import { ApiError, api, get, post, type AppDetail, type Role } from '../api';
 import { useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 import { downloadHtml } from './Player';
-import { AddressField, PlanTag, slugify, useNameCheck } from './Address';
+import { AddressField, PlanTag, addrBase, slugify, useNameCheck } from './Address';
 
 interface InviteRow { id: string; role: Role; createdAt: string; expiresAt: string; usedAt: string | null; revokedAt: string | null; usedBy: string | null }
 interface Member { id: string; name: string; email: string; role: Role; madeByMe?: boolean }
@@ -209,6 +209,7 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
 /* ---------- the app's own address: jhino.com/<name> ---------- */
 function AddressSection({ appId, appName, sharing, onChange }: { appId: string; appName: string; sharing: SharingT; onChange: (s: SharingT) => void }) {
   const toast = useToast();
+  const { user } = useSession();
   const [editing, setEditing] = useState(false);
   const [slug, setSlug] = useState(sharing.slug ?? '');
   const [busy, setBusy] = useState(false);
@@ -236,7 +237,7 @@ function AddressSection({ appId, appName, sharing, onChange }: { appId: string; 
           </div>
         ) : (
           <div className="addr-empty">
-            <span className="hint">Give it its own address, like <span className="mono">{location.host}/{slugify(appName) || 'your-studio'}</span>. It opens at exactly that address.</span>
+            <span className="hint">Give it its own address, like <span className="mono">{addrBase(user.username)}/{slugify(appName) || 'your-studio'}</span>. It opens at exactly that address.</span>
             <button className="btn sm" type="button" onClick={() => { setSlug(slugify(appName)); setEditing(true); }}><Icon name="globe" size={15} />Add address</button>
           </div>
         )

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, get, post } from '../api';
 import { Link, useRoute } from '../context';
+import { UsernameField, suggestFrom, useUsernameCheck } from './Username';
 
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -93,17 +94,21 @@ export function Login({ onDone }: { onDone: () => Promise<void> }) {
 export function Signup({ onDone }: { onDone: () => Promise<void> }) {
   const o = useAuthOptions();
   const { go } = useRoute();
-  const [form, setForm] = useState({ name: '', email: '', password: '', terms: false });
+  const [form, setForm] = useState({ name: '', email: '', username: '', password: '', terms: false });
+  const [touched, setTouched] = useState(false);
+  const check = useUsernameCheck(form.username);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const plan = new URLSearchParams(location.search).get('plan');
+  // Suggest a username from the email until they type their own.
+  const setEmail = (email: string) => setForm((f) => ({ ...f, email, username: touched ? f.username : suggestFrom(email) }));
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true); setError('');
     try {
       await post('/api/auth/signup', form);
       await onDone();
-      go(plan === 'plus' || plan === 'pro' ? `/account/plan?choose=${plan}&period=${new URLSearchParams(location.search).get('period') === 'year' ? 'year' : 'month'}` : '/apps', true);
+      go(plan === 'plus' || plan === 'pro' ? `/account/plan?choose=${plan}&period=${new URLSearchParams(location.search).get('period') === 'year' ? 'year' : 'month'}` : `/${form.username}`, true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not create the account.');
       setBusy(false);
@@ -119,11 +124,12 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
         <p className="muted">Free Forever: one app, no card needed.{plan === 'plus' || plan === 'pro' ? ' You can pay for your plan right after.' : ''}</p>
         <Social o={o} verb="Sign up" />
         <label className="field"><span>Your name</span><input className="input" autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoFocus /></label>
-        <label className="field"><span>Email</span><input className="input" type="email" autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+        <label className="field"><span>Email</span><input className="input" type="email" autoComplete="email" value={form.email} onChange={(e) => setEmail(e.target.value)} required /></label>
+        <UsernameField value={form.username} onChange={(v) => { setTouched(true); setForm({ ...form, username: v }); }} check={check} />
         <label className="field"><span>Password</span><input className="input" type="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={10} /><small className="hint">At least 10 characters.</small></label>
         <label className="check-row"><input type="checkbox" checked={form.terms} onChange={(e) => setForm({ ...form, terms: e.target.checked })} /><span>I agree to the <Link to="/terms" className="link">Terms of Service</Link> and <Link to="/privacy" className="link">Privacy Policy</Link>.</span></label>
         {error && <p className="error-text" role="alert">{error}</p>}
-        <button className="btn primary lg" disabled={busy || !form.name.trim() || !form.email || form.password.length < 10 || !form.terms}>{busy && <span className="spin" />}Create account</button>
+        <button className="btn primary lg" disabled={busy || !form.name.trim() || !form.email || form.password.length < 10 || !form.terms || check.state !== 'ok'}>{busy && <span className="spin" />}Create account</button>
         <p className="hint">Already have an account? <Link to="/login" className="link">Sign in</Link></p>
       </form>
     </AuthLayout>
@@ -133,31 +139,48 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
 export function Forgot() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [f, setF] = useState({ code: '', a: '', b: '' });
+  const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
+  const send = async (e?: FormEvent) => {
+    e?.preventDefault();
     setBusy(true); setError('');
     try { await post('/api/auth/forgot', { email }); setSent(true); }
     catch (err) { setError(err instanceof ApiError ? err.message : 'Could not send the email.'); }
     setBusy(false);
   };
+  const reset = async (e: FormEvent) => {
+    e.preventDefault();
+    if (f.a !== f.b) { setError('The two passwords are not the same.'); return; }
+    setBusy(true); setError('');
+    try { await post('/api/auth/reset-code', { email, code: f.code, password: f.a }); setDone(true); }
+    catch (err) { setError(err instanceof ApiError ? err.message : 'Could not change the password.'); }
+    setBusy(false);
+  };
+  if (done) {
+    return <AuthLayout><div className="auth-note" role="status"><h2>Password changed</h2><p className="muted">You were signed out on every device. Sign in with your new password.</p><Link to="/login" className="btn primary lg">Sign in</Link></div></AuthLayout>;
+  }
   return (
     <AuthLayout>
       {sent ? (
-        <div className="auth-note" role="status">
-          <h2>Check your email</h2>
-          <p className="muted">If an account uses <b>{email}</b>, we sent it a link to choose a new password. The link works once, for 30 minutes.</p>
-          <p className="hint">Signed in with a sign-in ID from a studio (not an email)? Ask them for a new password.</p>
-          <Link to="/login" className="btn lg">Back to sign in</Link>
-        </div>
+        <form onSubmit={reset} noValidate>
+          <h2>Enter the code</h2>
+          <p className="muted">If an account uses <b>{email}</b>, we sent it a 6-digit code (and a link). It works once, for 30 minutes.</p>
+          <label className="field"><span>Code from the email</span><input className="input mono code-input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value.replace(/\D/g, '') })} required autoFocus /></label>
+          <label className="field"><span>New password</span><input className="input" type="password" autoComplete="new-password" value={f.a} onChange={(e) => setF({ ...f, a: e.target.value })} required minLength={10} /><small className="hint">At least 10 characters.</small></label>
+          <label className="field"><span>The same again</span><input className="input" type="password" autoComplete="new-password" value={f.b} onChange={(e) => setF({ ...f, b: e.target.value })} required /></label>
+          {error && <p className="error-text" role="alert">{error}</p>}
+          <button className="btn primary lg" disabled={busy || f.code.length !== 6 || f.a.length < 10 || !f.b}>{busy && <span className="spin" />}Change password</button>
+          <p className="hint">No email? Check spam, or <button type="button" className="link" onClick={() => send()} disabled={busy}>send a new code</button>. Signed in with a sign-in ID from a studio (not an email)? Ask them for a new password.</p>
+        </form>
       ) : (
-        <form onSubmit={submit} noValidate>
+        <form onSubmit={send} noValidate>
           <h2>Forgot your password?</h2>
-          <p className="muted">Enter the email you signed up with. We will send a link to choose a new one.</p>
+          <p className="muted">Enter your email. We send you a 6-digit code to choose a new password.</p>
           <label className="field"><span>Email</span><input className="input" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus /></label>
           {error && <p className="error-text" role="alert">{error}</p>}
-          <button className="btn primary lg" disabled={busy || !email}>{busy && <span className="spin" />}Send the link</button>
+          <button className="btn primary lg" disabled={busy || !email}>{busy && <span className="spin" />}Send the code</button>
           <p className="hint"><Link to="/login" className="link">Back to sign in</Link></p>
         </form>
       )}
@@ -200,10 +223,39 @@ export function Reset() {
 export function Verify({ signedIn, onDone }: { signedIn: boolean; onDone: () => Promise<void> }) {
   const token = new URLSearchParams(location.search).get('token') ?? '';
   const [state, setState] = useState<{ ok?: boolean; kind?: string; email?: string; error?: string }>({});
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
+    if (!token) return;
     post<{ kind: string; email?: string }>('/api/auth/verify', { token })
       .then((r) => { setState({ ok: true, kind: r.kind, email: r.email }); onDone().catch(() => {}); }, (e) => setState({ error: e instanceof ApiError ? e.message : 'Could not confirm.' }));
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  const byCode = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try { const r = await post<{ kind: string; email?: string }>('/api/auth/verify-code', { code }); setState({ ok: true, kind: r.kind, email: r.email }); onDone().catch(() => {}); }
+    catch (err) { setState({ error: err instanceof ApiError ? err.message : 'Could not confirm.' }); }
+    setBusy(false);
+  };
+  const resend = async () => { try { await post('/api/account/verify/resend'); setState({}); setCode(''); } catch (err) { setState({ error: err instanceof ApiError ? err.message : 'Could not send.' }); } };
+  if (!token && !state.ok) {
+    return (
+      <AuthLayout>
+        {signedIn ? (
+          <form onSubmit={byCode} noValidate>
+            <h2>Confirm your email</h2>
+            <p className="muted">Enter the 6-digit code from the email we sent you.</p>
+            <label className="field"><span>Code</span><input className="input mono code-input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} autoFocus /></label>
+            {state.error && <p className="error-text" role="alert">{state.error}</p>}
+            <button className="btn primary lg" disabled={busy || code.length !== 6}>{busy && <span className="spin" />}Confirm</button>
+            <p className="hint">No email? Check spam, or <button type="button" className="link" onClick={resend}>send a new code</button>.</p>
+          </form>
+        ) : (
+          <div className="auth-note"><h2>Sign in to confirm</h2><p className="muted">Sign in, then enter the code from the email. Or open the link in the email.</p><Link to="/login" className="btn primary lg">Sign in</Link></div>
+        )}
+      </AuthLayout>
+    );
+  }
   return (
     <AuthLayout>
       <div className="auth-note" role="status">
@@ -211,7 +263,7 @@ export function Verify({ signedIn, onDone }: { signedIn: boolean; onDone: () => 
         {state.ok && <><h2>{state.kind === 'email_change' ? 'Your email is changed' : 'Email confirmed'}</h2>
           <p className="muted">{state.kind === 'email_change' ? `Your account now uses ${state.email}.` : 'Thank you. Your email is confirmed.'}</p>
           <Link to={signedIn ? '/account' : '/login'} className="btn primary lg">{signedIn ? 'Go to your account' : 'Sign in'}</Link></>}
-        {state.error && <><h2>This link did not work</h2><p className="muted">{state.error}</p><Link to={signedIn ? '/account' : '/login'} className="btn lg">{signedIn ? 'Send a new link from Account' : 'Sign in'}</Link></>}
+        {state.error && <><h2>This link did not work</h2><p className="muted">{state.error}</p><Link to={signedIn ? '/verify' : '/login'} className="btn lg">{signedIn ? 'Enter a code instead' : 'Sign in'}</Link></>}
       </div>
     </AuthLayout>
   );

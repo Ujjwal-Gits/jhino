@@ -18,7 +18,7 @@
       "category": "Deliver and approve",
       "engine": "table",
       "icon": "play",
-      "description": "Upload each cut or version. The client watches it here, comments, and approves or asks for changes.",
+      "description": "Paste the link to each cut (YouTube, Vimeo, Google Drive or Dropbox). The client watches it here, comments, and approves or asks for changes.",
       "fields": [
         {
           "key": "title",
@@ -29,10 +29,10 @@
         },
         {
           "key": "video",
-          "label": "Video",
-          "type": "file",
+          "label": "Video link",
+          "type": "url",
           "required": true,
-          "accept": "video/*"
+          "placeholder": "https://youtu.be/…  or Vimeo, Google Drive, Dropbox"
         },
         {
           "key": "version",
@@ -66,7 +66,6 @@
         }
       ],
       "titleField": "title",
-      "imageField": "video",
       "dateField": "due",
       "views": [
         "cards",
@@ -101,7 +100,8 @@
             ]
           }
         ]
-      }
+      },
+      "videoField": "video"
     },
     {
       "key": "photo_proofing",
@@ -119,7 +119,7 @@
           "label": "Photo",
           "type": "file",
           "required": true,
-          "accept": "image/*,video/*"
+          "accept": "image/*"
         },
         {
           "key": "title",
@@ -307,7 +307,7 @@
       "engine": "files",
       "icon": "folder",
       "mode": "library",
-      "description": "Send and receive large files both ways: raw footage, project files, exports. Big videos are compressed for smooth streaming.",
+      "description": "Send and receive large files both ways: raw footage, project files, exports. Videos go in as links.",
       "fields": [
         {
           "key": "file",
@@ -576,10 +576,10 @@
       "fields": [
         {
           "key": "file",
-          "label": "Image or video",
+          "label": "Image",
           "type": "file",
           "required": true,
-          "accept": "image/*,video/*"
+          "accept": "image/*"
         },
         {
           "key": "title",
@@ -837,9 +837,9 @@
         },
         {
           "key": "asset",
-          "label": "Image or video",
+          "label": "Image",
           "type": "file",
-          "accept": "image/*,video/*"
+          "accept": "image/*"
         },
         {
           "key": "link",
@@ -1352,7 +1352,7 @@
           "key": "screenshot",
           "label": "Screenshot or recording",
           "type": "file",
-          "accept": "image/*,video/*"
+          "accept": "image/*"
         },
         {
           "key": "steps",

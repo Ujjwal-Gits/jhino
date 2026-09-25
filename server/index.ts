@@ -20,6 +20,8 @@ import { registerBilling } from './billing.js';
 import { registerSuperAdmin } from './superadmin.js';
 import { registerPublicShare } from './publicshare.js';
 import { registerLinks } from './links.js';
+import { registerUsernames, ensureUsernames } from './usernames.js';
+import { registerProfiles } from './profiles.js';
 import { startPlanNotices } from './plans.js';
 import { startBookingReminders } from './booking.js';
 import { limit } from './security.js';
@@ -57,12 +59,13 @@ app.setErrorHandler((err, req, reply) => {
 
 // Security headers for the Jhino pages themselves (uploaded apps get their own in /run).
 app.addHook('onSend', async (req, reply) => {
-  if (req.url.startsWith('/run/') || req.url.startsWith('/preview/')) return;
+  // Uploaded apps (/run), previews and Pro pages made from their own HTML (/p/…/custom) set their own sandbox.
+  if (req.url.startsWith('/run/') || req.url.startsWith('/preview/') || req.url.startsWith('/p/')) return;
   reply.header('X-Content-Type-Options', 'nosniff');
   reply.header('Referrer-Policy', 'same-origin');
   if (!req.url.startsWith('/api/') && !req.url.startsWith('/_jhino/')) {
     reply.header('Content-Security-Policy',
-      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; frame-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self'; frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
     reply.header('X-Frame-Options', 'DENY');
   }
   reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
@@ -73,6 +76,8 @@ registerAuth(app);
 registerDesk(app);
 registerPublicShare(app);
 registerLinks(app);
+registerUsernames(app);
+registerProfiles(app);
 // A ceiling on changes from one address (sign-in, payments and links have their own, tighter limits).
 app.addHook('onRequest', async (req) => {
   if (req.url.startsWith('/api/') && !['GET', 'HEAD', 'OPTIONS'].includes(req.method)) limit(req, 'api-write', Number(process.env.API_WRITES_PER_MIN) || 900, 60_000);
@@ -123,6 +128,9 @@ if (fs.existsSync(path.join(webDir, 'index.html'))) {
 }
 
 await bootstrapAdmin();
+// Everyone who makes apps has a username (older accounts get one made from their email).
+const named = ensureUsernames();
+if (named) console.log(`  Gave ${named} account${named === 1 ? '' : 's'} a username.`);
 startBookingReminders();
 startPlanNotices();
 await app.listen({ port: config.port, host: config.host });

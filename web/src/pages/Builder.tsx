@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApiError, get, post } from '../api';
-import { useRoute } from '../context';
+import { useRoute, useSession } from '../context';
 import { Icon, Select, useToast } from '../ui';
-import { AddressField, OpenChoice, addressPayload, openReady, slugify, useNameCheck, type OpenSettings } from './Address';
+import { AddressField, OpenChoice, addrBase, addressPayload, openReady, slugify, useNameCheck, type OpenSettings } from './Address';
 
 interface Feature { key: string; name: string; category: string; description: string; own: boolean; tags: string[] }
 interface Template { key: string; name: string; description: string; blocks: string[] }
@@ -53,7 +53,7 @@ async function shrinkLogo(file: File): Promise<string> {
   }
 }
 
-/** Create HTML for working with a client: who it is for, what it should have, how it looks. It opens live straight away. */
+/** Create app for working with a client: who it is for, what it should have, how it looks. It opens live straight away. */
 export function Builder({ appId }: { appId?: string }) {
   const { go } = useRoute();
   const toast = useToast();
@@ -160,6 +160,7 @@ export function Builder({ appId }: { appId?: string }) {
     catch { setError('That image could not be used as a logo. Try a PNG or JPG.'); }
   };
 
+  const { user } = useSession();
   const [slug, setSlug] = useState('');
   const [open, setOpen] = useState<OpenSettings>({ access: 'public', password: '' });
   const check = useNameCheck(slug);
@@ -198,7 +199,7 @@ export function Builder({ appId }: { appId?: string }) {
 
   const createButton = (cls = '') => (
     <button className={`btn primary ${cls}`} onClick={save} disabled={busy}>
-      {busy && <span className="spin" />}{appId ? 'Save changes' : 'Create HTML'}
+      {busy && <span className="spin" />}{appId ? 'Save changes' : 'Create app'}
     </button>
   );
   const frame = (fit: boolean) => preview
@@ -216,7 +217,7 @@ export function Builder({ appId }: { appId?: string }) {
     <div className="builder">
       <header className="player-bar">
         <button className="icon-btn" onClick={() => { if (!dirty.current || confirm('Leave without saving?')) go(appId ? `/apps/${appId}` : '/apps'); }} aria-label="Back"><Icon name="back" /></button>
-        <div className="title"><h1>{appId ? `Edit ${cfg.name || 'HTML'}` : 'Create HTML'}</h1></div>
+        <div className="title"><h1>{appId ? `Edit ${cfg.name || 'app'}` : 'Create app'}</h1></div>
         <div className="spacer" />
         <span className="mono muted hide-sm" aria-live="polite">{cfg.blocks.length} {cfg.blocks.length === 1 ? 'feature' : 'features'} ticked</span>
         {createButton('hide-sm')}
@@ -383,9 +384,9 @@ export function Builder({ appId }: { appId?: string }) {
             <section className="step" aria-labelledby="s4">
               <p className="step-n mono">04</p>
               <h2 id="s4">Where does it open?</h2>
-              <p className="step-lede">Give it its own address on {location.host}. It opens at exactly that address. You can add or change it later in Share.</p>
+              <p className="step-lede">Give it its own address under {addrBase(user.username)}. It opens at exactly that address. You can add or change it later in Share.</p>
               <AddressField value={slug} onChange={setSlug} check={check} />
-              {!slug && cfg.name.trim() && <button type="button" className="link addr-suggest" onClick={() => setSlug(slugify(cfg.client || cfg.name))}>Use {location.host}/{slugify(cfg.client || cfg.name)}</button>}
+              {!slug && cfg.name.trim() && <button type="button" className="link addr-suggest" onClick={() => setSlug(slugify(cfg.client || cfg.name))}>Use {addrBase(user.username)}/{slugify(cfg.client || cfg.name)}</button>}
               {slug && <OpenChoice value={open} onChange={setOpen} />}
             </section>
           )}

@@ -319,10 +319,11 @@ function Compare({ plans }: { plans: PlanCard[] }) {
 /* ---------------- questions ---------------- */
 
 const FAQ: [string, ReactNode][] = [
-  ['What counts as an app?', 'One app on your account: an HTML you uploaded, or one you made with Create HTML. Apps in Trash count until you delete them for good.'],
+  ['What counts as an app?', 'One app on your account: an HTML you uploaded, or one you made with Create app. Apps in Trash count until you delete them for good.'],
   ['Does my client need an account?', 'Only if you want one. Give them a sign-in, or share the app by public link or by link and password. You decide what visitors can do: view, add or edit.'],
   ['Will any HTML file work?', 'Yes. Plain HTML, CSS and JavaScript that saves with localStorage or IndexedDB syncs between everyone with no changes. Its own design stays exactly as it is.'],
   ['Can I use my own address?', 'Yes. Pick jhino.com/your-name when you create an app, or later in Share. Each address is unique. The page opens at that exact address, with no redirect.'],
+  ['What is jhino.com/your-name?', 'Your own page, like a link in bio: your links, socials, videos and apps in one of 30 designs, as a list or a full profile. Share it anywhere and see who clicks what.'],
   ['What are short links?', 'A short address like jhino.com/abc that opens any web link you choose: a Drive folder, a YouTube cut, a form. You see how many times each one was opened.'],
   ['Monthly or yearly?', 'Either. Pay month by month, or pay for a whole year at a lower price. Both are paid the same way, and paying again adds to your end date.'],
   ['How big can a file be?', 'Each plan shows its largest file size. For bigger videos, paste a Google Drive, Dropbox or YouTube link: it shows as a proper preview.'],
@@ -393,7 +394,7 @@ export function Landing({ signedIn = false }: { signedIn?: boolean }) {
               </div>
               <div className="ways-col ways-b">
                 <span className="ways-or mono" aria-hidden="true">or</span>
-                <p className="ways-k mono">Create HTML</p>
+                <p className="ways-k mono">Create app</p>
                 <h3>Build it here in a few minutes.</h3>
                 <p>Say who it is for, tick what the job needs, and it is ready to share. No code.</p>
                 <div className="make">
@@ -403,7 +404,7 @@ export function Landing({ signedIn = false }: { signedIn?: boolean }) {
                       <li key={t} className={on ? 'on' : undefined}><span className="make-box" aria-hidden="true">{on && <Icon name="check" size={13} />}</span>{t}</li>
                     ))}
                   </ul>
-                  <span className="make-go" aria-hidden="true">Create HTML</span>
+                  <span className="make-go" aria-hidden="true">Create app</span>
                 </div>
               </div>
             </div>
@@ -504,7 +505,7 @@ export function Landing({ signedIn = false }: { signedIn?: boolean }) {
 
 /* ---------------- help and support ---------------- */
 const HELP: [string, string][] = [
-  ['Make your first app', 'Sign in, then use Create HTML (pick what the client needs) or Upload HTML (your own .html or .zip file). It is live as soon as it is saved.'],
+  ['Make your first app', 'Sign in, then use Create app (pick what the client needs) or Upload HTML (your own .html or .zip file). It is live as soon as it is saved.'],
   ['Share with a client', 'Open the app and press Share. Make a sign-in for the client, send an invite link, or turn on a public or password link.'],
   ['Upgrade your plan', 'Account → Plan & usage → choose a plan. Pay by QR, upload the screenshot, and the plan turns on after we check it.'],
   ['Studio booking reminders', 'Open the booking section and press Reminders. Choose when (10 minutes to a day before) and the message.'],

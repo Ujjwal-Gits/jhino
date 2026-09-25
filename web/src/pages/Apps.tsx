@@ -8,7 +8,7 @@ import { ShareDialog } from './Share';
 import { downloadHtml } from './Player';
 
 export function dataMode(f: Features, built?: boolean): { dot: string; text: string; long: string } {
-  if (built) return { dot: 'ok', text: 'Created in Jhino', long: 'Created with Create HTML. Every record and file is stored on this server, checked by the server, and shown to everyone with access, live.' };
+  if (built) return { dot: 'ok', text: 'Created in Jhino', long: 'Created with Create app. Every record and file is stored on this server, checked by the server, and shown to everyone with access, live.' };
   // localStorage, window.storage and IndexedDB are all saved on the server and synced.
   if (f.jhinoSdk || f.localStorage || f.claudeStorage || f.indexedDB) {
     return { dot: 'ok', text: 'Saves to server', long: 'What people save in this app is stored on this server and appears for everyone with access, live.' };
@@ -211,9 +211,9 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
             </button>
             <button className="start-card" onClick={() => go('/build')}>
               <span className="n mono">02</span>
-              <b>Create HTML</b>
+              <b>Create app</b>
               <span>A client room made for you: video approvals, photo picks, receipts, to-dos, messages and more.</span>
-              <span className="go">Create HTML <Icon name="blocks" size={16} /></span>
+              <span className="go">Create app <Icon name="blocks" size={16} /></span>
             </button>
           </div>
           <p className="hint" style={{ marginTop: 14 }}>You can also drop an .html or .zip file anywhere on this page.</p>

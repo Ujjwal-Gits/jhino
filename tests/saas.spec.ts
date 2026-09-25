@@ -218,18 +218,19 @@ test('sharing by link: public, password and private; visitors only reach that ap
   expect((await v.call('PUT', `/api/apps/${id}/address`, { slug })).status).toBe(401);
   const set = await sita.call('PUT', `/api/apps/${id}/address`, { slug, access: 'public' });
   expect(set.status, JSON.stringify(set.json)).toBe(200);
-  expect(set.json.slugUrl).toContain('/' + slug);
-  // Opened at exactly that address: no redirect.
+  const sitaName = (await sita.call('GET', '/api/me')).json.user.username;
+  expect(set.json.slugUrl).toContain(`/${sitaName}/${slug}`);
+  // Opened at exactly that address, under the owner's username: no redirect.
   const page = await (await browser.newContext()).newPage();
-  await page.goto('/' + slug);
+  await page.goto(`/${sitaName}/${slug}`);
   await expect(page.frameLocator('iframe').getByText('Visible to visitors')).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('.player-bar h1')).toContainText('Link test');
-  await expect(page).toHaveURL(new RegExp(`/${slug}(#.*)?$`));
+  await expect(page).toHaveURL(new RegExp(`/${sitaName}/${slug}(#.*)?$`));
 
   // Private again: the link stops working.
   await sita.call('PATCH', `/api/apps/${id}/sharing`, { access: 'private' });
   expect((await v.call('GET', `/api/apps/${id}/records/todos_l1`)).status).toBe(401);
-  expect((await v.call('GET', `/api/public/${slug}`)).json.error).toBe('NOT_PUBLIC');
+  expect((await v.call('GET', `/api/public/${sitaName}/${slug}`)).json.error).toBe('NOT_PUBLIC');
 });
 
 test('super admin: create a paid sign-in, suspend and reactivate; uploads switch; only super admins get in', async () => {
@@ -301,9 +302,16 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   await page.fill('input[autocomplete=email]', email);
   await page.fill('input[autocomplete=new-password]', 'a-good-password-1');
   await page.check('.check-row input');
+  // The username is suggested from the email and checked as it is typed.
+  const uname = 'ui' + email.split('@')[0].replace(/[^a-z0-9]/g, '').slice(2);
+  await expect(page.locator('#uname')).toHaveValue(uname);
+  await expect(page.locator('.addr-input.ok')).toBeVisible();
   await page.click('button:has-text("Create account")');
+  // Home is their own page, at jhino.com/<username>.
+  await expect(page.getByRole('heading', { name: 'My page' })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/${uname}$`));
+  await page.goto('/apps');
   await expect(page.getByRole('heading', { name: 'My apps' })).toBeVisible();
-  await expect(page).toHaveURL(/\/apps$/);
   // Signed in, the main address is still the website; the dashboard is at /apps.
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Send the work. Get the yes.');
@@ -311,7 +319,7 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   await page.getByRole('link', { name: 'Open dashboard' }).first().click();
   await expect(page).toHaveURL(/\/apps$/);
   await expect(page.getByRole('heading', { name: 'My apps' })).toBeVisible();
-  await page.goto('/no-such-page/deep');
+  await page.goto('/apps/no/such/page');
   await expect(page).toHaveURL(/\/apps$/);
   await page.click('.avatar-btn');
   for (const item of ['Profile', 'My creations', 'Plan & usage', 'Billing', 'Notifications', 'Security', 'Settings', 'Help & support', 'Log out']) {
@@ -327,7 +335,7 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   await page.goto('/build');
   await page.fill('input[placeholder="For example: Himalayan Coffee"]', 'Sur Studio');
   await page.click('button.fp:has-text("Studio bookings")');
-  await page.locator('.btn.primary:visible', { hasText: 'Create HTML' }).first().click();
+  await page.locator('.btn.primary:visible', { hasText: 'Create app' }).first().click();
   await page.waitForURL(/\/apps\//);
   const F = page.frameLocator('iframe');
   await expect(F.locator('.bk-day')).toBeVisible({ timeout: 20_000 });
@@ -357,50 +365,71 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   await expect(page.locator('.player-bar')).toBeVisible();
 });
 
-test('addresses: picked when creating, unique across apps and short links, opened at the exact address', async ({ browser }) => {
+test('usernames and addresses: unique usernames; each person\'s addresses live under theirs; opened at the exact address', async ({ browser }) => {
   const admin = await session(OWNER);
-  const who = await signup('Anu');
-  const anu = await session(who);
-  const name = 'anu-' + uniq();
-  // Free Forever: one app, and it can have its address from the start.
-  expect((await anu.call('GET', `/api/addresses/check?name=${name}`)).json.available).toBe(true);
-  expect((await anu.call('GET', '/api/addresses/check?name=admin')).json.available).toBe(false);
+  // A username is unique, not the full name, and kept apart from Jhino's own words.
+  const anon = await session();
+  expect((await anon.call('GET', '/api/usernames/check?name=admin')).json.available).toBe(false);
+  expect((await anon.call('GET', '/api/usernames/check?name=a')).json.available).toBe(false);
+  const wanted = 'anu' + uniq();
+  expect((await anon.call('GET', `/api/usernames/check?name=${wanted}`)).json.available).toBe(true);
+  const email = `anu.${uniq()}@example.com`;
+  const s1 = await session();
+  expect((await s1.ctx.post('/api/auth/signup', { data: { name: 'Anu Sharma', email, username: wanted, password: 'a-good-password-1', terms: true } })).status()).toBe(200);
+  const s2 = await session();
+  const dup = await s2.ctx.post('/api/auth/signup', { data: { name: 'Other Anu', email: `x.${email}`, username: wanted.toUpperCase(), password: 'a-good-password-1', terms: true } });
+  expect(dup.status()).toBe(409);
+  expect((await dup.json()).error).toBe('USERNAME_TAKEN');
+  expect((await anon.call('GET', `/api/usernames/check?name=${wanted}`)).json.available).toBe(false);
+  const anu = await session({ email, password: 'a-good-password-1' });
+  expect((await anu.call('GET', '/api/me')).json.user.username).toBe(wanted);
+
+  // Free Forever: one app, and it can have its address from the start: jhino.com/<username>/<name>.
+  const name = 'studio-room';
+  expect((await anu.call('GET', `/api/addresses/check?name=${name}`)).json).toMatchObject({ available: true });
   const up = await anu.ctx.post('/api/apps', { multipart: { name: 'Anu site', slug: name, access: 'public', file: { name: 'a.html', mimeType: 'text/html', buffer: Buffer.from('<!doctype html><title>Anu</title><h1 id="t">Hello from Anu</h1>') } }, headers: { 'x-csrf-token': anu.csrf } });
   expect(up.status(), await up.text()).toBe(200);
   const appId = (await up.json()).app.id;
   expect((await anu.call('GET', `/api/addresses/check?name=${name}`)).json.available).toBe(false);
   expect((await anu.call('GET', `/api/addresses/check?name=${name}&app=${appId}`)).json.available).toBe(true);
-  // Anyone opens it at that address, and the address stays in the bar.
+  // Anyone opens it at that exact address.
   const page = await (await browser.newContext()).newPage();
-  await page.goto('/' + name);
+  await page.goto(`/${wanted}/${name}`);
   await expect(page.frameLocator('iframe').locator('#t')).toHaveText('Hello from Anu', { timeout: 20_000 });
-  await expect(page).toHaveURL(new RegExp(`/${name}(#.*)?$`));
+  await expect(page).toHaveURL(new RegExp(`/${wanted}/${name}(#.*)?$`));
 
-  // A second person cannot take the same name, for an app or a short link (any letter case).
+  // Another person can use the same name under their own username; their own short links cannot.
   const raj = await session(await signup('Raj'));
-  const b = await raj.call('POST', '/api/apps/build', { config: { name: 'Raj ' + uniq(), client: 'X', field: 'other', design: { accent: '#1f6f5c', style: 'modern', currency: 'NPR', theme: 'light' }, blocks: [{ id: 'todos_r1', preset: 'todos', title: 'To-dos' }] }, address: { slug: name.toUpperCase() } });
-  expect(b.status).toBe(409);
-  expect(b.json.error).toBe('SLUG_TAKEN');
+  const rajName = (await raj.call('GET', '/api/me')).json.user.username;
+  const b = await raj.call('POST', '/api/apps/build', { config: { name: 'Raj ' + uniq(), client: 'X', field: 'other', design: { accent: '#1f6f5c', style: 'modern', currency: 'NPR', theme: 'light' }, blocks: [{ id: 'todos_r1', preset: 'todos', title: 'To-dos' }] }, address: { slug: name.toUpperCase(), access: 'public' } });
+  expect(b.status, JSON.stringify(b.json)).toBe(200);
   const rajId = (await raj.call('GET', '/api/account')).json.account.id;
   await admin.call('PATCH', `/api/admin/users/${rajId}`, { plan: 'plus' });
   expect((await raj.call('POST', '/api/links', { url: 'https://example.com', code: name })).json.error).toBe('SLUG_TAKEN');
-  // Nothing was half made: Raj still has no apps.
-  expect((await raj.call('GET', '/api/account')).json.usage.used).toBe(0);
-  // Built with an address of its own: that works.
-  const own = 'raj-' + uniq();
-  const b2 = await raj.call('POST', '/api/apps/build', { config: { name: 'Raj ' + uniq(), client: 'X', field: 'other', design: { accent: '#1f6f5c', style: 'modern', currency: 'NPR', theme: 'light' }, blocks: [{ id: 'todos_r1', preset: 'todos', title: 'To-dos' }] }, address: { slug: own, access: 'password', password: 'studio-pass' } });
-  expect(b2.status, JSON.stringify(b2.json)).toBe(200);
   const v = await session();
-  expect((await v.call('GET', `/api/public/${own}`)).json.needsPassword).toBe(true);
+  expect((await v.call('GET', `/api/public/${rajName}/${name}`)).json.ready).toBe(true);
+  expect((await v.call('GET', `/api/public/${wanted}/${name}`)).json.ready).toBe(true);
+  expect((await v.call('GET', `/api/public/${wanted}/no-such-app`)).status).toBe(404);
 
-  // Free Forever includes one address: a second one is refused.
+  // A top-level address (jhino.com/<name>) is for super admins only, and never someone's username.
+  expect((await admin.call('PUT', `/api/admin/apps/${appId}/address`, { slug: wanted })).status).toBe(409);
+  const top = 'top-' + uniq();
+  expect((await admin.call('PUT', `/api/admin/apps/${appId}/address`, { slug: top })).status).toBe(200);
+  expect((await v.call('GET', `/api/public/${top}`)).json.ready).toBe(true);
+  expect((await anon.call('GET', `/api/usernames/check?name=${top}`)).json.available).toBe(false);
+
+  // Free Forever includes one app. Removing the address frees the name; someone else cannot change it.
   const anuApp2 = await anu.call('POST', '/api/apps/build', { config: { name: 'Anu 2', client: 'X', field: 'other', design: { accent: '#1f6f5c', style: 'modern', currency: 'NPR', theme: 'light' }, blocks: [{ id: 'todos_a2', preset: 'todos', title: 'To-dos' }] } });
-  expect(anuApp2.json.error).toBe('LIMIT_REACHED'); // one app on Free Forever
-  // The owner can move the address, and removing it frees the name.
+  expect(anuApp2.json.error).toBe('LIMIT_REACHED');
   expect((await anu.call('PUT', `/api/apps/${appId}/address`, { slug: null })).status).toBe(200);
-  expect((await raj.call('GET', `/api/addresses/check?name=${name}`)).json.available).toBe(true);
-  // Someone else cannot change it.
+  expect((await anu.call('GET', `/api/addresses/check?name=${name}`)).json.available).toBe(true);
   expect((await raj.call('PUT', `/api/apps/${appId}/address`, { slug: 'raj-steal-' + uniq() })).status).toBe(404);
+
+  // Changing the username moves the addresses with it.
+  const next = 'anuk' + uniq();
+  expect((await anu.call('PUT', '/api/account/username', { username: rajName })).json.error).toBe('USERNAME_TAKEN');
+  expect((await anu.call('PUT', '/api/account/username', { username: next })).status).toBe(200);
+  expect((await anon.call('GET', `/api/usernames/check?name=${wanted}`)).json.available).toBe(true);
 });
 
 test('short links: go on to the address, count clicks, one namespace, plan limits, admins can turn them off', async () => {
@@ -408,6 +437,7 @@ test('short links: go on to the address, count clicks, one namespace, plan limit
   const who = await signup('Kiran');
   const k = await session(who);
   const kid = (await k.call('GET', '/api/account')).json.account.id;
+  const kname = (await k.call('GET', '/api/me')).json.user.username;
   // Free: random names only; only web addresses.
   expect((await k.call('POST', '/api/links', { url: 'javascript:alert(1)' })).status).toBe(400);
   expect((await k.call('POST', '/api/links', { url: 'https://user:pw@example.com' })).status).toBe(400);
@@ -418,10 +448,11 @@ test('short links: go on to the address, count clicks, one namespace, plan limit
   expect(made.json.link.url).toBe('https://example.com/some/long/page?x=1');
   // Visiting it sends the browser on, and counts the click.
   const anon = await pwRequest.newContext({ baseURL: BASE });
-  const r = await anon.get('/' + code, { maxRedirects: 0 });
+  expect(made.json.link.short).toContain(`/${kname}/${code}`);
+  const r = await anon.get(`/${kname}/${code}`, { maxRedirects: 0 });
   expect(r.status()).toBe(302);
   expect(r.headers()['location']).toBe('https://example.com/some/long/page?x=1');
-  await anon.get('/' + code.toUpperCase(), { maxRedirects: 0 });
+  await anon.get(`/${kname.toUpperCase()}/${code.toUpperCase()}`, { maxRedirects: 0 });
   const list = (await k.call('GET', '/api/links')).json;
   expect(list.links[0].clicks).toBe(2);
   expect(list.allowance).toMatchObject({ used: 1, limit: 5, customCodes: false, stats: false });
@@ -440,7 +471,7 @@ test('short links: go on to the address, count clicks, one namespace, plan limit
   const named = 'reel-' + uniq();
   const n = await k.call('POST', '/api/links', { url: 'https://youtube.com/watch?v=abc', code: named });
   expect(n.status, JSON.stringify(n.json)).toBe(200);
-  await anon.get('/' + named, { maxRedirects: 0 });
+  await anon.get(`/${kname}/${named}`, { maxRedirects: 0 });
   const st = (await k.call('GET', `/api/links/${n.json.link.id}/stats`)).json;
   expect(st.days).toHaveLength(30);
   expect(st.days[29].n).toBe(1);
@@ -450,7 +481,7 @@ test('short links: go on to the address, count clicks, one namespace, plan limit
   // A super admin turns it off: no more redirect, and it is in the audit log.
   expect((await k.call('PATCH', `/api/admin/links/${n.json.link.id}`, { disabled: true })).status).toBe(403);
   expect((await admin.call('PATCH', `/api/admin/links/${n.json.link.id}`, { disabled: true, reason: 'Test' })).status).toBe(200);
-  const off = await anon.get('/' + named, { maxRedirects: 0 });
+  const off = await anon.get(`/${kname}/${named}`, { maxRedirects: 0 });
   expect(off.status()).toBe(200);
   expect((await admin.call('GET', '/api/admin/audit?q=link.disable')).json.entries.length).toBeGreaterThan(0);
   expect((await admin.call('GET', `/api/admin/links?q=${named}`)).json.links[0]).toMatchObject({ code: named, disabled: true });
@@ -522,7 +553,7 @@ test('super admin screens: sidebar on the left edge, dashboard, short links; oth
   await page.fill('input[autocomplete=username]', OWNER.email);
   await page.fill('input[type=password]', OWNER.password);
   await page.click('button:has-text("Sign in")');
-  await page.waitForURL(/\/apps$/);
+  await page.waitForURL((u) => !u.pathname.startsWith('/login'));
   await page.goto('/admin');
   const side = page.locator('.adm-side');
   await expect(side).toBeVisible();
@@ -626,4 +657,142 @@ test('super admin tools: new user, edit email, apps & data with export, CSV expo
   expect((await admin.call('POST', `/api/admin/users/${made.user.id}/delete`, { confirm: email2 })).json).toMatchObject({ ok: true, apps: 1 });
   expect((await admin.call('GET', `/api/admin/apps/${app.id}/detail`)).status).toBe(404);
   expect((await (await session()).ctx.post('/api/auth/login', { data: { email: email2, password: made.password } })).status()).toBe(401);
+});
+
+test('my page: links, socials, video, design by plan, public at /<username>, clicks and analytics, Pro own HTML', async ({ browser }) => {
+  const admin = await session(OWNER);
+  const who = await signup('Page');
+  const me = await session(who);
+  const uname = (await me.call('GET', '/api/me')).json.user.username;
+  const uid = (await me.call('GET', '/api/account')).json.account.id;
+  let d = (await me.call('GET', '/api/me/page')).json;
+  expect(d.username).toBe(uname);
+  expect(d.features).toMatchObject({ themeTier: 'free', branding: 'popup', customPage: false, analyticsDays: 7 });
+  // Items: a link, a heading, a YouTube video; only web addresses; videos must be YouTube or Vimeo.
+  expect((await me.call('POST', '/api/me/page/items', { type: 'link', url: 'javascript:alert(1)', title: 'x' })).status).toBe(400);
+  expect((await me.call('POST', '/api/me/page/items', { type: 'video', url: 'https://example.com/film.mp4', title: 'x' })).status).toBe(400);
+  d = (await me.call('POST', '/api/me/page/items', { type: 'link', url: 'studio.example.com/book', title: 'Book a session' })).json;
+  const linkId = d.items[0].id;
+  d = (await me.call('POST', '/api/me/page/items', { type: 'video', url: 'https://youtu.be/aqz-KE-bpKQ', title: 'Showreel', position: 'end' })).json;
+  d = (await me.call('POST', '/api/me/page/items', { type: 'header', title: 'Work' })).json;
+  expect(d.items.map((i: any) => i.type)).toEqual(['header', 'link', 'video']);
+  // Highlight is Plus and up; the free designs only.
+  expect((await me.call('PATCH', `/api/me/page/items/${linkId}`, { highlight: true })).json.error).toBe('PLAN_FEATURE');
+  const proTheme = Object.entries(d.themeTiers as Record<string, string>).find(([, t]) => t === 'pro')![0];
+  expect((await me.call('PUT', '/api/me/page', { theme: proTheme })).json.error).toBe('PLAN_FEATURE');
+  expect((await me.call('PUT', '/api/me/page', { useCustom: true })).json.error).toBe('PLAN_FEATURE');
+  // Socials from handles and numbers.
+  d = (await me.call('PUT', '/api/me/page', { bio: 'Photo and video in Kathmandu.', socials: [{ kind: 'instagram', url: '@surstudio' }, { kind: 'whatsapp', url: '+977 9800000000' }, { kind: 'email', url: 'hi@example.com' }] })).json;
+  expect(d.settings.socials).toEqual([{ kind: 'instagram', url: 'https://instagram.com/surstudio' }, { kind: 'whatsapp', url: 'https://wa.me/9779800000000' }, { kind: 'email', url: 'mailto:hi@example.com' }]);
+
+  // Anyone sees it at jhino.com/<username>, with the free branding; links go through /go/<id>.
+  const anon = await session();
+  const pub = (await anon.call('GET', `/api/profile/${uname}`)).json;
+  expect(pub.owner).toBe(false);
+  expect(pub.profile).toMatchObject({ username: uname, bio: 'Photo and video in Kathmandu.', branding: 'popup' });
+  const link = pub.profile.items.find((i: any) => i.type === 'link');
+  expect(link.href).toBe(`/go/${linkId}`);
+  expect(pub.profile.items.find((i: any) => i.type === 'video').embed).toBe('https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ');
+  const page = await (await browser.newContext()).newPage();
+  await page.goto(`/${uname}`);
+  await expect(page.locator('.pf .pf-name')).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('.pf-badge')).toBeVisible();
+  // A view and a click are counted (the owner's own are not).
+  await expect.poll(async () => (await me.call('GET', '/api/me/page/analytics?days=7')).json.totals.views).toBe(1);
+  const go = await (await pwRequest.newContext({ baseURL: BASE })).get(`/go/${linkId}`, { maxRedirects: 0 });
+  expect(go.status()).toBe(302);
+  expect(go.headers()['location']).toBe('https://studio.example.com/book');
+  const stats = (await me.call('GET', '/api/me/page/analytics?days=365')).json;
+  expect(stats.days).toBe(7); // Free keeps 7 days
+  expect(stats.totals).toMatchObject({ views: 1, visitors: 1, clicks: 1 });
+  expect(stats.items.find((i: any) => i.id === linkId).clicks).toBe(1);
+  // Hidden items are not shown to visitors; a hidden page says there is nothing here.
+  await me.call('PATCH', `/api/me/page/items/${linkId}`, { visible: false });
+  expect((await anon.call('GET', `/api/profile/${uname}`)).json.profile.items.some((i: any) => i.id === linkId)).toBe(false);
+  expect((await pwRequest.newContext({ baseURL: BASE }).then((c) => c.get(`/go/${linkId}`, { maxRedirects: 0 }))).headers()['location']).toBe('/');
+  await me.call('PUT', '/api/me/page', { published: false });
+  expect((await anon.call('GET', `/api/profile/${uname}`)).status).toBe(404);
+  expect((await me.call('GET', `/api/profile/${uname}`)).json.owner).toBe(true);
+  await me.call('PUT', '/api/me/page', { published: true });
+
+  // Pro: every design, no branding, and a page from their own HTML, served sandboxed.
+  await admin.call('PATCH', `/api/admin/users/${uid}`, { plan: 'pro' });
+  expect((await me.call('PUT', '/api/me/page', { theme: proTheme })).status).toBe(200);
+  d = (await me.call('PUT', '/api/me/page', { customHtml: '<html><head></head><body><h1>{{name}}</h1><p>{{bio}}</p>{{links}}<script>document.title="x"</script></body></html>', useCustom: true })).json;
+  expect(d.settings.useCustom).toBe(true);
+  const p2 = (await anon.call('GET', `/api/profile/${uname}`)).json;
+  expect(p2).toMatchObject({ custom: true, profile: { branding: 'none', theme: proTheme } });
+  const custom = await (await pwRequest.newContext({ baseURL: BASE })).get(`/p/${uname}/custom`);
+  expect(custom.status()).toBe(200);
+  expect(custom.headers()['content-security-policy']).toContain('sandbox allow-scripts');
+  expect(custom.headers()['content-security-policy']).not.toContain('allow-same-origin');
+  const html = await custom.text();
+  expect(html).toContain('window.JHINO=');
+  expect(html).toContain('Photo and video in Kathmandu.');
+  // Back on Free, the Pro design falls back to a free one and the own HTML stops.
+  await admin.call('PATCH', `/api/admin/users/${uid}`, { plan: 'free' });
+  const p3 = (await anon.call('GET', `/api/profile/${uname}`)).json;
+  expect(p3.custom).toBe(false);
+  expect(p3.profile.theme).toBe('paper');
+  expect((await (await pwRequest.newContext({ baseURL: BASE })).get(`/p/${uname}/custom`)).status()).toBe(404);
+  // Someone else's editor calls are theirs only.
+  const other = await session(await signup('Nosy'));
+  expect((await other.call('PATCH', `/api/me/page/items/${linkId}`, { title: 'Hacked' })).status).toBe(404);
+});
+
+test('email codes: confirm email, reset password and change email with a 6-digit code; five wrong tries lock it', async () => {
+  const admin = await session(OWNER);
+  const who = await signup('Otp');
+  const me = await session(who);
+  const code = async (to: string, kind: string) => {
+    const m = await lastMail(admin, to, kind);
+    return /Your code: (\d{6})/.exec(m.body)![1];
+  };
+  // Confirm the email with the code.
+  expect((await me.call('POST', '/api/auth/verify-code', { code: '000000' })).json.error).toBe('CODE_INVALID');
+  expect((await me.call('POST', '/api/auth/verify-code', { code: await code(who.email, 'verify') })).json.kind).toBe('verify');
+  expect((await me.call('GET', '/api/account')).json.user.emailVerified).toBe(true);
+  // Forgot password: the code and a new password, signed out.
+  const anon = await session();
+  await anon.call('POST', '/api/auth/forgot', { email: who.email });
+  const c1 = await code(who.email, 'reset');
+  expect((await anon.call('POST', '/api/auth/reset-code', { email: who.email, code: c1, password: 'a-brand-new-pass-1' })).status).toBe(200);
+  expect((await anon.call('POST', '/api/auth/reset-code', { email: who.email, code: c1, password: 'another-pass-123' })).json.error).toBe('CODE_INVALID');
+  const again = await session({ email: who.email, password: 'a-brand-new-pass-1' });
+  // Five wrong codes lock a code, even if the right one comes next.
+  await anon.call('POST', '/api/auth/forgot', { email: who.email });
+  const c2 = await code(who.email, 'reset');
+  for (let i = 0; i < 5; i++) await anon.call('POST', '/api/auth/reset-code', { email: who.email, code: c2 === '111111' ? '222222' : '111111', password: 'wrong-guess-pass-1' });
+  expect((await anon.call('POST', '/api/auth/reset-code', { email: who.email, code: c2, password: 'a-third-pass-123' })).json.error).toBe('CODE_LOCKED');
+  // Change email: confirmed with the code sent to the new address.
+  const next = `otp2.${uniq()}@example.com`;
+  expect((await again.call('POST', '/api/account/email', { email: next, password: 'a-brand-new-pass-1' })).status).toBe(200);
+  const r = await again.call('POST', '/api/auth/verify-code', { code: await code(next, 'email_change') });
+  expect(r.json).toMatchObject({ kind: 'email_change', email: next });
+});
+
+test('videos are links: customers cannot upload video files; super admins can', async () => {
+  const admin = await session(OWNER);
+  const who = await signup('Vid');
+  const v = await session(who);
+  const app = await v.ctx.post('/api/apps', { multipart: { name: 'V', file: { name: 'v.html', mimeType: 'text/html', buffer: Buffer.from('<!doctype html><title>v</title>') } }, headers: { 'x-csrf-token': v.csrf } });
+  const appId = (await app.json()).app.id;
+  for (const f of [{ name: 'cut.mp4', mimeType: 'video/mp4' }, { name: 'cut.mov', mimeType: 'application/octet-stream' }]) {
+    const r = await v.ctx.post(`/api/apps/${appId}/files`, { multipart: { file: { ...f, buffer: Buffer.from('not really a video') } }, headers: { 'x-csrf-token': v.csrf } });
+    expect(r.status()).toBe(415);
+    expect((await r.json()).error).toBe('VIDEO_AS_LINK');
+  }
+  const own = await admin.ctx.post('/api/apps', { multipart: { name: 'A', file: { name: 'a.html', mimeType: 'text/html', buffer: Buffer.from('<!doctype html><title>a</title>') } }, headers: { 'x-csrf-token': admin.csrf } });
+  const ok = await admin.ctx.post(`/api/apps/${(await own.json()).app.id}/files`, { multipart: { file: { name: 'cut.mp4', mimeType: 'video/mp4', buffer: Buffer.from('not really a video') } }, headers: { 'x-csrf-token': admin.csrf } });
+  expect(ok.status()).toBe(200);
+});
+
+test('designs: the server and the editor list the same 30 designs and tiers (5 free, 15 with Plus, 30 with Pro)', async () => {
+  const fs = await import('node:fs');
+  const web = [...fs.readFileSync('web/src/profile/themes.ts', 'utf8').matchAll(/id:\s*'([a-z0-9-]+)'[^}]*?tier:\s*'(free|plus|pro)'/gs)].map((m) => `${m[1]}:${m[2]}`);
+  const server = [...fs.readFileSync('server/themes.ts', 'utf8').matchAll(/'([a-z0-9-]+)':\s*'(free|plus|pro)'/g)].map((m) => `${m[1]}:${m[2]}`);
+  expect(server).toEqual(web);
+  expect(web).toHaveLength(30);
+  expect(web.filter((x) => x.endsWith(':free'))).toHaveLength(5);
+  expect(web.filter((x) => x.endsWith(':plus'))).toHaveLength(10);
 });

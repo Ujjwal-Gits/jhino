@@ -24,6 +24,9 @@ async function signIn(browser: Browser, login: string, password: string): Promis
   await page.fill('input[autocomplete=username]', login);
   await page.fill('input[type=password]', password);
   await page.click('button:has-text("Sign in")');
+  // Studios land on their page (jhino.com/<username>); go on to My apps. Clients land in their app.
+  await page.waitForURL((u) => !u.pathname.startsWith('/login'));
+  if (/^\/[\w-]+$/.test(new URL(page.url()).pathname) && new URL(page.url()).pathname !== '/apps') await page.goto('/apps');
   await page.waitForSelector('h1');
   return page;
 }
@@ -68,18 +71,21 @@ test('client work: deliver a video, client comments and asks for changes, receip
   const T = them.frameLocator('iframe');
   await expect(T.locator('.head h2').first()).toHaveText('Video deliveries');
 
-  // We deliver a cut.
+  // Only super admins may store video files here (customers share videos as links). The server makes
+  // big ones smaller; someone is already streaming the original meanwhile (Windows cannot replace an open file).
   const video = heavyVideo();
   const originalSize = fs.statSync(video).size;
-  await U.locator('button:has-text("Add video")').first().click();
-  await U.locator('.drawer input.input').first().fill('Brand film, first cut');
-  await U.locator('.drawer input[type=file]').setInputFiles(video);
-  await expect(U.locator('.drawer .file-chip')).toBeVisible({ timeout: 30_000 });
-  // Someone is already streaming the original while it is made smaller (on Windows an open file cannot be replaced).
+  const stored = await api.post(`/api/apps/${appId}/files`, { headers: { 'x-csrf-token': csrf }, multipart: { file: { name: 'cut.mp4', mimeType: 'video/mp4', buffer: fs.readFileSync(video) } } });
+  expect(stored.status()).toBe(200);
+  const vid = (await stored.json()).file;
   const cookie = (await api.storageState()).cookies.map((c) => `${c.name}=${c.value}`).join('; ');
-  const vid = (await (await api.get(`/api/apps/${appId}/files`)).json()).files.find((f: any) => f.type.startsWith('video/'));
   const held = http.get(`${BASE}/api/apps/${appId}/files/${vid.id}`, { headers: { cookie, 'x-jhino': '1' } }, (res) => res.once('data', () => res.pause()));
   held.on('error', () => {});
+
+  // We deliver a cut, as a link to the video.
+  await U.locator('button:has-text("Add video")').first().click();
+  await U.locator('.drawer input.input').first().fill('Brand film, first cut');
+  await U.locator('.drawer input[type=url]').first().fill('https://youtu.be/aqz-KE-bpKQ');
   await U.locator('.drawer button:has-text("Add")').last().click();
 
   // The client sees it without reloading, opens it, comments and asks for changes.
@@ -88,7 +94,7 @@ test('client work: deliver a video, client comments and asks for changes, receip
   await card.click();
   // It opens as a page of its own: the player, the review bar and the conversation.
   await expect(T.locator('.ip-title h2')).toHaveText('Brand film, first cut');
-  await expect(T.locator('.ip-hero video')).toHaveCount(1);
+  await expect(T.locator('.ip-hero iframe')).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/aqz-KE-bpKQ/);
   await T.locator('.thread textarea').fill('Lovely. Please make the logo at the end bigger.');
   await T.locator('.thread button:has-text("Send")').click();
   await expect(T.locator('.thread .cmt-t')).toHaveText('Lovely. Please make the logo at the end bigger.');

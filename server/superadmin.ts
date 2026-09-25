@@ -9,7 +9,8 @@ import { PLANS, activePlan, isPeriod, isPlan, notify, periodEnd, planLimitsInfo,
 import { deleteAccount } from './account.js';
 import { mailReady, mails, sendMail } from './mail.js';
 import { providerReady } from './oauth.js';
-import { RESERVED, assertNameFree, baseFor, setSharing, shareInfo, validSlug } from './publicshare.js';
+import { RESERVED, assertRootFree, baseFor, setSharing, shareInfo, validSlug } from './publicshare.js';
+import { assignUsername } from './usernames.js';
 import { createAppFromUpload, readUpload } from './apps.js';
 
 /*
@@ -30,7 +31,7 @@ function userRow(u: UserRow) {
   const last = db.prepare('SELECT status FROM payments WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(u.id) as { status: string } | undefined;
   return {
     storage: canCreateApps(u) ? storageOf(u.id).total : 0,
-    id: u.id, name: u.name, email: u.email, emailVerified: /@/.test(u.email) ? !!u.email_verified_at : null, createdAt: u.created_at,
+    id: u.id, name: u.name, email: u.email, username: u.username ?? null, emailVerified: /@/.test(u.email) ? !!u.email_verified_at : null, createdAt: u.created_at,
     status: u.disabled ? 'suspended' : 'active', role: u.is_admin ? 'super_admin' : canCreateApps(u) ? 'creator' : 'client',
     usage: canCreateApps(u) ? usage(u) : null, lastLoginAt: u.last_login_at ?? null, lastPayment: last?.status ?? null,
   };
@@ -139,10 +140,11 @@ export function registerSuperAdmin(app: FastifyInstance) {
   /** Make a sign-in for someone who paid (or a new super admin). The password is shown once. */
   app.post('/api/admin/users', async (req) => {
     const admin = requireAdmin(req);
-    const b = (req.body ?? {}) as { name?: string; email?: string; password?: string; plan?: string; period?: string; superAdmin?: boolean };
+    const b = (req.body ?? {}) as { name?: string; email?: string; username?: string; password?: string; plan?: string; period?: string; superAdmin?: boolean };
     const plan = isPlan(b.plan) ? b.plan : 'free';
     const password = b.password ? validatePassword(b.password) : makePassword(12);
     const u = await createUser(validateEmail(b.email), validateName(b.name), password, !!b.superAdmin, { verified: true, plan });
+    try { assignUsername(u.id, b.username || null, u.email); } catch (e) { db.prepare('DELETE FROM users WHERE id=?').run(u.id); throw e; }
     if (plan !== 'free' && !b.superAdmin) {
       grant(u.id, plan, admin.id, 'admin');
       // Paid for a month or a year: the plan ends then. No period: it runs until changed.
@@ -343,7 +345,7 @@ export function registerSuperAdmin(app: FastifyInstance) {
   /* ---------- every app on the platform, with what it holds ---------- */
   function appsWithNumbers(where: string, args: Record<string, unknown>, limitN = 300) {
     return db.prepare(`SELECT a.id, a.name, a.slug, a.access, a.created_at createdAt, a.updated_at updatedAt, a.deleted_at deletedAt, a.live_version liveVersion,
-        o.id ownerId, o.name ownerName, o.email ownerEmail,
+        o.id ownerId, o.name ownerName, o.email ownerEmail, o.username ownerUsername, a.root_slug rootSlug,
         (SELECT COUNT(*) FROM memberships m JOIN users mu ON mu.id=m.user_id WHERE m.app_id=a.id AND mu.kind='person') members,
         (SELECT COUNT(*) FROM app_versions v WHERE v.app_id=a.id) versions,
         (SELECT COALESCE(SUM(v.size),0) FROM app_versions v WHERE v.app_id=a.id) appBytes,
@@ -499,7 +501,7 @@ export function registerSuperAdmin(app: FastifyInstance) {
     requireAdmin(req);
     const base = baseFor(req);
     const rows = db.prepare(`SELECT a.*, u.email owner_email, u.name owner_name FROM apps a JOIN users u ON u.id=a.owner_id
-      WHERE a.deleted_at IS NULL AND (a.slug IS NOT NULL OR a.access <> 'private') ORDER BY a.slug IS NULL, a.slug, a.updated_at DESC LIMIT 300`).all() as (AppRow & { owner_email: string; owner_name: string })[];
+      WHERE a.deleted_at IS NULL AND (a.slug IS NOT NULL OR a.root_slug IS NOT NULL OR a.access <> 'private') ORDER BY a.root_slug IS NULL, a.root_slug, a.slug IS NULL, a.updated_at DESC LIMIT 300`).all() as (AppRow & { owner_email: string; owner_name: string })[];
     return { apps: rows.map((a) => hostedRow(a, base)), reserved: [...RESERVED].sort() };
   });
   app.get('/api/admin/apps', async (req) => {
@@ -509,16 +511,19 @@ export function registerSuperAdmin(app: FastifyInstance) {
       WHERE a.deleted_at IS NULL AND (? = '' OR lower(a.name) LIKE ? OR lower(u.email) LIKE ? OR a.id=?) ORDER BY a.updated_at DESC LIMIT 30`).all(s, `%${s}%`, `%${s}%`, s) as (AppRow & { owner_email: string; owner_name: string })[];
     return { apps: rows.map((a) => hostedRow(a, baseFor(req))) };
   });
-  /** Give an app its own address (or take it away). An address only works when the app is open by link. */
+  /**
+   * Give an app a top-level address, jhino.com/<name> (or take it away). Only super admins do this; it
+   * cannot be anyone's username. Owners give their apps addresses under their own username in Share.
+   */
   app.put('/api/admin/apps/:id/address', async (req) => {
     requireAdmin(req);
     const { id } = req.params as { id: string };
     const a = db.prepare('SELECT * FROM apps WHERE id=? AND deleted_at IS NULL').get(id) as AppRow | undefined;
     if (!a) throw new HttpError(404, 'NOT_FOUND', 'That app does not exist.');
     const b = (req.body ?? {}) as { slug?: string | null; access?: string; publicRole?: string; password?: string };
-    const slug = b.slug ? validSlug(b.slug) : null;
-    if (slug) assertNameFree(slug, { appId: id });
-    db.prepare('UPDATE apps SET slug=? WHERE id=?').run(slug, id);
+    const slug = b.slug ? validSlug(b.slug, true) : null;
+    if (slug) assertRootFree(slug, { appId: id });
+    db.prepare('UPDATE apps SET root_slug=? WHERE id=?').run(slug, id);
     // An address is for opening without being added: make the app open by link if it was private.
     const access = b.access ?? (slug && (a.access ?? 'private') === 'private' ? 'public' : undefined);
     const next = await setSharing(id, { access, publicRole: b.publicRole, password: b.password });
@@ -529,9 +534,10 @@ export function registerSuperAdmin(app: FastifyInstance) {
   app.post('/api/admin/host', async (req) => {
     const admin = requireAdmin(req);
     const up = await readUpload(req);
-    const slug = validSlug(up.fields.slug);
-    assertNameFree(slug);
-    const id = await createAppFromUpload(admin, up.buf, up.filename, up.name, slug);
+    const slug = validSlug(up.fields.slug, true);
+    assertRootFree(slug);
+    const id = await createAppFromUpload(admin, up.buf, up.filename, up.name);
+    db.prepare('UPDATE apps SET root_slug=? WHERE id=?').run(slug, id);
     const access = up.fields.access === 'password' ? 'password' : 'public';
     await setSharing(id, { access, publicRole: 'viewer', password: up.fields.password || undefined });
     audit(req, 'hosting.host', 'app', id, `/${slug} · ${access}`);

@@ -44,6 +44,7 @@ const PATHS: Record<string, string> = {
   qr: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2',
   pause: 'M8 5v14M16 5v14',
   play: 'M7 5l12 7-12 7z',
+  spark: 'M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z',
   external: 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
   audit: 'M8 4h10v16H6V6zM8 4v2H6M9 10h6M9 14h6M9 18h3',
 };

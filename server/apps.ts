@@ -96,7 +96,7 @@ export async function createAppFromUpload(user: UserRow, buf: Buffer, filename: 
   try {
     db.transaction(() => {
       assertCanCreate(user.id);
-      if (slug) assertNameFree(slug);
+      if (slug) assertNameFree(user.id, slug);
       db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at,share_token,slug) VALUES(?,?,?,?,1,?,?,?,?)')
         .run(id, name, crypto.randomInt(0, 6), user.id, t, t, crypto.randomBytes(10).toString('hex'), slug);
       db.prepare('INSERT INTO app_versions(app_id,n,entry,file_count,size,features,source_name,uploaded_by,created_at,manifest) VALUES(?,?,?,?,?,?,?,?,?,?)')

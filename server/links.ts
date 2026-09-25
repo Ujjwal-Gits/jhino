@@ -4,15 +4,16 @@ import { db, newId, now, type UserRow } from './db.js';
 import { HttpError, requireAdmin, requireCreator } from './auth.js';
 import { audit, limit } from './security.js';
 import { assertFeature, featuresOf } from './plans.js';
-import { RESERVED, assertNameFree, baseFor, validSlug } from './publicshare.js';
+import { RESERVED, assertNameFree, baseFor, nameInUse, usernameOf, validSlug } from './publicshare.js';
 
 /*
- * Short links: jhino.com/<code> sends the visitor on to any web address, and counts the click.
- * Codes share one set of names with app addresses, so jhino.com/<name> is always one thing.
+ * Short links: jhino.com/<username>/<code> sends the visitor on to any web address, and counts the
+ * click. Codes share one set of names with the person's app addresses, so each address is one thing.
+ * Links made before usernames keep working at jhino.com/<code> (root = 1).
  * Random codes on every plan; codes you name yourself on Plus and Pro; daily clicks on Pro.
  */
 
-interface LinkRow { id: string; owner_id: string; code: string; url: string; title: string | null; clicks: number; last_click_at: string | null; disabled: number; disabled_reason: string | null; created_at: string; updated_at: string }
+interface LinkRow { id: string; owner_id: string; root: number; code: string; url: string; title: string | null; clicks: number; last_click_at: string | null; disabled: number; disabled_reason: string | null; created_at: string; updated_at: string }
 
 const ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789';
 function randomCode(len = 6) {
@@ -41,7 +42,7 @@ function validTarget(raw: unknown, req: FastifyRequest) {
 }
 
 const view = (l: LinkRow, base: string, admin = false) => ({
-  id: l.id, code: l.code, url: l.url, title: l.title ?? '', short: `${base}/${l.code}`, clicks: l.clicks, lastClickAt: l.last_click_at,
+  id: l.id, code: l.code, url: l.url, title: l.title ?? '', short: l.root ? `${base}/${l.code}` : `${base}/${usernameOf(l.owner_id) ?? '_'}/${l.code}`, clicks: l.clicks, lastClickAt: l.last_click_at,
   disabled: !!l.disabled, disabledReason: l.disabled_reason ?? '', createdAt: l.created_at, updatedAt: l.updated_at,
   ...(admin ? { ownerId: l.owner_id } : {}),
 });
@@ -70,15 +71,17 @@ function series(linkIds: string[], days = 30) {
 }
 
 export function registerLinks(app: FastifyInstance) {
-  // jhino.com/<code>: send the visitor on. Runs before the website, only for one-segment paths.
+  // jhino.com/<username>/<code> (and older jhino.com/<code>): send the visitor on. Runs before the website.
   const count = db.prepare('UPDATE short_links SET clicks=clicks+1, last_click_at=? WHERE id=?');
   const day = db.prepare('INSERT INTO link_clicks(link_id,day,n) VALUES(?,?,1) ON CONFLICT(link_id,day) DO UPDATE SET n=n+1');
-  const find = db.prepare('SELECT id, url FROM short_links WHERE code=? COLLATE NOCASE AND disabled=0');
+  const findRoot = db.prepare('SELECT id, url FROM short_links WHERE root=1 AND code=? COLLATE NOCASE AND disabled=0');
+  const findAt = db.prepare(`SELECT l.id, l.url FROM short_links l JOIN users u ON u.id=l.owner_id
+    WHERE u.username=? COLLATE NOCASE AND l.root=0 AND l.code=? COLLATE NOCASE AND l.disabled=0 AND u.disabled=0`);
   app.addHook('onRequest', async (req, reply) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return;
-    const m = /^\/([A-Za-z0-9-]{2,50})\/?(?:\?.*)?$/.exec(req.url);
+    const m = /^\/([A-Za-z0-9_-]{2,50})(?:\/([A-Za-z0-9-]{2,50}))?\/?(?:\?.*)?$/.exec(req.url);
     if (!m || RESERVED.has(m[1].toLowerCase())) return;
-    const l = find.get(m[1]) as { id: string; url: string } | undefined;
+    const l = (m[2] ? findAt.get(m[1], m[2]) : findRoot.get(m[1])) as { id: string; url: string } | undefined;
     if (!l) return;
     if (req.method === 'GET') { const t = now(); db.transaction(() => { count.run(t, l.id); day.run(l.id, t.slice(0, 10)); })(); }
     reply.header('Cache-Control', 'no-store').header('Referrer-Policy', 'strict-origin-when-cross-origin').redirect(l.url, 302);
@@ -89,7 +92,7 @@ export function registerLinks(app: FastifyInstance) {
     const u = requireCreator(req);
     const rows = db.prepare('SELECT * FROM short_links WHERE owner_id=? ORDER BY created_at DESC LIMIT 1000').all(u.id) as LinkRow[];
     const base = baseFor(req);
-    return { links: rows.map((l) => view(l, base)), allowance: allowance(u), host: base.replace(/^https?:\/\//, '') };
+    return { links: rows.map((l) => view(l, base)), allowance: allowance(u), host: `${base.replace(/^https?:\/\//, '')}/${u.username ?? ''}`.replace(/\/$/, '') };
   });
 
   app.post('/api/links', async (req) => {
@@ -103,15 +106,15 @@ export function registerLinks(app: FastifyInstance) {
     if (b.code && String(b.code).trim()) {
       assertFeature(u, 'customCodes', 'Choosing your own short link name');
       code = validSlug(b.code);
-      assertNameFree(code);
+      assertNameFree(u.id, code);
     } else {
       let n = 0;
-      do { code = randomCode(n > 5 ? 8 : 6); n++; } while (RESERVED.has(code) || db.prepare('SELECT 1 FROM short_links WHERE code=? COLLATE NOCASE UNION SELECT 1 FROM apps WHERE slug=? COLLATE NOCASE').get(code, code));
+      do { code = randomCode(n > 5 ? 8 : 6); n++; } while (nameInUse(u.id, code));
     }
     const id = newId('lnk');
     const t = now();
     db.transaction(() => {
-      assertNameFree(code);
+      assertNameFree(u.id, code);
       db.prepare('INSERT INTO short_links(id,owner_id,code,url,title,created_at,updated_at) VALUES(?,?,?,?,?,?,?)').run(id, u.id, code, url, String(b.title ?? '').trim().slice(0, 120) || null, t, t);
     })();
     return { link: view(db.prepare('SELECT * FROM short_links WHERE id=?').get(id) as LinkRow, baseFor(req)), allowance: allowance(u) };
@@ -126,7 +129,7 @@ export function registerLinks(app: FastifyInstance) {
     if (b.code !== undefined && String(b.code).trim().toLowerCase() !== l.code.toLowerCase()) {
       assertFeature(u, 'customCodes', 'Choosing your own short link name');
       const code = validSlug(b.code);
-      assertNameFree(code, { linkId: l.id });
+      assertNameFree(l.owner_id, code, { linkId: l.id });
       sets.push('code=?'); args.push(code);
     }
     if (sets.length) db.prepare(`UPDATE short_links SET ${sets.join(', ')}, updated_at=? WHERE id=?`).run(...args, now(), l.id);

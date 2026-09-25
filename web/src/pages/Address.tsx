@@ -4,7 +4,7 @@ import { Link, useSession } from '../context';
 import { Icon } from '../ui';
 
 /*
- * An app's own address, jhino.com/<name>, and who can open it. Used when uploading, in Create HTML,
+ * An app's own address, jhino.com/<name>, and who can open it. Used when uploading, in Create app,
  * and in Share. The name is checked as it is typed; the server checks again when saving.
  */
 
@@ -13,6 +13,8 @@ export interface OpenSettings { access: Access; password: string }
 
 export const slugify = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50);
 export const HOST = () => location.host;
+/** Where a person's addresses live: jhino.com/<username>/ */
+export const addrBase = (username?: string | null) => (username ? `${location.host}/${username}` : location.host);
 
 type Check = { state: 'idle' | 'checking' | 'ok' | 'bad'; reason?: string };
 /** Is this name free? Checked a moment after typing stops. */
@@ -47,7 +49,7 @@ export function AddressField({ value, onChange, check, appId, optional = true }:
     <div className="field addr-field">
       <label htmlFor={id}>Address {optional && <em>optional</em>}</label>
       <div className={`addr-input ${check.state}`}>
-        <span className="addr-host mono">{HOST()}/</span>
+        <span className="addr-host mono">{addrBase(user.username)}/</span>
         <input id={id} className="mono" value={value} maxLength={50} autoComplete="off" spellCheck={false} placeholder="your-studio"
           onChange={(e) => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-{2,}/g, '-'))}
           aria-invalid={check.state === 'bad'} aria-describedby={`${id}-s`} />
@@ -59,7 +61,7 @@ export function AddressField({ value, onChange, check, appId, optional = true }:
       </div>
       <small id={`${id}-s`} className={`hint ${check.state === 'bad' ? 'error-text' : ''}`} aria-live="polite">
         {check.state === 'bad' ? check.reason
-          : check.state === 'ok' ? <>Free. It opens at <span className="mono">{HOST()}/{value}</span>, exactly that address.</>
+          : check.state === 'ok' ? <>Free. It opens at <span className="mono">{addrBase(user.username)}/{value}</span>, exactly that address.</>
             : <>Lowercase letters, numbers and dashes. {f && f.addresses < 1e6 ? `Your plan includes ${f.addresses} address${f.addresses === 1 ? '' : 'es'}.` : ''}</>}
       </small>
     </div>

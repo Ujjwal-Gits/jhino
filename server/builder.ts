@@ -250,7 +250,7 @@ export function registerBuilder(app: FastifyInstance) {
     try {
     db.transaction(() => {
       assertCanCreate(user.id); // again inside the insert, so two requests at once cannot both pass
-      if (addr.slug) assertNameFree(addr.slug);
+      if (addr.slug) assertNameFree(user.id, addr.slug);
       db.prepare('INSERT INTO apps(id,name,color,owner_id,live_version,created_at,updated_at,share_token,slug) VALUES(?,?,?,?,1,?,?,?,?)').run(id, cfg.name, 0, user.id, t, t, crypto.randomBytes(10).toString('hex'), addr.slug);
       db.prepare('INSERT INTO app_versions(app_id,n,entry,file_count,size,features,source_name,uploaded_by,created_at,manifest,builder) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
         .run(id, 1, 'index.html', 1, Buffer.byteLength(html), FEATURES, 'Built in Jhino', user.id, t, JSON.stringify(manifest), JSON.stringify(cfg));

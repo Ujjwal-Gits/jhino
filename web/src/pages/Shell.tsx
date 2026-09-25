@@ -3,7 +3,7 @@ import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { live } from '../live';
 import { Avatar, Icon, Menu, Modal, ago, useToast } from '../ui';
-import { AddressField, OpenChoice, addressPayload, openReady, slugify, useNameCheck, type OpenSettings } from './Address';
+import { AddressField, OpenChoice, addrBase, addressPayload, openReady, slugify, useNameCheck, type OpenSettings } from './Address';
 
 /* ---------- upload ---------- */
 export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: File | null; onClose: () => void; replaceAppId?: string }) {
@@ -85,7 +85,7 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
               <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Uses the page title" />
             </label>
             <AddressField value={slug} onChange={setSlug} check={check} />
-            {!slug && file && <button type="button" className="link addr-suggest" onClick={() => setSlug(slugify(name || file.name.replace(/\.(zip|html?)$/i, '')))}>Use {location.host}/{slugify(name || file.name.replace(/\.(zip|html?)$/i, '')) || 'my-app'}</button>}
+            {!slug && file && <button type="button" className="link addr-suggest" onClick={() => setSlug(slugify(name || file.name.replace(/\.(zip|html?)$/i, '')))}>Use {addrBase(user.username)}/{slugify(name || file.name.replace(/\.(zip|html?)$/i, '')) || 'my-app'}</button>}
             {slug && <OpenChoice value={open} onChange={setOpen} compact />}
           </>
         )}
@@ -146,9 +146,10 @@ export function Shell({ children }: { children: ReactNode }) {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <Link to="/apps" className="wordmark" aria-label="Jhino dashboard">jhino<i /></Link>
+          <Link to={user.username ? `/${user.username}` : '/apps'} className="wordmark" aria-label="Your Jhino home">jhino<i /></Link>
           {user.canCreate ? (
             <nav className="tabs" aria-label="Apps">
+              {user.username && tab(`/${user.username}`, 'My page')}
               {tab('/apps', 'My apps')}
               {tab('/shared', 'Shared with me')}
               {tab('/links', 'Links')}
@@ -161,8 +162,8 @@ export function Shell({ children }: { children: ReactNode }) {
               <button className="btn primary sm" onClick={() => { setDropped(null); setDialog('upload'); }} aria-label="Upload HTML or ZIP">
                 <Icon name="upload" size={16} /><span className="new-label">Upload HTML</span><span className="up-label">Upload</span>
               </button>
-              <button className="btn sm" onClick={() => go('/build')} aria-keyshortcuts="n" aria-label="Create HTML">
-                <Icon name="plus" size={16} /><span className="new-label">Create HTML</span>
+              <button className="btn sm" onClick={() => go('/build')} aria-keyshortcuts="n" aria-label="Create app">
+                <Icon name="plus" size={16} /><span className="new-label">Create app</span>
               </button>
             </div>
           )}
@@ -176,6 +177,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <Menu anchor={menuFor} onClose={() => setMenuFor(null)}>
           <div className="who"><b>{user.displayName || user.name}</b><span>{user.email}</span></div>
           <button role="menuitem" onClick={() => go('/account/profile')}><Icon name="user" size={16} />Profile</button>
+          {user.username && <button role="menuitem" onClick={() => go(`/${user.username}`)}><Icon name="user" size={16} />My page</button>}
           {user.canCreate && <button role="menuitem" onClick={() => go('/apps')}><Icon name="grid" size={16} />My creations</button>}
           <button role="menuitem" onClick={() => go('/')}><Icon name="globe" size={16} />Jhino website</button>
           {user.canCreate && <button role="menuitem" onClick={() => go('/account/plan')}><Icon name="chart" size={16} />Plan & usage</button>}

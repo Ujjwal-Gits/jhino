@@ -140,6 +140,13 @@ export function registerFiles(app: FastifyInstance) {
     if (Number(req.headers['content-length'] || 0) > maxBytes + 64 * 1024) throw tooBig();
     const part = await req.file({ limits: { fileSize: maxBytes, files: 1, fields: 4 } });
     if (!part) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a file to upload.');
+    // Videos are shared as links (YouTube, Vimeo, Google Drive…), not stored here. Super admins still can.
+    if (!user.is_admin && (/^video\//i.test(part.mimetype || '') || /\.(mp4|m4v|mov|webm|mkv|avi|wmv|flv|3gp|mpe?g|ogv|mts|m2ts)$/i.test(part.filename || ''))) {
+      // Read to the end (up to the size limit) before answering: some browsers treat an answer that
+      // arrives mid-upload as a broken connection and retry.
+      for await (const chunk of part.file) void chunk;
+      throw new HttpError(415, 'VIDEO_AS_LINK', 'Videos are added as links here: paste a YouTube, Vimeo, Google Drive or Dropbox link instead.');
+    }
     const name = (part.filename || 'file').replace(/[\\/\u0000-\u001f]/g, '_').slice(0, 200) || 'file';
     const fid = newId('f');
     fs.mkdirSync(filesDir(id), { recursive: true });

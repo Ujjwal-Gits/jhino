@@ -65,7 +65,7 @@ test('continue with Google: new account, forged token refused, same verified ema
   const p1 = await (await browser.newContext()).newPage();
   await p1.goto('/login');
   await p1.getByRole('link', { name: 'Continue with Google' }).click();
-  await expect(p1.getByRole('heading', { name: 'My apps' })).toBeVisible({ timeout: 15_000 });
+  await expect(p1.getByRole('heading', { name: 'My page' })).toBeVisible({ timeout: 15_000 });
   const me = await (await p1.request.get('/api/me')).json();
   expect(me.user.email).toBe(email);
   expect(me.user.passwordSet).toBe(false);
@@ -73,7 +73,7 @@ test('continue with Google: new account, forged token refused, same verified ema
   // Using the same flow again signs into the same account.
   const p2 = await (await browser.newContext()).newPage();
   await p2.goto('/api/auth/oauth/google/start');
-  await expect(p2.getByRole('heading', { name: 'My apps' })).toBeVisible();
+  await expect(p2.getByRole('heading', { name: 'My page' })).toBeVisible();
   expect((await (await p2.request.get('/api/me')).json()).user.id).toBe(me.user.id);
 
   // Someone registered an email they do not own (never confirmed). When the owner signs in with Google,
@@ -84,7 +84,7 @@ test('continue with Google: new account, forged token refused, same verified ema
   next = { email: victim, sub: 'sub-' + victim, verified: true, badSignature: false };
   const p3 = await (await browser.newContext()).newPage();
   await p3.goto('/api/auth/oauth/google/start');
-  await expect(p3.getByRole('heading', { name: 'My apps' })).toBeVisible();
+  await expect(p3.getByRole('heading', { name: 'My page' })).toBeVisible();
   expect((await squatter.get('/api/account')).status()).toBe(401);
   const again = await (await pwRequest.newContext({ baseURL: BASE, extraHTTPHeaders: { 'x-jhino': '1' } })).post('/api/auth/login', { data: { email: victim, password: 'squatter-pass-123' } });
   expect(again.status()).toBe(401);
@@ -101,7 +101,7 @@ test('continue with Google: new account, forged token refused, same verified ema
   let callback = '';
   p5.on('request', (r) => { if (r.url().includes('/oauth/google/callback')) callback = r.url(); });
   await p5.goto('/api/auth/oauth/google/start');
-  await expect(p5.getByRole('heading', { name: 'My apps' })).toBeVisible();
+  await expect(p5.getByRole('heading', { name: 'My page' })).toBeVisible();
   const replay = await p5.request.get(callback, { maxRedirects: 0 });
   expect(replay.status()).toBe(302);
   expect(replay.headers().location).toContain('error=oauth_state');

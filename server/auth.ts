@@ -47,7 +47,7 @@ export function publicUser(u: UserRow) {
     id: u.id, email: u.email, name: u.name, displayName: u.display_name || null,
     isAdmin: !!u.is_admin, disabled: !!u.disabled, canCreate: canCreateApps(u),
     emailIsAddress: looksLikeEmail(u.email), emailVerified: looksLikeEmail(u.email) ? !!u.email_verified_at : null,
-    hasAvatar: !!u.avatar, passwordSet: u.password_set !== 0, plan: activePlan(u),
+    hasAvatar: !!u.avatar, passwordSet: u.password_set !== 0, plan: activePlan(u), username: u.username ?? null,
     // What the plan includes, so screens can show what is on and what needs an upgrade. The server checks again.
     features: canCreateApps(u) ? featuresOf(u) : null,
   };

@@ -185,6 +185,7 @@ function AccountSection({ data, reload }: { data: AccountData; reload: () => voi
     catch (e2) { setEmail({ ...email, busy: false, error: err(e2, 'Could not start the change.') }); }
   };
   const cancelPending = async () => { await api('DELETE', '/api/account/email/pending'); reload(); };
+  const [pendingCode, setPendingCode] = useState('');
   const kindLabel = data.account.kind === 'super_admin' ? 'Super admin' : data.account.kind === 'client' ? 'Client (opens apps shared with you)' : 'Creator';
   return (
     <>
@@ -192,10 +193,17 @@ function AccountSection({ data, reload }: { data: AccountData; reload: () => voi
         <div className="acc-card">
           <div className="acc-card-row">
             <div><b>{data.profile.email}</b> {data.user.emailIsAddress ? <VerifiedTag ok={!!data.user.emailVerified} /> : <span className="vtag">Sign-in ID</span>}</div>
-            {data.user.emailIsAddress && !data.user.emailVerified && <button className="btn sm" onClick={resend}>Resend confirmation</button>}
+            {data.user.emailIsAddress && !data.user.emailVerified && <><button className="btn sm" onClick={resend}>Resend the code</button><Link to="/verify" className="btn sm primary">Enter the code</Link></>}
           </div>
           {data.account.pendingEmail && (
-            <p className="notice-line">Waiting for you to confirm <b>{data.account.pendingEmail}</b>. Until then your current email stays in use. <button className="link" onClick={cancelPending}>Cancel the change</button></p>
+            <div className="notice-line pending-email">
+              <span>Waiting for you to confirm <b>{data.account.pendingEmail}</b>. Enter the 6-digit code we sent there. Until then your current email stays in use.</span>
+              <form className="inline-form" onSubmit={async (e) => { e.preventDefault(); try { await post('/api/auth/verify-code', { code: pendingCode }); toast('Email changed'); setPendingCode(''); reload(); } catch (e2) { toast(err(e2, 'That code did not work.'), true); } }}>
+                <input className="input mono" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="123456" value={pendingCode} onChange={(e) => setPendingCode(e.target.value.replace(/\D/g, ''))} aria-label="Code" />
+                <button className="btn sm primary" disabled={pendingCode.length !== 6}>Confirm</button>
+              </form>
+              <button className="link" onClick={cancelPending}>Cancel the change</button>
+            </div>
           )}
           {!email.open ? <button className="btn sm" onClick={() => setEmail({ ...email, open: true })}>{data.user.emailIsAddress ? 'Change email' : 'Add an email'}</button> : (
             <form className="acc-form tight" onSubmit={change}>
