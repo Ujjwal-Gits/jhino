@@ -254,9 +254,24 @@ function AddressSection({ appId, appName, sharing, onChange }: { appId: string; 
               <div>
                 {user.isAdmin && <div className="hint" style={{ marginBottom: 4, fontSize: 12 }}>Direct address</div>}
                 <div className="linkbox">
-                  <input className="input mono" readOnly value={sharing.rootUrl} onFocus={(e) => e.target.select()} aria-label="Direct address" />
-                  <button className="btn sm" type="button" onClick={() => copyText(sharing.rootUrl!).then(() => toast('Address copied'))}><Icon name="copy" size={15} />Copy</button>
-                  <button className="btn sm quiet" type="button" onClick={() => { setMode('root'); setSlug(sharing.rootSlug ?? ''); setEditing(true); }}>Change</button>
+                  <input
+                    className="input mono"
+                    readOnly
+                    value={sharing.rootUrl}
+                    onClick={() => { setMode('root'); setSlug(sharing.rootSlug ?? ''); setEditing(true); }}
+                    aria-label="Direct address"
+                    style={{ cursor: 'pointer' }}
+                    title="Click to edit address"
+                  />
+                  <a href={sharing.rootUrl} target="_blank" rel="noopener noreferrer" className="btn sm" title="Browse / open address in new tab">
+                    <Icon name="external" size={14} />Browse
+                  </a>
+                  <button className="btn sm" type="button" onClick={() => copyText(sharing.rootUrl!).then(() => toast('Address copied'))}>
+                    <Icon name="copy" size={15} />Copy
+                  </button>
+                  <button className="btn sm quiet" type="button" onClick={() => { setMode('root'); setSlug(sharing.rootSlug ?? ''); setEditing(true); }}>
+                    Change
+                  </button>
                 </div>
               </div>
             )}
@@ -264,9 +279,24 @@ function AddressSection({ appId, appName, sharing, onChange }: { appId: string; 
               <div>
                 {user.isAdmin && sharing.rootUrl && <div style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 4 }}>Standard user URL</div>}
                 <div className="linkbox">
-                  <input className="input mono" readOnly value={sharing.slugUrl} onFocus={(e) => e.target.select()} aria-label="Standard address" />
-                  <button className="btn sm" type="button" onClick={() => copyText(sharing.slugUrl!).then(() => toast('Address copied'))}><Icon name="copy" size={15} />Copy</button>
-                  <button className="btn sm quiet" type="button" onClick={() => { setMode('standard'); setSlug(sharing.slug ?? ''); setEditing(true); }}>Change</button>
+                  <input
+                    className="input mono"
+                    readOnly
+                    value={sharing.slugUrl}
+                    onClick={() => { setMode('standard'); setSlug(sharing.slug ?? ''); setEditing(true); }}
+                    aria-label="Standard address"
+                    style={{ cursor: 'pointer' }}
+                    title="Click to edit address"
+                  />
+                  <a href={sharing.slugUrl} target="_blank" rel="noopener noreferrer" className="btn sm" title="Browse / open address in new tab">
+                    <Icon name="external" size={14} />Browse
+                  </a>
+                  <button className="btn sm" type="button" onClick={() => copyText(sharing.slugUrl!).then(() => toast('Address copied'))}>
+                    <Icon name="copy" size={15} />Copy
+                  </button>
+                  <button className="btn sm quiet" type="button" onClick={() => { setMode('standard'); setSlug(sharing.slug ?? ''); setEditing(true); }}>
+                    Change
+                  </button>
                 </div>
               </div>
             )}
