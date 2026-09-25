@@ -252,10 +252,7 @@ function AddressSection({ appId, appName, sharing, onChange }: { appId: string; 
           <div className="linkbox-stack" style={{ display: 'grid', gap: 8 }}>
             {sharing.rootUrl && (
               <div>
-                {user.isAdmin && <div style={{ fontSize: 12, color: 'var(--ink-2)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <b>Direct root URL</b>
-                  <span className="plan-tag" style={{ background: 'var(--signal)', color: '#fff', fontSize: 11 }}>Super admin</span>
-                </div>}
+                {user.isAdmin && <div className="hint" style={{ marginBottom: 4, fontSize: 12 }}>Direct address</div>}
                 <div className="linkbox">
                   <input className="input mono" readOnly value={sharing.rootUrl} onFocus={(e) => e.target.select()} aria-label="Direct address" />
                   <button className="btn sm" type="button" onClick={() => copyText(sharing.rootUrl!).then(() => toast('Address copied'))}><Icon name="copy" size={15} />Copy</button>
@@ -287,20 +284,17 @@ function AddressSection({ appId, appName, sharing, onChange }: { appId: string; 
       ) : (
         <form className="addr-edit" onSubmit={(e) => { e.preventDefault(); if (slug) save(slug); }}>
           {user.isAdmin && (
-            <div className="field addr-mode-field" style={{ marginBottom: 12 }}>
-              <label htmlFor="addr-url-type" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>Address format</span>
-                <span className="plan-tag" style={{ background: 'var(--signal)', color: '#fff' }}>Super admin only</span>
-              </label>
-              <select
-                id="addr-url-type"
-                className="select sm"
+            <div className="field">
+              <span>Format</span>
+              <Select<'standard' | 'root'>
+                label="Format"
                 value={mode}
-                onChange={(e) => handleModeChange(e.target.value as 'standard' | 'root')}
-              >
-                <option value="root">Direct root URL: {HOST()}/[slug] (e.g. /a, /abc, /1)</option>
-                <option value="standard">Standard: {HOST()}/{user.username || 'username'}/[slug]</option>
-              </select>
+                options={[
+                  { value: 'standard', label: 'Standard' },
+                  { value: 'root', label: 'Direct' },
+                ]}
+                onChange={(next) => handleModeChange(next)}
+              />
             </div>
           )}
           <AddressField

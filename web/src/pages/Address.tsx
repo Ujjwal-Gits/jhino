@@ -69,10 +69,7 @@ export function AddressField({
 
   return (
     <div className="field addr-field">
-      <label htmlFor={id}>
-        Address {optional && <em>optional</em>}
-        {isRoot && <span className="plan-tag" style={{ marginLeft: 8, background: 'var(--signal)', color: '#fff' }}>Super admin · Direct URL</span>}
-      </label>
+      <label htmlFor={id}>Address {optional && <em>optional</em>}</label>
       <div className={`addr-input ${check.state}`}>
         <span className="addr-host mono">{prefix}</span>
         <input
