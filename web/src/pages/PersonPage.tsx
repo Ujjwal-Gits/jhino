@@ -23,7 +23,10 @@ export function PersonPage({ name, user }: { name: string; user: User | null }) 
   const [d, setD] = useState<PublicResp | null | 'none'>(null);
   useEffect(() => {
     setD(null);
-    get<PublicResp>(`/api/profile/${encodeURIComponent(name)}`).then(setD, () => setD('none'));
+    get<PublicResp & { isApp?: boolean }>(`/api/profile/${encodeURIComponent(name)}`).then(
+      (res) => { if (res.isApp) setD('none'); else setD(res); },
+      () => setD('none')
+    );
   }, [name]);
   if (d === null) return <main className="state-card" aria-busy="true"><span className="spin" /></main>;
   // Not a person: a top-level address (made by a super admin, or before usernames).

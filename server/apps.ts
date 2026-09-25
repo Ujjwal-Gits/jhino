@@ -11,7 +11,7 @@ import { installPackage, appDir } from './packages.js';
 import { publish, revoke, notifyUser, watch, unwatch, openStream } from './realtime.js';
 import { snapshotFor } from './data.js';
 import { assertCanCreate, uploadLimitBytes } from './plans.js';
-import { assertNameFree, readAddressRequest, setSharing } from './publicshare.js';
+import { assertNameFree, readAddressRequest, setSharing, usernameOf } from './publicshare.js';
 import { uploadsOn } from './security.js';
 
 const ROLES: Role[] = ['editor', 'contributor', 'viewer'];
@@ -65,7 +65,7 @@ function appSummary(a: AppRow, userId: string) {
     built: !!v?.builder,
     brand,
     storage: db.prepare('SELECT COUNT(*) files, COALESCE(SUM(size),0) bytes FROM files WHERE app_id=?').get(a.id) as { files: number; bytes: number },
-    access: a.access ?? 'private', slug: a.slug ?? null, showBar: a.show_bar !== 0,
+    access: a.access ?? 'private', slug: a.slug ?? null, rootSlug: a.root_slug ?? null, ownerUsername: usernameOf(a.owner_id), showBar: a.show_bar !== 0,
   };
 }
 
@@ -403,7 +403,12 @@ export function registerApps(app: FastifyInstance) {
   });
 
   const loadInvite = (token: string) => {
-    const inv = db.prepare(`SELECT i.*, a.name app_name, a.deleted_at, u.name inviter FROM invites i JOIN apps a ON a.id=i.app_id JOIN users u ON u.id=i.created_by WHERE i.token_hash=?`)
+    const inv = db.prepare(`SELECT i.*, a.name app_name, a.slug, a.root_slug, a.deleted_at, u.name inviter, owner.username owner_username
+      FROM invites i
+      JOIN apps a ON a.id=i.app_id
+      JOIN users u ON u.id=i.created_by
+      LEFT JOIN users owner ON owner.id=a.owner_id
+      WHERE i.token_hash=?`)
       .get(sha256(token)) as (Record<string, any>) | undefined;
     if (!inv || inv.deleted_at) throw new HttpError(404, 'INVITE_INVALID', 'This invite link is not valid.');
     if (inv.revoked_at) throw new HttpError(410, 'INVITE_REVOKED', 'This invite link was turned off by the owner.');
@@ -411,9 +416,14 @@ export function registerApps(app: FastifyInstance) {
     if (Date.parse(inv.expires_at) < Date.now()) throw new HttpError(410, 'INVITE_EXPIRED', 'This invite link has expired. Ask for a new one.');
     return inv;
   };
+  const invitePath = (inv: Record<string, any>) => {
+    if (inv.root_slug) return `/${inv.root_slug}`;
+    if (inv.slug && inv.owner_username) return `/${inv.owner_username}/${inv.slug}`;
+    return `/apps/${inv.app_id}`;
+  };
   app.get('/api/invites/:token', async (req) => {
     const inv = loadInvite((req.params as { token: string }).token);
-    return { appName: inv.app_name, inviter: inv.inviter, role: inv.role, expiresAt: inv.expires_at };
+    return { appName: inv.app_name, inviter: inv.inviter, role: inv.role, expiresAt: inv.expires_at, appId: inv.app_id, appPath: invitePath(inv) };
   });
   app.post('/api/invites/:token/accept', async (req, reply) => {
     const token = (req.params as { token: string }).token;
@@ -440,7 +450,7 @@ export function registerApps(app: FastifyInstance) {
       return false;
     })();
     notifyUser(inv.created_by);
-    return { appId: inv.app_id, joined, user: publicUser(user) };
+    return { appId: inv.app_id, appPath: invitePath(inv), joined, user: publicUser(user) };
   });
 
   /* ---------- activity, data, export ---------- */

@@ -247,6 +247,23 @@ test('sharing by link: public, password and private; visitors only reach that ap
   await expect(rootPage.frameLocator('iframe').getByText('Visible to visitors')).toBeVisible({ timeout: 20_000 });
   await expect(rootPage.locator('.player-bar h1')).toContainText('Link test');
   await expect(rootPage).toHaveURL(new RegExp(`/${rootSlug}(#.*)?$`));
+
+  // Invite link for an app with a direct root URL preserves that exact setup URL upon joining
+  const invRes = await sita.call('POST', `/api/apps/${id}/invites`, { role: 'editor', days: 7 });
+  expect(invRes.status).toBe(200);
+  const inviteToken = invRes.json.url.split('/invite/')[1];
+  const invInfo = await v.call('GET', `/api/invites/${inviteToken}`);
+  expect(invInfo.json.appPath).toBe(`/${rootSlug}`);
+
+  const invitePage = await (await browser.newContext()).newPage();
+  await invitePage.goto(`/invite/${inviteToken}`);
+  await invitePage.fill('input[autocomplete=name]', 'Invite Member');
+  await invitePage.fill('input[autocomplete=email]', `member.${uniq()}@example.com`);
+  await invitePage.fill('input[autocomplete=new-password]', 'secure-pass-1234');
+  await invitePage.click('button:has-text("Create account and join")');
+  await invitePage.waitForURL(new RegExp(`/${rootSlug}(#.*)?$`));
+  await expect(invitePage).toHaveURL(new RegExp(`/${rootSlug}(#.*)?$`));
+  await expect(invitePage.frameLocator('iframe').getByText('Visible to visitors')).toBeVisible({ timeout: 20_000 });
 });
 
 test('super admin: create a paid sign-in, suspend and reactivate; uploads switch; only super admins get in', async () => {

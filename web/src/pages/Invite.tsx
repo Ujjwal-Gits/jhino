@@ -3,7 +3,7 @@ import { ApiError, get, post, type User } from '../api';
 import { useRoute } from '../context';
 import { AuthLayout } from './Login';
 
-interface Info { appName: string; inviter: string; role: 'editor' | 'viewer'; expiresAt: string }
+interface Info { appName: string; inviter: string; role: 'editor' | 'viewer'; expiresAt: string; appId?: string; appPath?: string }
 
 export function Invite({ token, user, onJoined }: { token: string; user: User | null; onJoined: () => Promise<void> }) {
   const { go } = useRoute();
@@ -22,9 +22,10 @@ export function Invite({ token, user, onJoined }: { token: string; user: User | 
     e?.preventDefault();
     setBusy(true); setError('');
     try {
-      const r = await post<{ appId: string }>(`/api/invites/${token}/accept`, user ? {} : form);
+      const r = await post<{ appId: string; appPath?: string }>(`/api/invites/${token}/accept`, user ? {} : form);
       await onJoined();
-      go(`/apps/${r.appId}`, true);
+      const dest = r.appPath || info?.appPath || `/apps/${r.appId}`;
+      go(dest, true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not join.');
       setBusy(false);
@@ -37,8 +38,9 @@ export function Invite({ token, user, onJoined }: { token: string; user: User | 
     try {
       await post('/api/auth/login', { email: form.email, password: form.password });
       await onJoined();
-      setBusy(false);
-      setSignIn(false);
+      const r = await post<{ appId: string; appPath?: string }>(`/api/invites/${token}/accept`, {});
+      const dest = r.appPath || info?.appPath || `/apps/${r.appId}`;
+      go(dest, true);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not sign in.');
       setBusy(false);

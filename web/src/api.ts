@@ -20,7 +20,7 @@ export interface AppSummary {
   built?: boolean;
   brand?: { client: string; field: string; accent: string; logo: boolean; sections: number } | null;
   storage?: { files: number; bytes: number };
-  access?: 'private' | 'public' | 'password'; slug?: string | null; showBar?: boolean;
+  access?: 'private' | 'public' | 'password'; slug?: string | null; rootSlug?: string | null; ownerUsername?: string | null; showBar?: boolean;
 }
 export interface Version { n: number; fileCount: number; size: number; sourceName: string; createdAt: string; uploadedBy: string; features: Features }
 export interface AppDetail extends AppSummary { versions: Version[] }

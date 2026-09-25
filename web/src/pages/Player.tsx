@@ -190,7 +190,14 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
   const bridge = useRef<Bridge | null>(null);
   const scroll = useRef<[number, number] | null>(null);
 
-  const loadApp = useCallback(() => get<{ app: AppDetail }>(`/api/apps/${id}`).then((r) => { setApp(r.app); return r.app; }), [id]);
+  const loadApp = useCallback(() => get<{ app: AppDetail }>(`/api/apps/${id}`).then((r) => {
+    setApp(r.app);
+    const vanity = r.app.rootSlug ? `/${r.app.rootSlug}` : (r.app.slug && r.app.ownerUsername ? `/${r.app.ownerUsername}/${r.app.slug}` : null);
+    if (vanity && !solo && location.pathname === `/apps/${id}`) {
+      history.replaceState(history.state, '', `${vanity}${location.hash}`);
+    }
+    return r.app;
+  }), [id, solo]);
 
   const launch = useCallback(async (keep?: { hash?: string; scroll?: [number, number] | null }) => {
     const r = await post<Run>(`/api/apps/${id}/launch`);
@@ -244,7 +251,8 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
         else if (type === 'open-full') {
           // From the single-item tab to the whole app, at the same item.
           const hash = typeof data?.hash === 'string' && /^#?[\w/-]{0,160}$/.test(data.hash) ? data.hash.replace(/^#?/, '#') : '';
-          location.href = `${visitor ? location.pathname : `/apps/${id}`}${hash === '#' ? '' : hash}`;
+          const base = app?.rootSlug ? `/${app.rootSlug}` : (app?.slug && app?.ownerUsername ? `/${app.ownerUsername}/${app.slug}` : `/apps/${id}`);
+          location.href = `${visitor ? location.pathname : base}${hash === '#' ? '' : hash}`;
         }
         else if (type === 'open-tab') {
           const hash = typeof data?.hash === 'string' && /^#?[\w/-]{0,160}$/.test(data.hash) ? data.hash.replace(/^#?/, '#') : '';

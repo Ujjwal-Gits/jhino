@@ -223,9 +223,14 @@ export function registerProfiles(app: FastifyInstance) {
   /** The public page's data. The owner also gets hidden items (marked), for the editor's preview. */
   app.get('/api/profile/:name', async (req) => {
     limit(req, 'profile-read', 240, 60_000);
-    const u = userByName((req.params as { name: string }).name);
+    const name = (req.params as { name: string }).name;
+    const u = userByName(name);
     const owner = !!u && !!req.user && !req.pub && !req.desk && req.user.id === u.id;
-    if (!u) throw new HttpError(404, 'NOT_FOUND', 'There is no page here.');
+    if (!u) {
+      const isApp = !!db.prepare('SELECT 1 FROM apps WHERE (root_slug=? COLLATE NOCASE OR share_token=?) AND deleted_at IS NULL').get(name, name);
+      if (isApp) return { profile: null, isApp: true, owner: false, custom: false, published: false };
+      throw new HttpError(404, 'NOT_FOUND', 'There is no page here.');
+    }
     const p = profileOf(u.id);
     if (!p.published && !owner) throw new HttpError(404, 'NOT_FOUND', 'This page is not public.');
     const custom = !!p.use_custom && !!p.custom_html && featuresOf(u).customPage;

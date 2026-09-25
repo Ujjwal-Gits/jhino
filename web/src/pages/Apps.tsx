@@ -102,11 +102,13 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
   }, [inView, kind, q, sort, pulse]);
   const attention = useMemo(() => inView.filter((a) => (pulse[a.id]?.unread ?? 0) > 0).sort((x, y) => lastAt(y, pulse[y.id]) > lastAt(x, pulse[x.id]) ? 1 : -1), [inView, pulse]);
 
+  const appPath = (a: AppSummary) => a.rootSlug ? `/${a.rootSlug}` : (a.slug && a.ownerUsername ? `/${a.ownerUsername}/${a.slug}` : `/apps/${a.id}`);
+
   // A client with just one app goes straight into it (once per visit, so Back still works).
   useEffect(() => {
     if (user.canCreate || view !== 'shared' || !apps || apps.length !== 1) return;
     try { if (sessionStorage.getItem('jhino-opened')) return; sessionStorage.setItem('jhino-opened', '1'); } catch { /* ignore */ }
-    go(`/apps/${apps[0].id}`, true);
+    go(appPath(apps[0]), true);
   }, [apps, user.canCreate, view, go]);
 
   const restore = async (a: AppSummary) => {
@@ -147,7 +149,7 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
     const client = clientOf(a);
     return (
       <li key={a.id} className={`ix-row ${p?.unread ? 'is-new' : ''}`}>
-        <Link to={`/apps/${a.id}`} className="ix-hit"><span className="sr-only">Open {a.name}</span></Link>
+        <Link to={appPath(a)} className="ix-hit"><span className="sr-only">Open {a.name}</span></Link>
         <Brand a={a} />
         <div className="ix-name">
           <p className="ix-title"><b>{a.name}</b>{client && <span className="ix-client">{client}</span>}</p>
@@ -253,8 +255,8 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
 
       {menu && (
         <Menu anchor={menu.el} onClose={() => setMenu(null)}>
-          <button role="menuitem" onClick={() => go(`/apps/${menu.a.id}`)}>Open</button>
-          <button role="menuitem" onClick={() => window.open(`/apps/${menu.a.id}`, '_blank', 'noopener')}>Open in a new tab</button>
+          <button role="menuitem" onClick={() => go(appPath(menu.a))}>Open</button>
+          <button role="menuitem" onClick={() => window.open(appPath(menu.a), '_blank', 'noopener')}>Open in a new tab</button>
           <button role="menuitem" onClick={async () => { const id = menu.a.id; setMenu(null); const fail = await downloadHtml(id); toast(fail ?? 'Downloaded. Open the file, sign in once, and it stays in sync.', !!fail); }}>Download as HTML file</button>
           {menu.a.role === 'owner' && <button role="menuitem" onClick={() => setShare(menu.a)}>Share and sign-ins</button>}
           {menu.a.role === 'owner' && menu.a.built && <button role="menuitem" onClick={() => go(`/apps/${menu.a.id}/blocks`)}>Edit features and design</button>}

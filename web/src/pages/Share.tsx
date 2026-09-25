@@ -46,7 +46,8 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
   useEffect(() => { reload().catch(() => {}); }, [reload]);
 
   const fail = (e: unknown) => setError(e instanceof ApiError ? e.message : 'Something went wrong.');
-  const appUrl = `${location.origin}/apps/${app.id}`;
+  const appPath = app.rootSlug ? `/${app.rootSlug}` : (app.slug && app.ownerUsername ? `/${app.ownerUsername}/${app.slug}` : `/apps/${app.id}`);
+  const appUrl = `${location.origin}${appPath}`;
   const credText = (s: { name: string; login: string; password: string }) =>
     `${app.name}\nOpen: ${appUrl}\nSign-in ID: ${s.login}\nPassword: ${s.password}\n\nYou can change the password after signing in.`;
 
