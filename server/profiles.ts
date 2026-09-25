@@ -8,6 +8,7 @@ import { HttpError, requireCreator } from './auth.js';
 import { limit, setSetting, setting } from './security.js';
 import { featuresOf } from './plans.js';
 import { THEME_TIERS, DEFAULT_THEME } from './themes.js';
+import { nextUsernameChange, USERNAME_EVERY_DAYS } from './usernames.js';
 
 /*
  * A person's public page at jhino.com/<username>: a link-in-bio page with their links, socials, a
@@ -294,6 +295,7 @@ export function registerProfiles(app: FastifyInstance) {
     try { socials = JSON.parse(p.socials); } catch { /* reset */ }
     return {
       username: u.username, page: pageData(u, true),
+      usernameNextChange: nextUsernameChange(u), usernameEveryDays: USERNAME_EVERY_DAYS,
       settings: { bio: p.bio, location: p.location, theme: p.theme, layout: p.layout, socials, published: !!p.published, customHtml: p.custom_html ?? '', useCustom: !!p.use_custom },
       items: items.map((r) => ({ id: r.id, type: r.type, title: r.title, subtitle: r.subtitle, url: r.url, text: r.text, appId: r.app_id, highlight: !!r.highlight, visible: !!r.visible, clicks30: clicks[r.id] ?? 0 })),
       features: { themeTier: f.themeTier, branding: f.branding, customPage: f.customPage, analyticsDays: f.analyticsDays },

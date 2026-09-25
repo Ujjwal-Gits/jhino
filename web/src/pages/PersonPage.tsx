@@ -54,6 +54,7 @@ function PublicProfile({ d }: { d: PublicResp }) {
 interface ItemT { id: string; type: 'link' | 'header' | 'text' | 'video' | 'app'; title: string; subtitle: string; url: string | null; text: string | null; appId: string | null; highlight: boolean; visible: boolean; clicks30: number }
 interface EditorT {
   username: string; page: ProfileData;
+  usernameNextChange?: string | null; usernameEveryDays?: number;
   settings: { bio: string; location: string; theme: string; layout: 'links' | 'profile'; socials: { kind: SocialKind; url: string }[]; published: boolean; customHtml: string; useCustom: boolean };
   items: ItemT[]; features: { themeTier: Tier; branding: string; customPage: boolean; analyticsDays: number };
   apps: { id: string; name: string; slug: string | null; access: string }[]; starter: string;
@@ -220,7 +221,7 @@ function ProfileTab({ d, run, reload }: { d: EditorT; run: Run; reload: () => vo
   const saveText = (e: FormEvent) => { e.preventDefault(); run(api<EditorT>('PUT', '/api/me/page', f), 'Saved'); };
   const saveSocials = () => run(api<EditorT>('PUT', '/api/me/page', { socials: socials.filter((s) => s.url.trim()) }), 'Socials saved');
   const changeName = async () => {
-    if (!confirm(`Change your username to @${uname}? Your page and every app address and short link move to jhino.com/${uname}/…, and the old addresses stop working.`)) return;
+    if (!confirm(`Change your username from @${d.username} to @${uname}?\n\n• Your public page moves to ${location.host}/${uname}\n• You can only change your username once every 30 days\n• Your previous username @${d.username} will be released immediately for anyone else to claim`)) return;
     try { await api('PUT', '/api/account/username', { username: uname }); await refresh(); toast('Username changed'); location.replace(`/${uname}?tab=profile`); }
     catch (e) { toast(e instanceof ApiError ? e.message : 'Could not change it.', true); }
   };
@@ -265,9 +266,36 @@ function ProfileTab({ d, run, reload }: { d: EditorT; run: Run; reload: () => vo
       </section>
       <section className="mp-sec">
         <h2>Username</h2>
-        <p className="hint">Your page is jhino.com/{d.username}, and your apps and short links live under it.</p>
-        <div className="linkbox"><span className="addr-host mono">{location.host}/</span><input className="input mono" value={uname} maxLength={30} onChange={(e) => setUname(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} aria-label="Username" />
-          <button className="btn sm" disabled={uname === d.username || uname.length < 3} onClick={changeName}>Change</button></div>
+        <p className="hint">Your page is {location.host}/{d.username}, and your apps and short links live under it.</p>
+        <div className="linkbox">
+          <span className="addr-host mono">{location.host}/</span>
+          <input
+            className="input mono"
+            value={uname}
+            maxLength={30}
+            disabled={!!d.usernameNextChange}
+            onChange={(e) => setUname(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
+            aria-label="Username"
+          />
+          <button
+            className="btn sm"
+            disabled={uname === d.username || uname.length < 3 || !!d.usernameNextChange}
+            onClick={changeName}
+          >
+            Change
+          </button>
+        </div>
+        {d.usernameNextChange ? (
+          <p className="hint warn-text">
+            Username can be changed once every 30 days. You can change yours again on{' '}
+            <b>{new Date(d.usernameNextChange).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</b>{' '}
+            ({Math.ceil((Date.parse(d.usernameNextChange) - Date.now()) / 864e5)} days left).
+          </p>
+        ) : (
+          <p className="hint">
+            You can change your username once every 30 days. If you change from <b>@{d.username}</b> to <b>@{uname || '...'}</b>, your old username <b>@{d.username}</b> is immediately released and becomes available for anyone else to take.
+          </p>
+        )}
       </section>
     </>
   );

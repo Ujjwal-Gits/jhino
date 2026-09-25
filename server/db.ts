@@ -553,6 +553,10 @@ const MIGRATIONS: string[] = [
   ALTER TABLE auth_tokens ADD COLUMN code_hash TEXT;
   ALTER TABLE auth_tokens ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0;
   `,
+  // 11: username 30-day cooldown tracking
+  `
+  ALTER TABLE users ADD COLUMN username_changed_at TEXT;
+  `,
 ];
 
 const current = db.pragma('user_version', { simple: true }) as number;
@@ -577,6 +581,7 @@ export interface UserRow {
   email_verified_at?: string | null; password_set?: number; password_changed_at?: string | null;
   last_login_at?: string | null; last_login_ip?: string | null; last_login_ua?: string | null;
   plan?: string; plan_started_at?: string | null; plan_expires_at?: string | null; plan_period?: string | null; username?: string | null; extra_creations?: number;
+  username_changed_at?: string | null;
   suspended_reason?: string | null; kind?: string; notify_prefs?: string;
 }
 export interface AppRow {

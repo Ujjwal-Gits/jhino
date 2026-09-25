@@ -430,6 +430,10 @@ test('usernames and addresses: unique usernames; each person\'s addresses live u
   expect((await anu.call('PUT', '/api/account/username', { username: rajName })).json.error).toBe('USERNAME_TAKEN');
   expect((await anu.call('PUT', '/api/account/username', { username: next })).status).toBe(200);
   expect((await anon.call('GET', `/api/usernames/check?name=${wanted}`)).json.available).toBe(true);
+  // Changing again within 30 days is blocked by the 30-day cooldown.
+  const tooSoon = await anu.call('PUT', '/api/account/username', { username: 'anuagain' + uniq() });
+  expect(tooSoon.status).toBe(429);
+  expect(tooSoon.json.error).toBe('USERNAME_COOLDOWN');
 });
 
 test('short links: go on to the address, count clicks, one namespace, plan limits, admins can turn them off', async () => {

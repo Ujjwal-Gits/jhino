@@ -50,16 +50,16 @@ export const THEMES: ThemeMeta[] = [
   { id: 'cyanotype', name: 'Cyanotype', tier: 'pro', blurb: 'Sunprint blue with a pressed fern.', swatch: { bg: '#1c3f7a', fg: '#eef2f8', accent: '#eef2f8' } },
 
   // ---- Pro Nepali Heritage (10 new)
-  { id: 'bhaktapur-terracotta', name: 'Bhaktapur Terracotta', tier: 'pro', blurb: 'Hand-carved Newari brickwork, clay pottery, brass accents.', swatch: { bg: '#421a14', fg: '#f7eee9', accent: '#d4653e' } },
-  { id: 'patan-patina', name: 'Patan Patina', tier: 'pro', blurb: 'Oxidized turquoise verdigris on cast temple bronze.', swatch: { bg: '#131917', fg: '#e8f3ef', accent: '#26bba7' } },
-  { id: 'pokhara-phewa', name: 'Pokhara Lakeside', tier: 'pro', blurb: 'Serene mountain reflections on twilight alpine waters.', swatch: { bg: '#0b1626', fg: '#f0f5fc', accent: '#50a2de' } },
-  { id: 'mustang-ochre', name: 'Mustang Ochre', tier: 'pro', blurb: 'Sunbaked cliffside caves and sacred Lo Manthang sands.', swatch: { bg: '#d9b277', fg: '#26190f', accent: '#993d18' } },
-  { id: 'dhaka-topi', name: 'Palpali Dhaka', tier: 'pro', blurb: 'Handloom geometric diamond weave on midnight cloth.', swatch: { bg: '#131620', fg: '#f5f6fa', accent: '#d62839' } },
-  { id: 'mithila-art', name: 'Mithila Folk', tier: 'pro', blurb: 'Janakpur ritual murals, double-line motifs, vermilion.', swatch: { bg: '#fdf7ee', fg: '#1c1b18', accent: '#d6341f' } },
-  { id: 'yak-wool', name: 'Khumbu Tweed', tier: 'pro', blurb: 'Cozy brushed yak fleece with nomadic crimson stitches.', swatch: { bg: '#1c1e20', fg: '#f3efe6', accent: '#c44536' } },
-  { id: 'bodhi-stupa', name: 'Boudha Harmika', tier: 'pro', blurb: 'Golden stupa spire, wisdom eyes, temple incense maroon.', swatch: { bg: '#2b0c12', fg: '#faf5ea', accent: '#e8b838' } },
-  { id: 'tihar-deusi', name: 'Tihar Diyo', tier: 'pro', blurb: 'Festival of lights, glowing oil lamps, marigold ring.', swatch: { bg: '#090a16', fg: '#fff7e6', accent: '#ff9900' } },
-  { id: 'rara-azure', name: 'Rara Alpine', tier: 'pro', blurb: 'Crystalline high-altitude sapphire lake and pine frost.', swatch: { bg: '#081c36', fg: '#eef6fc', accent: '#1ebad6' } },
+  { id: 'bhaktapur-terracotta', name: 'Bhaktapur Terracotta', tier: 'pro', blurb: 'Nyatapola pagoda roof, baked clay Dachi Appa bricks, temple bells.', swatch: { bg: '#2d100b', fg: '#fbf3ec', accent: '#d85d38' } },
+  { id: 'patan-patina', name: 'Patan Patina', tier: 'pro', blurb: 'Gilded repoussé torana arch, oxidized verdigris on cast bronze.', swatch: { bg: '#0d1715', fg: '#eef6f3', accent: '#1cbda4' } },
+  { id: 'pokhara-phewa', name: 'Pokhara Lakeside', tier: 'pro', blurb: 'Machhapuchhre reflection on dawn waters, painted paddle boat trim.', swatch: { bg: '#071526', fg: '#f2f7fc', accent: '#4fa8e0' } },
+  { id: 'mustang-ochre', name: 'Mustang Ochre', tier: 'pro', blurb: 'Lo Manthang sky caves, sacred 3 mineral stripe chorten, chiseled stone.', swatch: { bg: '#26160c', fg: '#f8f2e7', accent: '#9e3518' } },
+  { id: 'dhaka-topi', name: 'Palpali Dhaka', tier: 'pro', blurb: 'Authentic handloom geometric diamond weave tapestry, stitched edges.', swatch: { bg: '#0e121a', fg: '#f5f6fa', accent: '#cf2237' } },
+  { id: 'mithila-art', name: 'Mithila Folk', tier: 'pro', blurb: 'Janakpur ritual murals, double-line contour ink, peacocks and sacred fish.', swatch: { bg: '#faf4e8', fg: '#181614', accent: '#d93826' } },
+  { id: 'yak-wool', name: 'Khumbu Tweed', tier: 'pro', blurb: 'Sherpa Pangden rainbow apron band, heavy yak wool brushed twill.', swatch: { bg: '#16181b', fg: '#f2ece2', accent: '#cf3225' } },
+  { id: 'bodhi-stupa', name: 'Boudha Harmika', tier: 'pro', blurb: 'Golden stupa harmika with all-seeing Buddha wisdom eyes and Ekata nose.', swatch: { bg: '#20080d', fg: '#fcf7eb', accent: '#f2c03f' } },
+  { id: 'tihar-deusi', name: 'Tihar Diyo', tier: 'pro', blurb: 'Draped Sayapatri marigold garlands, burning terracotta clay oil lamps.', swatch: { bg: '#080914', fg: '#fff8eb', accent: '#ff8800' } },
+  { id: 'rara-azure', name: 'Rara Alpine', tier: 'pro', blurb: 'Himalayan blue pines overlooking pristine high-altitude sapphire waters.', swatch: { bg: '#04101e', fg: '#f0f7fe', accent: '#38bdf8' } },
 ];
 
 export const tierRank: Record<Tier, number> = { free: 0, plus: 1, pro: 2 };

@@ -537,14 +537,21 @@ function UserDetail({ id }: { id: string }) {
 function ProfileEdit({ u, onSaved }: { u: any; onSaved: () => void }) {
   const toast = useToast();
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ name: u.name, email: u.email });
+  const [f, setF] = useState({ name: u.name, email: u.email, username: u.username ?? '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  if (!open) return <div className="actions-row"><button className="btn sm" onClick={() => { setF({ name: u.name, email: u.email }); setOpen(true); }}>Edit name or email</button></div>;
+  if (!open) return <div className="actions-row"><button className="btn sm" onClick={() => { setF({ name: u.name, email: u.email, username: u.username ?? '' }); setOpen(true); }}>Edit name, email or username</button></div>;
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true); setError('');
-    try { await api('PATCH', `/api/admin/users/${u.id}`, { name: f.name, email: f.email }); toast('Saved'); setOpen(false); onSaved(); }
+    try {
+      await api('PATCH', `/api/admin/users/${u.id}`, {
+        name: f.name,
+        email: f.email,
+        ...(f.username && f.username.toLowerCase() !== (u.username ?? '').toLowerCase() ? { username: f.username } : {})
+      });
+      toast('Saved'); setOpen(false); onSaved();
+    }
     catch (e2) { setError(err(e2, 'Could not save.')); }
     setBusy(false);
   };
@@ -554,6 +561,8 @@ function ProfileEdit({ u, onSaved }: { u: any; onSaved: () => void }) {
         <label className="field"><span>Name</span><input className="input" required maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
         <label className="field"><span>Email or sign-in ID</span><input className="input" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
       </div>
+      <label className="field"><span>Username</span><input className="input mono" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') })} placeholder="username" /></label>
+      {f.username && f.username.toLowerCase() !== (u.username ?? '').toLowerCase() && <p className="hint">Their public page moves to jhino.com/{f.username}, and @{u.username} is immediately released for anyone else to take.</p>}
       {f.email.trim().toLowerCase() !== u.email.toLowerCase() && <p className="hint">They sign in with the new one from now on. If the old one was an email address, it gets a notice.</p>}
       {error && <p className="error-text" role="alert">{error}</p>}
       <div className="actions-row"><button className="btn sm primary" disabled={busy}>{busy && <span className="spin" />}Save</button><button type="button" className="btn sm quiet" onClick={() => setOpen(false)}>Cancel</button></div>
