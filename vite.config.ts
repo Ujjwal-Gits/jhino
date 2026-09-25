@@ -6,7 +6,8 @@ const api = 'http://127.0.0.1:4310';
 export default defineConfig({
   root: 'web',
   plugins: [react()],
-  build: { outDir: '../dist/web', emptyOutDir: true },
+  // Fonts stay files: the site's CSP allows fonts only from itself, not data: URLs.
+  build: { outDir: '../dist/web', emptyOutDir: true, assetsInlineLimit: (file) => (/\.(woff2?|ttf)$/.test(file) ? false : undefined) },
   server: {
     port: 5173,
     proxy: { '/api': api, '/run': api, '/_jhino': api },

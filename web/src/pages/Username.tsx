@@ -29,7 +29,7 @@ export function useUsernameCheck(name: string, current?: string | null): Check {
   return c;
 }
 
-export function UsernameField({ value, onChange, check, label = 'Username', autoFocus = false }: { value: string; onChange: (v: string) => void; check: Check; label?: string; autoFocus?: boolean }) {
+export function UsernameField({ value, onChange, check, label = 'Username', autoFocus = false, theirs = false }: { value: string; onChange: (v: string) => void; check: Check; label?: string; autoFocus?: boolean; theirs?: boolean }) {
   return (
     <div className="field addr-field">
       <label htmlFor="uname">{label}</label>
@@ -44,7 +44,9 @@ export function UsernameField({ value, onChange, check, label = 'Username', auto
         </span>
       </div>
       <small id="uname-s" className={`hint ${check.state === 'bad' ? 'error-text' : ''}`} aria-live="polite">
-        {check.state === 'bad' ? check.reason : check.state === 'ok' ? <>Yours. Your page is <span className="mono">{location.host}/{value}</span>, and your apps live under it.</> : 'Your page and every address you make use it. Letters, numbers, - and _.'}
+        {check.state === 'bad' ? check.reason
+          : check.state === 'ok' ? (theirs ? <>Free. Their page will be <span className="mono">{location.host}/{value}</span>.</> : <>Yours. Your page is <span className="mono">{location.host}/{value}</span>, and your apps live under it.</>)
+          : theirs ? 'Their page and every address they make use it. Letters, numbers, - and _.' : 'Your page and every address you make use it. Letters, numbers, - and _.'}
       </small>
     </div>
   );

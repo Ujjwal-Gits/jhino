@@ -79,6 +79,8 @@ function App() {
   const seg = path.split('/').filter(Boolean);
   const person = seg.length === 1 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) ? seg[0] : null;
   const under = seg.length === 2 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) && /^[a-z0-9][a-z0-9-]{1,49}$/i.test(seg[1]) ? `${seg[0]}/${seg[1]}` : null;
+  // jhino.com/<username>/links and /profile: that person's two pages ('links' and 'profile' are never app names).
+  const view = under && (seg[1] === 'links' || seg[1] === 'profile') ? (seg[1] as 'links' | 'profile') : null;
   const shell = (n: ReactNode) => (user ? <Shell>{n}</Shell> : n);
   if (user === undefined) page = null;
   else if (invite) page = <Invite token={invite[1]} user={user} onJoined={refresh} />;
@@ -87,6 +89,7 @@ function App() {
   else if (path === '/help') page = shell(<HelpPage signedIn={!!user} />);
   else if (path === '/terms') page = shell(<TermsPage signedIn={!!user} />);
   else if (path === '/privacy') page = shell(<PrivacyPage signedIn={!!user} />);
+  else if (view) page = <PersonPage key={path} name={seg[0]} user={user} view={view} />;
   else if (shareMatch || under) page = <PublicApp refId={shareMatch ? shareMatch[1] : under!} signedInUser={user} />;
   else if (person) page = <PersonPage name={person} user={user} />;
   else if (path === '/_themes' && user?.isAdmin) page = <ThemeGallery />;

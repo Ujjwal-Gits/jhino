@@ -553,6 +553,25 @@ const MIGRATIONS: string[] = [
   ALTER TABLE auth_tokens ADD COLUMN code_hash TEXT;
   ALTER TABLE auth_tokens ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0;
   `,
+  // 11: two public pages per person: the links page and a profile page (a portfolio). Which one opens
+  // at jhino.com/<username> is the person's choice (home).
+  `
+  ALTER TABLE profiles ADD COLUMN home TEXT NOT NULL DEFAULT 'links';
+  UPDATE profiles SET home = CASE WHEN layout = 'profile' THEN 'profile' ELSE 'links' END;
+  ALTER TABLE profiles ADD COLUMN headline TEXT NOT NULL DEFAULT '';
+  ALTER TABLE profiles ADD COLUMN about TEXT NOT NULL DEFAULT '';
+  ALTER TABLE profiles ADD COLUMN cover TEXT;
+  ALTER TABLE profiles ADD COLUMN cta TEXT;
+  ALTER TABLE profiles ADD COLUMN stats TEXT NOT NULL DEFAULT '[]';
+  ALTER TABLE profiles ADD COLUMN services TEXT NOT NULL DEFAULT '[]';
+  ALTER TABLE profiles ADD COLUMN work TEXT NOT NULL DEFAULT '[]';
+  ALTER TABLE profiles ADD COLUMN palette TEXT NOT NULL DEFAULT 'studio';
+  ALTER TABLE profiles ADD COLUMN ptype TEXT NOT NULL DEFAULT 'sans';
+  `,
+  // 12: a person changes their own username at most once in 30 days (a super admin can change it any time).
+  `
+  ALTER TABLE users ADD COLUMN username_changed_at TEXT;
+  `,
 ];
 
 const current = db.pragma('user_version', { simple: true }) as number;
@@ -574,7 +593,7 @@ export interface UserRow {
   created_by?: string | null;
   display_name?: string | null; phone?: string | null; country?: string | null; timezone?: string | null; language?: string;
   company?: string | null; job_title?: string | null; bio?: string | null; avatar?: string | null;
-  email_verified_at?: string | null; password_set?: number; password_changed_at?: string | null;
+  email_verified_at?: string | null; password_set?: number; password_changed_at?: string | null; username_changed_at?: string | null;
   last_login_at?: string | null; last_login_ip?: string | null; last_login_ua?: string | null;
   plan?: string; plan_started_at?: string | null; plan_expires_at?: string | null; plan_period?: string | null; username?: string | null; extra_creations?: number;
   suspended_reason?: string | null; kind?: string; notify_prefs?: string;

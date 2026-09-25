@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { db, type UserRow } from './db.js';
+import { db, now, type UserRow } from './db.js';
 import { HttpError, requireUser } from './auth.js';
 import { audit, limit, securityEvent } from './security.js';
 import { RESERVED, rootNameInUse } from './publicshare.js';
@@ -49,6 +49,14 @@ export function ensureUsernames() {
   }
   return rows.length;
 }
+/** People change their own username once in 30 days; the old one is free for anyone at once. */
+export const USERNAME_EVERY_DAYS = 30;
+export function nextUsernameChange(u: UserRow): string | null {
+  if (u.is_admin || !u.username_changed_at) return null;
+  const next = new Date(Date.parse(u.username_changed_at) + USERNAME_EVERY_DAYS * 864e5);
+  return next.getTime() > Date.now() ? next.toISOString() : null;
+}
+
 /** Set a username now (sign-up, admin-made accounts); falls back to a suggestion. */
 export function assignUsername(userId: string, wanted: string | null | undefined, from: string) {
   let name: string;
@@ -76,8 +84,10 @@ export function registerUsernames(app: FastifyInstance) {
     limit(req, 'username-change', 10, 24 * 3600_000, u.id);
     const name = validUsername((req.body as { username?: string })?.username);
     if (name === (u.username ?? '').toLowerCase()) return { username: name };
+    const next = nextUsernameChange(u);
+    if (next) throw new HttpError(429, 'USERNAME_COOLDOWN', `You can change your username once in ${USERNAME_EVERY_DAYS} days. Next change: ${next.slice(0, 10)}.`, { next });
     assertUsernameFree(name, u.id);
-    db.prepare('UPDATE users SET username=? WHERE id=?').run(name, u.id);
+    db.prepare('UPDATE users SET username=?, username_changed_at=? WHERE id=?').run(name, now(), u.id);
     securityEvent(u.id, 'username_changed', req, `${u.username ?? ''} → ${name}`);
     audit(req, 'user.username', 'user', u.id, `${u.username ?? ''} → ${name}`);
     return { username: name };

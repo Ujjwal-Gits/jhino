@@ -22,6 +22,7 @@ test-results/
 playwright-report/
 *.log
 .impeccable/
+.*.mjs
 
 # Local only: example apps, downloaded app files, internal notes
 samples/

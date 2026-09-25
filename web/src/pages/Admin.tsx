@@ -3,6 +3,7 @@ import { ApiError, api, avatarUrl, get, post } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 import { refreshPlans } from '../plans';
+import { UsernameField, useUsernameCheck } from './Username';
 
 /*
  * Super Admin: the platform owners' own workspace. A full-height sidebar on the left edge, a working
@@ -404,7 +405,7 @@ function CreateUser({ onClose }: { onClose: (madeId?: string) => void }) {
             <p className="hint">Makes a ready account with a password you pass on. Use it for customers who paid you directly, for a teammate (tick super admin), or to set someone up.</p>
             <label className="field"><span>Name</span><input className="input" required maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoFocus /></label>
             <label className="field"><span>Email or sign-in ID</span><input className="input" required autoComplete="off" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
-            <label className="field"><span>Username <em>optional: made from the email if empty</em></span><input className="input mono" autoComplete="off" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') })} placeholder="their-studio" /></label>
+            <NewUsername value={f.username} onChange={(v) => setF({ ...f, username: v })} />
             <label className="field"><span>Password <em>optional</em></span><input className="input" autoComplete="new-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} placeholder="Leave empty to generate one" /></label>
             {!f.superAdmin && (
               <div className="grid2">
@@ -534,17 +535,25 @@ function UserDetail({ id }: { id: string }) {
 }
 
 /** Change someone's name or sign-in email (set by a super admin, it counts as confirmed). */
+/** The username in the new-user form: checked as it is typed; empty means one is made from the email. */
+function NewUsername({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const check = useUsernameCheck(value);
+  return <UsernameField value={value} onChange={onChange} check={check} label="Username (optional: made from the email if empty)" theirs />;
+}
+
 function ProfileEdit({ u, onSaved }: { u: any; onSaved: () => void }) {
   const toast = useToast();
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ name: u.name, email: u.email });
+  const [f, setF] = useState({ name: u.name, email: u.email, username: u.username ?? '' });
+  const check = useUsernameCheck(f.username, u.username);
+  const hasName = u.role !== 'client';
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  if (!open) return <div className="actions-row"><button className="btn sm" onClick={() => { setF({ name: u.name, email: u.email }); setOpen(true); }}>Edit name or email</button></div>;
+  if (!open) return <div className="actions-row"><button className="btn sm" onClick={() => { setF({ name: u.name, email: u.email, username: u.username ?? '' }); setOpen(true); }}>{hasName ? 'Edit name, email or username' : 'Edit name or email'}</button></div>;
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true); setError('');
-    try { await api('PATCH', `/api/admin/users/${u.id}`, { name: f.name, email: f.email }); toast('Saved'); setOpen(false); onSaved(); }
+    try { await api('PATCH', `/api/admin/users/${u.id}`, { name: f.name, email: f.email, ...(hasName && f.username && f.username !== u.username ? { username: f.username } : {}) }); toast('Saved'); setOpen(false); onSaved(); }
     catch (e2) { setError(err(e2, 'Could not save.')); }
     setBusy(false);
   };
@@ -554,6 +563,8 @@ function ProfileEdit({ u, onSaved }: { u: any; onSaved: () => void }) {
         <label className="field"><span>Name</span><input className="input" required maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
         <label className="field"><span>Email or sign-in ID</span><input className="input" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
       </div>
+      {hasName && <UsernameField value={f.username} onChange={(v) => setF({ ...f, username: v })} check={check} theirs />}
+      {hasName && f.username !== (u.username ?? '') && <p className="hint">Their page, app addresses and short links move to the new name, and @{u.username} becomes free for anyone. Their own 30-day limit does not change.</p>}
       {f.email.trim().toLowerCase() !== u.email.toLowerCase() && <p className="hint">They sign in with the new one from now on. If the old one was an email address, it gets a notice.</p>}
       {error && <p className="error-text" role="alert">{error}</p>}
       <div className="actions-row"><button className="btn sm primary" disabled={busy}>{busy && <span className="spin" />}Save</button><button type="button" className="btn sm quiet" onClick={() => setOpen(false)}>Cancel</button></div>

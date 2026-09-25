@@ -10,7 +10,7 @@ import { deleteAccount } from './account.js';
 import { mailReady, mails, sendMail } from './mail.js';
 import { providerReady } from './oauth.js';
 import { RESERVED, assertRootFree, baseFor, setSharing, shareInfo, validSlug } from './publicshare.js';
-import { assignUsername } from './usernames.js';
+import { assertUsernameFree, assignUsername, validUsername } from './usernames.js';
 import { createAppFromUpload, readUpload } from './apps.js';
 
 /*
@@ -173,9 +173,16 @@ export function registerSuperAdmin(app: FastifyInstance) {
   app.patch('/api/admin/users/:id', async (req) => {
     const admin = requireAdmin(req);
     const u = getUser((req.params as { id: string }).id);
-    const b = (req.body ?? {}) as { name?: string; email?: string; plan?: string; period?: string; planExpiresAt?: string | null; extraCreations?: number; suspended?: boolean; reason?: string; superAdmin?: boolean; emailVerified?: boolean };
+    const b = (req.body ?? {}) as { name?: string; email?: string; username?: string; plan?: string; period?: string; planExpiresAt?: string | null; extraCreations?: number; suspended?: boolean; reason?: string; superAdmin?: boolean; emailVerified?: boolean };
     const self = u.id === admin.id;
     if (b.name !== undefined) { db.prepare('UPDATE users SET name=? WHERE id=?').run(validateName(b.name), u.id); audit(req, 'user.rename', 'user', u.id, `${u.name} → ${b.name}`); }
+    // A super admin sets anyone's username, any time; the person's own 30-day wait is not affected.
+    if (b.username !== undefined && String(b.username).trim().toLowerCase() !== (u.username ?? '').toLowerCase()) {
+      const name = validUsername(b.username);
+      assertUsernameFree(name, u.id);
+      db.prepare('UPDATE users SET username=? WHERE id=?').run(name, u.id);
+      audit(req, 'user.username', 'user', u.id, `${u.username ?? ''} → ${name}`);
+    }
     if (b.email !== undefined && String(b.email).trim().toLowerCase() !== u.email.toLowerCase()) {
       const email = validateEmail(b.email);
       if (db.prepare('SELECT 1 FROM users WHERE lower(email)=lower(?) AND id<>?').get(email, u.id)) throw new HttpError(409, 'EMAIL_TAKEN', 'Another account already uses that email or sign-in ID.');

@@ -1,0 +1,7 @@
+/* Faces used only by the public pages. Browsers fetch a face only when text on screen uses it. */
+@import '@fontsource-variable/fraunces/full.css';
+@import '@fontsource-variable/fraunces/full-italic.css';
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/bodoni-moda/standard.css';
+@import '@fontsource-variable/archivo/wdth.css';

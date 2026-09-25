@@ -5,7 +5,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { config } from './config.js';
 import { db, newId, now, sha256, type UserRow } from './db.js';
 import { HttpError, requireCreator } from './auth.js';
-import { limit, setSetting, setting } from './security.js';
+import { imageType, limit, setSetting, setting } from './security.js';
 import { featuresOf } from './plans.js';
 import { THEME_TIERS, DEFAULT_THEME } from './themes.js';
 
@@ -23,7 +23,15 @@ const SOCIALS = ['instagram', 'facebook', 'tiktok', 'youtube', 'x', 'linkedin', 
 type SocialKind = typeof SOCIALS[number];
 const TIER = { free: 0, plus: 1, pro: 2 } as const;
 
-interface ProfileRow { user_id: string; bio: string; location: string; theme: string; layout: string; socials: string; published: number; custom_html: string | null; use_custom: number; updated_at: string }
+interface ProfileRow {
+  user_id: string; bio: string; location: string; theme: string; layout: string; socials: string; published: number; custom_html: string | null; use_custom: number; updated_at: string;
+  home: string; headline: string; about: string; cover: string | null; cta: string | null; stats: string; services: string; work: string; palette: string; ptype: string;
+}
+const PALETTES = ['studio', 'night', 'sand', 'forest', 'navy', 'oxblood', 'stone', 'porcelain'];
+const imgDir = () => path.join(config.dataDir, 'system', 'profiles');
+/** Work images on the profile page, by plan. */
+const workLimit = (u: UserRow) => ({ free: 6, plus: 12, pro: 24 } as const)[featuresOf(u).themeTier];
+const json = <T,>(s: string | null, d: T): T => { try { return s ? JSON.parse(s) as T : d; } catch { return d; } };
 interface ItemRow { id: string; user_id: string; position: number; type: ItemType; title: string; subtitle: string; url: string | null; text: string | null; app_id: string | null; highlight: number; visible: number; created_at: string; updated_at: string }
 
 function profileOf(userId: string): ProfileRow {
@@ -118,10 +126,17 @@ export function pageData(u: UserRow, forOwner = false) {
   const rows = db.prepare('SELECT * FROM profile_items WHERE user_id=? ORDER BY position, created_at').all(u.id) as ItemRow[];
   let socials: { kind: string; url: string }[] = [];
   try { socials = JSON.parse(p.socials); } catch { /* reset */ }
+  const img = (f: string) => `/api/profile/${u.username}/img/${f}`;
   return {
     username: u.username!, name: u.display_name || u.name, bio: p.bio, location: p.location, avatarUrl: avatarUrl(u),
-    theme: effectiveTheme(u, p.theme), layout: p.layout === 'profile' ? 'profile' : 'links', branding: featuresOf(u).branding,
+    theme: effectiveTheme(u, p.theme), home: p.home === 'profile' ? 'profile' : 'links', branding: featuresOf(u).branding,
     socials, items: publicItems(u, rows, forOwner),
+    portfolio: {
+      headline: p.headline, about: p.about, coverUrl: p.cover ? img(p.cover) : null, cta: json<{ label: string; url: string } | null>(p.cta, null),
+      stats: json<{ value: string; label: string }[]>(p.stats, []), services: json<{ name: string; note: string; price: string }[]>(p.services, []),
+      work: json<{ id: string; caption: string }[]>(p.work, []).map((w) => ({ id: w.id, url: img(w.id), caption: w.caption })),
+      palette: PALETTES.includes(p.palette) ? p.palette : 'studio', type: p.ptype === 'serif' ? 'serif' : 'sans',
+    },
   };
 }
 
@@ -159,7 +174,7 @@ const bump = {
   click: db.prepare('INSERT INTO page_days(user_id,day,views,visitors,clicks) VALUES(?,?,0,0,1) ON CONFLICT(user_id,day) DO UPDATE SET clicks=clicks+1'),
   item: db.prepare('INSERT INTO item_days(item_id,user_id,day,clicks) VALUES(?,?,?,1) ON CONFLICT(item_id,day) DO UPDATE SET clicks=clicks+1'),
 };
-function countView(req: FastifyRequest, userId: string, ref: unknown) {
+function countView(req: FastifyRequest, userId: string, ref: unknown, page: 'Links' | 'Profile' = 'Links') {
   const ua = String(req.headers['user-agent'] ?? '');
   const device = deviceOf(ua);
   if (device === 'Bot') return;
@@ -167,6 +182,7 @@ function countView(req: FastifyRequest, userId: string, ref: unknown) {
   const visitor = sha256(`${daySalt(day)}:${req.ip}:${ua}`).slice(0, 32);
   db.transaction(() => {
     bump.view.run(userId, day);
+    bump.dim.run(userId, day, 'page', page);
     if (bump.seen.run(userId, day, visitor).changes) {
       bump.visitor.run(userId, day);
       bump.dim.run(userId, day, 'device', device);
@@ -236,7 +252,8 @@ export function registerProfiles(app: FastifyInstance) {
     limit(req, 'profile-hit', 60, 60_000);
     const u = userByName((req.params as { name: string }).name);
     if (!u || (req.user && req.user.id === u.id)) return { ok: true };
-    countView(req, u.id, (req.body as { ref?: string } | undefined)?.ref);
+    const b = (req.body ?? {}) as { ref?: string; view?: string };
+    countView(req, u.id, b.ref, b.view === 'profile' ? 'Profile' : 'Links');
     return { ok: true };
   });
 
@@ -249,6 +266,20 @@ export function registerProfiles(app: FastifyInstance) {
     const type = u.avatar.endsWith('.png') ? 'image/png' : u.avatar.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
     reply.header('Cache-Control', 'public, max-age=86400').header('X-Content-Type-Options', 'nosniff').header('Content-Security-Policy', "sandbox; default-src 'none'");
     return reply.type(type).send(fs.readFileSync(file));
+  });
+
+  /** Images on a profile page are public: they are on the page. Only files that page uses. */
+  app.get('/api/profile/:name/img/:file', async (req, reply) => {
+    const { name, file } = req.params as { name: string; file: string };
+    const u = userByName(name);
+    if (!u || !/^[\w.-]+$/.test(file)) throw new HttpError(404, 'NOT_FOUND', 'No image.');
+    const p = profileOf(u.id);
+    if (!p.published && req.user?.id !== u.id) throw new HttpError(404, 'NOT_FOUND', 'No image.');
+    const used = p.cover === file || json<{ id: string }[]>(p.work, []).some((w) => w.id === file);
+    const f = path.join(imgDir(), file);
+    if (!used || !fs.existsSync(f)) throw new HttpError(404, 'NOT_FOUND', 'No image.');
+    reply.header('Cache-Control', 'public, max-age=604800, immutable').header('X-Content-Type-Options', 'nosniff').header('Content-Security-Policy', "sandbox; default-src 'none'");
+    return reply.type(file.endsWith('.png') ? 'image/png' : file.endsWith('.webp') ? 'image/webp' : 'image/jpeg').send(fs.readFileSync(f));
   });
 
   /** Every link on a page goes through here: count the click, then go. */
@@ -294,14 +325,54 @@ export function registerProfiles(app: FastifyInstance) {
     try { socials = JSON.parse(p.socials); } catch { /* reset */ }
     return {
       username: u.username, page: pageData(u, true),
-      settings: { bio: p.bio, location: p.location, theme: p.theme, layout: p.layout, socials, published: !!p.published, customHtml: p.custom_html ?? '', useCustom: !!p.use_custom },
+      settings: { bio: p.bio, location: p.location, theme: p.theme, home: p.home === 'profile' ? 'profile' : 'links', socials, published: !!p.published, customHtml: p.custom_html ?? '', useCustom: !!p.use_custom },
       items: items.map((r) => ({ id: r.id, type: r.type, title: r.title, subtitle: r.subtitle, url: r.url, text: r.text, appId: r.app_id, highlight: !!r.highlight, visible: !!r.visible, clicks30: clicks[r.id] ?? 0 })),
-      features: { themeTier: f.themeTier, branding: f.branding, customPage: f.customPage, analyticsDays: f.analyticsDays },
+      features: { themeTier: f.themeTier, branding: f.branding, customPage: f.customPage, analyticsDays: f.analyticsDays, workImages: workLimit(u) },
       apps: db.prepare('SELECT id, name, slug, access FROM apps WHERE owner_id=? AND deleted_at IS NULL ORDER BY updated_at DESC').all(u.id),
       starter: CUSTOM_STARTER, themeTiers: THEME_TIERS,
     };
   };
   app.get('/api/me/page', async (req) => editorView(me(req)));
+
+  /** A cover photo or a work image for the profile page (JPG, PNG or WEBP, checked by its bytes). */
+  app.post('/api/me/page/image', async (req) => {
+    const u = me(req);
+    limit(req, 'page-image', 60, 3600_000, u.id);
+    const kind = (req.query as { kind?: string }).kind === 'cover' ? 'cover' : 'work';
+    const p = profileOf(u.id);
+    const work = json<{ id: string; caption: string }[]>(p.work, []);
+    if (kind === 'work' && work.length >= workLimit(u)) throw new HttpError(403, 'LIMIT_REACHED', `Your plan holds ${workLimit(u)} work images. Remove one, or upgrade in Plan & usage.`);
+    const max = 10 * 1024 * 1024;
+    if (Number(req.headers['content-length'] || 0) > max + 64 * 1024) throw new HttpError(413, 'TOO_LARGE', 'Use an image up to 10 MB.');
+    const part = await req.file({ limits: { fileSize: max, files: 1, fields: 2 } });
+    if (!part) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose an image.');
+    const buf = await part.toBuffer();
+    if (part.file.truncated) throw new HttpError(413, 'TOO_LARGE', 'Use an image up to 10 MB.');
+    const type = imageType(buf);
+    if (!type) throw new HttpError(400, 'VALIDATION_FAILED', 'Use a JPG, PNG or WEBP image.');
+    const file = `${u.id}-${crypto.randomBytes(8).toString('hex')}.${type === 'image/png' ? 'png' : type === 'image/webp' ? 'webp' : 'jpg'}`;
+    fs.writeFileSync(path.join(imgDir(), file), buf, { flag: 'wx' });
+    if (kind === 'cover') {
+      if (p.cover) fs.rmSync(path.join(imgDir(), p.cover), { force: true });
+      db.prepare('UPDATE profiles SET cover=?, updated_at=? WHERE user_id=?').run(file, now(), u.id);
+    } else {
+      db.prepare('UPDATE profiles SET work=?, updated_at=? WHERE user_id=?').run(JSON.stringify([...work, { id: file, caption: '' }]), now(), u.id);
+    }
+    return editorView(u);
+  });
+  app.delete('/api/me/page/image/:file', async (req) => {
+    const u = me(req);
+    const file = (req.params as { file: string }).file;
+    const p = profileOf(u.id);
+    if (p.cover === file) db.prepare('UPDATE profiles SET cover=NULL WHERE user_id=?').run(u.id);
+    else {
+      const work = json<{ id: string; caption: string }[]>(p.work, []);
+      if (!work.some((w) => w.id === file)) throw new HttpError(404, 'NOT_FOUND', 'That image is not on your page.');
+      db.prepare('UPDATE profiles SET work=? WHERE user_id=?').run(JSON.stringify(work.filter((w) => w.id !== file)), u.id);
+    }
+    if (/^[\w.-]+$/.test(file)) fs.rmSync(path.join(imgDir(), file), { force: true });
+    return editorView(u);
+  });
 
   app.put('/api/me/page', async (req) => {
     const u = me(req);
@@ -312,7 +383,39 @@ export function registerProfiles(app: FastifyInstance) {
     const next = { ...p };
     if (b.bio !== undefined) { const s = String(b.bio).trim(); if (s.length > 280) throw new HttpError(400, 'VALIDATION_FAILED', 'Keep the bio to 280 characters.'); next.bio = s; }
     if (b.location !== undefined) next.location = String(b.location).trim().slice(0, 80);
-    if (b.layout !== undefined) next.layout = b.layout === 'profile' ? 'profile' : 'links';
+    if (b.home !== undefined) next.home = b.home === 'profile' ? 'profile' : 'links';
+    if (b.headline !== undefined) next.headline = String(b.headline).trim().slice(0, 120);
+    if (b.about !== undefined) { const s = String(b.about).trim(); if (s.length > 1500) throw new HttpError(400, 'VALIDATION_FAILED', 'Keep About to 1,500 characters.'); next.about = s; }
+    if (b.palette !== undefined) { if (!PALETTES.includes(String(b.palette))) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose one of the colours.'); next.palette = String(b.palette); }
+    if (b.ptype !== undefined) next.ptype = b.ptype === 'serif' ? 'serif' : 'sans';
+    if (b.cta !== undefined) {
+      const c = b.cta as { label?: string; url?: string } | null;
+      if (!c || (!c.url && !c.label)) next.cta = null;
+      else {
+        const label = String(c.label ?? '').trim().slice(0, 40);
+        if (!label) throw new HttpError(400, 'VALIDATION_FAILED', 'Write what the main button says.');
+        const raw = String(c.url ?? '').trim();
+        const url = /^(mailto:|tel:)/i.test(raw) ? raw.slice(0, 300) : httpUrl(raw, 'link for the button');
+        next.cta = JSON.stringify({ label, url });
+      }
+    }
+    if (b.stats !== undefined) {
+      if (!Array.isArray(b.stats) || b.stats.length > 4) throw new HttpError(400, 'VALIDATION_FAILED', 'Add up to 4 numbers.');
+      next.stats = JSON.stringify(b.stats.map((x) => ({ value: String((x as { value?: string }).value ?? '').trim().slice(0, 16), label: String((x as { label?: string }).label ?? '').trim().slice(0, 40) })).filter((x) => x.value && x.label));
+    }
+    if (b.services !== undefined) {
+      if (!Array.isArray(b.services) || b.services.length > 12) throw new HttpError(400, 'VALIDATION_FAILED', 'Add up to 12 services.');
+      next.services = JSON.stringify(b.services.map((x) => ({ name: String((x as { name?: string }).name ?? '').trim().slice(0, 60), note: String((x as { note?: string }).note ?? '').trim().slice(0, 140), price: String((x as { price?: string }).price ?? '').trim().slice(0, 40) })).filter((x) => x.name));
+    }
+    if (b.work !== undefined) {
+      // Only reorder and caption: images are added and removed through their own routes.
+      const have = new Set(json<{ id: string }[]>(p.work, []).map((w) => w.id));
+      if (!Array.isArray(b.work)) throw new HttpError(400, 'VALIDATION_FAILED', 'Send the images.');
+      const sent = b.work.filter((w) => have.has(String((w as { id?: string }).id))).map((w) => ({ id: String((w as { id: string }).id), caption: String((w as { caption?: string }).caption ?? '').trim().slice(0, 80) }));
+      // An image left out keeps its place at the end: only its own route removes it (and its file).
+      const kept = json<{ id: string; caption: string }[]>(p.work, []).filter((w) => !sent.some((x) => x.id === w.id));
+      next.work = JSON.stringify([...new Map([...sent, ...kept].map((w) => [w.id, w])).values()]);
+    }
     if (b.published !== undefined) next.published = b.published ? 1 : 0;
     if (b.theme !== undefined) {
       const t = String(b.theme);
@@ -340,8 +443,10 @@ export function registerProfiles(app: FastifyInstance) {
       if (b.useCustom && !next.custom_html) throw new HttpError(400, 'VALIDATION_FAILED', 'Add your HTML first.');
       next.use_custom = b.useCustom ? 1 : 0;
     }
-    db.prepare('UPDATE profiles SET bio=?, location=?, theme=?, layout=?, socials=?, published=?, custom_html=?, use_custom=?, updated_at=? WHERE user_id=?')
-      .run(next.bio, next.location, next.theme, next.layout, next.socials, next.published, next.custom_html, next.use_custom, now(), u.id);
+    db.prepare(`UPDATE profiles SET bio=?, location=?, theme=?, layout=?, socials=?, published=?, custom_html=?, use_custom=?, home=?, headline=?, about=?,
+      cta=?, stats=?, services=?, work=?, palette=?, ptype=?, updated_at=? WHERE user_id=?`)
+      .run(next.bio, next.location, next.theme, next.layout, next.socials, next.published, next.custom_html, next.use_custom, next.home, next.headline, next.about,
+        next.cta, next.stats, next.services, next.work, next.palette, next.ptype, now(), u.id);
     return editorView(u);
   });
 
@@ -418,6 +523,6 @@ export function registerProfiles(app: FastifyInstance) {
       WHERE i.user_id=? AND i.type IN ('link','video','app') GROUP BY i.id ORDER BY clicks DESC, i.position`).all(from, u.id);
     const links = db.prepare(`SELECT l.code, l.url, COALESCE(SUM(c.n),0) clicks FROM short_links l LEFT JOIN link_clicks c ON c.link_id=l.id AND c.day>=? WHERE l.owner_id=? GROUP BY l.id ORDER BY clicks DESC LIMIT 20`).all(from, u.id);
     const views = sum('views'); const clicks = sum('clicks');
-    return { days, maxDays: max, totals: { views, visitors: sum('visitors'), clicks, ctr: views ? Math.round((clicks / views) * 1000) / 10 : 0 }, series, items, refs: dims('ref'), devices: dims('device'), countries: dims('country'), shortLinks: links };
+    return { days, maxDays: max, totals: { views, visitors: sum('visitors'), clicks, ctr: views ? Math.round((clicks / views) * 1000) / 10 : 0 }, series, items, refs: dims('ref'), devices: dims('device'), countries: dims('country'), pages: dims('page'), shortLinks: links };
   });
 }
