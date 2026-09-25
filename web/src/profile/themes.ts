@@ -48,6 +48,18 @@ export const THEMES: ThemeMeta[] = [
   { id: 'velvet', name: 'Velvet', tier: 'pro', blurb: 'Oxblood pile and soft italic serif.', swatch: { bg: '#3a0e18', fg: '#f5e6d8', accent: '#e8b4a0' } },
   { id: 'prayer-flags', name: 'Prayer Flags', tier: 'pro', blurb: 'Five colours strung across the sky.', swatch: { bg: '#fbf9f4', fg: '#1d2430', accent: '#2d5fa8' } },
   { id: 'cyanotype', name: 'Cyanotype', tier: 'pro', blurb: 'Sunprint blue with a pressed fern.', swatch: { bg: '#1c3f7a', fg: '#eef2f8', accent: '#eef2f8' } },
+
+  // ---- Pro Nepali Heritage (10 new)
+  { id: 'bhaktapur-terracotta', name: 'Bhaktapur Terracotta', tier: 'pro', blurb: 'Hand-carved Newari brickwork, clay pottery, brass accents.', swatch: { bg: '#421a14', fg: '#f7eee9', accent: '#d4653e' } },
+  { id: 'patan-patina', name: 'Patan Patina', tier: 'pro', blurb: 'Oxidized turquoise verdigris on cast temple bronze.', swatch: { bg: '#131917', fg: '#e8f3ef', accent: '#26bba7' } },
+  { id: 'pokhara-phewa', name: 'Pokhara Lakeside', tier: 'pro', blurb: 'Serene mountain reflections on twilight alpine waters.', swatch: { bg: '#0b1626', fg: '#f0f5fc', accent: '#50a2de' } },
+  { id: 'mustang-ochre', name: 'Mustang Ochre', tier: 'pro', blurb: 'Sunbaked cliffside caves and sacred Lo Manthang sands.', swatch: { bg: '#d9b277', fg: '#26190f', accent: '#993d18' } },
+  { id: 'dhaka-topi', name: 'Palpali Dhaka', tier: 'pro', blurb: 'Handloom geometric diamond weave on midnight cloth.', swatch: { bg: '#131620', fg: '#f5f6fa', accent: '#d62839' } },
+  { id: 'mithila-art', name: 'Mithila Folk', tier: 'pro', blurb: 'Janakpur ritual murals, double-line motifs, vermilion.', swatch: { bg: '#fdf7ee', fg: '#1c1b18', accent: '#d6341f' } },
+  { id: 'yak-wool', name: 'Khumbu Tweed', tier: 'pro', blurb: 'Cozy brushed yak fleece with nomadic crimson stitches.', swatch: { bg: '#1c1e20', fg: '#f3efe6', accent: '#c44536' } },
+  { id: 'bodhi-stupa', name: 'Boudha Harmika', tier: 'pro', blurb: 'Golden stupa spire, wisdom eyes, temple incense maroon.', swatch: { bg: '#2b0c12', fg: '#faf5ea', accent: '#e8b838' } },
+  { id: 'tihar-deusi', name: 'Tihar Diyo', tier: 'pro', blurb: 'Festival of lights, glowing oil lamps, marigold ring.', swatch: { bg: '#090a16', fg: '#fff7e6', accent: '#ff9900' } },
+  { id: 'rara-azure', name: 'Rara Alpine', tier: 'pro', blurb: 'Crystalline high-altitude sapphire lake and pine frost.', swatch: { bg: '#081c36', fg: '#eef6fc', accent: '#1ebad6' } },
 ];
 
 export const tierRank: Record<Tier, number> = { free: 0, plus: 1, pro: 2 };

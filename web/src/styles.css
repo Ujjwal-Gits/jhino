@@ -538,10 +538,42 @@ dialog::backdrop { background: var(--scrim); }
 .dd-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dd-t small { color: var(--ink-3); margin-left: 4px; }
 .dd-pop { position: fixed; z-index: 120; padding: 5px; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r-lg); box-shadow: var(--lift); max-height: 320px; overflow: auto; outline: none; animation: pop 150ms var(--ease); }
-.dd-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 10px; border-radius: var(--r-sm); cursor: pointer; font-size: 14px; }
-.dd-opt.act { background: var(--paper-2); }
-.dd-opt[aria-selected='true'] { font-weight: 600; }
+.dd-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 10px; border-radius: var(--r-sm); cursor: pointer; font: inherit; font-size: 14px; width: 100%; border: 0; background: transparent; text-align: left; }
+.dd-opt.act, .dd-opt:hover:not(:disabled) { background: var(--paper-2); }
+.dd-opt[aria-selected='true'], .dd-opt.selected { font-weight: 600; }
 .dd-opt .svg { width: 15px; height: 15px; color: var(--signal); }
+
+/* Mobile bottom sheet for Select */
+.dd-sheet-root { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: auto; }
+.dd-sheet-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); animation: fadeIn 180ms cubic-bezier(0.16, 1, 0.3, 1); }
+.dd-sheet {
+  position: relative; z-index: 2; background: var(--paper); border-top: 1px solid var(--rule-strong);
+  border-radius: 20px 20px 0 0; box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.2); max-height: 82vh;
+  display: flex; flex-direction: column; padding: 8px 16px env(safe-area-inset-bottom, 16px);
+  animation: slideUp 240ms cubic-bezier(0.16, 1, 0.3, 1); outline: none;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.dd-sheet-handle { width: 40px; height: 5px; border-radius: 3px; background: var(--rule-strong); margin: 6px auto 12px; flex: none; }
+.dd-sheet-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--rule); flex: none; }
+.dd-sheet-head h3 { font-size: 16.5px; font-weight: 650; letter-spacing: -0.01em; margin: 0; color: var(--ink); }
+.dd-sheet-close { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--paper-2); color: var(--ink-2); border: 0; cursor: pointer; }
+.dd-sheet-search { position: relative; display: flex; align-items: center; margin-top: 12px; flex: none; }
+.dd-sheet-search .svg { position: absolute; left: 12px; color: var(--ink-3); pointer-events: none; }
+.dd-sheet-search .dd-search { padding-left: 36px; padding-right: 36px; height: 44px; font-size: 16px; border-radius: var(--r); background: var(--paper-2); }
+.dd-search-clear { position: absolute; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: var(--paper-3); color: var(--ink-2); display: grid; place-items: center; cursor: pointer; }
+.dd-sheet-list { margin-top: 10px; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 2px; padding-bottom: 14px; }
+.dd-sheet .dd-opt { min-height: 50px; padding: 10px 14px; border-radius: var(--r); -webkit-tap-highlight-color: transparent; }
+.dd-sheet .dd-opt:active { background: var(--paper-3); }
+.dd-sheet .dd-opt.selected { background: var(--paper-2); }
+.dd-sheet .dd-opt .dd-t { display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
+.dd-sheet .dd-opt .dd-t small { font-size: 12.5px; color: var(--ink-3); font-weight: 400; margin: 0; }
+.dd-empty { padding: 24px; text-align: center; color: var(--ink-3); font-size: 14px; }
+
+@media (max-width: 768px) {
+  .input, .select, .textarea, .dd { font-size: 16px; }
+}
+
 .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .grid3 > * { min-width: 0; }
 @media (max-width: 640px) { .grid3 { grid-template-columns: 1fr; } }

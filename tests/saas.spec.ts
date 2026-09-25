@@ -787,12 +787,12 @@ test('videos are links: customers cannot upload video files; super admins can', 
   expect(ok.status()).toBe(200);
 });
 
-test('designs: the server and the editor list the same 30 designs and tiers (5 free, 15 with Plus, 30 with Pro)', async () => {
+test('designs: the server and the editor list the same 40 designs and tiers (5 free, 15 with Plus, 40 with Pro)', async () => {
   const fs = await import('node:fs');
   const web = [...fs.readFileSync('web/src/profile/themes.ts', 'utf8').matchAll(/id:\s*'([a-z0-9-]+)'[^}]*?tier:\s*'(free|plus|pro)'/gs)].map((m) => `${m[1]}:${m[2]}`);
   const server = [...fs.readFileSync('server/themes.ts', 'utf8').matchAll(/'([a-z0-9-]+)':\s*'(free|plus|pro)'/g)].map((m) => `${m[1]}:${m[2]}`);
   expect(server).toEqual(web);
-  expect(web).toHaveLength(30);
+  expect(web).toHaveLength(40);
   expect(web.filter((x) => x.endsWith(':free'))).toHaveLength(5);
   expect(web.filter((x) => x.endsWith(':plus'))).toHaveLength(10);
 });

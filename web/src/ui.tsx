@@ -186,33 +186,73 @@ export function Select<T extends string>({ value, options, onChange, label, widt
   const [active, setActive] = useState(0);
   const [q, setQ] = useState('');
   const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640);
   const btn = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const cur = options.find((o) => o.value === value);
-  // Long lists (countries, time zones) get a search box.
   const searchable = options.length > 12;
   const shown = searchable && q ? options.filter((o) => (o.label + ' ' + (o.hint ?? '')).toLowerCase().includes(q.toLowerCase())) : options;
   const close = useCallback((focus = true) => { setOpen(false); if (focus) btn.current?.focus(); }, []);
 
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 640);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   useLayoutEffect(() => {
-    if (!open || !btn.current) return;
+    if (!open || !btn.current || isMobile) return;
     const r = btn.current.getBoundingClientRect();
-    const w = Math.max(r.width, 200);
+    const w = Math.max(r.width, 220);
     const h = Math.min(searchable ? 380 : 320, options.length * 40 + 12 + (searchable ? 48 : 0));
     const up = innerHeight - r.bottom < h + 12 && r.top > innerHeight - r.bottom;
-    setPos({ top: up ? r.top - h - 6 : r.bottom + 6, left: Math.max(8, Math.min(r.left, innerWidth - w - 8)), width: w });
-  }, [open, options.length]);
-  useEffect(() => { if (open && pos) (searchRef.current ?? list.current)?.focus({ preventScroll: true }); if (!open) setQ(''); }, [open, pos]);
+    setPos({ top: up ? r.top - h - 6 : r.bottom + 6, left: Math.max(8, Math.min(r.left, innerWidth - w - 8)), width: Math.min(w, innerWidth - 16) });
+  }, [open, options.length, isMobile, searchable]);
+
+  useEffect(() => {
+    if (open && !isMobile && pos) (searchRef.current ?? list.current)?.focus({ preventScroll: true });
+    if (!open) setQ('');
+  }, [open, pos, isMobile]);
+
+  // Lock body scroll when mobile sheet is open
+  useEffect(() => {
+    if (!open || !isMobile) return;
+    const orig = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = orig; };
+  }, [open, isMobile]);
+
   useEffect(() => {
     if (!open) return;
-    const outside = (e: Event) => { const t = e.target as Node; if (!list.current?.contains(t) && !btn.current?.contains(t)) close(false); };
-    const scroll = (e: Event) => { if (!list.current?.contains(e.target as Node)) close(false); };
-    addEventListener('pointerdown', outside, true);
-    addEventListener('scroll', scroll, true);
-    addEventListener('resize', () => close(false), { once: true });
-    return () => { removeEventListener('pointerdown', outside, true); removeEventListener('scroll', scroll, true); };
-  }, [open, close]);
+    const outside = (e: Event) => {
+      const t = e.target as Node;
+      if (!list.current?.contains(t) && !btn.current?.contains(t)) close(false);
+    };
+    const key = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
+    };
+    if (!isMobile) {
+      const scroll = (e: Event) => {
+        const t = e.target as Node;
+        if (list.current && !list.current.contains(t) && t !== document) {
+          // If outer scroll moves anchor button, reposition or close
+          close(false);
+        }
+      };
+      window.addEventListener('scroll', scroll, true);
+      window.addEventListener('pointerdown', outside, true);
+      window.addEventListener('keydown', key);
+      return () => {
+        window.removeEventListener('scroll', scroll, true);
+        window.removeEventListener('pointerdown', outside, true);
+        window.removeEventListener('keydown', key);
+      };
+    } else {
+      window.addEventListener('keydown', key);
+      return () => window.removeEventListener('keydown', key);
+    }
+  }, [open, isMobile, close]);
 
   const choose = (o: SelectOption<T>) => { close(); if (o.value !== value) onChange(o.value); };
   const onKey = (e: React.KeyboardEvent) => {
@@ -221,29 +261,66 @@ export function Select<T extends string>({ value, options, onChange, label, widt
     else if (e.key === 'Enter' || (e.key === ' ' && !searchable)) { e.preventDefault(); if (shown[active]) choose(shown[active]); }
     else if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); close(); }
   };
-  // Inside a modal dialog the list must live in the dialog (it sits above the rest of the page).
-  const host = btn.current?.closest('dialog') ?? document.body;
+
+  const host = typeof document !== 'undefined' ? (btn.current?.closest('dialog') ?? document.body) : null;
+
   return (
     <>
-      <button ref={btn} type="button" className={`dd ${size === 'sm' ? 'dd-sm' : ''}`} style={{ width }} disabled={disabled}
+      <button ref={btn} type="button" className={`dd ${size === 'sm' ? 'dd-sm' : ''}`} style={width ? { width } : undefined} disabled={disabled}
         aria-haspopup="listbox" aria-expanded={open} aria-label={label}
         onClick={() => { setActive(Math.max(0, options.findIndex((o) => o.value === value))); setOpen((o) => !o); }}
         onKeyDown={(e) => { if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(0, options.findIndex((o) => o.value === value))); setOpen(true); } }}>
         <span className="dd-t">{cur?.label ?? 'Choose'}</span>
         <Icon name="down" size={15} />
       </button>
-      {open && pos && createPortal(
+
+      {open && host && isMobile && createPortal(
+        <div className="dd-sheet-root" role="dialog" aria-modal="true" aria-label={label}>
+          <div className="dd-sheet-backdrop" onClick={() => close(false)} />
+          <div ref={list} className="dd-sheet" onKeyDown={onKey}>
+            <div className="dd-sheet-handle" aria-hidden="true" />
+            <div className="dd-sheet-head">
+              <h3>{label}</h3>
+              <button type="button" className="icon-btn dd-sheet-close" onClick={() => close(false)} aria-label="Close">
+                <Icon name="close" size={16} />
+              </button>
+            </div>
+            {searchable && (
+              <div className="dd-sheet-search">
+                <Icon name="search" size={16} />
+                <input ref={searchRef} className="input dd-search" placeholder={`Search ${label.toLowerCase()}...`} value={q} onChange={(e) => { setQ(e.target.value); setActive(0); }} autoCapitalize="none" autoCorrect="off" />
+                {q && <button type="button" className="dd-search-clear" onClick={() => setQ('')} aria-label="Clear"><Icon name="close" size={14} /></button>}
+              </div>
+            )}
+            <div className="dd-sheet-list" role="listbox" tabIndex={-1}>
+              {searchable && !shown.length && <p className="hint dd-empty">No options match "{q}".</p>}
+              {shown.map((o) => (
+                <button key={o.value} type="button" role="option" aria-selected={o.value === value} className={`dd-opt ${o.value === value ? 'selected' : ''}`} onClick={() => choose(o)}>
+                  <span className="dd-t">
+                    <b>{o.label}</b>
+                    {o.hint && <small>{o.hint}</small>}
+                  </span>
+                  {o.value === value && <Icon name="check" size={18} />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>, host
+      )}
+
+      {open && host && !isMobile && pos && createPortal(
         <div ref={list} className={`dd-pop ${searchable ? 'dd-searchable' : ''}`} role="listbox" tabIndex={-1} aria-label={label} style={{ top: pos.top, left: pos.left, minWidth: pos.width }} onKeyDown={onKey}>
           {searchable && <input ref={searchRef} className="input dd-search" placeholder="Search" aria-label={`Search ${label}`} value={q} onChange={(e) => { setQ(e.target.value); setActive(0); }} />}
           {searchable && !shown.length && <p className="hint" style={{ padding: '8px 10px' }}>Nothing matches.</p>}
           {shown.map((o, i) => (
             <div key={o.value} role="option" aria-selected={o.value === value} className={`dd-opt ${i === active ? 'act' : ''}`}
-              onPointerMove={() => setActive(i)} onPointerDown={(e) => e.preventDefault()} onClick={() => choose(o)}>
+              onPointerMove={() => setActive(i)} onClick={() => choose(o)}>
               <span className="dd-t">{o.label}{o.hint && <small>{o.hint}</small>}</span>
               {o.value === value && <Icon name="check" size={15} />}
             </div>
           ))}
-        </div>, host)}
+        </div>, host
+      )}
     </>
   );
 }

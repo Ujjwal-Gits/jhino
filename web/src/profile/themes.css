@@ -2074,3 +2074,753 @@
 .pf[data-theme='cyanotype'] .pf-video > b { font-family: var(--f-news); font-style: italic; font-weight: 400; font-size: 19px; }
 .pf[data-theme='cyanotype'] .pf-video-box { clip-path: var(--deckle); border-radius: 0; }
 .pf[data-theme='cyanotype'] :focus-visible { outline-color: #eef2f8; }
+
+/* =============================================================================================
+   PRO NEPALI HERITAGE (10 new designs)
+   ============================================================================================= */
+
+/* ---- Bhaktapur Terracotta: Hand-carved Newari brickwork, clay pottery, brass accents. ---- */
+.pf[data-theme='bhaktapur-terracotta'] {
+  --pf-bg: #381510;
+  --pf-fg: #fbf4ee;
+  --pf-muted: #c9a499;
+  --pf-accent: #d86238;
+  --pf-accent-fg: #ffffff;
+  --pf-card: #4a1f18;
+  --pf-card-fg: #fbf4ee;
+  --pf-card-muted: #c9a499;
+  --pf-line: #5c2820;
+  --pf-radius: 8px;
+  --pf-shadow: 0 4px 18px rgba(20, 7, 5, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --pf-hover: #54241c;
+  --pf-font-display: var(--f-dm);
+  --pf-name-size: 34px;
+  --pf-name-weight: 400;
+  --pf-avatar-bg: #4a1f18;
+  --pf-avatar-fg: #d86238;
+  --pf-gap: 13px;
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-bg {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(216, 98, 56, 0.22), transparent 75%),
+    radial-gradient(circle 400px at 100% 100%, rgba(229, 178, 93, 0.08), transparent 70%),
+    repeating-linear-gradient(0deg, transparent 0 44px, rgba(20, 7, 5, 0.25) 44px 46px),
+    var(--noise);
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-avatar {
+  box-shadow: 0 0 0 3px #381510, 0 0 0 5px #d86238, 0 0 16px rgba(216, 98, 56, 0.3);
+  border-radius: 12px;
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-name { letter-spacing: -0.01em; }
+.pf[data-theme='bhaktapur-terracotta'] .pf-link {
+  border: 1px solid #5c2820;
+  transition: all 180ms var(--ease);
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-link:hover {
+  border-color: #d86238;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(20, 7, 5, 0.5), 0 0 0 1px #d86238;
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-link-icon {
+  background: #31120e;
+  color: #e5b25d;
+  border-radius: 6px;
+  border: 1px solid rgba(229, 178, 93, 0.25);
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-link[data-highlight] {
+  --pf-card: #5a251d;
+  --pf-line: #d86238;
+  box-shadow: 0 6px 24px rgba(216, 98, 56, 0.3), inset 0 0 0 1px #d86238;
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-link[data-highlight] .pf-link-icon {
+  background: #d86238;
+  color: #ffffff;
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-section {
+  font-family: var(--f-dm);
+  color: #e5b25d;
+  letter-spacing: 0.08em;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-social {
+  background: #4a1f18;
+  color: #fbf4ee;
+  border: 1px solid #5c2820;
+  border-radius: 8px;
+}
+.pf[data-theme='bhaktapur-terracotta'] .pf-social:hover {
+  background: #54241c;
+  color: #e5b25d;
+  border-color: #e5b25d;
+}
+
+/* ---- Patan Patina: Oxidized turquoise verdigris on cast temple bronze. ---- */
+.pf[data-theme='patan-patina'] {
+  --pf-bg: #101514;
+  --pf-fg: #ecf3f0;
+  --pf-muted: #889e96;
+  --pf-accent: #26bba7;
+  --pf-accent-fg: #101514;
+  --pf-card: #18201e;
+  --pf-card-fg: #ecf3f0;
+  --pf-card-muted: #889e96;
+  --pf-line: #243330;
+  --pf-radius: 10px;
+  --pf-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --pf-hover: #1f2a27;
+  --pf-font-display: var(--f-fraunces);
+  --pf-name-size: 33px;
+  --pf-name-weight: 500;
+  --pf-avatar-bg: #18201e;
+  --pf-avatar-fg: #26bba7;
+  --pf-gap: 12px;
+}
+.pf[data-theme='patan-patina'] .pf-bg {
+  background:
+    radial-gradient(circle 380px at 20% 0%, rgba(38, 187, 167, 0.18), transparent 70%),
+    radial-gradient(circle 320px at 80% 80%, rgba(200, 155, 60, 0.12), transparent 70%),
+    var(--noise);
+}
+.pf[data-theme='patan-patina'] .pf-avatar {
+  box-shadow: 0 0 0 2px #101514, 0 0 0 4px #26bba7, 0 0 20px rgba(38, 187, 167, 0.35);
+}
+.pf[data-theme='patan-patina'] .pf-name { font-style: italic; }
+.pf[data-theme='patan-patina'] .pf-link {
+  border: 1px solid #243330;
+  backdrop-filter: blur(8px);
+}
+.pf[data-theme='patan-patina'] .pf-link:hover {
+  border-color: #26bba7;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 12px rgba(38, 187, 167, 0.25);
+  transform: translateY(-2px);
+}
+.pf[data-theme='patan-patina'] .pf-link-icon {
+  background: #121817;
+  color: #26bba7;
+  border-radius: 8px;
+  border: 1px solid rgba(38, 187, 167, 0.3);
+}
+.pf[data-theme='patan-patina'] .pf-link[data-highlight] {
+  --pf-card: #1d2b27;
+  --pf-line: #26bba7;
+  box-shadow: 0 0 20px rgba(38, 187, 167, 0.25), inset 0 0 0 1px #26bba7;
+}
+.pf[data-theme='patan-patina'] .pf-link[data-highlight] .pf-link-icon {
+  background: #26bba7;
+  color: #101514;
+}
+.pf[data-theme='patan-patina'] .pf-section {
+  font-family: var(--f-fraunces);
+  font-style: italic;
+  color: #c89b3c;
+  font-size: 17px;
+}
+.pf[data-theme='patan-patina'] .pf-social {
+  background: #18201e;
+  color: #ecf3f0;
+  border: 1px solid #243330;
+  border-radius: 10px;
+}
+.pf[data-theme='patan-patina'] .pf-social:hover {
+  color: #26bba7;
+  border-color: #26bba7;
+}
+
+/* ---- Pokhara Lakeside: Serene mountain reflections on twilight alpine waters. ---- */
+.pf[data-theme='pokhara-phewa'] {
+  --pf-bg: #09121d;
+  --pf-fg: #f2f7fc;
+  --pf-muted: #839bb5;
+  --pf-accent: #52a8e8;
+  --pf-accent-fg: #09121d;
+  --pf-card: rgba(18, 32, 51, 0.75);
+  --pf-card-fg: #f2f7fc;
+  --pf-card-muted: #839bb5;
+  --pf-line: rgba(82, 168, 232, 0.22);
+  --pf-radius: 16px;
+  --pf-shadow: 0 8px 30px rgba(4, 9, 15, 0.5);
+  --pf-hover: rgba(26, 44, 70, 0.85);
+  --pf-font-display: var(--f-brico);
+  --pf-name-size: 32px;
+  --pf-name-weight: 650;
+  --pf-avatar-bg: #122033;
+  --pf-avatar-fg: #52a8e8;
+  --pf-gap: 12px;
+}
+.pf[data-theme='pokhara-phewa'] .pf-bg {
+  background:
+    radial-gradient(circle 460px at 50% 0%, rgba(82, 168, 232, 0.25), transparent 70%),
+    radial-gradient(circle 350px at 90% 40%, rgba(245, 166, 35, 0.1), transparent 60%),
+    linear-gradient(180deg, #0b1726 0%, #060d16 100%);
+}
+.pf[data-theme='pokhara-phewa'] .pf-avatar {
+  box-shadow: 0 0 0 3px #09121d, 0 0 0 5px #52a8e8, 0 0 24px rgba(82, 168, 232, 0.4);
+}
+.pf[data-theme='pokhara-phewa'] .pf-link {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pf[data-theme='pokhara-phewa'] .pf-link:hover {
+  border-color: #52a8e8;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 32px rgba(4, 9, 15, 0.6), 0 0 16px rgba(82, 168, 232, 0.3);
+}
+.pf[data-theme='pokhara-phewa'] .pf-link-icon {
+  background: rgba(82, 168, 232, 0.15);
+  color: #52a8e8;
+  border-radius: 12px;
+}
+.pf[data-theme='pokhara-phewa'] .pf-link[data-highlight] {
+  --pf-card: rgba(30, 56, 88, 0.9);
+  --pf-line: #52a8e8;
+  box-shadow: 0 8px 30px rgba(82, 168, 232, 0.35), inset 0 0 0 1px #52a8e8;
+}
+.pf[data-theme='pokhara-phewa'] .pf-link[data-highlight] .pf-link-icon {
+  background: #52a8e8;
+  color: #09121d;
+}
+.pf[data-theme='pokhara-phewa'] .pf-section {
+  color: #ffb84d;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.pf[data-theme='pokhara-phewa'] .pf-social {
+  background: rgba(18, 32, 51, 0.8);
+  backdrop-filter: blur(8px);
+  color: #f2f7fc;
+  border: 1px solid rgba(82, 168, 232, 0.25);
+  border-radius: 12px;
+}
+.pf[data-theme='pokhara-phewa'] .pf-social:hover {
+  color: #52a8e8;
+  border-color: #52a8e8;
+}
+
+/* ---- Mustang Ochre: Sunbaked cliffside caves and sacred Lo Manthang sands. ---- */
+.pf[data-theme='mustang-ochre'] {
+  --pf-bg: #d6af74;
+  --pf-fg: #291a10;
+  --pf-muted: #6e4c34;
+  --pf-accent: #9c3c1a;
+  --pf-accent-fg: #fbf5ec;
+  --pf-card: #e5c38d;
+  --pf-card-fg: #291a10;
+  --pf-card-muted: #6e4c34;
+  --pf-line: #c4995c;
+  --pf-radius: 4px;
+  --pf-shadow: 0 3px 0 rgba(70, 40, 20, 0.18);
+  --pf-hover: #edd1a1;
+  --pf-font-display: var(--f-archivo);
+  --pf-name-size: 28px;
+  --pf-name-weight: 700;
+  --pf-avatar-bg: #9c3c1a;
+  --pf-avatar-fg: #fbf5ec;
+  --pf-gap: 11px;
+}
+.pf[data-theme='mustang-ochre'] .pf-bg {
+  background:
+    radial-gradient(circle 380px at 50% 20%, rgba(255, 235, 200, 0.4), transparent 70%),
+    repeating-linear-gradient(45deg, transparent 0 28px, rgba(156, 60, 26, 0.04) 28px 29px),
+    var(--noise);
+}
+.pf[data-theme='mustang-ochre'] .pf-avatar {
+  border-radius: 4px;
+  box-shadow: 0 0 0 3px #d6af74, 0 0 0 5px #9c3c1a;
+}
+.pf[data-theme='mustang-ochre'] .pf-name { letter-spacing: -0.02em; text-transform: uppercase; }
+.pf[data-theme='mustang-ochre'] .pf-link {
+  border: 1.5px solid #c4995c;
+  border-bottom-width: 3px;
+}
+.pf[data-theme='mustang-ochre'] .pf-link:hover {
+  border-color: #9c3c1a;
+  transform: translateY(-1px);
+}
+.pf[data-theme='mustang-ochre'] .pf-link-icon {
+  background: #9c3c1a;
+  color: #fbf5ec;
+  border-radius: 2px;
+}
+.pf[data-theme='mustang-ochre'] .pf-link[data-highlight] {
+  --pf-card: #9c3c1a;
+  --pf-card-fg: #fbf5ec;
+  --pf-card-muted: #e2b69f;
+  --pf-line: #78260b;
+}
+.pf[data-theme='mustang-ochre'] .pf-link[data-highlight] .pf-link-icon {
+  background: #fbf5ec;
+  color: #9c3c1a;
+}
+.pf[data-theme='mustang-ochre'] .pf-section {
+  color: #78260b;
+  font-family: var(--f-archivo);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 13.5px;
+}
+.pf[data-theme='mustang-ochre'] .pf-social {
+  background: #e5c38d;
+  color: #291a10;
+  border: 1.5px solid #c4995c;
+  border-radius: 4px;
+}
+.pf[data-theme='mustang-ochre'] .pf-social:hover {
+  background: #9c3c1a;
+  color: #fbf5ec;
+  border-color: #9c3c1a;
+}
+
+/* ---- Palpali Dhaka: Handloom geometric diamond weave on midnight cloth. ---- */
+.pf[data-theme='dhaka-topi'] {
+  --pf-bg: #11141c;
+  --pf-fg: #f7f8fc;
+  --pf-muted: #8b95a8;
+  --pf-accent: #d82b3d;
+  --pf-accent-fg: #ffffff;
+  --pf-card: #181d28;
+  --pf-card-fg: #f7f8fc;
+  --pf-card-muted: #8b95a8;
+  --pf-line: #262e40;
+  --pf-radius: 8px;
+  --pf-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  --pf-hover: #1f2533;
+  --pf-font-display: var(--f-brico);
+  --pf-name-size: 32px;
+  --pf-name-weight: 700;
+  --pf-avatar-bg: #181d28;
+  --pf-avatar-fg: #d82b3d;
+  --pf-gap: 12px;
+}
+.pf[data-theme='dhaka-topi'] .pf-bg {
+  background:
+    radial-gradient(circle 380px at 50% 0%, rgba(216, 43, 61, 0.2), transparent 70%),
+    radial-gradient(circle 300px at 100% 100%, rgba(30, 122, 77, 0.15), transparent 70%),
+    var(--noise);
+}
+.pf[data-theme='dhaka-topi'] .pf-avatar {
+  box-shadow: 0 0 0 3px #11141c, 0 0 0 5px #d82b3d, 0 0 0 7px #1e7a4d;
+}
+.pf[data-theme='dhaka-topi'] .pf-link {
+  border: 1px solid #262e40;
+  position: relative;
+}
+.pf[data-theme='dhaka-topi'] .pf-link::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #d82b3d 0%, #e5ad35 50%, #1e7a4d 100%);
+  border-radius: 8px 0 0 8px;
+}
+.pf[data-theme='dhaka-topi'] .pf-link:hover {
+  border-color: #d82b3d;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 12px rgba(216, 43, 61, 0.25);
+}
+.pf[data-theme='dhaka-topi'] .pf-link-icon {
+  background: #11141c;
+  color: #e5ad35;
+  border-radius: 6px;
+  border: 1px solid rgba(229, 173, 53, 0.3);
+}
+.pf[data-theme='dhaka-topi'] .pf-link[data-highlight] {
+  --pf-card: #221b22;
+  --pf-line: #d82b3d;
+  box-shadow: 0 6px 24px rgba(216, 43, 61, 0.3), inset 0 0 0 1px #d82b3d;
+}
+.pf[data-theme='dhaka-topi'] .pf-link[data-highlight] .pf-link-icon {
+  background: #d82b3d;
+  color: #ffffff;
+}
+.pf[data-theme='dhaka-topi'] .pf-section {
+  color: #e5ad35;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pf[data-theme='dhaka-topi'] .pf-section::before {
+  content: '◆';
+  color: #d82b3d;
+  font-size: 11px;
+}
+.pf[data-theme='dhaka-topi'] .pf-social {
+  background: #181d28;
+  color: #f7f8fc;
+  border: 1px solid #262e40;
+  border-radius: 8px;
+}
+.pf[data-theme='dhaka-topi'] .pf-social:hover {
+  border-color: #d82b3d;
+  color: #d82b3d;
+}
+
+/* ---- Mithila Folk: Janakpur ritual murals, double-line motifs, vermilion. ---- */
+.pf[data-theme='mithila-art'] {
+  --pf-bg: #fdf6ec;
+  --pf-fg: #1f1b16;
+  --pf-muted: #736454;
+  --pf-accent: #d8341f;
+  --pf-accent-fg: #ffffff;
+  --pf-card: #ffffff;
+  --pf-card-fg: #1f1b16;
+  --pf-card-muted: #736454;
+  --pf-line: #1f1b16;
+  --pf-radius: 6px;
+  --pf-shadow: 3px 3px 0 #1f1b16;
+  --pf-hover: #fefbf6;
+  --pf-font-display: var(--f-dm);
+  --pf-name-size: 33px;
+  --pf-name-weight: 400;
+  --pf-avatar-bg: #d8341f;
+  --pf-avatar-fg: #fdf6ec;
+  --pf-gap: 13px;
+}
+.pf[data-theme='mithila-art'] .pf-bg {
+  background:
+    radial-gradient(circle 380px at 50% 0%, rgba(216, 52, 31, 0.09), transparent 70%),
+    radial-gradient(circle 320px at 10% 80%, rgba(232, 168, 23, 0.12), transparent 70%),
+    var(--noise);
+}
+.pf[data-theme='mithila-art'] .pf-avatar {
+  border: 2px solid #1f1b16;
+  box-shadow: 3px 3px 0 #1f1b16, 0 0 0 4px #fdf6ec, 0 0 0 6px #d8341f;
+}
+.pf[data-theme='mithila-art'] .pf-link {
+  border: 2px solid #1f1b16;
+  outline: 1px dashed #1f1b16;
+  outline-offset: -5px;
+  transition: all 150ms var(--ease);
+}
+.pf[data-theme='mithila-art'] .pf-link:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 #1f1b16;
+}
+.pf[data-theme='mithila-art'] .pf-link-icon {
+  background: #fdf6ec;
+  color: #d8341f;
+  border: 1.5px solid #1f1b16;
+  border-radius: 4px;
+}
+.pf[data-theme='mithila-art'] .pf-link[data-highlight] {
+  --pf-card: #fdf0db;
+  --pf-line: #1f1b16;
+  background: #fdf0db;
+  outline-color: #d8341f;
+}
+.pf[data-theme='mithila-art'] .pf-link[data-highlight] .pf-link-icon {
+  background: #d8341f;
+  color: #ffffff;
+}
+.pf[data-theme='mithila-art'] .pf-section {
+  font-family: var(--f-dm);
+  color: #d8341f;
+  font-size: 17px;
+  border-bottom: 2px double #1f1b16;
+  padding-bottom: 4px;
+}
+.pf[data-theme='mithila-art'] .pf-social {
+  background: #ffffff;
+  color: #1f1b16;
+  border: 2px solid #1f1b16;
+  box-shadow: 2px 2px 0 #1f1b16;
+  border-radius: 6px;
+}
+.pf[data-theme='mithila-art'] .pf-social:hover {
+  background: #d8341f;
+  color: #ffffff;
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 #1f1b16;
+}
+
+/* ---- Khumbu Tweed: Cozy brushed yak fleece with nomadic crimson stitches. ---- */
+.pf[data-theme='yak-wool'] {
+  --pf-bg: #1a1c1e;
+  --pf-fg: #f5f1e8;
+  --pf-muted: #969ba3;
+  --pf-accent: #c44536;
+  --pf-accent-fg: #f5f1e8;
+  --pf-card: #25282c;
+  --pf-card-fg: #f5f1e8;
+  --pf-card-muted: #969ba3;
+  --pf-line: #383c42;
+  --pf-radius: 14px;
+  --pf-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --pf-hover: #2d3136;
+  --pf-font-display: var(--f-news);
+  --pf-name-size: 33px;
+  --pf-name-weight: 500;
+  --pf-avatar-bg: #25282c;
+  --pf-avatar-fg: #c44536;
+  --pf-gap: 13px;
+}
+.pf[data-theme='yak-wool'] .pf-bg {
+  background:
+    radial-gradient(circle 380px at 50% 0%, rgba(196, 69, 54, 0.16), transparent 70%),
+    repeating-linear-gradient(90deg, transparent 0 4px, rgba(255, 255, 255, 0.015) 4px 8px),
+    var(--noise);
+}
+.pf[data-theme='yak-wool'] .pf-avatar {
+  box-shadow: 0 0 0 3px #1a1c1e, 0 0 0 5px #c44536;
+}
+.pf[data-theme='yak-wool'] .pf-link {
+  border: 1.5px dashed #444a52;
+  background: #25282c;
+  transition: all 180ms var(--ease);
+}
+.pf[data-theme='yak-wool'] .pf-link:hover {
+  border-color: #c44536;
+  border-style: solid;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.pf[data-theme='yak-wool'] .pf-link-icon {
+  background: #1a1c1e;
+  color: #c44536;
+  border-radius: 10px;
+  border: 1px solid #383c42;
+}
+.pf[data-theme='yak-wool'] .pf-link[data-highlight] {
+  --pf-card: #2e2325;
+  --pf-line: #c44536;
+  border-style: solid;
+  box-shadow: 0 6px 20px rgba(196, 69, 54, 0.25);
+}
+.pf[data-theme='yak-wool'] .pf-link[data-highlight] .pf-link-icon {
+  background: #c44536;
+  color: #f5f1e8;
+}
+.pf[data-theme='yak-wool'] .pf-section {
+  font-family: var(--f-news);
+  font-style: italic;
+  color: #c44536;
+  font-size: 17px;
+}
+.pf[data-theme='yak-wool'] .pf-social {
+  background: #25282c;
+  color: #f5f1e8;
+  border: 1px solid #383c42;
+  border-radius: 12px;
+}
+.pf[data-theme='yak-wool'] .pf-social:hover {
+  color: #c44536;
+  border-color: #c44536;
+}
+
+/* ---- Boudha Harmika: Golden stupa spire, wisdom eyes, temple incense maroon. ---- */
+.pf[data-theme='bodhi-stupa'] {
+  --pf-bg: #23080e;
+  --pf-fg: #fbf7ee;
+  --pf-muted: #bfa49c;
+  --pf-accent: #e5b43b;
+  --pf-accent-fg: #23080e;
+  --pf-card: #341018;
+  --pf-card-fg: #fbf7ee;
+  --pf-card-muted: #bfa49c;
+  --pf-line: #4a1924;
+  --pf-radius: 12px;
+  --pf-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(229, 180, 59, 0.15);
+  --pf-hover: #3d141d;
+  --pf-font-display: var(--f-bodoni);
+  --pf-name-size: 34px;
+  --pf-name-weight: 500;
+  --pf-avatar-bg: #341018;
+  --pf-avatar-fg: #e5b43b;
+  --pf-gap: 13px;
+}
+.pf[data-theme='bodhi-stupa'] .pf-bg {
+  background:
+    radial-gradient(circle 420px at 50% 0%, rgba(229, 180, 59, 0.22), transparent 70%),
+    radial-gradient(circle 350px at 50% 100%, rgba(216, 52, 31, 0.15), transparent 70%),
+    var(--noise);
+}
+.pf[data-theme='bodhi-stupa'] .pf-avatar {
+  box-shadow: 0 0 0 3px #23080e, 0 0 0 5px #e5b43b, 0 0 24px rgba(229, 180, 59, 0.4);
+}
+.pf[data-theme='bodhi-stupa'] .pf-name { letter-spacing: -0.01em; }
+.pf[data-theme='bodhi-stupa'] .pf-link {
+  border: 1px solid #4a1924;
+  transition: all 180ms var(--ease);
+}
+.pf[data-theme='bodhi-stupa'] .pf-link:hover {
+  border-color: #e5b43b;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), 0 0 16px rgba(229, 180, 59, 0.25);
+}
+.pf[data-theme='bodhi-stupa'] .pf-link-icon {
+  background: #23080e;
+  color: #e5b43b;
+  border-radius: 8px;
+  border: 1px solid rgba(229, 180, 59, 0.35);
+}
+.pf[data-theme='bodhi-stupa'] .pf-link[data-highlight] {
+  --pf-card: #421620;
+  --pf-line: #e5b43b;
+  box-shadow: 0 0 24px rgba(229, 180, 59, 0.3), inset 0 0 0 1px #e5b43b;
+}
+.pf[data-theme='bodhi-stupa'] .pf-link[data-highlight] .pf-link-icon {
+  background: #e5b43b;
+  color: #23080e;
+}
+.pf[data-theme='bodhi-stupa'] .pf-section {
+  font-family: var(--f-bodoni);
+  color: #e5b43b;
+  letter-spacing: 0.12em;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+.pf[data-theme='bodhi-stupa'] .pf-social {
+  background: #341018;
+  color: #fbf7ee;
+  border: 1px solid #4a1924;
+  border-radius: 10px;
+}
+.pf[data-theme='bodhi-stupa'] .pf-social:hover {
+  color: #e5b43b;
+  border-color: #e5b43b;
+}
+
+/* ---- Tihar Diyo: Festival of lights, glowing oil lamps, marigold ring. ---- */
+.pf[data-theme='tihar-deusi'] {
+  --pf-bg: #070913;
+  --pf-fg: #fff8eb;
+  --pf-muted: #a69985;
+  --pf-accent: #ff9900;
+  --pf-accent-fg: #070913;
+  --pf-card: #121422;
+  --pf-card-fg: #fff8eb;
+  --pf-card-muted: #a69985;
+  --pf-line: #222538;
+  --pf-radius: 12px;
+  --pf-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  --pf-hover: #191b2c;
+  --pf-font-display: var(--f-brico);
+  --pf-name-size: 32px;
+  --pf-name-weight: 700;
+  --pf-avatar-bg: #121422;
+  --pf-avatar-fg: #ff9900;
+  --pf-gap: 12px;
+}
+.pf[data-theme='tihar-deusi'] .pf-bg {
+  background:
+    radial-gradient(circle 460px at 50% 0%, rgba(255, 153, 0, 0.24), transparent 70%),
+    radial-gradient(circle 320px at 80% 60%, rgba(255, 77, 0, 0.15), transparent 60%),
+    var(--noise);
+}
+.pf[data-theme='tihar-deusi'] .pf-avatar {
+  box-shadow: 0 0 0 3px #070913, 0 0 0 5px #ff9900, 0 0 28px rgba(255, 153, 0, 0.5);
+}
+.pf[data-theme='tihar-deusi'] .pf-link {
+  border: 1px solid #222538;
+  transition: all 180ms var(--ease);
+}
+.pf[data-theme='tihar-deusi'] .pf-link:hover {
+  border-color: #ff9900;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(255, 153, 0, 0.35);
+}
+.pf[data-theme='tihar-deusi'] .pf-link-icon {
+  background: #070913;
+  color: #ffbe1a;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 190, 26, 0.3);
+}
+.pf[data-theme='tihar-deusi'] .pf-link[data-highlight] {
+  --pf-card: #201b22;
+  --pf-line: #ff9900;
+  box-shadow: 0 0 28px rgba(255, 153, 0, 0.35), inset 0 0 0 1px #ff9900;
+}
+.pf[data-theme='tihar-deusi'] .pf-link[data-highlight] .pf-link-icon {
+  background: #ff9900;
+  color: #070913;
+}
+.pf[data-theme='tihar-deusi'] .pf-section {
+  color: #ffbe1a;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.pf[data-theme='tihar-deusi'] .pf-social {
+  background: #121422;
+  color: #fff8eb;
+  border: 1px solid #222538;
+  border-radius: 10px;
+}
+.pf[data-theme='tihar-deusi'] .pf-social:hover {
+  color: #ff9900;
+  border-color: #ff9900;
+}
+
+/* ---- Rara Alpine: Crystalline high-altitude sapphire lake and pine frost. ---- */
+.pf[data-theme='rara-azure'] {
+  --pf-bg: #061528;
+  --pf-fg: #f0f7fd;
+  --pf-muted: #7e9bb5;
+  --pf-accent: #1ebad6;
+  --pf-accent-fg: #061528;
+  --pf-card: rgba(12, 28, 50, 0.7);
+  --pf-card-fg: #f0f7fd;
+  --pf-card-muted: #7e9bb5;
+  --pf-line: rgba(30, 186, 214, 0.25);
+  --pf-radius: 14px;
+  --pf-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  --pf-hover: rgba(18, 40, 70, 0.8);
+  --pf-font-display: var(--f-sans);
+  --pf-name-size: 31px;
+  --pf-name-weight: 650;
+  --pf-avatar-bg: #0c1c32;
+  --pf-avatar-fg: #1ebad6;
+  --pf-gap: 12px;
+}
+.pf[data-theme='rara-azure'] .pf-bg {
+  background:
+    radial-gradient(circle 460px at 50% -10%, rgba(30, 186, 214, 0.25), transparent 70%),
+    radial-gradient(circle 360px at 10% 90%, rgba(21, 71, 52, 0.2), transparent 70%),
+    linear-gradient(180deg, #07182e 0%, #040c17 100%);
+}
+.pf[data-theme='rara-azure'] .pf-avatar {
+  box-shadow: 0 0 0 3px #061528, 0 0 0 5px #1ebad6, 0 0 24px rgba(30, 186, 214, 0.4);
+}
+.pf[data-theme='rara-azure'] .pf-link {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 180ms var(--ease);
+}
+.pf[data-theme='rara-azure'] .pf-link:hover {
+  border-color: #1ebad6;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 16px rgba(30, 186, 214, 0.3);
+}
+.pf[data-theme='rara-azure'] .pf-link-icon {
+  background: rgba(30, 186, 214, 0.15);
+  color: #1ebad6;
+  border-radius: 10px;
+}
+.pf[data-theme='rara-azure'] .pf-link[data-highlight] {
+  --pf-card: rgba(20, 52, 90, 0.9);
+  --pf-line: #1ebad6;
+  box-shadow: 0 8px 30px rgba(30, 186, 214, 0.35), inset 0 0 0 1px #1ebad6;
+}
+.pf[data-theme='rara-azure'] .pf-link[data-highlight] .pf-link-icon {
+  background: #1ebad6;
+  color: #061528;
+}
+.pf[data-theme='rara-azure'] .pf-section {
+  color: #1ebad6;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.pf[data-theme='rara-azure'] .pf-social {
+  background: rgba(12, 28, 50, 0.7);
+  backdrop-filter: blur(8px);
+  color: #f0f7fd;
+  border: 1px solid rgba(30, 186, 214, 0.25);
+  border-radius: 12px;
+}
+.pf[data-theme='rara-azure'] .pf-social:hover {
+  color: #1ebad6;
+  border-color: #1ebad6;
+}
