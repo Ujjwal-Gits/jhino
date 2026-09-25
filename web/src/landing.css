@@ -32,61 +32,99 @@
 .lp-nav a:not(.btn):hover, .lp-nav a[aria-current='page'] { color: var(--ink); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
 .lp-nav .btn.sm { height: 34px; padding: 0 14px; font-size: 14px; }
 
-/* ---------------- hero: the job's clapperboard ---------------- */
-.lp-hero { padding-top: clamp(36px, 5vw, 72px); }
+/* ---------------- hero: the job's clapperboard, as the real object ----------------
+   A matte black acrylic slate on the paper page. It stays black in dark mode too: it is an object,
+   not a surface. White printed rules and labels; the only colour is the vermilion stamp. */
+.lp-hero { padding-top: clamp(40px, 5vw, 76px); }
 .lp-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--signal); display: inline-block; flex: none; }
 
-.slate { position: relative; padding-top: 44px; }
-/* the clapper stick: ink and paper bars, hinged at the left */
-.slate-stick {
-  position: absolute; left: 0; right: 0; top: 0; height: 43px;
-  border: 2px solid var(--ink); border-radius: 12px 12px 0 0; border-bottom: 0;
-  background: repeating-linear-gradient(-58deg, var(--ink) 0 34px, var(--paper) 34px 68px);
-  transform-origin: 14px 100%;
+.slate {
+  --sl-black: #161615; --sl-black-2: #1e1e1c; --sl-white: #f4f2ec; --sl-line: rgba(244, 242, 236, 0.78);
+  --sl-dim: rgba(244, 242, 236, 0.56); --sl-stripe: 30px;
+  position: relative; padding-top: 80px; max-width: 1180px; margin-inline: auto;
 }
-.slate-hinge { position: absolute; left: 6px; bottom: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--paper); border: 2px solid var(--ink); z-index: 1; }
-.slate-board { border: 2px solid var(--ink); border-radius: 0 0 12px 12px; background: var(--paper); }
+/* the two striped sticks: the moving clapstick on top, the fixed bar under it; mirrored so they chevron */
+.slate-sticks { position: absolute; left: 0; right: 0; top: 0; height: 80px; }
+.slate-stick, .slate-bar {
+  position: absolute; left: 0; right: 0; height: 36px; border-radius: 5px;
+  box-shadow: inset 0 0 0 2px var(--sl-black);
+}
+.slate-stick {
+  top: 2px; transform-origin: 18px 50%;
+  background: repeating-linear-gradient(118deg, var(--sl-black) 0 var(--sl-stripe), var(--sl-white) var(--sl-stripe) calc(var(--sl-stripe) * 2));
+  box-shadow: inset 0 0 0 2px var(--sl-black), 0 3px 6px rgba(0, 0, 0, 0.16);
+}
+.slate-bar {
+  top: 40px; border-radius: 5px 5px 0 0;
+  background: repeating-linear-gradient(62deg, var(--sl-black) 0 var(--sl-stripe), var(--sl-white) var(--sl-stripe) calc(var(--sl-stripe) * 2));
+}
+/* brushed-steel hinge with a slotted screw */
+.slate-hinge {
+  position: absolute; left: 4px; top: 22px; z-index: 2; width: 30px; height: 30px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fbfbf8 0, #c9c8c2 38%, #8c8b85 72%, #6c6b66 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+}
+.slate-hinge i { position: absolute; left: 7px; right: 7px; top: 50%; height: 2px; margin-top: -1px; border-radius: 1px; background: #5b5a55; transform: rotate(-35deg); }
+
+.slate-board {
+  position: relative; color: var(--sl-white);
+  background: radial-gradient(120% 90% at 18% 0%, var(--sl-black-2) 0, var(--sl-black) 58%);
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 28px 60px -28px rgba(20, 20, 20, 0.55), 0 2px 4px rgba(20, 20, 20, 0.18);
+}
+:root[data-theme='dark'] .slate-board { box-shadow: 0 0 0 1px rgba(244, 242, 236, 0.1), 0 28px 60px -28px rgba(0, 0, 0, 0.9); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .slate-board { box-shadow: 0 0 0 1px rgba(244, 242, 236, 0.1), 0 28px 60px -28px rgba(0, 0, 0, 0.9); } }
+.slate-screw { position: absolute; bottom: 12px; width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #d9d8d2, #7a7974); box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5); }
+.slate-screw.s1 { left: 12px; }
+.slate-screw.s2 { right: 12px; }
 
 .sl-row { margin: 0; display: grid; }
-.sl-head { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); border-bottom: 1px solid var(--ink); }
-.sl-foot { grid-template-columns: minmax(0, 3fr) minmax(0, 1.4fr) minmax(0, 3fr) minmax(0, 4fr); border-top: 1px solid var(--ink); }
-.sl-cell { min-width: 0; padding: 12px clamp(16px, 2vw, 24px) 14px; display: grid; gap: 3px; align-content: start; }
-.sl-cell + .sl-cell { border-left: 1px solid var(--ink); }
-.sl-cell dt { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); }
-.sl-cell dd { margin: 0; font-size: clamp(15px, 1.35vw, 19px); font-weight: 650; letter-spacing: -0.015em; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.sl-head { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); border-bottom: 2px solid var(--sl-line); }
+.sl-foot { grid-template-columns: minmax(0, 3fr) minmax(0, 1.3fr) minmax(0, 3fr) minmax(0, 4fr); border-top: 2px solid var(--sl-line); }
+.sl-cell { min-width: 0; padding: 14px clamp(18px, 2.2vw, 30px) 18px; display: grid; gap: 5px; align-content: start; }
+.sl-cell + .sl-cell { border-left: 2px solid var(--sl-line); }
+.sl-cell dt { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sl-dim); }
+.sl-cell dd { margin: 0; font-size: clamp(15px, 1.35vw, 19px); font-weight: 600; letter-spacing: -0.01em; color: var(--sl-white); min-width: 0; overflow-wrap: anywhere; }
 .sl-cell dd.mono, .sl-cell dd .mono { font-family: var(--mono); font-weight: 500; letter-spacing: 0; font-size: clamp(13.5px, 1.15vw, 16px); }
 .sl-cell dd b { font-weight: 500; }
-.sl-cell dd small { display: block; font-size: 12px; font-weight: 400; color: var(--ink-3); }
-.sl-client dd { position: relative; display: grid; }
-.sl-client dd > span { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 9px; }
-.sl-wait { color: var(--ink-3); font-weight: 500; opacity: 0; }
-.sl-yes small { display: inline; font-size: 12.5px; margin-left: 2px; }
+.sl-cell dd small { display: block; font-size: 12px; font-weight: 400; color: var(--sl-dim); margin-top: 2px; }
+.sl-cell dd.sl-big { font-size: clamp(28px, 2.6vw, 38px); line-height: 1; font-weight: 500; }
+
+/* the client's answer: a rubber stamp in the signal colour */
+.sl-client dd { padding-top: 2px; }
+.sl-stamp {
+  display: inline-flex; align-items: baseline; gap: 10px; padding: 5px 12px 6px; border: 2px solid var(--signal); border-radius: 4px; white-space: nowrap;
+  color: var(--signal); transform: rotate(-4deg); transform-origin: 20% 60%;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--signal) 40%, transparent);
+}
+.sl-stamp b { font-size: clamp(16px, 1.45vw, 20px); font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.sl-stamp small { display: inline; margin: 0; font-size: 12.5px; color: var(--signal); opacity: 0.9; }
 
 .sl-main { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
 .sl-main h1 {
-  padding: clamp(28px, 4vw, 56px) clamp(16px, 2vw, 24px) clamp(28px, 4vw, 52px);
-  font-size: clamp(40px, 5.4vw, 76px); line-height: 0.98; font-weight: 780; letter-spacing: -0.045em; text-wrap: balance;
-  align-self: end;
+  align-self: end; padding: clamp(32px, 4.4vw, 64px) clamp(18px, 2.2vw, 30px) clamp(28px, 3.6vw, 48px);
+  font-size: clamp(40px, 5.2vw, 74px); line-height: 0.98; font-weight: 780; letter-spacing: -0.045em; text-wrap: balance; color: var(--sl-white);
 }
-.sl-main h1 span { display: block; color: var(--ink-3); }
-.sl-copy { padding: clamp(28px, 4vw, 56px) clamp(16px, 2vw, 24px) clamp(24px, 3vw, 40px); border-left: 1px solid var(--ink); display: flex; flex-direction: column; justify-content: flex-end; }
-.lp-lede { font-size: clamp(16px, 1.2vw, 18px); line-height: 1.6; color: var(--ink-2); margin: 0 0 24px; max-width: 40ch; }
-.lp-cta { align-items: center; gap: 20px; }
-.sl-plans { font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.sl-main h1 span { display: block; color: var(--sl-dim); }
+.sl-copy { padding: clamp(32px, 4.4vw, 64px) clamp(18px, 2.2vw, 30px) clamp(24px, 3vw, 40px); border-left: 2px solid var(--sl-line); display: flex; flex-direction: column; justify-content: flex-end; }
+.slate .lp-lede { font-size: clamp(16px, 1.2vw, 18px); line-height: 1.6; color: rgba(244, 242, 236, 0.8); margin: 0 0 26px; max-width: 40ch; }
+.slate .lp-cta { align-items: center; gap: 22px; }
+.slate .btn.primary { background: var(--sl-white); border-color: var(--sl-white); color: var(--sl-black); }
+.slate .btn.primary:hover { background: #ffffff; border-color: #ffffff; }
+.slate .btn.primary:focus-visible, .sl-plans:focus-visible { outline: 2px solid var(--sl-white); outline-offset: 3px; }
+.sl-plans { font-size: 15px; font-weight: 600; color: var(--sl-white); text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
 .sl-plans:hover { text-decoration-thickness: 2px; }
-.lp-hint { margin: 16px 0 0; color: var(--ink-3); font-size: 12.5px; }
-.sl-under { margin: 18px 0 0; max-width: 72ch; font-size: 14px; line-height: 1.6; color: var(--ink-3); }
+.slate .lp-hint { margin: 16px 0 0; color: var(--sl-dim); font-size: 12.5px; }
+.sl-under { margin: 22px auto 0; max-width: 1180px; font-size: 14px; line-height: 1.6; color: var(--ink-3); }
+.sl-under { padding-right: 40%; }
 
-/* The one moving moment: the stick claps shut; the client's answer lands. Plays once. */
+/* The one moving moment: the stick claps shut on the bar, then the stamp lands. Plays once. */
 @media (prefers-reduced-motion: no-preference) {
-  .slate-stick { animation: sl-clap 320ms cubic-bezier(0.5, 0, 0.75, 0) 450ms both; }
-  .sl-wait { animation: sl-show 150ms var(--ease) 700ms both, sl-hide 180ms var(--ease) 1500ms forwards; }
-  .sl-yes { animation: sl-land 300ms var(--ease) 1650ms both; }
+  .slate-stick { animation: sl-clap 300ms cubic-bezier(0.55, 0, 0.8, 0.2) 450ms both; }
+  .sl-stamp { animation: sl-stamp 260ms cubic-bezier(0.2, 0.9, 0.25, 1.15) 950ms both; }
 }
-@keyframes sl-clap { from { transform: rotate(-3.2deg); } to { transform: none; } }
-@keyframes sl-show { from { opacity: 0; } to { opacity: 1; } }
-@keyframes sl-hide { from { opacity: 1; } to { opacity: 0; } }
-@keyframes sl-land { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes sl-clap { from { transform: rotate(-9deg); } to { transform: none; } }
+@keyframes sl-stamp { from { opacity: 0; transform: rotate(-4deg) scale(1.6); } to { opacity: 1; transform: rotate(-4deg) scale(1); } }
 
 /* ---------------- what moves ---------------- */
 .lp-moves { padding-top: clamp(88px, 11vw, 150px); }
@@ -372,7 +410,8 @@
   .sl-copy { border-left: 0; padding-top: 12px; }
   .sl-foot { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sl-foot .sl-cell:nth-child(3) { border-left: 0; }
-  .sl-foot .sl-cell:nth-child(n + 3) { border-top: 1px solid var(--ink); }
+  .sl-foot .sl-cell:nth-child(n + 3) { border-top: 2px solid var(--sl-line); }
+  .sl-under { padding-right: 0; }
   .mv-video, .mv-proof { grid-template-columns: 48px minmax(0, 1fr); row-gap: 22px; }
   .mv { grid-template-columns: 48px minmax(0, 1fr); }
   .mv-spec { grid-column: 2; }
@@ -390,12 +429,20 @@
 
 /* ---------------- phone ---------------- */
 @media (max-width: 760px) {
-  .slate { padding-top: 32px; }
-  .slate-stick { height: 31px; background: repeating-linear-gradient(-58deg, var(--ink) 0 24px, var(--paper) 24px 48px); border-radius: 10px 10px 0 0; }
-  .slate-hinge { width: 12px; height: 12px; bottom: -6px; left: 5px; }
+  .slate { padding-top: 58px; --sl-stripe: 20px; }
+  .slate-sticks { height: 58px; }
+  .slate-stick, .slate-bar { height: 26px; border-radius: 4px; }
+  .slate-bar { top: 29px; border-radius: 4px 4px 0 0; }
+  .slate-hinge { width: 22px; height: 22px; top: 16px; left: 3px; }
+  .slate-hinge i { left: 5px; right: 5px; }
   .slate-board { border-radius: 0 0 10px 10px; }
   .sl-head { grid-template-columns: minmax(0, 1fr); }
-  .sl-head .sl-cell + .sl-cell { border-left: 0; border-top: 1px solid var(--ink); }
+  .sl-head .sl-cell + .sl-cell { border-left: 0; border-top: 2px solid var(--sl-line); }
+  .sl-cell { padding: 12px 16px 14px; }
+  .slate-screw { display: none; }
+  .sl-stamp { display: inline-grid; justify-items: start; gap: 1px; padding: 4px 9px 5px; }
+  .sl-stamp b { font-size: 14px; letter-spacing: 0.06em; }
+  .sl-stamp small { font-size: 11px; }
   .sl-main h1 { font-size: clamp(34px, 10.6vw, 46px); padding-top: 24px; }
   .sl-under { font-size: 13.5px; }
   .lp-nav { gap: 16px; font-size: 14px; }

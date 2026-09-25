@@ -59,18 +59,23 @@ export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
 /* ---------------- hero: a clapperboard for the job ---------------- */
 
 /**
- * The hero is the job's slate: what it is, which take, the date in BS and AD, and the one field a studio
- * waits for: the client's answer. The one moving moment: the stick claps shut, then "Waiting" turns
- * into "Approved". With reduced motion it is shown shut and approved.
+ * The hero is the job's slate, drawn as the real object: a matte black board with printed fields,
+ * a striped clapstick on a metal hinge. The one moving moment: the stick claps shut, then the
+ * client's APPROVED stamp lands. With reduced motion it is shown shut and stamped.
  */
 function Slate({ start }: { start: ReactNode }) {
   return (
     <div className="slate">
-      <div className="slate-stick" aria-hidden="true"><span className="slate-hinge" /></div>
+      <div className="slate-sticks" aria-hidden="true">
+        <span className="slate-stick" />
+        <span className="slate-bar" />
+        <span className="slate-hinge"><i /></span>
+      </div>
       <div className="slate-board">
+        <i className="slate-screw s1" aria-hidden="true" /><i className="slate-screw s2" aria-hidden="true" />
         <dl className="sl-row sl-head">
-          <div className="sl-cell"><dt>production</dt><dd>Himalayan Coffee, spring film</dd></div>
-          <div className="sl-cell"><dt>room</dt><dd className="mono">jhino.com/<b>sur-studio</b></dd></div>
+          <div className="sl-cell"><dt>Prod.</dt><dd>Himalayan Coffee, spring film</dd></div>
+          <div className="sl-cell"><dt>Room</dt><dd className="mono">jhino.com/<b>sur-studio</b></dd></div>
         </dl>
         <div className="sl-main">
           <h1 id="hero-h">Send the work. <span>Get the yes.</span></h1>
@@ -84,15 +89,12 @@ function Slate({ start }: { start: ReactNode }) {
           </div>
         </div>
         <dl className="sl-row sl-foot">
-          <div className="sl-cell"><dt>scene</dt><dd>Final cut</dd></div>
-          <div className="sl-cell"><dt>take</dt><dd className="mono">v3</dd></div>
-          <div className="sl-cell"><dt>date</dt><dd><span className="mono">8 Asoj 2083</span><small className="mono">24 Sep 2026</small></dd></div>
+          <div className="sl-cell"><dt>Scene</dt><dd>Final cut</dd></div>
+          <div className="sl-cell"><dt>Take</dt><dd className="sl-big mono">3</dd></div>
+          <div className="sl-cell"><dt>Date</dt><dd><span className="mono">8 Asoj 2083</span><small className="mono">24 Sep 2026</small></dd></div>
           <div className="sl-cell sl-client">
-            <dt>client</dt>
-            <dd aria-label="Approved at 13:02">
-              <span className="sl-wait" aria-hidden="true">Waiting…</span>
-              <span className="sl-yes"><i className="lp-dot" aria-hidden="true" />Approved <small className="mono">13:02</small></span>
-            </dd>
+            <dt>Client</dt>
+            <dd><span className="sl-stamp" role="img" aria-label="Approved at 13:02"><b>Approved</b><small className="mono">13:02</small></span></dd>
           </div>
         </dl>
       </div>
