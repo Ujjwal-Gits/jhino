@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { MultipartFile } from '@fastify/multipart';
 import { config } from './config.js';
 import { db, newId, now, sha256, type UserRow } from './db.js';
 import {
@@ -286,7 +287,7 @@ export function registerAccount(app: FastifyInstance) {
   app.post('/api/account/avatar', async (req) => {
     const u = requireUser(req);
     limit(req, 'avatar', 20, 3600_000, u.id);
-    const part = await req.file({ limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 0 } });
+    const part = (await (req as any).file({ limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 0 } })) as MultipartFile | undefined;
     if (!part) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a photo.');
     const buf = await part.toBuffer();
     if (part.file.truncated) throw new HttpError(413, 'TOO_LARGE', 'Use a photo up to 10 MB.');
