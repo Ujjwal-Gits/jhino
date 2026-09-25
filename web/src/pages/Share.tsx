@@ -398,7 +398,8 @@ function LinkSharing({ appId, appName }: { appId: string; appName: string }) {
     if (access === 'password' && !s.hasPassword) { setS({ ...s, access }); return; } // ask for the password first
     save({ access });
   };
-  const url = s.slugUrl ?? s.shareUrl;
+  const url = s.rootUrl ?? s.slugUrl ?? s.shareUrl;
+  const hasAddress = !!(s.rootUrl || s.slugUrl);
   return (
     <section className="link-share" aria-labelledby="ls-h">
       <AddressSection appId={appId} appName={appName} sharing={s} onChange={setS} />
@@ -417,10 +418,12 @@ function LinkSharing({ appId, appName }: { appId: string; appName: string }) {
       )}
       {s.access !== 'private' && (
         <>
-          <div className="linkbox">
-            <input className="input mono" readOnly value={url} onFocus={(e) => e.target.select()} aria-label="Share link" />
-            <button className="btn sm primary" type="button" onClick={() => copyText(url).then(() => toast('Link copied'))}><Icon name="copy" size={15} />Copy</button>
-          </div>
+          {!hasAddress && (
+            <div className="linkbox">
+              <input className="input mono" readOnly value={url} onFocus={(e) => e.target.select()} aria-label="Share link" />
+              <button className="btn sm primary" type="button" onClick={() => copyText(url).then(() => toast('Link copied'))}><Icon name="copy" size={15} />Copy</button>
+            </div>
+          )}
           <div className="ls-row">
             <span>Visitors can</span>
             <Select size="sm" label="Visitors can" width={130} value={s.publicRole} options={[{ value: 'viewer', label: 'View' }, { value: 'contributor', label: 'Add' }, { value: 'editor', label: 'Edit' }]} onChange={(v) => save({ publicRole: v as Role })} />
