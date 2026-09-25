@@ -57,7 +57,7 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
       <main className="state-card">
         <h2>{error.title}</h2>
         <p>{error.text}</p>
-        {signedInUser ? <Link to="/" className="btn">Back to your apps</Link> : <Link to="/login" className="btn">Sign in</Link>}
+        {signedInUser ? <Link to="/apps" className="btn">Back to your apps</Link> : <Link to="/login" className="btn">Sign in</Link>}
       </main>
     );
   }

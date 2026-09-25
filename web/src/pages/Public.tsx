@@ -9,7 +9,7 @@ import { Icon } from '../ui';
  * the hero booking that lands on the client's screen.
  */
 
-export function SiteHeader() {
+export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
   const { path } = useRoute();
   return (
     <header className="site-head">
@@ -18,15 +18,16 @@ export function SiteHeader() {
         <nav className="site-nav" aria-label="Site">
           <a href="/#pricing" aria-current={path === '/' ? undefined : undefined}>Pricing</a>
           <Link to="/help" aria-current={path === '/help' ? 'page' : undefined}>Help</Link>
-          <Link to="/login" className="site-signin">Sign in</Link>
-          <Link to="/signup" className="btn primary sm">Start free</Link>
+          {signedIn
+            ? <Link to="/apps" className="btn primary sm">Open dashboard</Link>
+            : <><Link to="/login" className="site-signin">Sign in</Link><Link to="/signup" className="btn primary sm">Start free</Link></>}
         </nav>
       </div>
     </header>
   );
 }
 
-export function SiteFooter() {
+export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
   return (
     <footer className="site-foot">
       <div className="site-in">
@@ -36,7 +37,7 @@ export function SiteFooter() {
           <Link to="/help">Help</Link>
           <Link to="/terms">Terms</Link>
           <Link to="/privacy">Privacy</Link>
-          <Link to="/login">Sign in</Link>
+          {signedIn ? <Link to="/apps">Dashboard</Link> : <Link to="/login">Sign in</Link>}
         </nav>
       </div>
     </footer>
@@ -97,10 +98,10 @@ const FAQ: [string, ReactNode][] = [
   ['Where is my data?', 'On the Jhino server, backed up, and never sold. Read the Privacy page for the details.'],
 ];
 
-export function Landing() {
+export function Landing({ signedIn = false }: { signedIn?: boolean }) {
   return (
     <div className="site">
-      <SiteHeader />
+      <SiteHeader signedIn={signedIn} />
       <main>
         <section className="hero site-in">
           <div className="hero-copy">
@@ -108,7 +109,7 @@ export function Landing() {
             <h1>One live page for you and your client.</h1>
             <p className="lede">Upload an HTML app, or build one in minutes. Share it with a sign-in or a link. Every approval, booking, receipt and file either of you adds shows up on both screens as it happens.</p>
             <div className="hero-cta">
-              <Link to="/signup" className="btn primary lg">Start free</Link>
+              {signedIn ? <Link to="/apps" className="btn primary lg">Open dashboard</Link> : <Link to="/signup" className="btn primary lg">Start free</Link>}
               <a href="#pricing" className="btn lg quiet">See plans</a>
             </div>
             <p className="hint">Free Forever includes one app. Paid plans from NPR 500.</p>
@@ -173,7 +174,9 @@ export function Landing() {
                   <td className="mono">{p.price === '0' ? 'Free' : `NPR ${p.price}`}</td>
                   <td className="mono">up to {p.creations}</td>
                   <td className="hide-sm muted">{p.who}</td>
-                  <td><Link to={p.id === 'free' ? '/signup' : `/signup?plan=${p.id}`} className={`btn sm ${p.id === 'free' ? 'primary' : ''}`}>{p.id === 'free' ? 'Start free' : 'Choose'}</Link></td>
+                  <td>{signedIn
+                    ? <Link to={p.id === 'free' ? '/account/plan' : `/account/plan?choose=${p.id}`} className="btn sm">{p.id === 'free' ? 'Your plans' : 'Choose'}</Link>
+                    : <Link to={p.id === 'free' ? '/signup' : `/signup?plan=${p.id}`} className={`btn sm ${p.id === 'free' ? 'primary' : ''}`}>{p.id === 'free' ? 'Start free' : 'Choose'}</Link>}</td>
                 </tr>
               ))}
             </tbody>
@@ -187,7 +190,7 @@ export function Landing() {
           </dl>
         </section>
       </main>
-      <SiteFooter />
+      <SiteFooter signedIn={signedIn} />
     </div>
   );
 }

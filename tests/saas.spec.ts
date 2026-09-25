@@ -290,6 +290,16 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   await page.check('.check-row input');
   await page.click('button:has-text("Create account")');
   await expect(page.getByRole('heading', { name: 'My apps' })).toBeVisible();
+  await expect(page).toHaveURL(/\/apps$/);
+  // Signed in, the main address is still the website; the dashboard is at /apps.
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('One live page for you and your client.');
+  await expect(page.getByRole('link', { name: 'Sign in' })).toHaveCount(0);
+  await page.getByRole('link', { name: 'Open dashboard' }).first().click();
+  await expect(page).toHaveURL(/\/apps$/);
+  await expect(page.getByRole('heading', { name: 'My apps' })).toBeVisible();
+  await page.goto('/no-such-page/deep');
+  await expect(page).toHaveURL(/\/apps$/);
   await page.click('.avatar-btn');
   for (const item of ['Profile', 'My creations', 'Plan & usage', 'Billing', 'Notifications', 'Security', 'Settings', 'Help & support', 'Log out']) {
     await expect(page.getByRole('menuitem', { name: item })).toBeVisible();

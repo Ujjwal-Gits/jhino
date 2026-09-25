@@ -53,7 +53,7 @@ export function Invite({ token, user, onJoined }: { token: string; user: User | 
         <div style={{ width: 'min(360px,100%)', display: 'grid', gap: 12 }}>
           <h2>Invite not available</h2>
           <p className="muted">{problem}</p>
-          <button className="btn" onClick={() => go('/', true)}>Go to Jhino</button>
+          <button className="btn" onClick={() => go('/apps', true)}>Go to Jhino</button>
         </div>
       ) : !info ? null : user ? (
         <div style={{ width: 'min(360px,100%)', display: 'grid', gap: 16 }}>

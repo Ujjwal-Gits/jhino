@@ -15,7 +15,7 @@ import { AppsPage } from './pages/Apps';
 import { Player } from './pages/Player';
 import { Shell } from './pages/Shell';
 import { Builder } from './pages/Builder';
-import { RouteCtx, SessionCtx, applyTheme, readTheme } from './context';
+import { RouteCtx, SessionCtx, applyTheme, readTheme, useRoute } from './context';
 
 applyTheme(readTheme());
 
@@ -54,7 +54,7 @@ function App() {
 
   // Signed in: the sign-in pages lead home.
   useEffect(() => {
-    if (user && ['/login', '/signup', '/forgot'].includes(path)) go('/', true);
+    if (user && ['/login', '/signup', '/forgot'].includes(path)) go('/apps', true);
     if (user && path === '/people') go('/admin/users', true);
   }, [user, path, go]);
 
@@ -82,9 +82,10 @@ function App() {
   else if (path === '/terms') page = shell(<TermsPage signedIn={!!user} />);
   else if (path === '/privacy') page = shell(<PrivacyPage signedIn={!!user} />);
   else if (shareMatch || slug) page = <PublicApp refId={shareMatch ? shareMatch[1] : slug!} signedInUser={user} />;
+  // The website is always at the main address; the dashboard lives at /apps.
+  else if (path === '/') page = <Landing signedIn={!!user} />;
   else if (!user) {
-    if (path === '/') page = <Landing />;
-    else if (path === '/signup') page = <Signup onDone={refresh} />;
+    if (path === '/signup') page = <Signup onDone={refresh} />;
     else if (path === '/forgot') page = <Forgot />;
     else page = <Login onDone={refresh} />; // also for deep links: after signing in, the same page opens
   }
@@ -98,7 +99,8 @@ function App() {
   else if (appMatch) page = <Player id={appMatch[1]} />;
   else if (path === '/shared') page = <Shell><AppsPage view="shared" /></Shell>;
   else if (path === '/trash') page = <Shell><AppsPage view="trash" /></Shell>;
-  else page = <Shell><AppsPage view={user.canCreate ? 'mine' : 'shared'} /></Shell>;
+  else if (path === '/apps') page = <Shell><AppsPage view={user.canCreate ? 'mine' : 'shared'} /></Shell>;
+  else page = <GoTo to="/apps" />; // anything else signed in leads to the dashboard
 
   return (
     <RouteCtx.Provider value={{ path, go }}>
@@ -107,6 +109,12 @@ function App() {
       </ToastProvider>
     </RouteCtx.Provider>
   );
+}
+
+function GoTo({ to }: { to: string }) {
+  const { go } = useRoute();
+  useEffect(() => { go(to, true); }, [go, to]);
+  return null;
 }
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

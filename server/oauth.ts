@@ -140,7 +140,7 @@ async function finish(req: FastifyRequest, reply: FastifyReply, p: Provider, par
   if (user.disabled) return fail(reply, 'suspended');
   createSession(reply, user.id, req);
   afterLogin(req, user, p);
-  return landHome(reply, '/');
+  return landHome(reply, '/apps');
 }
 
 /**

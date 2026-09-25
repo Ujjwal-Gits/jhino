@@ -325,13 +325,13 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
 
   useEffect(() => { document.title = app ? `${app.name} · Jhino` : 'Jhino'; return () => { document.title = 'Jhino'; }; }, [app]);
 
-  const back = () => go(app && app.role !== 'owner' ? '/shared' : '/');
+  const back = () => go(app && app.role !== 'owner' ? '/shared' : '/apps');
   const isOwner = app?.role === 'owner';
   const others = people.filter((p) => p.id !== user.id);
 
   const trash = async () => {
     if (!app || !confirm(`Move “${app.name}” to Trash? People you shared it with lose access until you restore it.`)) return;
-    try { await post(`/api/apps/${id}/trash`); toast(`${app.name} moved to Trash`); go('/'); }
+    try { await post(`/api/apps/${id}/trash`); toast(`${app.name} moved to Trash`); go('/apps'); }
     catch (e) { toast(e instanceof ApiError ? e.message : 'Could not move to Trash.', true); }
   };
   const leave = async () => {
@@ -351,7 +351,7 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
       <main className="state-card">
         <h2>{fatal.title}</h2>
         <p>{fatal.text}</p>
-        {!visitor && <button className="btn" onClick={() => go('/')}><Icon name="back" size={16} />Back to apps</button>}
+        {!visitor && <button className="btn" onClick={() => go('/apps')}><Icon name="back" size={16} />Back to apps</button>}
       </main>
     );
   }

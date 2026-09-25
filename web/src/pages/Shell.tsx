@@ -129,10 +129,10 @@ export function Shell({ children }: { children: ReactNode }) {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <Link to="/" className="wordmark" aria-label="Jhino home">jhino<i /></Link>
+          <Link to="/apps" className="wordmark" aria-label="Jhino dashboard">jhino<i /></Link>
           {user.canCreate ? (
             <nav className="tabs" aria-label="Apps">
-              {tab('/', 'My apps')}
+              {tab('/apps', 'My apps')}
               {tab('/shared', 'Shared with me')}
               {tab('/trash', 'Trash', 'tab-trash')}
             </nav>
@@ -158,7 +158,8 @@ export function Shell({ children }: { children: ReactNode }) {
         <Menu anchor={menuFor} onClose={() => setMenuFor(null)}>
           <div className="who"><b>{user.displayName || user.name}</b><span>{user.email}</span></div>
           <button role="menuitem" onClick={() => go('/account/profile')}><Icon name="user" size={16} />Profile</button>
-          {user.canCreate && <button role="menuitem" onClick={() => go('/')}><Icon name="grid" size={16} />My creations</button>}
+          {user.canCreate && <button role="menuitem" onClick={() => go('/apps')}><Icon name="grid" size={16} />My creations</button>}
+          <button role="menuitem" onClick={() => go('/')}><Icon name="globe" size={16} />Jhino website</button>
           {user.canCreate && <button role="menuitem" onClick={() => go('/account/plan')}><Icon name="chart" size={16} />Plan & usage</button>}
           {user.canCreate && <button role="menuitem" onClick={() => go('/account/billing')}><Icon name="card" size={16} />Billing</button>}
           <button role="menuitem" onClick={() => go('/account/notifications')}><Icon name="bell" size={16} />Notifications</button>

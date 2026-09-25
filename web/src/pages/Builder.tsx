@@ -209,7 +209,7 @@ export function Builder({ appId }: { appId?: string }) {
   return (
     <div className="builder">
       <header className="player-bar">
-        <button className="icon-btn" onClick={() => { if (!dirty.current || confirm('Leave without saving?')) go(appId ? `/apps/${appId}` : '/'); }} aria-label="Back"><Icon name="back" /></button>
+        <button className="icon-btn" onClick={() => { if (!dirty.current || confirm('Leave without saving?')) go(appId ? `/apps/${appId}` : '/apps'); }} aria-label="Back"><Icon name="back" /></button>
         <div className="title"><h1>{appId ? `Edit ${cfg.name || 'HTML'}` : 'Create HTML'}</h1></div>
         <div className="spacer" />
         <span className="mono muted hide-sm" aria-live="polite">{cfg.blocks.length} {cfg.blocks.length === 1 ? 'feature' : 'features'} ticked</span>

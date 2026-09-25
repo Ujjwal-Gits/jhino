@@ -143,7 +143,7 @@ test('full journey: upload a ZIP, share with an invite link, edit together live,
   await expect(again.getByText('Invite not available')).toBeVisible();
 
   // The owner's app list shows it shared.
-  await a.goto('/');
+  await a.goto('/apps');
   const card = a.locator('.ix-row', { hasText: 'Team Tasks' }).first();
   await expect(card.locator('.ap-people .avatar')).toHaveCount(1);
   await expect(card.locator('.ap-people')).toBeVisible();
