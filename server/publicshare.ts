@@ -26,7 +26,7 @@ export const RESERVED = new Set(['api', 'run', 'apps', 'app', 'build', 'shared',
   'signup', 'register', 'forgot', 'reset', 'verify', 'help', 'support', 'terms', 'privacy', 'pricing', 'billing', 'plans', '_jhino', 'preview', 'health',
   'assets', 'static', 'logout', 'settings', 'dashboard', 'home', 'about', 'contact', 'blog', 'docs', 'status', 'www', 'mail', 'jhino', 'favicon.ico',
   'robots.txt', 'sitemap.xml', 'manifest.json', 'new', 'create', 'upload', 'download', 'files', 'public', 'p', 'u', 'user', 'users', 'auth', 'oauth',
-  'links', 'link', 'go', 'l', 'admin-links', 'addresses', 'receipt', 'receipts', 'payments', 'checkout', 'plan', 'features', 'index.html']);
+  'links', 'link', 'go', 'l', 'admin-links', 'addresses', 'receipt', 'receipts', 'payments', 'checkout', 'plan', 'features', 'index.html', 'img', 'images', 'fonts']);
 export function validSlug(s: unknown): string {
   const v = String(s ?? '').trim().toLowerCase();
   if (!/^[a-z0-9](?:[a-z0-9-]{0,48}[a-z0-9])?$/.test(v) || v.length < 2) throw new HttpError(400, 'VALIDATION_FAILED', 'Use 2 to 50 lowercase letters, numbers and dashes (not at the start or end).');

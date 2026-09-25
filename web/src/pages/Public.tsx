@@ -125,7 +125,10 @@ function LiveBoard() {
 function VideoSpec() {
   return (
     <div className="sp sp-video">
-      <div className="sp-frame"><span className="sp-cup" /><span className="sp-play" /><span className="mono sp-tc">01:12 / 02:14</span><span className="mono sp-ver">Final cut v3</span></div>
+      <div className="sp-frame">
+        <img src="/img/cut-pour-over.webp" alt="" width="1200" height="675" loading="lazy" decoding="async" />
+        <span className="sp-play" /><span className="mono sp-tc">01:12 / 02:14</span><span className="mono sp-ver">Himalayan Coffee · final cut v3</span>
+      </div>
       <div className="sp-scrub"><i style={{ transform: 'scaleX(0.53)' }} /><b style={{ left: '53%' }} /></div>
       <p className="sp-note"><span className="mono">01:12</span> Logo a little larger here.</p>
       <div className="sp-btns"><span className="sp-btn ink">Approve</span><span className="sp-btn">Ask for changes</span></div>
@@ -134,13 +137,18 @@ function VideoSpec() {
 }
 
 function ProofSpec() {
-  const marks = ['Pick', 'Maybe', 'No', 'Pick'];
+  const shots: [string, string, string][] = [
+    ['Pick', 'shoot-iced.webp', 'DSC_0412'], ['Maybe', 'shoot-lattes.webp', 'DSC_0418'],
+    ['No', 'shoot-beans.webp', 'DSC_0425'], ['Pick', 'shoot-cheers.webp', 'DSC_0431'],
+  ];
   return (
     <div className="sp sp-proof">
       <div className="sp-photos">
-        {marks.map((m, i) => (
-          <figure key={i} className={`sp-photo t${i}`}>
+        {shots.map(([m, file, name]) => (
+          <figure key={name} className={`sp-photo ${m.toLowerCase()}`}>
+            <img src={`/img/${file}`} alt="" width="600" height="750" loading="lazy" decoding="async" />
             <span className={`sp-mark ${m.toLowerCase()}`}>{m}</span>
+            <figcaption className="mono">{name}</figcaption>
           </figure>
         ))}
       </div>
@@ -352,14 +360,20 @@ export function Landing({ signedIn = false }: { signedIn?: boolean }) {
         <section className="lp-hero" aria-labelledby="hero-h">
           <div className="lp-wrap">
             <div className="lp-hero-grid">
-              <h1 id="hero-h">One live page for you and your client.</h1>
               <div className="lp-hero-copy">
-                <p className="lp-lede">Upload an HTML app, or build one here. Share it with your client by sign-in or link. Every approval, booking, receipt and file either of you adds shows on both screens as it happens.</p>
+                <p className="lp-eyebrow"><i className="lv-dot" aria-hidden="true" />Client rooms for studios and agencies</p>
+                <h1 id="hero-h">Get every client on the <span className="lp-mark">same page</span>.</h1>
+                <p className="lp-lede">One live page for each client. They approve the cut, pick the photos and book the session right there, and you see every answer the moment they give it.</p>
+                <ul className="lp-nots mono" aria-label="What you stop doing">
+                  <li><s>long email threads</s></li>
+                  <li><s>final_v3_REAL.mp4</s></li>
+                  <li><s>“did you see my message?”</s></li>
+                </ul>
                 <div className="lp-cta">
                   {start}
                   <a href="#pricing" className="btn lg quiet">See plans</a>
                 </div>
-                <p className="lp-hint mono">Free Forever: 1 app. Plus from NPR 500 a month.</p>
+                <p className="lp-hint mono">Free for one client, for good. No card needed.</p>
               </div>
               <LiveBoard />
             </div>

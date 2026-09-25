@@ -293,7 +293,7 @@ test('studio booking: a reminder is sent once before the booking, to the owner',
 test('screens: website, sign up, account menu, booking day and hidden top bar', async ({ browser }) => {
   const page = await (await browser.newContext()).newPage();
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('One live page for you and your client.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Get every client on the same page.');
   await expect(page.locator('.price-card')).toHaveCount(3);
   await page.getByRole('link', { name: 'Start free' }).first().click();
   const email = `ui.${uniq()}@example.com`;
@@ -306,7 +306,7 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   await expect(page).toHaveURL(/\/apps$/);
   // Signed in, the main address is still the website; the dashboard is at /apps.
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('One live page for you and your client.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Get every client on the same page.');
   await expect(page.getByRole('link', { name: 'Sign in' })).toHaveCount(0);
   await page.getByRole('link', { name: 'Open dashboard' }).first().click();
   await expect(page).toHaveURL(/\/apps$/);

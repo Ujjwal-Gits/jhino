@@ -32,28 +32,32 @@
 .lp-nav a:not(.btn):hover, .lp-nav a[aria-current='page'] { color: var(--ink); text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 1px; }
 .lp-nav .btn.sm { height: 34px; padding: 0 14px; font-size: 14px; }
 
-/* ---------------- hero ---------------- */
-.lp-hero { padding-top: clamp(40px, 6vw, 84px); }
+/* ---------------- hero: the promise on the left, the product working on the right ---------------- */
+.lp-hero { padding-top: clamp(44px, 6vw, 88px); }
 .lp-hero-grid {
-  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2vw, 28px);
-  align-items: end;
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(32px, 4.5vw, 72px);
+  align-items: center;
 }
+.lp-hero-copy { min-width: 0; }
+.lp-eyebrow { display: inline-flex; align-items: center; gap: 9px; margin: 0 0 22px; padding: 6px 12px 6px 10px; border: 1px solid var(--rule-strong); border-radius: 999px; font-size: 13px; font-weight: 550; color: var(--ink-2); }
 .lp-hero h1 {
-  grid-column: 1 / 9;
-  font-size: clamp(46px, 8.4vw, 128px); line-height: 0.88; font-weight: 800; letter-spacing: -0.058em;
-  max-width: 12.5ch; margin-left: -0.04em; text-wrap: balance;
+  font-size: clamp(38px, 4.3vw, 62px); line-height: 1.02; font-weight: 760; letter-spacing: -0.045em;
+  max-width: 13ch; margin: 0 0 22px -0.02em; text-wrap: balance;
 }
-.lp-hero-copy { grid-column: 9 / 13; padding-bottom: 4px; }
-.lp-lede { font-size: clamp(17px, 1.3vw, 19px); line-height: 1.55; color: var(--ink-2); margin: 0 0 26px; max-width: 34ch; padding-top: 16px; border-top: 2px solid var(--ink); }
+/* "same page": one quiet vermilion rule under the words, nothing louder */
+.lp-mark { white-space: nowrap; text-decoration: underline; text-decoration-color: var(--signal); text-decoration-thickness: 0.075em; text-underline-offset: 0.14em; text-decoration-skip-ink: auto; }
+.lp-lede { font-size: clamp(16.5px, 1.25vw, 18.5px); line-height: 1.6; color: var(--ink-2); margin: 0 0 18px; max-width: 40ch; }
+.lp-nots { list-style: none; margin: 0 0 28px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; color: var(--ink-3); }
+.lp-nots s { text-decoration-thickness: 1px; text-decoration-color: var(--ink-2); }
 .lp-hint { margin-top: 16px; color: var(--ink-3); font-size: 12.5px; }
 
 /* the live board: the studio's window with the client's phone laid over its corner */
 .lv {
-  grid-column: 1 / -1; position: relative; margin: clamp(48px, 6vw, 88px) 0 0; padding-bottom: 100px;
-  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2vw, 28px);
+  position: relative; margin: 0; padding-bottom: 24px; min-width: 0;
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 12px;
 }
 .lv-desk {
-  grid-column: 4 / 12; grid-row: 1; min-width: 0;
+  grid-column: 1 / 12; grid-row: 1; min-width: 0;
   border: 1px solid var(--rule-strong); border-radius: var(--r-lg); background: var(--paper); overflow: hidden;
 }
 .lv-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 40px; padding: 0 14px; border-bottom: 1px solid var(--rule); background: var(--paper-2); }
@@ -85,8 +89,8 @@
 .lv-k:first-child { margin-top: 0; }
 
 .lv-phone {
-  grid-column: 10 / 13; grid-row: 1; align-self: end; position: relative; min-width: 0;
-  transform: translateY(92px);
+  grid-column: 9 / 13; grid-row: 1; align-self: end; position: relative; min-width: 0;
+  transform: translateY(104px);
   border: 1px solid var(--ink); border-radius: 26px; background: var(--paper);
   padding: 22px 14px 14px; overflow: hidden;
   box-shadow: 0 0 0 6px var(--paper);
@@ -110,7 +114,7 @@
 .lv-ph-list small { font-size: 11px; color: var(--ink-2); }
 .lv-ph-list .lv-new { background: color-mix(in srgb, var(--signal) 13%, var(--paper)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--signal) 55%, transparent); }
 .lv-ph-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; font-size: 11px; color: var(--ink-3); }
-.lv-cap { grid-column: 1 / 4; grid-row: 1; align-self: end; padding-top: 12px; border-top: 1px solid var(--rule-strong); font-size: 12px; line-height: 1.55; color: var(--ink-3); max-width: 30ch; }
+.lv-cap { grid-column: 1 / 8; grid-row: 2; margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--rule-strong); font-size: 12px; line-height: 1.55; color: var(--ink-3); max-width: 44ch; }
 .lv-cap b { display: block; color: var(--ink); font-weight: 500; margin-bottom: 4px; }
 
 /* The one moving moment. A tap books 13:00 on the studio's screen; "Saving" gives way to
@@ -131,7 +135,7 @@
 @keyframes lv-land { from { opacity: 0; transform: translateY(-10px) scale(0.98); } to { opacity: 1; transform: none; } }
 
 /* facts under the hero: four ruled readouts, not a stat strip */
-.lp-facts { list-style: none; margin: clamp(72px, 9vw, 120px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); }
+.lp-facts { list-style: none; margin: clamp(56px, 7vw, 96px) 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); }
 .lp-facts li { display: grid; gap: 4px; padding: 16px 18px 18px 0; font-size: 12px; color: var(--ink-3); }
 .lp-facts li + li { padding-left: 18px; border-left: 1px solid var(--rule); }
 .lp-facts b { font-family: var(--font); font-size: 22px; font-weight: 720; letter-spacing: -0.03em; color: var(--ink); }
@@ -161,29 +165,27 @@
 
 /* specimens: small pieces of the real product, drawn in HTML */
 .sp { font-size: 13px; color: var(--ink-2); }
-.sp-video { display: grid; gap: 10px; max-width: 460px; }
+.sp-video { display: grid; gap: 10px; max-width: 580px; }
 .sp-frame {
   --f0: color-mix(in srgb, var(--ink) 90%, var(--paper));
   --f1: color-mix(in srgb, var(--ink) 70%, var(--paper));
   --f2: color-mix(in srgb, var(--ink) 38%, var(--paper));
   --f-text: var(--paper);
-  position: relative; aspect-ratio: 16 / 7.5; border-radius: 6px; overflow: hidden;
-  background:
-    radial-gradient(ellipse 30% 44% at 74% 36%, var(--f2), transparent 70%),
-    linear-gradient(to top, var(--f1) 0 27%, transparent 27%),
-    var(--f0);
+  position: relative; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: var(--f0);
 }
+.sp-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* a film-strip shade at the foot, so the timecode reads on any frame */
+.sp-frame::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 34%; background: linear-gradient(to top, rgba(10, 10, 10, 0.62), transparent); pointer-events: none; }
+.sp-frame .sp-play, .sp-frame .sp-tc, .sp-frame .sp-ver { z-index: 1; }
 :root[data-theme='dark'] .sp-frame {
   --f0: var(--paper-2);
   --f1: color-mix(in srgb, var(--ink) 16%, var(--paper));
   --f2: color-mix(in srgb, var(--ink) 40%, var(--paper));
   --f-text: var(--ink);
 }
-.sp-cup { position: absolute; left: 24%; bottom: 27%; width: 11%; height: 25%; border-radius: 2px 2px 10px 10px; background: var(--f2); }
-.sp-cup::after { content: ''; position: absolute; left: 100%; top: 18%; width: 38%; height: 42%; border: 4px solid var(--f2); border-left: 0; border-radius: 0 12px 12px 0; }
-.sp-play { position: absolute; left: 50%; top: 50%; width: 42px; height: 42px; margin: -21px 0 0 -21px; border-radius: 50%; background: var(--f-text); }
-.sp-play::after { content: ''; position: absolute; left: 16px; top: 13px; border-left: 12px solid var(--f0); border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
-.sp-tc, .sp-ver { position: absolute; bottom: 9px; font-size: 11px; color: var(--f-text); }
+.sp-play { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(255, 255, 255, 0.94); }
+.sp-play::after { content: ''; position: absolute; left: 20px; top: 16px; border-left: 15px solid #141414; border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
+.sp-tc, .sp-ver { position: absolute; bottom: 10px; font-size: 11px; color: #fff; }
 .sp-tc { right: 12px; }
 .sp-ver { left: 12px; opacity: 0.8; }
 .sp-scrub { position: relative; height: 3px; background: var(--rule); border-radius: 2px; }
@@ -196,26 +198,12 @@
 .sp-btn.ink { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
 .sp-proof { display: grid; gap: 10px; }
-.sp-photos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 520px; }
-.sp-photo {
-  --p0: color-mix(in srgb, var(--ink) 72%, var(--paper));
-  --p1: color-mix(in srgb, var(--ink) 36%, var(--paper));
-  --p2: color-mix(in srgb, var(--ink) 12%, var(--paper));
-  position: relative; margin: 0; aspect-ratio: 4 / 5; border-radius: 3px; overflow: hidden; background: var(--p2);
-}
-.sp-photo::before, .sp-photo::after { content: ''; position: absolute; }
-/* mountains */
-.sp-photo.t0::before, .sp-photo.t2::before { inset: 30% 0 0; background: var(--p0); clip-path: polygon(0 62%, 18% 30%, 30% 46%, 52% 0, 70% 38%, 82% 24%, 100% 52%, 100% 100%, 0 100%); }
-.sp-photo.t0::after { inset: 30% 0 0; background: var(--p2); clip-path: polygon(45% 10%, 52% 0, 59% 12%, 55% 16%, 51% 11%, 48% 15%); }
-.sp-photo.t2 { opacity: 0.45; }
-.sp-photo.t2::before { clip-path: polygon(0 40%, 22% 10%, 40% 36%, 64% 18%, 100% 60%, 100% 100%, 0 100%); }
-/* portrait */
-.sp-photo.t1 { background: var(--p1); }
-.sp-photo.t1::before { left: 36%; top: 22%; width: 28%; aspect-ratio: 1; border-radius: 50%; background: var(--p0); }
-.sp-photo.t1::after { left: 18%; right: 18%; bottom: -12%; height: 42%; border-radius: 50% 50% 0 0; background: var(--p0); }
-/* product */
-.sp-photo.t3::before { left: 34%; bottom: 26%; width: 32%; height: 30%; border-radius: 3px 3px 14px 14px; background: var(--p0); }
-.sp-photo.t3::after { left: 0; right: 0; bottom: 0; height: 26%; background: var(--p1); }
+.sp-photos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; max-width: 560px; }
+.sp-photo { position: relative; margin: 0; aspect-ratio: 4 / 5; border-radius: 4px; overflow: hidden; background: var(--paper-3); }
+.sp-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.sp-photo.pick { box-shadow: 0 0 0 2px var(--ink); }
+.sp-photo.no img { filter: grayscale(1); opacity: 0.45; }
+.sp-photo figcaption { position: absolute; right: 6px; top: 5px; font-size: 9.5px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
 .sp-mark { position: absolute; z-index: 1; left: 6px; bottom: 6px; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 650; background: var(--paper); color: var(--ink); }
 .sp-mark.pick { background: var(--ink); color: var(--paper); }
 .sp-mark.no { text-decoration: line-through; color: var(--ink-3); }
@@ -431,15 +419,12 @@
 
 /* ---------------- tablet ---------------- */
 @media (max-width: 1080px) {
-  .lp-hero h1, .lp-hero-copy { grid-column: 1 / -1; }
-  .lp-hero h1 { max-width: 11ch; font-size: clamp(46px, 11vw, 116px); }
-  .lp-hero-copy { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 32px; align-items: end; margin-top: 36px; border-top: 2px solid var(--ink); }
-  .lp-lede { max-width: 46ch; border-top: 0; }
-  .lp-hero-copy .lp-cta { grid-column: 2; grid-row: 1; margin-bottom: 30px; }
-  .lp-hint { grid-column: 1 / -1; margin-top: 0; }
+  .lp-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 48px; }
+  .lp-hero h1 { font-size: clamp(38px, 6.4vw, 60px); max-width: 16ch; }
+  .lp-lede { max-width: 52ch; }
   .lv-desk { grid-column: 1 / 11; }
   .lv-phone { grid-column: 8 / 13; }
-  .lv-cap { grid-column: 1 / 8; grid-row: 2; margin-top: 76px; }
+  .lv-cap { grid-column: 1 / 8; grid-row: 2; margin-top: 18px; }
   .lv-body { grid-template-columns: minmax(0, 1fr) 170px; }
   .lp-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lp-facts li:nth-child(3) { padding-left: 0; border-left: 0; }
@@ -462,12 +447,12 @@
 /* ---------------- phone ---------------- */
 @media (max-width: 760px) {
   .lp-nav { gap: 16px; font-size: 14px; }
-  .lp-hero-copy { display: block; }
-  .lp-hero-copy .lp-cta { margin-bottom: 0; }
-  .lp-hint { margin-top: 16px; }
-  .lp-lede { margin: 16px 0 24px; }
+  .lp-eyebrow { font-size: 12.5px; margin-bottom: 18px; }
+  .lp-lede { margin: 0 0 16px; }
+  .lp-nots { margin-bottom: 24px; }
   .lp-cta .btn.lg { flex: 1 1 auto; }
-  .lp-hero h1 { font-size: clamp(40px, 13vw, 76px); }
+  .lp-hero h1 { font-size: clamp(34px, 10.4vw, 48px); }
+  .lp-mark { white-space: normal; }
   .lv { padding-bottom: 0; }
   .lv-desk { grid-column: 1 / -1; }
   .lv-body { grid-template-columns: minmax(0, 1fr); }
