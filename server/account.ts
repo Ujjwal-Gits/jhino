@@ -84,6 +84,34 @@ function accountView(req: FastifyRequest, u: UserRow) {
   };
 }
 
+
+/** Remove an account with its apps, their data and files, and the client sign-ins it made (unless shared). */
+export function deleteAccount(u: UserRow) {
+  const owned = db.prepare('SELECT id FROM apps WHERE owner_id=?').all(u.id) as { id: string }[];
+  const clients = db.prepare("SELECT id FROM users WHERE created_by=? AND is_admin=0 AND kind='person'").all(u.id) as { id: string }[];
+  db.transaction(() => {
+    for (const a of owned) {
+      const v = db.prepare('SELECT visitor_id FROM apps WHERE id=?').get(a.id) as { visitor_id: string | null };
+      db.prepare('DELETE FROM apps WHERE id=?').run(a.id);
+      if (v?.visitor_id) db.prepare('DELETE FROM users WHERE id=?').run(v.visitor_id);
+    }
+    // Sign-ins this person made for their clients go too, unless another owner still uses them.
+    for (const c of clients) {
+      if (!db.prepare('SELECT 1 FROM memberships WHERE user_id=? LIMIT 1').get(c.id)) db.prepare('DELETE FROM users WHERE id=?').run(c.id);
+      else db.prepare('UPDATE users SET created_by=NULL WHERE id=?').run(c.id);
+    }
+    db.prepare('DELETE FROM memberships WHERE user_id=?').run(u.id);
+    db.prepare('DELETE FROM users WHERE id=?').run(u.id);
+  })();
+  for (const a of owned) {
+    fs.rmSync(path.join(config.dataDir, 'apps', a.id), { recursive: true, force: true });
+    fs.rmSync(path.join(config.dataDir, 'files', a.id), { recursive: true, force: true });
+  }
+  removeAvatar(u);
+  closeUser(u.id);
+  return owned;
+}
+
 export function registerAccount(app: FastifyInstance) {
   /** What the sign-in page can offer. */
   app.get('/api/auth/options', async () => ({
@@ -354,28 +382,7 @@ export function registerAccount(app: FastifyInstance) {
       throw new HttpError(400, 'LAST_ADMIN', 'You are the only super admin. Make someone else a super admin before deleting your account.');
     }
     sendMail(u.email, 'account_deleted', mails.deleted(u.name));
-    const owned = db.prepare('SELECT id FROM apps WHERE owner_id=?').all(u.id) as { id: string }[];
-    const clients = db.prepare("SELECT id FROM users WHERE created_by=? AND is_admin=0 AND kind='person'").all(u.id) as { id: string }[];
-    db.transaction(() => {
-      for (const a of owned) {
-        const v = db.prepare('SELECT visitor_id FROM apps WHERE id=?').get(a.id) as { visitor_id: string | null };
-        db.prepare('DELETE FROM apps WHERE id=?').run(a.id);
-        if (v?.visitor_id) db.prepare('DELETE FROM users WHERE id=?').run(v.visitor_id);
-      }
-      // Sign-ins this person made for their clients go too, unless another owner still uses them.
-      for (const c of clients) {
-        if (!db.prepare('SELECT 1 FROM memberships WHERE user_id=? LIMIT 1').get(c.id)) db.prepare('DELETE FROM users WHERE id=?').run(c.id);
-        else db.prepare('UPDATE users SET created_by=NULL WHERE id=?').run(c.id);
-      }
-      db.prepare('DELETE FROM memberships WHERE user_id=?').run(u.id);
-      db.prepare('DELETE FROM users WHERE id=?').run(u.id);
-    })();
-    for (const a of owned) {
-      fs.rmSync(path.join(config.dataDir, 'apps', a.id), { recursive: true, force: true });
-      fs.rmSync(path.join(config.dataDir, 'files', a.id), { recursive: true, force: true });
-    }
-    removeAvatar(u);
-    closeUser(u.id);
+    const owned = deleteAccount(u);
     securityEvent(u.id, 'account_deleted', req, `${owned.length} apps`);
     db.prepare('INSERT INTO audit_log(actor_id,actor_email,action,target_type,target_id,detail,ip,at) VALUES(?,?,?,?,?,?,?,?)')
       .run(u.id, u.email, 'account.self_delete', 'user', u.id, `${owned.length} apps deleted`, req.ip, now());

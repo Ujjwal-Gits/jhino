@@ -10,6 +10,7 @@ import { publish } from './realtime.js';
 import { collectionDef, hasOwnVisibility, visibleTo, type RecordRow } from './data.js';
 import { initVideo, maybeCompress, videoProgress } from './video.js';
 import { uploadsOn } from './security.js';
+import { uploadLimitBytes } from './plans.js';
 
 export interface FileRow { id: string; app_id: string; name: string; type: string; size: number; created_by: string | null; created_at: string; status: string; original_size: number | null; version: number; deleted_at: string | null }
 
@@ -132,7 +133,12 @@ export function registerFiles(app: FastifyInstance) {
     const { user, role } = access(req, id, 'add');
     if (!uploadsOn()) throw new HttpError(403, 'UPLOADS_OFF', 'File uploads are turned off on this Jhino. Add a link to the file instead (Google Drive, Dropbox, OneDrive, YouTube and so on).');
     if (appFilesBytes(id) >= config.limits.appFilesBytes) throw new HttpError(413, 'QUOTA_EXCEEDED', 'This app has used all of its file storage.');
-    const part = await req.file({ limits: { fileSize: config.limits.fileBytes, files: 1, fields: 4 } });
+    const owner = db.prepare('SELECT u.plan, u.plan_expires_at, u.is_admin FROM apps a JOIN users u ON u.id=a.owner_id WHERE a.id=?').get(id) as { plan: string; plan_expires_at: string | null; is_admin: number } | undefined;
+    const maxBytes = uploadLimitBytes(owner, user);
+    const tooBig = () => new HttpError(413, 'TOO_LARGE', `Files can be up to ${Math.round(maxBytes / 1048576)} MB here. Share a bigger file as a link (Google Drive, Dropbox, YouTube…).`, { maxBytes });
+    // Refuse at once when the browser says it is sending more than that: nothing is written to disk.
+    if (Number(req.headers['content-length'] || 0) > maxBytes + 64 * 1024) throw tooBig();
+    const part = await req.file({ limits: { fileSize: maxBytes, files: 1, fields: 4 } });
     if (!part) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a file to upload.');
     const name = (part.filename || 'file').replace(/[\\/\u0000-\u001f]/g, '_').slice(0, 200) || 'file';
     const fid = newId('f');
@@ -146,7 +152,7 @@ export function registerFiles(app: FastifyInstance) {
     }
     if (part.file.truncated) {
       fs.rmSync(tmp, { force: true });
-      throw new HttpError(413, 'TOO_LARGE', `Files can be up to ${Math.round(config.limits.fileBytes / 1048576)} MB.`);
+      throw tooBig();
     }
     const size = fs.statSync(tmp).size;
     if (appFilesBytes(id) + size > config.limits.appFilesBytes) {

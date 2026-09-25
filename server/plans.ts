@@ -3,6 +3,7 @@ import { HttpError } from './errors.js';
 import { notifyUser } from './realtime.js';
 import { sendMail, type Mail } from './mail.js';
 import { setting, setSetting } from './security.js';
+import { config } from './config.js';
 
 /* ---------------- plans ---------------- */
 export type PlanId = 'free' | 'plus' | 'pro';
@@ -19,25 +20,88 @@ export interface Features {
   /** Clicks per day for each short link (everyone sees the total). */
   linkStats: boolean;
   prioritySupport: boolean;
+  /** Largest single upload (a photo, a video, an app's ZIP) for people on this plan, in MB. */
+  maxUploadMB: number;
 }
 export interface Plan { id: PlanId; name: string; price: number; yearly: number; creations: number; blurb: string; features: Features }
-/** The web copy (web/src/plans.ts) shows the same numbers. A year costs ten months. */
-export const PLANS: Record<PlanId, Plan> = {
-  free: { id: 'free', name: 'Free Forever', price: 0, yearly: 0, creations: 1, blurb: 'Try Jhino with one app, free for as long as you like.',
-    features: { addresses: 1, shortLinks: 5, customCodes: false, passwordLinks: false, hideBar: false, download: false, linkStats: false, prioritySupport: false } },
-  plus: { id: 'plus', name: 'Plus', price: 500, yearly: 5000, creations: 10, blurb: 'For a freelancer or a small studio with a few clients.',
-    features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false } },
-  pro: { id: 'pro', name: 'Pro', price: 2000, yearly: 20000, creations: 50, blurb: 'For a studio or agency running many client rooms.',
-    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true } },
+/** The starting plans. Super admins change prices and limits in Super Admin → Plans & pricing (kept in settings). */
+const DEFAULT_PLANS: Record<PlanId, Plan> = {
+  free: { id: 'free', name: 'Free Forever', price: 0, yearly: 0, creations: 1, blurb: 'One client room, free for as long as you like.',
+    features: { addresses: 1, shortLinks: 5, customCodes: false, passwordLinks: false, hideBar: false, download: false, linkStats: false, prioritySupport: false, maxUploadMB: 20 } },
+  plus: { id: 'plus', name: 'Plus', price: 500, yearly: 5000, creations: 10, blurb: 'A freelancer or a small studio with a handful of clients.',
+    features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false, maxUploadMB: 50 } },
+  pro: { id: 'pro', name: 'Pro', price: 2000, yearly: 20000, creations: 50, blurb: 'A studio or agency with a room for every client.',
+    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50 } },
 };
-/** Super admins: everything, no limits. */
-const UNLIMITED: Features = { addresses: 1e9, shortLinks: 1e9, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true };
+/** The plans in force. Everything reads them at call time, so a saved change applies at once. */
+export const PLANS: Record<PlanId, Plan> = JSON.parse(JSON.stringify(DEFAULT_PLANS));
+/** Super admins: everything, no limits (uploads only up to the server's own MAX_FILE_MB). */
+const UNLIMITED: Features = { addresses: 1e9, shortLinks: 1e9, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 1e9 };
+const PLAN_IDS: PlanId[] = ['free', 'plus', 'pro'];
+const serverMaxMB = () => Math.floor(config.limits.fileBytes / 1048576);
+
+function applyPlans(saved: Partial<Record<PlanId, Partial<Plan> & { features?: Partial<Features> }>>) {
+  for (const id of PLAN_IDS) {
+    const d = DEFAULT_PLANS[id]; const s = saved[id] ?? {};
+    PLANS[id] = { ...d, ...s, id, features: { ...d.features, ...(s.features ?? {}) } };
+  }
+}
+function loadPlans() {
+  try { applyPlans(JSON.parse(setting('plans') || '{}')); } catch { applyPlans({}); }
+}
+loadPlans();
+
+/** Check and save new prices and limits. Free Forever always costs nothing. */
+export function savePlans(input: unknown) {
+  // Either { free: {...}, plus: {...} } or the list that /api/plans returns.
+  const src = (Array.isArray(input) ? Object.fromEntries(input.map((p) => [String((p as { id?: string })?.id), p])) : input ?? {}) as Record<string, Record<string, unknown>>;
+  const int = (v: unknown, min: number, max: number, what: string) => {
+    const n = Math.round(Number(v));
+    if (!Number.isFinite(n) || n < min || n > max) throw new HttpError(400, 'VALIDATION_FAILED', `${what}: use a whole number from ${min} to ${max.toLocaleString('en-IN')}.`);
+    return n;
+  };
+  const out: Record<string, Plan> = {};
+  for (const id of PLAN_IDS) {
+    const p = src[id] ?? {}; const cur = PLANS[id]; const f = (p.features ?? {}) as Record<string, unknown>;
+    const name = String(p.name ?? cur.name).trim().slice(0, 40);
+    if (!name) throw new HttpError(400, 'VALIDATION_FAILED', 'Every plan needs a name.');
+    const label = name;
+    const price = id === 'free' ? 0 : int(p.price ?? cur.price, 1, 10_000_000, `${label} monthly price`);
+    const yearly = id === 'free' ? 0 : int(p.yearly ?? cur.yearly, 1, 100_000_000, `${label} yearly price`);
+    out[id] = {
+      id, name, price, yearly, creations: int(p.creations ?? cur.creations, id === 'free' ? 0 : 1, 100_000, `${label} apps`),
+      blurb: String(p.blurb ?? cur.blurb).trim().slice(0, 160),
+      features: {
+        addresses: int(f.addresses ?? cur.features.addresses, 0, 100_000, `${label} addresses`),
+        shortLinks: int(f.shortLinks ?? cur.features.shortLinks, 0, 1_000_000, `${label} short links`),
+        maxUploadMB: int(f.maxUploadMB ?? cur.features.maxUploadMB, 1, serverMaxMB(), `${label} largest upload (MB)`),
+        customCodes: !!(f.customCodes ?? cur.features.customCodes), passwordLinks: !!(f.passwordLinks ?? cur.features.passwordLinks),
+        hideBar: !!(f.hideBar ?? cur.features.hideBar), download: !!(f.download ?? cur.features.download),
+        linkStats: !!(f.linkStats ?? cur.features.linkStats), prioritySupport: !!(f.prioritySupport ?? cur.features.prioritySupport),
+      },
+    };
+  }
+  setSetting('plans', JSON.stringify(out));
+  applyPlans(out as Record<PlanId, Plan>);
+  return Object.values(PLANS);
+}
+export const publicPlans = () => PLAN_IDS.map((id) => PLANS[id]);
+export const planLimitsInfo = () => ({ serverMaxMB: serverMaxMB() });
+
+/**
+ * The largest single upload allowed, in bytes. It follows the plan of the app's owner (who pays for it);
+ * super admins, as uploader or owner, are held only by the server's MAX_FILE_MB.
+ */
+export function uploadLimitBytes(owner: PlanFields | undefined, uploader: Pick<UserRow, 'is_admin'>, serverCap = config.limits.fileBytes) {
+  if (uploader.is_admin || !owner || owner.is_admin) return serverCap;
+  return Math.min(serverCap, featuresOf(owner).maxUploadMB * 1048576);
+}
+type PlanFields = Pick<UserRow, 'plan' | 'plan_expires_at' | 'is_admin'>;
 export const isPlan = (p: unknown): p is PlanId => typeof p === 'string' && p in PLANS;
 export const isPeriod = (p: unknown): p is Period => p === 'month' || p === 'year';
 export const priceOf = (plan: PlanId, period: Period) => (period === 'year' ? PLANS[plan].yearly : PLANS[plan].price);
 export const npr = (n: number) => `NPR ${n.toLocaleString('en-IN')}`;
 
-type PlanFields = Pick<UserRow, 'plan' | 'plan_expires_at' | 'is_admin'>;
 /** The plan someone is on right now: a paid plan that has ended counts as Free Forever. */
 export function activePlan(u: Pick<UserRow, 'plan' | 'plan_expires_at'>): PlanId {
   const expired = !!u.plan_expires_at && Date.parse(u.plan_expires_at) < Date.now();

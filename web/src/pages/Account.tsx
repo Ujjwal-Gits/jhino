@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 import { ApiError, api, avatarUrl, get, post, type PlanFeatures } from '../api';
 import { Link, applyTheme, readTheme, useRoute, useSession, type Theme } from '../context';
 import { Avatar, Icon, Select, ago, copyText, useToast } from '../ui';
-import { PLAN_CARDS, nprAmount, priceFor, type Period, type PlanCard } from '../plans';
+import { bestFreeMonths, freeMonthsText, nprAmount, priceFor, usePlans, type Period, type PlanCard } from '../plans';
 
 /*
  * The Account Center: one quiet page per concern. The server decides everything that matters
@@ -375,10 +375,11 @@ function UsageMeter({ u }: { u: Usage }) {
 }
 
 function PeriodSwitch({ value, onChange }: { value: Period; onChange: (p: Period) => void }) {
+  const saving = freeMonthsText(bestFreeMonths(usePlans()));
   return (
     <div className="period-switch" role="radiogroup" aria-label="Billing period">
       <button type="button" role="radio" aria-checked={value === 'month'} onClick={() => onChange('month')}>Monthly</button>
-      <button type="button" role="radio" aria-checked={value === 'year'} onClick={() => onChange('year')}>Yearly <small>2 months free</small></button>
+      <button type="button" role="radio" aria-checked={value === 'year'} onClick={() => onChange('year')}>Yearly {saving && <small>{saving}</small>}</button>
     </div>
   );
 }
@@ -390,10 +391,11 @@ function PlanSection({ data }: { data: AccountData }) {
   const [period, setPeriod] = useState<Period>(() => (q.get('period') === 'year' ? 'year' : 'month'));
   const load = useCallback(() => get<typeof billing>('/api/billing').then(setBilling, () => {}), []);
   useEffect(() => { load(); }, [load]);
+  const plans = usePlans();
   if (!billing || !data.usage) return <div className="acc-skel" />;
   const u = billing.usage;
   const pending = billing.payments.find((p) => p.status === 'pending');
-  const card = PLAN_CARDS.find((p) => p.id === choose && p.monthly > 0);
+  const card = plans.find((p) => p.id === choose && p.monthly > 0);
   const rank = { free: 0, plus: 1, pro: 2 } as Record<string, number>;
   return (
     <>
@@ -405,7 +407,7 @@ function PlanSection({ data }: { data: AccountData }) {
         <Section title="Plans" lede="Pay by QR for a month or a year and upload the screenshot. We turn the plan on after checking the payment. Paying again for your plan adds to its end date.">
           <PeriodSwitch value={period} onChange={setPeriod} />
           <div className="plan-cards">
-            {PLAN_CARDS.map((p) => {
+            {plans.map((p) => {
               const current = u.plan === p.id && u.limit !== null;
               const price = priceFor(p, period);
               const lower = rank[p.id] < rank[u.plan];

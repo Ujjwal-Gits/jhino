@@ -10,7 +10,7 @@ import { loadFile, canReadFile, sendFile } from './files.js';
 import { installPackage, appDir } from './packages.js';
 import { publish, revoke, notifyUser, watch, unwatch, openStream } from './realtime.js';
 import { snapshotFor } from './data.js';
-import { assertCanCreate } from './plans.js';
+import { assertCanCreate, uploadLimitBytes } from './plans.js';
 import { assertNameFree, readAddressRequest, setSharing } from './publicshare.js';
 import { uploadsOn } from './security.js';
 
@@ -70,11 +70,13 @@ function appSummary(a: AppRow, userId: string) {
 }
 
 /** An uploaded app (HTML or ZIP) plus the form fields sent before it. */
-export async function readUpload(req: FastifyRequest) {
-  const part = await req.file({ limits: { fileSize: config.limits.uploadBytes, files: 1, fields: 8 } });
+export async function readUpload(req: FastifyRequest, maxBytes = config.limits.uploadBytes) {
+  const mb = Math.round(maxBytes / 1048576);
+  if (Number(req.headers['content-length'] || 0) > maxBytes + 64 * 1024) throw new HttpError(413, 'TOO_LARGE', `That file is larger than ${mb} MB, the most your plan allows for one upload.`, { maxBytes });
+  const part = await req.file({ limits: { fileSize: maxBytes, files: 1, fields: 8 } });
   if (!part) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a file to upload.');
   const buf = await part.toBuffer();
-  if (part.file.truncated) throw new HttpError(413, 'TOO_LARGE', `That file is larger than ${config.limits.uploadBytes / 1048576} MB.`);
+  if (part.file.truncated) throw new HttpError(413, 'TOO_LARGE', `That file is larger than ${mb} MB, the most your plan allows for one upload.`, { maxBytes });
   const raw = part.fields as Record<string, { value?: string } | undefined>;
   const fields: Record<string, string> = {};
   for (const [k, v] of Object.entries(raw)) if (v && typeof v.value === 'string') fields[k] = v.value;
@@ -188,7 +190,7 @@ export function registerApps(app: FastifyInstance) {
   app.post('/api/apps', async (req) => {
     const user = requireCreator(req);
     assertCanCreate(user.id); // before reading a big upload
-    const up = await readUpload(req);
+    const up = await readUpload(req, uploadLimitBytes(user, user, config.limits.uploadBytes));
     // An address (jhino.com/<name>) and how it opens can be chosen with the upload; all checked first.
     const addr = readAddressRequest(user, { slug: up.fields.slug, access: up.fields.access, publicRole: up.fields.publicRole, password: up.fields.password }, null);
     const id = await createAppFromUpload(user, up.buf, up.filename, up.name, addr.slug);
@@ -229,7 +231,7 @@ export function registerApps(app: FastifyInstance) {
   app.post('/api/apps/:id/versions', async (req) => {
     const { id } = req.params as { id: string };
     const { user } = access(req, id, 'owner');
-    const up = await readUpload(req);
+    const up = await readUpload(req, uploadLimitBytes(user, user, config.limits.uploadBytes));
     const n = ((db.prepare('SELECT MAX(n) n FROM app_versions WHERE app_id=?').get(id) as { n: number }).n || 0) + 1;
     const pkg = await installPackage(up.buf, up.filename, id, n);
     db.transaction(() => {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNod
 import { ApiError, api, avatarUrl, get, post } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
+import { refreshPlans } from '../plans';
 
 /*
  * Super Admin: the platform owners' own workspace. A full-height sidebar on the left edge, a working
@@ -16,21 +17,27 @@ const err = (e: unknown, f: string) => (e instanceof ApiError ? e.message : f);
 const PLAN_OPTS = [{ value: 'free', label: 'Free Forever · 1 app' }, { value: 'plus', label: 'Plus · NPR 500/mo · 10 apps' }, { value: 'pro', label: 'Pro · NPR 2,000/mo · 50 apps' }];
 const planName = (p: string) => ({ free: 'Free Forever', plus: 'Plus', pro: 'Pro' }[p] ?? p);
 const periodName = (p: string | undefined) => (p === 'year' ? 'year' : 'month');
+const fmtBytes = (n: number | null | undefined) => {
+  const b = Number(n || 0);
+  return b >= 1073741824 ? `${(b / 1073741824).toFixed(2)} GB` : b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : b >= 1024 ? `${Math.round(b / 1024)} KB` : `${b} B`;
+};
 
-type NavKey = 'overview' | 'users' | 'payments' | 'subscriptions' | 'methods' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
+type NavKey = 'overview' | 'users' | 'payments' | 'subscriptions' | 'plans' | 'methods' | 'apps' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
 const NAV: { group: string; items: [NavKey, string, string][] }[] = [
   { group: '', items: [['overview', 'Overview', 'chart']] },
-  { group: 'Customers', items: [['payments', 'Plan requests', 'receipt'], ['subscriptions', 'Subscriptions', 'card'], ['users', 'Users', 'users'], ['methods', 'QR & payment methods', 'qr']] },
-  { group: 'Platform', items: [['hosting', 'Addresses', 'globe'], ['links', 'Short links', 'link']] },
+  { group: 'Customers', items: [['payments', 'Plan requests', 'receipt'], ['subscriptions', 'Subscriptions', 'card'], ['users', 'Users', 'users']] },
+  { group: 'Money', items: [['plans', 'Plans & pricing', 'chart'], ['methods', 'QR & payment methods', 'qr']] },
+  { group: 'Platform', items: [['apps', 'Apps & data', 'grid'], ['hosting', 'Addresses', 'globe'], ['links', 'Short links', 'link']] },
   { group: 'Operations', items: [['support', 'Support', 'help'], ['audit', 'Audit log', 'audit'], ['settings', 'Settings', 'settings']] },
 ];
-const TITLES: Record<NavKey, string> = { overview: 'Overview', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
+const TITLES: Record<NavKey, string> = { overview: 'Overview', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', plans: 'Plans & pricing', apps: 'Apps & data', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
 
 export function AdminPage({ section, sub }: { section: string; sub?: string }) {
   const { user, refresh } = useSession();
   const { go } = useRoute();
   const [counts, setCounts] = useState<{ pendingPayments: number; openTickets: number } | null>(null);
   const [drawer, setDrawer] = useState(false);
+  const [newUser, setNewUser] = useState(false);
   const loadCounts = useCallback(() => get<{ pendingPayments: number; openTickets: number }>('/api/admin/overview').then(setCounts, () => {}), []);
   useEffect(() => { loadCounts(); }, [loadCounts, section]);
   useEffect(() => { setDrawer(false); }, [section, sub]);
@@ -72,6 +79,7 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
           <button className="icon-btn adm-menu" onClick={() => setDrawer(true)} aria-label="Open menu" aria-expanded={drawer}><Icon name="list" /></button>
           <p className="adm-where"><span className="muted">Super Admin</span><span className="muted" aria-hidden="true">/</span><b>{TITLES[cur]}</b></p>
           <div className="spacer" />
+          <button className="btn primary sm adm-new" onClick={() => setNewUser(true)}><Icon name="plus" size={15} /><span>New user</span></button>
           {!!counts?.pendingPayments && cur !== 'payments' && <Link to="/admin/payments" className="adm-pill"><i className="live-dot" />{counts.pendingPayments} plan {counts.pendingPayments === 1 ? 'request' : 'requests'}</Link>}
         </header>
         <main className="adm-body">
@@ -79,6 +87,8 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
           {cur === 'users' && (sub ? <UserDetail id={sub} /> : <Users />)}
           {cur === 'payments' && (sub ? <PaymentDetail id={sub} onChanged={loadCounts} /> : <Payments />)}
           {cur === 'subscriptions' && <Subscriptions />}
+          {cur === 'plans' && <PlansAdmin />}
+          {cur === 'apps' && (sub ? <AppDetailAdmin id={sub} /> : <AppsAdmin />)}
           {cur === 'methods' && <Methods />}
           {cur === 'hosting' && <Hosting />}
           {cur === 'links' && <AdminLinks />}
@@ -87,6 +97,7 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
           {cur === 'settings' && <Settings />}
         </main>
       </div>
+      {newUser && <CreateUser onClose={(made) => { setNewUser(false); if (made) go(`/admin/users/${made}`); }} />}
     </div>
   );
 }
@@ -105,6 +116,7 @@ interface OverviewT {
   ticketsList: { id: string; email: string; kind: string; subject: string; createdAt: string }[];
   expiring: { id: string; name: string; email: string; plan: string; expiresAt: string }[];
   recent: { actor: string; action: string; detail: string; at: string }[];
+  storage: { database: number; apps: number; files: number; disk: { total: number; free: number } | null; maxFileMB: number };
 }
 const monthLabel = (m: string) => new Date(m + '-01T00:00:00Z').toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }).slice(0, 3);
 function Delta({ now, before, money }: { now: number; before: number; money?: boolean }) {
@@ -252,7 +264,23 @@ function Overview() {
           </dl>
         </section>
 
-        <section className="dpanel span3" aria-labelledby="act-h">
+        <section className="dpanel" aria-labelledby="st-h">
+          <div className="panel-h"><h2 id="st-h">Storage</h2>{o.storage.disk && <span className="muted small">{fmtBytes(o.storage.disk.free)} free</span>}</div>
+          {o.storage.disk && (() => { const used = o.storage.disk.total - o.storage.disk.free; const pct = Math.min(100, Math.round((used / o.storage.disk.total) * 100)); return (
+            <>
+              <div className={`disk ${pct > 85 ? 'hot' : ''}`} role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Disk used"><i style={{ transform: `scaleX(${pct / 100})` }} /></div>
+              <p className="small muted disk-l">{fmtBytes(used)} of {fmtBytes(o.storage.disk.total)} used on the server disk ({pct}%)</p>
+            </>
+          ); })()}
+          <dl className="plat">
+            <div><dt>Database</dt><dd className="mono">{fmtBytes(o.storage.database)}</dd></div>
+            <div><dt>Uploaded files</dt><dd className="mono">{fmtBytes(o.storage.files)}</dd></div>
+            <div><dt>App files</dt><dd className="mono">{fmtBytes(o.storage.apps)}</dd></div>
+            <div><dt>Largest upload</dt><dd className="mono"><Link to="/admin/plans">by plan</Link></dd></div>
+          </dl>
+        </section>
+
+        <section className="dpanel span2" aria-labelledby="act-h">
           <div className="panel-h"><h2 id="act-h">Recent admin activity</h2><Link to="/admin/audit" className="link small">Audit log</Link></div>
           {!o.recent.length ? <p className="muted">Nothing yet.</p> : (
             <table className="adm-table act-table">
@@ -303,7 +331,7 @@ function AdminLinks() {
 }
 
 /* ---------------- users ---------------- */
-interface UserRowT { id: string; name: string; email: string; emailVerified: boolean | null; createdAt: string; status: string; role: string; usage: { planName: string; plan: string; used: number; limit: number | null } | null; lastLoginAt: string | null; lastPayment: string | null }
+interface UserRowT { id: string; name: string; email: string; storage: number; emailVerified: boolean | null; createdAt: string; status: string; role: string; usage: { planName: string; plan: string; used: number; limit: number | null } | null; lastLoginAt: string | null; lastPayment: string | null }
 function Users() {
   const toast = useToast();
   const { go } = useRoute();
@@ -318,7 +346,7 @@ function Users() {
   useEffect(() => { const t = setTimeout(load, 200); return () => clearTimeout(t); }, [load]);
   return (
     <>
-      <Head title="Users" lede={rows ? `${rows.total} ${rows.total === 1 ? 'person' : 'people'}` : ''} actions={<button className="btn primary sm" onClick={() => setCreate(true)}><Icon name="plus" size={15} />New sign-in</button>} />
+      <Head title="Users" lede={rows ? `${rows.total} ${rows.total === 1 ? 'person' : 'people'} · customers, their clients and super admins` : ''} actions={<><a className="btn sm" href="/api/admin/export/users.csv" download><Icon name="download" size={15} />Export CSV</a><button className="btn primary sm" onClick={() => setCreate(true)}><Icon name="plus" size={15} />New user</button></>} />
       <div className="adm-tools">
         <label className="ix-search"><Icon name="search" size={16} /><span className="sr-only">Search users</span><input placeholder="Search by name, email or ID" value={q} onChange={(e) => setQ(e.target.value)} /></label>
         <Select size="sm" label="Role" value={filter.role} width={150} options={[{ value: '', label: 'Everyone' }, { value: 'creator', label: 'Customers' }, { value: 'client', label: 'Clients' }, { value: 'super_admin', label: 'Super admins' }]} onChange={(v) => setFilter({ ...filter, role: v })} />
@@ -327,13 +355,14 @@ function Users() {
       </div>
       {!rows ? <div className="acc-skel" /> : !rows.users.length ? <p className="muted">No one matches.</p> : (
         <table className="adm-table">
-          <thead><tr><th>Person</th><th className="hide-sm">Plan</th><th className="hide-sm">Usage</th><th className="hide-sm">Payment</th><th>Status</th><th className="hide-sm">Joined</th></tr></thead>
+          <thead><tr><th>Person</th><th className="hide-sm">Plan</th><th className="hide-sm">Apps</th><th className="hide-sm">Storage</th><th className="hide-sm">Payment</th><th>Status</th><th className="hide-sm">Joined</th></tr></thead>
           <tbody>
             {rows.users.map((u) => (
               <tr key={u.id} className="clickable" onClick={() => go(`/admin/users/${u.id}`)}>
                 <td><Link to={`/admin/users/${u.id}`} className="cell-main"><b>{u.name}</b><small>{u.email}{u.emailVerified === false ? ' · unverified' : ''}{u.role === 'super_admin' ? ' · super admin' : u.role === 'client' ? ' · client' : ''}</small></Link></td>
                 <td className="hide-sm">{u.usage ? u.usage.planName : '—'}</td>
                 <td className="hide-sm mono">{u.usage ? (u.usage.limit === null ? `${u.usage.used} / ∞` : `${u.usage.used} / ${u.usage.limit}`) : '—'}</td>
+                <td className="hide-sm mono">{u.usage ? fmtBytes(u.storage) : '—'}</td>
                 <td className="hide-sm">{u.lastPayment ? <span className={`status s-${u.lastPayment}`}>{u.lastPayment}</span> : '—'}</td>
                 <td><span className={`status ${u.status === 'active' ? 's-approved' : 's-rejected'}`}>{u.status}</span></td>
                 <td className="hide-sm muted">{fmtDate(u.createdAt)}</td>
@@ -342,36 +371,37 @@ function Users() {
           </tbody>
         </table>
       )}
-      {create && <CreateUser onClose={() => { setCreate(false); load(); }} />}
+      {create && <CreateUser onClose={(made) => { setCreate(false); if (made) go(`/admin/users/${made}`); else load(); }} />}
     </>
   );
 }
 
-function CreateUser({ onClose }: { onClose: () => void }) {
+function CreateUser({ onClose }: { onClose: (madeId?: string) => void }) {
   const toast = useToast();
   const [f, setF] = useState({ name: '', email: '', password: '', plan: 'plus', period: 'month', superAdmin: false });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [made, setMade] = useState<{ email: string; password: string; signInUrl: string; name: string } | null>(null);
+  const [made, setMade] = useState<{ id: string; email: string; password: string; signInUrl: string; name: string } | null>(null);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true); setError('');
-    try { const r = await post<{ user: UserRowT; password: string; signInUrl: string }>('/api/admin/users', { ...f, password: f.password || undefined, period: f.period === 'none' ? undefined : f.period }); setMade({ email: r.user.email, password: r.password, signInUrl: r.signInUrl, name: r.user.name }); }
+    try { const r = await post<{ user: UserRowT; password: string; signInUrl: string }>('/api/admin/users', { ...f, password: f.password || undefined, period: f.period === 'none' ? undefined : f.period }); setMade({ id: r.user.id, email: r.user.email, password: r.password, signInUrl: r.signInUrl, name: r.user.name }); }
     catch (e2) { setError(err(e2, 'Could not create it.')); }
     setBusy(false);
   };
   const text = made ? `Your Jhino account\nSign in: ${made.signInUrl}\nSign-in ID: ${made.email}\nPassword: ${made.password}\n\nChange the password after signing in (Account → Security).` : '';
   return (
-    <Modal title={made ? 'Sign-in ready' : 'New sign-in'} onClose={onClose}>
+    <Modal title={made ? 'Account ready' : 'New user'} onClose={() => onClose(made?.id)}>
       <div className="modal-body">
         {made ? (
           <>
             <p className="muted">Send this to {made.name} privately. The password is shown only now.</p>
             <div className="code" style={{ fontSize: 13 }}>{text}</div>
-            <div className="actions-row"><button className="btn primary" onClick={() => copyText(text).then(() => toast('Copied'))}><Icon name="copy" size={15} />Copy</button><button className="btn" onClick={onClose}>Done</button></div>
+            <div className="actions-row"><button className="btn primary" onClick={() => copyText(text).then(() => toast('Copied'))}><Icon name="copy" size={15} />Copy</button><button className="btn" onClick={() => onClose(made.id)}>Open their page</button></div>
           </>
         ) : (
           <form className="acc-form" onSubmit={submit}>
+            <p className="hint">Makes a ready account with a password you pass on. Use it for customers who paid you directly, for a teammate (tick super admin), or to set someone up.</p>
             <label className="field"><span>Name</span><input className="input" required maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoFocus /></label>
             <label className="field"><span>Email or sign-in ID</span><input className="input" required autoComplete="off" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
             <label className="field"><span>Password <em>optional</em></span><input className="input" autoComplete="new-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} placeholder="Leave empty to generate one" /></label>
@@ -384,7 +414,7 @@ function CreateUser({ onClose }: { onClose: () => void }) {
             {!f.superAdmin && <small className="hint">For customers who paid outside Jhino. Paid by QR? Approve their payment in Payments instead.</small>}
             <label className="check-row"><input type="checkbox" checked={f.superAdmin} onChange={(e) => setF({ ...f, superAdmin: e.target.checked })} /><span>Make them a super admin (full access to this dashboard)</span></label>
             {error && <p className="error-text" role="alert">{error}</p>}
-            <div className="actions-row"><button className="btn primary" disabled={busy || !f.name.trim() || f.email.trim().length < 3}>{busy && <span className="spin" />}Create sign-in</button><button type="button" className="btn quiet" onClick={onClose}>Cancel</button></div>
+            <div className="actions-row"><button className="btn primary" disabled={busy || !f.name.trim() || f.email.trim().length < 3}>{busy && <span className="spin" />}Create sign-in</button><button type="button" className="btn quiet" onClick={() => onClose()}>Cancel</button></div>
           </form>
         )}
       </div>
@@ -422,6 +452,7 @@ function UserDetail({ id }: { id: string }) {
       <div className="crumb"><Link to="/admin/users" className="link">Users</Link> / {u.name}</div>
       <Head title={u.name} lede={<>{u.email} · <span className={`status ${u.status === 'active' ? 's-approved' : 's-rejected'}`}>{u.status}</span>{u.role === 'super_admin' && ' · super admin'}{u.role === 'client' && ' · client of a customer'}</>} />
       {secret && <div className="cred-box" role="status"><b>New password for {secret.email}</b><div className="code">{secret.password}</div><div className="actions-row"><button className="btn sm" onClick={() => copyText(`Sign-in ID: ${secret.email}\nPassword: ${secret.password}`).then(() => toast('Copied'))}>Copy</button><button className="btn sm quiet" onClick={() => setSecret(null)}>Done</button></div></div>}
+      <ProfileEdit u={u} onSaved={load} />
       <dl className="facts wide">
         <div><dt>User ID</dt><dd className="mono">{u.id}</dd></div>
         <div><dt>Email</dt><dd>{u.emailVerified === null ? 'Sign-in ID (no email)' : u.emailVerified ? 'Verified' : 'Not verified'}</dd></div>
@@ -436,22 +467,25 @@ function UserDetail({ id }: { id: string }) {
       {u.usage && (
         <section className="adm-block">
           <h3 className="adm-sub">Plan and allowance</h3>
-          <p className="muted">{u.usage.planName} · {u.usage.limit === null ? `${u.usage.used} apps, no limit` : `${u.usage.used} of ${u.usage.limit} creations used`}</p>
-          <div className="adm-plan">
-            <div className="field"><span>Plan</span><Select label="Plan" value={edit.plan} options={PLAN_OPTS} onChange={(v) => setEdit({ ...edit, plan: v })} /></div>
-            <label className="field"><span>Ends <em>optional</em></span><input className="input" type="date" value={edit.expires} onChange={(e) => setEdit({ ...edit, expires: e.target.value })} /></label>
-            <label className="field"><span>Extra creations</span><input className="input mono" inputMode="numeric" value={edit.extra} onChange={(e) => setEdit({ ...edit, extra: e.target.value.replace(/[^\d-]/g, '') })} /></label>
-          </div>
-          <div className="actions-row"><button className="btn sm primary" onClick={() => setChanging(true)}>Upgrade, downgrade or extend…</button><span className="hint">or edit the fields above and save</span></div>
+          <p className="muted">{u.usage.planName} · {u.usage.limit === null ? `${u.usage.used} apps, no limit` : `${u.usage.used} of ${u.usage.limit} apps used`}{u.planExpiresAt ? ` · ends ${fmtDate(u.planExpiresAt)}` : u.usage.plan !== 'free' ? ' · no end date' : ''}</p>
+          <div className="actions-row"><button className="btn sm primary" onClick={() => setChanging(true)}>Upgrade, downgrade or extend…</button></div>
           {changing && <PlanDialog sub={{ id: u.id, name: u.name, email: u.email, plan: u.usage.plan, planName: u.usage.planName, period: null, expiresAt: u.planExpiresAt }} onClose={() => { setChanging(false); load(); }} />}
-          <button className="btn sm" onClick={() => {
-            const body: Record<string, unknown> = {};
-            if (edit.plan !== u.usage.plan) body.plan = edit.plan;
-            if ((edit.expires || null) !== (u.planExpiresAt ? u.planExpiresAt.slice(0, 10) : null)) body.planExpiresAt = edit.expires || null;
-            if (Number(edit.extra || 0) !== u.extraCreations) body.extraCreations = Number(edit.extra || 0);
-            if (!Object.keys(body).length) { toast('Nothing changed'); return; }
-            patch(body, 'Plan updated');
-          }}>Save plan</button>
+          <details className="adv">
+            <summary>Set an exact end date, or give extra apps</summary>
+            <div className="adm-plan">
+              <div className="field"><span>Plan</span><Select label="Plan" value={edit.plan} options={PLAN_OPTS} onChange={(v) => setEdit({ ...edit, plan: v })} /></div>
+              <label className="field"><span>Ends <em>optional</em></span><input className="input" type="date" value={edit.expires} onChange={(e) => setEdit({ ...edit, expires: e.target.value })} /></label>
+              <label className="field"><span>Extra apps</span><input className="input mono" inputMode="numeric" value={edit.extra} onChange={(e) => setEdit({ ...edit, extra: e.target.value.replace(/[^\d-]/g, '') })} /></label>
+            </div>
+            <button className="btn sm" onClick={() => {
+              const body: Record<string, unknown> = {};
+              if (edit.plan !== u.usage.plan) body.plan = edit.plan;
+              if ((edit.expires || null) !== (u.planExpiresAt ? u.planExpiresAt.slice(0, 10) : null)) body.planExpiresAt = edit.expires || null;
+              if (Number(edit.extra || 0) !== u.extraCreations) body.extraCreations = Number(edit.extra || 0);
+              if (!Object.keys(body).length) { toast('Nothing changed'); return; }
+              patch(body, 'Plan updated');
+            }}>Save</button>
+          </details>
         </section>
       )}
 
@@ -466,9 +500,25 @@ function UserDetail({ id }: { id: string }) {
         </div>
       </section>
 
-      <section className="adm-block"><h3 className="adm-sub">Apps ({d.apps.length})</h3>
-        {!d.apps.length ? <p className="muted">None.</p> : <ul className="acc-list compact">{d.apps.map((a: any) => <li key={a.id}><span><b>{a.name}</b><small>{a.access !== 'private' ? `${a.access} link` : 'private'}{a.slug ? ` · /${a.slug}` : ''}{a.deletedAt ? ' · in Trash' : ''}</small></span><span className="muted small">{fmtDate(a.createdAt)}</span></li>)}</ul>}
+      {u.role !== 'client' && (
+        <section className="adm-block">
+          <h3 className="adm-sub">Storage</h3>
+          <dl className="store-row">
+            <div><dt>Total</dt><dd className="mono">{fmtBytes(d.storage.total)}</dd></div>
+            <div><dt>App files (HTML, ZIP)</dt><dd className="mono">{fmtBytes(d.storage.apps)}</dd></div>
+            <div><dt>Uploaded files</dt><dd className="mono">{fmtBytes(d.storage.files)}</dd></div>
+            <div><dt>Saved data</dt><dd className="mono">{fmtBytes(d.storage.kv + d.storage.records)}</dd></div>
+          </dl>
+        </section>
+      )}
+      <section className="adm-block"><h3 className="adm-sub">Apps they own ({d.apps.length})</h3>
+        {!d.apps.length ? <p className="muted">None.</p> : <AppTable rows={d.apps} showOwner={false} />}
       </section>
+      {!!d.memberOf?.length && (
+        <section className="adm-block"><h3 className="adm-sub">Apps shared with them</h3>
+          <ul className="acc-list compact">{d.memberOf.map((a: any) => <li key={a.id}><Link to={`/admin/apps/${a.id}`} className="cell-main"><b>{a.name}</b><small>{a.ownerEmail} · {a.role === 'editor' ? 'can edit' : a.role === 'contributor' ? 'can add' : 'can view'}</small></Link></li>)}</ul>
+        </section>
+      )}
       <section className="adm-block"><h3 className="adm-sub">Payments</h3>
         {!d.payments.length ? <p className="muted">None.</p> : <ul className="acc-list compact">{d.payments.map((p: any) => <li key={p.id}><Link to={`/admin/payments/${p.id}`} className="cell-main"><b>{planName(p.plan)} · {npr(p.amount)}</b><small>{p.method} · {fmtDate(p.createdAt)}</small></Link><span className={`status s-${p.status}`}>{p.status}</span></li>)}</ul>}
       </section>
@@ -476,7 +526,262 @@ function UserDetail({ id }: { id: string }) {
         {!d.security.length ? <p className="muted">None.</p> : <ul className="acc-list compact">{d.security.map((e: any, i: number) => <li key={i}><span><b>{e.kind.replace(/_/g, ' ')}</b><small>{e.device}{e.ip ? ' · ' + e.ip : ''}</small></span><span className="muted small">{fmtDateTime(e.at)}</span></li>)}</ul>}
       </section>
       {!!d.audit.length && <section className="adm-block"><h3 className="adm-sub">Admin changes</h3><ul className="acc-list compact">{d.audit.map((a: any, i: number) => <li key={i}><span><b>{a.action.replace(/[._]/g, ' ')}</b><small>{a.actor} · {a.detail}</small></span><span className="muted small">{fmtDateTime(a.at)}</span></li>)}</ul></section>}
+      {!self && <DeleteUser u={u} />}
     </>
+  );
+}
+
+/** Change someone's name or sign-in email (set by a super admin, it counts as confirmed). */
+function ProfileEdit({ u, onSaved }: { u: any; onSaved: () => void }) {
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ name: u.name, email: u.email });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  if (!open) return <div className="actions-row"><button className="btn sm" onClick={() => { setF({ name: u.name, email: u.email }); setOpen(true); }}>Edit name or email</button></div>;
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true); setError('');
+    try { await api('PATCH', `/api/admin/users/${u.id}`, { name: f.name, email: f.email }); toast('Saved'); setOpen(false); onSaved(); }
+    catch (e2) { setError(err(e2, 'Could not save.')); }
+    setBusy(false);
+  };
+  return (
+    <form className="acc-form edit-profile" onSubmit={save}>
+      <div className="grid2">
+        <label className="field"><span>Name</span><input className="input" required maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
+        <label className="field"><span>Email or sign-in ID</span><input className="input" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
+      </div>
+      {f.email.trim().toLowerCase() !== u.email.toLowerCase() && <p className="hint">They sign in with the new one from now on. If the old one was an email address, it gets a notice.</p>}
+      {error && <p className="error-text" role="alert">{error}</p>}
+      <div className="actions-row"><button className="btn sm primary" disabled={busy}>{busy && <span className="spin" />}Save</button><button type="button" className="btn sm quiet" onClick={() => setOpen(false)}>Cancel</button></div>
+    </form>
+  );
+}
+
+/** Delete an account for good, after typing its email. */
+function DeleteUser({ u }: { u: any }) {
+  const toast = useToast();
+  const { go } = useRoute();
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const del = async () => {
+    setBusy(true);
+    try { const r = await post<{ apps: number }>(`/api/admin/users/${u.id}/delete`, { confirm: confirmText }); toast(`${u.name} deleted, with ${r.apps} app${r.apps === 1 ? '' : 's'}`); go('/admin/users'); }
+    catch (e) { toast(err(e, 'Could not delete.'), true); setBusy(false); }
+  };
+  return (
+    <section className="danger-zone">
+      <b>Delete this account</b>
+      <p>Their apps, everything saved in them, their uploaded files and the client sign-ins they made are removed for good. Payment records stay for your accounts. Suspending is usually enough.</p>
+      {!open ? <button className="btn sm danger" onClick={() => setOpen(true)}>Delete account…</button> : (
+        <div className="acc-form tight">
+          <label className="field"><span>Type <b className="mono">{u.email}</b> to confirm</span><input className="input mono" value={confirmText} onChange={(e) => setConfirmText(e.target.value)} autoFocus /></label>
+          <div className="actions-row"><button className="btn sm danger" disabled={busy || confirmText.trim().toLowerCase() !== u.email.toLowerCase()} onClick={del}>{busy && <span className="spin" />}Delete for good</button><button className="btn sm quiet" onClick={() => setOpen(false)}>Cancel</button></div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ---------------- apps & data: every app, and what it holds ---------------- */
+interface AppNumT { id: string; name: string; slug: string | null; access: string; createdAt: string; updatedAt: string; deletedAt: string | null; ownerId: string; ownerName: string; ownerEmail: string; members: number; versions: number; appBytes: number; records: number; recordBytes: number; kvKeys: number; kvBytes: number; files: number; fileBytes: number; lastActivity: string | null; built: number }
+const appTotal = (a: AppNumT) => a.appBytes + a.fileBytes + a.kvBytes + a.recordBytes;
+
+function AppTable({ rows, showOwner = true }: { rows: AppNumT[]; showOwner?: boolean }) {
+  const { go } = useRoute();
+  return (
+    <table className="adm-table">
+      <thead><tr><th>App</th>{showOwner && <th className="hide-sm">Owner</th>}<th className="hide-sm">People</th><th className="hide-sm">Saved data</th><th className="hide-sm">Files</th><th>Size</th><th className="hide-sm">Last activity</th></tr></thead>
+      <tbody>
+        {rows.map((a) => (
+          <tr key={a.id} className="clickable" onClick={() => go(`/admin/apps/${a.id}`)}>
+            <td><Link to={`/admin/apps/${a.id}`} className="cell-main"><b>{a.name}{a.deletedAt && <span className="status s-rejected">in Trash</span>}</b><small>{a.built ? 'Create HTML' : 'uploaded HTML'}{a.slug ? ` · /${a.slug}` : ''}{a.access !== 'private' ? ` · ${a.access} link` : ''}</small></Link></td>
+            {showOwner && <td className="hide-sm small">{a.ownerEmail}</td>}
+            <td className="hide-sm mono">{a.members}</td>
+            <td className="hide-sm mono small">{a.records + a.kvKeys} items · {fmtBytes(a.kvBytes + a.recordBytes)}</td>
+            <td className="hide-sm mono small">{a.files} · {fmtBytes(a.fileBytes)}</td>
+            <td className="mono">{fmtBytes(appTotal(a))}</td>
+            <td className="hide-sm muted small">{a.lastActivity ? ago(a.lastActivity) : '—'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function AppsAdmin() {
+  const [q, setQ] = useState('');
+  const [sort, setSort] = useState('recent');
+  const [d, setD] = useState<{ apps: AppNumT[]; totals: Record<string, number> } | null>(null);
+  useEffect(() => { const t = setTimeout(() => get<typeof d>(`/api/admin/apps/all?q=${encodeURIComponent(q)}&sort=${sort}`).then(setD, () => {}), 150); return () => clearTimeout(t); }, [q, sort]);
+  const t = d?.totals;
+  return (
+    <>
+      <Head title="Apps & data" lede="Every app on Jhino, who owns it, and what it holds: saved data in the database, uploaded files and the app's own files on disk." />
+      {t && (
+        <dl className="store-row">
+          <div><dt>Apps</dt><dd className="mono">{t.apps}</dd></div>
+          <div><dt>Saved data (database)</dt><dd className="mono">{fmtBytes(t.kvBytes + t.recordBytes)}</dd></div>
+          <div><dt>Uploaded files ({t.files})</dt><dd className="mono">{fmtBytes(t.fileBytes)}</dd></div>
+          <div><dt>App files (HTML, ZIP)</dt><dd className="mono">{fmtBytes(t.appBytes)}</dd></div>
+        </dl>
+      )}
+      <div className="adm-tools">
+        <div className="seg" role="group" aria-label="Sort">{[['recent', 'Recently changed'], ['size', 'Largest']].map(([k, l]) => <button key={k} aria-pressed={sort === k} onClick={() => setSort(k)}>{l}</button>)}</div>
+        <label className="ix-search"><Icon name="search" size={16} /><span className="sr-only">Search apps</span><input placeholder="App name, owner email or address" value={q} onChange={(e) => setQ(e.target.value)} /></label>
+      </div>
+      {!d ? <div className="acc-skel" /> : !d.apps.length ? <p className="muted">No apps match.</p> : <AppTable rows={d.apps} />}
+    </>
+  );
+}
+
+function AppDetailAdmin({ id }: { id: string }) {
+  const toast = useToast();
+  const [d, setD] = useState<Record<string, any> | null>(null);
+  useEffect(() => { get(`/api/admin/apps/${id}/detail`).then(setD, (e) => toast(err(e, 'Not found.'), true)); }, [id, toast]);
+  if (!d) return <div className="acc-skel" />;
+  const a: AppNumT = d.app;
+  return (
+    <>
+      <div className="crumb"><Link to="/admin/apps" className="link">Apps & data</Link> / {a.name}</div>
+      <Head title={a.name} lede={<>Owned by <Link to={`/admin/users/${a.ownerId}`} className="link">{a.ownerName}</Link> ({a.ownerEmail}) · made {fmtDate(a.createdAt)}{a.deletedAt ? ' · in Trash' : ''}</>}
+        actions={<>
+          {a.slug && a.access !== 'private' && <a className="btn sm" href={`/${a.slug}`} target="_blank" rel="noopener"><Icon name="external" size={14} />/{a.slug}</a>}
+          <a className="btn sm" href={`/api/admin/apps/${a.id}/export`} download onClick={() => toast('Download started. It is recorded in the audit log.')}><Icon name="download" size={15} />Export data (JSON)</a>
+        </>} />
+      <dl className="store-row">
+        <div><dt>Total size</dt><dd className="mono">{fmtBytes(appTotal(a))}</dd></div>
+        <div><dt>Saved data</dt><dd className="mono">{a.records + a.kvKeys} items · {fmtBytes(a.kvBytes + a.recordBytes)}</dd></div>
+        <div><dt>Uploaded files</dt><dd className="mono">{a.files} · {fmtBytes(a.fileBytes)}</dd></div>
+        <div><dt>App files</dt><dd className="mono">{a.versions} version{a.versions === 1 ? '' : 's'} · {fmtBytes(a.appBytes)}</dd></div>
+      </dl>
+      <div className="adm-two">
+        <section className="adm-block"><h3 className="adm-sub">People ({d.members.length})</h3>
+          <ul className="acc-list compact">{d.members.map((m: any) => <li key={m.id}><Link to={`/admin/users/${m.id}`} className="cell-main"><b>{m.name}</b><small>{m.email} · {m.role === 'owner' ? 'owner' : m.role === 'editor' ? 'can edit' : m.role === 'contributor' ? 'can add' : 'can view'}</small></Link><span className="muted small">{m.lastLoginAt ? ago(m.lastLoginAt) : 'never signed in'}</span></li>)}</ul>
+        </section>
+        <section className="adm-block"><h3 className="adm-sub">Recent activity</h3>
+          {!d.activity.length ? <p className="muted">Nothing yet.</p> : <ul className="acc-list compact">{d.activity.map((x: any, i: number) => <li key={i}><span><b>{x.name ?? 'Someone'} {x.action}</b>{x.detail && <small>{x.detail}</small>}</span><span className="muted small">{ago(x.at)}</span></li>)}</ul>}
+        </section>
+      </div>
+      <section className="adm-block"><h3 className="adm-sub">Saved data in the database</h3>
+        {!d.collections.length && !d.keys.length ? <p className="muted">Nothing saved yet.</p> : (
+          <table className="adm-table">
+            <thead><tr><th>Where</th><th>What</th><th>Size</th><th className="hide-sm">Changed</th></tr></thead>
+            <tbody>
+              {d.collections.map((c: any) => <tr key={'c' + c.collection}><td className="small">Section</td><td className="mono small">{c.collection} · {c.n} item{c.n === 1 ? '' : 's'}</td><td className="mono small">{fmtBytes(c.bytes)}</td><td className="hide-sm muted small">{ago(c.updatedAt)}</td></tr>)}
+              {d.keys.map((k: any, i: number) => <tr key={'k' + i}><td className="small">{k.ns === 'ls' ? 'localStorage' : k.ns === 'ws' ? 'window.storage' : k.ns} · {k.scope}</td><td className="mono small url-cell" title={k.key}>{k.key}</td><td className="mono small">{fmtBytes(k.bytes)}</td><td className="hide-sm muted small">{ago(k.updatedAt)}</td></tr>)}
+            </tbody>
+          </table>
+        )}
+        <p className="hint">The values themselves are in the export. Opening someone's data is recorded in the audit log.</p>
+      </section>
+      {!!d.bigFiles.length && (
+        <section className="adm-block"><h3 className="adm-sub">Largest files</h3>
+          <table className="adm-table">
+            <thead><tr><th>File</th><th>Size</th><th className="hide-sm">Uploaded</th></tr></thead>
+            <tbody>{d.bigFiles.map((f: any) => <tr key={f.id} className={f.deletedAt ? 'row-off' : ''}><td className="small url-cell" title={f.name}>{f.name}{f.deletedAt && ' (in Trash)'}</td><td className="mono small">{fmtBytes(f.size)}{f.originalSize ? <small className="muted"> (was {fmtBytes(f.originalSize)})</small> : null}</td><td className="hide-sm muted small">{fmtDate(f.createdAt)}</td></tr>)}</tbody>
+          </table>
+        </section>
+      )}
+      <section className="adm-block"><h3 className="adm-sub">Versions</h3>
+        <ul className="acc-list compact">{d.versions.map((v: any) => <li key={v.n}><span><b>Version {v.n}{v.n === (a as any).liveVersion ? ' · live' : ''}</b><small>{v.built ? 'Built with Create HTML' : v.source} · {v.fileCount} file{v.fileCount === 1 ? '' : 's'} · {fmtBytes(v.size)}</small></span><span className="muted small">{fmtDate(v.createdAt)}</span></li>)}</ul>
+      </section>
+    </>
+  );
+}
+
+/* ---------------- plans & pricing ---------------- */
+interface PlanEdit { id: string; name: string; price: number; yearly: number; creations: number; blurb: string; features: Record<string, number | boolean> }
+const FLAG_FIELDS: [string, string][] = [['passwordLinks', 'Password links'], ['hideBar', 'Hide the top bar'], ['download', 'Download as an HTML file'], ['customCodes', 'Short links with their own names'], ['linkStats', 'Daily click history'], ['prioritySupport', 'Priority support']];
+function PlansAdmin() {
+  const toast = useToast();
+  const [d, setD] = useState<{ plans: PlanEdit[]; serverMaxMB: number; customers: Record<string, number> } | null>(null);
+  const [draft, setDraft] = useState<PlanEdit[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const load = useCallback(() => get<typeof d>('/api/admin/plans').then((r) => { setD(r); setDraft(JSON.parse(JSON.stringify(r!.plans))); }, () => {}), []);
+  useEffect(() => { load(); }, [load]);
+  if (!d || !draft) return <div className="acc-skel" />;
+  const set = (i: number, patch: Partial<PlanEdit>) => setDraft(draft.map((p, j) => (j === i ? { ...p, ...patch } : p)));
+  const setF = (i: number, k: string, v: number | boolean) => setDraft(draft.map((p, j) => (j === i ? { ...p, features: { ...p.features, [k]: v } } : p)));
+  const num = (v: string) => Number(v.replace(/[^\d]/g, '') || 0);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(d.plans);
+  const save = async () => {
+    if (!confirm('Save the new plans? The website and checkout show them at once. People who already paid keep their plan until its end date; renewals use the new prices.')) return;
+    setBusy(true); setError('');
+    try { await api('PUT', '/api/admin/plans', { plans: draft }); toast('Plans saved. The website shows them now.'); await refreshPlans(); load(); }
+    catch (e) { setError(err(e, 'Could not save.')); }
+    setBusy(false);
+  };
+  return (
+    <>
+      <Head title="Plans & pricing" lede="What each plan costs and includes. Changes show on the website and at checkout straight away, and the server enforces the limits." actions={<a className="btn sm" href="/#pricing" target="_blank" rel="noopener"><Icon name="external" size={14} />See the website</a>} />
+      <div className="plan-edit-grid">
+        {draft.map((p, i) => {
+          const free = p.id === 'free';
+          const months = p.price > 0 ? 12 - p.yearly / p.price : 0;
+          return (
+            <section key={p.id} className="plan-edit">
+              <header><span className="mono small muted">{p.id}</span><span className="muted small">{d.customers[p.id] ?? 0} {free ? 'on it' : 'paying now'}</span></header>
+              <label className="field"><span>Name</span><input className="input" maxLength={40} value={p.name} onChange={(e) => set(i, { name: e.target.value })} /></label>
+              <label className="field"><span>One line under the name</span><input className="input" maxLength={160} value={p.blurb} onChange={(e) => set(i, { blurb: e.target.value })} /></label>
+              {free ? <p className="hint">Free Forever always costs nothing.</p> : (
+                <div className="grid2">
+                  <label className="field"><span>Monthly (NPR)</span><input className="input mono" inputMode="numeric" value={p.price} onChange={(e) => set(i, { price: num(e.target.value) })} /></label>
+                  <label className="field"><span>Yearly (NPR)</span><input className="input mono" inputMode="numeric" value={p.yearly} onChange={(e) => set(i, { yearly: num(e.target.value) })} /></label>
+                </div>
+              )}
+              {!free && <p className="hint">{months > 0.05 ? `Yearly saves ${months.toFixed(1).replace(/\.0$/, '')} month${Math.round(months) === 1 ? '' : 's'}.` : 'Yearly saves nothing at these prices.'} <button type="button" className="link" onClick={() => set(i, { yearly: p.price * 10 })}>Make it 10 × monthly</button></p>}
+              <div className="grid2">
+                <label className="field"><span>Apps</span><input className="input mono" inputMode="numeric" value={p.creations} onChange={(e) => set(i, { creations: num(e.target.value) })} /></label>
+                <label className="field"><span>Addresses</span><input className="input mono" inputMode="numeric" value={Number(p.features.addresses)} onChange={(e) => setF(i, 'addresses', num(e.target.value))} /></label>
+                <label className="field"><span>Short links</span><input className="input mono" inputMode="numeric" value={Number(p.features.shortLinks)} onChange={(e) => setF(i, 'shortLinks', num(e.target.value))} /></label>
+                <label className="field"><span>Largest file (MB)</span><input className="input mono" inputMode="numeric" value={Number(p.features.maxUploadMB)} onChange={(e) => setF(i, 'maxUploadMB', num(e.target.value))} /></label>
+              </div>
+              <div className="plan-flags">
+                {FLAG_FIELDS.map(([k, l]) => (
+                  <label key={k} className="check-row"><input type="checkbox" checked={!!p.features[k]} onChange={(e) => setF(i, k, e.target.checked)} /><span>{l}</span></label>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+      <p className="hint">Largest file applies to each upload by the app's owner and everyone in it (photos, videos, ZIPs), up to {d.serverMaxMB.toLocaleString('en-IN')} MB set on the server (MAX_FILE_MB). Super admins are not limited. Bigger videos can always be shared as a link.</p>
+      {error && <p className="error-text" role="alert">{error}</p>}
+      <div className="actions-row sticky-save">
+        <button className="btn primary" disabled={!dirty || busy} onClick={save}>{busy && <span className="spin" />}Save plans</button>
+        <button className="btn quiet" disabled={!dirty || busy} onClick={() => setDraft(JSON.parse(JSON.stringify(d.plans)))}>Undo changes</button>
+        {dirty && <span className="hint">Not saved yet.</span>}
+      </div>
+    </>
+  );
+}
+
+/* ---------------- announcements ---------------- */
+function Announce() {
+  const toast = useToast();
+  const [f, setF] = useState({ title: '', body: '', audience: 'customers' });
+  const [busy, setBusy] = useState(false);
+  const send = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!confirm(`Send "${f.title}" to ${f.audience === 'everyone' ? 'everyone, clients too' : f.audience === 'paying' ? 'paying customers' : f.audience === 'free' ? 'Free Forever customers' : 'all customers'}? It goes to their bell and by email.`)) return;
+    setBusy(true);
+    try { const r = await post<{ sent: number }>('/api/admin/announce', f); toast(`Sent to ${r.sent} ${r.sent === 1 ? 'person' : 'people'}`); setF({ ...f, title: '', body: '' }); }
+    catch (e2) { toast(err(e2, 'Could not send.'), true); }
+    setBusy(false);
+  };
+  return (
+    <form className="acc-form" onSubmit={send}>
+      <div className="grid2">
+        <label className="field"><span>Title</span><input className="input" required minLength={3} maxLength={140} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="New: short links on every plan" /></label>
+        <div className="field"><span>To</span><Select label="To" value={f.audience} options={[{ value: 'customers', label: 'All customers' }, { value: 'paying', label: 'Paying customers' }, { value: 'free', label: 'Free Forever customers' }, { value: 'everyone', label: 'Everyone (clients too)' }]} onChange={(v) => setF({ ...f, audience: v })} /></div>
+      </div>
+      <label className="field"><span>Message</span><textarea className="textarea" rows={3} maxLength={600} value={f.body} onChange={(e) => setF({ ...f, body: e.target.value })} /></label>
+      <div><button className="btn sm primary" disabled={busy || f.title.trim().length < 3}>{busy && <span className="spin" />}Send announcement</button></div>
+    </form>
   );
 }
 
@@ -490,7 +795,7 @@ function Payments() {
   useEffect(() => { const t = setTimeout(() => get<typeof d>(`/api/admin/payments?status=${status}&q=${encodeURIComponent(q)}`).then(setD, () => {}), 150); return () => clearTimeout(t); }, [status, q]);
   return (
     <>
-      <Head title="Plan requests" lede="Everyone who paid for a plan and sent a screenshot. Check it against your bank or wallet, then approve (the plan turns on at once) or reject with a reason." actions={<Link to="/admin/subscriptions" className="btn sm">Subscriptions</Link>} />
+      <Head title="Plan requests" lede="Everyone who paid for a plan and sent a screenshot. Check it against your bank or wallet, then approve (the plan turns on at once) or reject with a reason." actions={<><a className="btn sm" href="/api/admin/export/payments.csv" download><Icon name="download" size={15} />Export CSV</a><Link to="/admin/subscriptions" className="btn sm">Subscriptions</Link></>} />
       <div className="adm-tools">
         <div className="seg" role="group" aria-label="Status">
           {[['pending', 'To review'], ['approved', 'Approved'], ['rejected', 'Rejected'], ['all', 'All']].map(([k, l]) => (
@@ -995,6 +1300,11 @@ function Settings() {
   return (
     <>
       <Head title="Settings" />
+      <section className="adm-block">
+        <h3 className="adm-sub">Send an announcement</h3>
+        <p className="hint">Goes to people's bell and by email: new features, planned maintenance, price changes.</p>
+        <Announce />
+      </section>
       <ul className="acc-list settings-list">
         <li>
           <span><b>File uploads inside apps</b><small>{s.uploads ? 'On: people can upload photos, videos and files into apps.' : 'Off: apps use links (Drive, Dropbox, OneDrive, YouTube…). Payment proof, QR codes and profile photos still upload.'}</small></span>

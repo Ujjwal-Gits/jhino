@@ -20,8 +20,11 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
   const input = useRef<HTMLInputElement>(null);
   const suggest = (f: File | null) => { if (f && !slug && !replaceAppId) setSlug(''); };
 
+  const { user } = useSession();
+  const maxMB = user.isAdmin ? null : user.features?.maxUploadMB ?? null;
   const submit = async () => {
     if (!file) return;
+    if (maxMB && file.size > maxMB * 1048576) { setError(`That file is ${(file.size / 1048576).toFixed(1)} MB. Your plan allows up to ${maxMB} MB for one upload.`); setLimitHit(true); return; }
     setBusy(true); setError('');
     const fd = new FormData();
     if (!replaceAppId) {
@@ -71,7 +74,7 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
           ) : (
             <>
               <b style={{ fontWeight: 600 }}>Choose an .html file or a .zip</b>
-              <span className="hint">Or drop it here. A ZIP needs an index.html inside.</span>
+              <span className="hint">Or drop it here. A ZIP needs an index.html inside.{maxMB ? ` Up to ${maxMB} MB.` : ''}</span>
             </>
           )}
         </button>

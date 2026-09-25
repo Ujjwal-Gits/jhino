@@ -4,7 +4,7 @@ export interface User {
   /** What the person's plan includes (null for client accounts). The server checks again on every action. */
   features?: PlanFeatures | null;
 }
-export interface PlanFeatures { addresses: number; shortLinks: number; customCodes: boolean; passwordLinks: boolean; hideBar: boolean; download: boolean; linkStats: boolean; prioritySupport: boolean }
+export interface PlanFeatures { addresses: number; shortLinks: number; customCodes: boolean; passwordLinks: boolean; hideBar: boolean; download: boolean; linkStats: boolean; prioritySupport: boolean; maxUploadMB: number }
 /** A person's photo, when they have one. `v` busts the cache after a change. */
 export const avatarUrl = (u: { id: string; hasAvatar?: boolean } | null | undefined, v: string | number = '') => (u && u.hasAvatar ? `/api/users/${u.id}/avatar${v ? `?v=${v}` : ''}` : null);
 export type Role = 'owner' | 'editor' | 'contributor' | 'viewer';

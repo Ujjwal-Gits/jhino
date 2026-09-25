@@ -8,7 +8,7 @@ import { db, newId, now, type UserRow } from './db.js';
 import { HttpError, requireAdmin, requireCreator, requireUser } from './auth.js';
 import { baseUrl, mails } from './mail.js';
 import { audit, imageType, limit } from './security.js';
-import { PLANS, isPeriod, isPlan, notify, notifyAdmins, npr, periodEnd, priceOf, usage, type Period, type PlanId } from './plans.js';
+import { PLANS, isPeriod, isPlan, notify, notifyAdmins, npr, periodEnd, priceOf, publicPlans, usage, type Period, type PlanId } from './plans.js';
 
 /*
  * Plans are paid by QR for now: the customer pays, uploads a screenshot, and a super admin approves.
@@ -97,12 +97,18 @@ export function approvePayment(req: FastifyRequest, paymentId: string, note: str
 }
 
 export function registerBilling(app: FastifyInstance) {
+  /** The plans in force, for the website and checkout. Public: prices are not secret. */
+  app.get('/api/plans', async (_req, reply) => {
+    reply.header('Cache-Control', 'no-store');
+    return { plans: publicPlans() };
+  });
+
   /* ---------- for customers ---------- */
   app.get('/api/billing', async (req) => {
     const u = requireUser(req);
     const methods = (db.prepare('SELECT * FROM payment_methods WHERE active=1 ORDER BY position, updated_at DESC').all() as MethodRow[]).map((m) => methodView(m));
     const payments = (db.prepare('SELECT * FROM payments WHERE user_id=? ORDER BY created_at DESC LIMIT 100').all(u.id) as PaymentRow[]).map((p) => paymentView(p));
-    return { plans: Object.values(PLANS), usage: usage(u), methods, payments, pending: payments.some((p) => p.status === 'pending') };
+    return { plans: publicPlans(), usage: usage(u), methods, payments, pending: payments.some((p) => p.status === 'pending') };
   });
 
   app.get('/api/billing/methods/:id/qr', async (req, reply) => {

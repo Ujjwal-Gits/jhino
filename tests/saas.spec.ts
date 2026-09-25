@@ -540,3 +540,90 @@ test('super admin screens: sidebar on the left edge, dashboard, short links; oth
   await expect(side).toBeInViewport();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
+
+test('plans & pricing: super admins change prices and limits; the website, checkout and server follow', async () => {
+  const admin = await session(OWNER);
+  const anon = await session();
+  const before = (await anon.call('GET', '/api/plans')).json.plans;
+  expect(before.map((p: any) => p.id)).toEqual(['free', 'plus', 'pro']);
+  const who = await signup('Pia');
+  const pia = await session(who);
+  expect((await pia.call('PUT', '/api/admin/plans', { plans: before })).status).toBe(403);
+  expect((await admin.call('PUT', '/api/admin/plans', { plans: before.map((p: any) => (p.id === 'plus' ? { ...p, price: -5 } : p)) })).status).toBe(400);
+  try {
+    const next = before.map((p: any) => (p.id === 'plus' ? { ...p, price: 750, yearly: 7000, creations: 12 } : p.id === 'free' ? { ...p, price: 999, creations: 2 } : p));
+    const r = await admin.call('PUT', '/api/admin/plans', { plans: next });
+    expect(r.status, JSON.stringify(r.json)).toBe(200);
+    const now = (await anon.call('GET', '/api/plans')).json.plans;
+    expect(now.find((p: any) => p.id === 'plus')).toMatchObject({ price: 750, yearly: 7000, creations: 12 });
+    expect(now.find((p: any) => p.id === 'free')).toMatchObject({ price: 0, creations: 2 }); // free stays free
+    expect((await pia.call('GET', '/api/billing')).json.usage.limit).toBe(2);
+    expect((await admin.call('GET', '/api/admin/audit?q=plans.update')).json.entries[0].detail).toContain('750');
+  } finally {
+    expect((await admin.call('PUT', '/api/admin/plans', { plans: before })).status).toBe(200);
+  }
+});
+
+test("uploads: capped by the owner's plan (20 MB on Free), refused before storing; super admins are not capped", async () => {
+  const admin = await session(OWNER);
+  const who = await signup('Uma');
+  const uma = await session(who);
+  const app = await uma.ctx.post('/api/apps', { multipart: { name: 'U', file: { name: 'u.html', mimeType: 'text/html', buffer: Buffer.from('<!doctype html><title>u</title>') } }, headers: { 'x-csrf-token': uma.csrf } });
+  const appId = (await app.json()).app.id;
+  const big = Buffer.alloc(21 * 1024 * 1024, 1);
+  const r = await uma.ctx.post(`/api/apps/${appId}/files`, { multipart: { file: { name: 'big.mp4', mimeType: 'video/mp4', buffer: big } }, headers: { 'x-csrf-token': uma.csrf } });
+  expect(r.status()).toBe(413);
+  expect((await r.json()).message).toContain('20 MB');
+  const ok = await uma.ctx.post(`/api/apps/${appId}/files`, { multipart: { file: { name: 'small.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 small') } }, headers: { 'x-csrf-token': uma.csrf } });
+  expect(ok.status()).toBe(200);
+  // An app upload bigger than the plan allows is refused too.
+  const zip = await uma.ctx.post(`/api/apps/${appId}/versions`, { multipart: { file: { name: 'big.html', mimeType: 'text/html', buffer: Buffer.concat([Buffer.from('<!doctype html><title>b</title>'), big]) } }, headers: { 'x-csrf-token': uma.csrf } });
+  expect(zip.status()).toBe(413);
+  // Nothing of the refused files was kept: the app holds one small file.
+  const d = (await admin.call('GET', `/api/admin/apps/${appId}/detail`)).json;
+  expect(d.app.files).toBe(1);
+  expect(d.app.fileBytes).toBeLessThan(1000);
+  // Super admin: 25 MB goes through.
+  const own = await admin.ctx.post('/api/apps', { multipart: { name: 'A', file: { name: 'a.html', mimeType: 'text/html', buffer: Buffer.from('<!doctype html><title>a</title>') } }, headers: { 'x-csrf-token': admin.csrf } });
+  const ownId = (await own.json()).app.id;
+  const up = await admin.ctx.post(`/api/apps/${ownId}/files`, { multipart: { file: { name: 'b.bin', mimeType: 'application/octet-stream', buffer: Buffer.alloc(25 * 1024 * 1024, 2) } }, headers: { 'x-csrf-token': admin.csrf } });
+  expect(up.status()).toBe(200);
+});
+
+test('super admin tools: new user, edit email, apps & data with export, CSV exports, announcement, delete account', async () => {
+  const admin = await session(OWNER);
+  const made = (await admin.call('POST', '/api/admin/users', { name: 'Nima', email: `nima.${uniq()}@example.com`, plan: 'plus', period: 'month' })).json;
+  const nima = await session({ email: made.user.email, password: made.password });
+  const app = (await nima.call('POST', '/api/apps/build', { config: { name: 'Nima room', client: 'X', field: 'other', design: { accent: '#1f6f5c', style: 'modern', currency: 'NPR', theme: 'light' }, blocks: [{ id: 'todos_n1', preset: 'todos', title: 'To-dos' }] } })).json.app;
+  await nima.call('POST', `/api/apps/${app.id}/records/todos_n1`, { data: { title: '=HYPERLINK("x")' } });
+  // Apps & data: the app, its owner and its saved data.
+  const all = (await admin.call('GET', `/api/admin/apps/all?q=${encodeURIComponent(made.user.email)}`)).json;
+  expect(all.apps[0]).toMatchObject({ id: app.id, ownerEmail: made.user.email, records: 1 });
+  expect((await nima.call('GET', '/api/admin/apps/all')).status).toBe(403);
+  const detail = (await admin.call('GET', `/api/admin/apps/${app.id}/detail`)).json;
+  expect(detail.collections[0]).toMatchObject({ collection: 'todos_n1', n: 1 });
+  const exp = await admin.ctx.get(`/api/admin/apps/${app.id}/export`);
+  expect(JSON.parse(await exp.text()).records[0].data.title).toBe('=HYPERLINK("x")');
+  expect((await admin.call('GET', '/api/admin/audit?q=app.export')).json.entries.length).toBeGreaterThan(0);
+  const ud = (await admin.call('GET', `/api/admin/users/${made.user.id}`)).json;
+  expect(ud.apps[0].id).toBe(app.id);
+  expect(ud.storage.total).toBeGreaterThan(0);
+  // CSV exports: a header row; only super admins.
+  const csv = await (await admin.ctx.get('/api/admin/export/users.csv')).text();
+  expect(csv).toContain('id,name,email,role,plan');
+  expect(csv).toContain(made.user.email);
+  expect((await nima.ctx.get('/api/admin/export/payments.csv')).status()).toBe(403);
+  // Edit the email: they sign in with the new one.
+  const email2 = `nima2.${uniq()}@example.com`;
+  expect((await admin.call('PATCH', `/api/admin/users/${made.user.id}`, { email: email2, name: 'Nima R' })).status).toBe(200);
+  const n2 = await session({ email: email2, password: made.password });
+  // An announcement reaches their bell.
+  const title = 'Maintenance tonight ' + uniq();
+  expect((await admin.call('POST', '/api/admin/announce', { title, body: '10 minutes.', audience: 'paying' })).json.sent).toBeGreaterThan(0);
+  expect((await n2.call('GET', '/api/notifications')).json.items.some((n: any) => n.title === title)).toBe(true);
+  // Delete: needs the exact email; takes the app with it.
+  expect((await admin.call('POST', `/api/admin/users/${made.user.id}/delete`, { confirm: 'wrong' })).status).toBe(400);
+  expect((await admin.call('POST', `/api/admin/users/${made.user.id}/delete`, { confirm: email2 })).json).toMatchObject({ ok: true, apps: 1 });
+  expect((await admin.call('GET', `/api/admin/apps/${app.id}/detail`)).status).toBe(404);
+  expect((await (await session()).ctx.post('/api/auth/login', { data: { email: email2, password: made.password } })).status()).toBe(401);
+});

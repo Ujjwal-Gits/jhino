@@ -1,10 +1,13 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import { config, makePassword } from './config.js';
 import { db, newId, now, type AppRow, type UserRow } from './db.js';
 import { HttpError, canCreateApps, createUser, hashPassword, requireAdmin, revokeSessions, validateEmail, validateName, validatePassword } from './auth.js';
 import { audit, deviceName, maskIp, setSetting, setting } from './security.js';
-import { PLANS, activePlan, isPeriod, isPlan, notify, periodEnd, usage, type PlanId } from './plans.js';
-import { mailReady } from './mail.js';
+import { PLANS, activePlan, isPeriod, isPlan, notify, periodEnd, planLimitsInfo, publicPlans, savePlans, usage, type Category, type PlanId } from './plans.js';
+import { deleteAccount } from './account.js';
+import { mailReady, mails, sendMail } from './mail.js';
 import { providerReady } from './oauth.js';
 import { RESERVED, assertNameFree, baseFor, setSharing, shareInfo, validSlug } from './publicshare.js';
 import { createAppFromUpload, readUpload } from './apps.js';
@@ -14,9 +17,19 @@ import { createAppFromUpload, readUpload } from './apps.js';
  * hosting addresses and settings. Everything sensitive lands in the audit log.
  */
 
+/** Bytes on disk for everything a person owns: app files (HTML, ZIP contents, every version) and uploaded files. */
+function storageOf(userId: string) {
+  const r = db.prepare(`SELECT
+      (SELECT COALESCE(SUM(v.size),0) FROM app_versions v JOIN apps a ON a.id=v.app_id WHERE a.owner_id=@u) apps,
+      (SELECT COALESCE(SUM(f.size),0) FROM files f JOIN apps a ON a.id=f.app_id WHERE a.owner_id=@u) files,
+      (SELECT COALESCE(SUM(LENGTH(k.value)),0) FROM kv k JOIN apps a ON a.id=k.app_id WHERE a.owner_id=@u) kv,
+      (SELECT COALESCE(SUM(LENGTH(r.data)),0) FROM records r JOIN apps a ON a.id=r.app_id WHERE a.owner_id=@u) records`).get({ u: userId }) as { apps: number; files: number; kv: number; records: number };
+  return { ...r, total: r.apps + r.files + r.kv + r.records };
+}
 function userRow(u: UserRow) {
   const last = db.prepare('SELECT status FROM payments WHERE user_id=? ORDER BY created_at DESC LIMIT 1').get(u.id) as { status: string } | undefined;
   return {
+    storage: canCreateApps(u) ? storageOf(u.id).total : 0,
     id: u.id, name: u.name, email: u.email, emailVerified: /@/.test(u.email) ? !!u.email_verified_at : null, createdAt: u.created_at,
     status: u.disabled ? 'suspended' : 'active', role: u.is_admin ? 'super_admin' : canCreateApps(u) ? 'creator' : 'client',
     usage: canCreateApps(u) ? usage(u) : null, lastLoginAt: u.last_login_at ?? null, lastPayment: last?.status ?? null,
@@ -31,6 +44,17 @@ function grant(userId: string, plan: string, adminId: string, source: string) {
   const t = now();
   db.prepare('INSERT INTO subscriptions(id,user_id,plan,creations,amount,payment_id,source,granted_by,starts_at,created_at) VALUES(?,?,?,?,?,NULL,?,?,?,?)')
     .run(newId('sub'), userId, plan, PLANS[plan as keyof typeof PLANS]?.creations ?? 0, 0, source, adminId, t, t);
+}
+
+/** What is stored where: the database file, app files and uploads (from their recorded sizes), and the disk. */
+function serverStorage() {
+  const size = (f: string) => { try { return fs.statSync(f).size; } catch { return 0; } };
+  const dbFile = path.join(config.dataDir, 'jhino.db');
+  const database = size(dbFile) + size(dbFile + '-wal');
+  const sums = db.prepare('SELECT (SELECT COALESCE(SUM(size),0) FROM app_versions) apps, (SELECT COALESCE(SUM(size),0) FROM files) files').get() as { apps: number; files: number };
+  let disk: { total: number; free: number } | null = null;
+  try { const st = fs.statfsSync(config.dataDir); disk = { total: st.blocks * st.bsize, free: st.bavail * st.bsize }; } catch { /* not available here */ }
+  return { database, apps: sums.apps, files: sums.files, disk, maxFileMB: planLimitsInfo().serverMaxMB };
 }
 
 /** Days from `days` ago to today (UTC), as YYYY-MM-DD, with a count for each. */
@@ -87,6 +111,7 @@ export function registerSuperAdmin(app: FastifyInstance) {
       openTickets: n("SELECT COUNT(*) n FROM support_tickets WHERE status='open'"),
       recent: db.prepare('SELECT actor_email actor, action, detail, at FROM audit_log ORDER BY id DESC LIMIT 8').all(),
       mailReady: mailReady(),
+      storage: serverStorage(),
       ...trends(),
     };
   });
@@ -132,7 +157,9 @@ export function registerSuperAdmin(app: FastifyInstance) {
     const u = getUser((req.params as { id: string }).id);
     return {
       user: { ...userRow(u), displayName: u.display_name ?? '', phone: u.phone ?? '', country: u.country ?? '', company: u.company ?? '', planExpiresAt: u.plan_expires_at ?? null, extraCreations: u.extra_creations ?? 0, suspendedReason: u.suspended_reason ?? '', lastLoginDevice: deviceName(u.last_login_ua), lastLoginIp: maskIp(u.last_login_ip) },
-      apps: db.prepare('SELECT id, name, created_at createdAt, deleted_at deletedAt, access, slug FROM apps WHERE owner_id=? ORDER BY created_at DESC').all(u.id),
+      apps: appsWithNumbers('a.owner_id=@q', { q: u.id }),
+      storage: storageOf(u.id),
+      memberOf: db.prepare(`SELECT a.id, a.name, m.role, o.email ownerEmail FROM memberships m JOIN apps a ON a.id=m.app_id JOIN users o ON o.id=a.owner_id WHERE m.user_id=? AND m.role<>'owner' AND a.deleted_at IS NULL ORDER BY a.name LIMIT 100`).all(u.id),
       payments: db.prepare("SELECT id, plan, amount, status, method_name method, created_at createdAt FROM payments WHERE user_id=? ORDER BY created_at DESC LIMIT 20").all(u.id),
       subscriptions: db.prepare('SELECT plan, creations, amount, source, starts_at startsAt, expires_at expiresAt FROM subscriptions WHERE user_id=? ORDER BY created_at DESC LIMIT 20').all(u.id),
       security: (db.prepare('SELECT kind, ua, ip, at FROM security_events WHERE user_id=? ORDER BY id DESC LIMIT 20').all(u.id) as { kind: string; ua: string; ip: string; at: string }[]).map((e) => ({ kind: e.kind, device: deviceName(e.ua), ip: maskIp(e.ip), at: e.at })),
@@ -144,9 +171,17 @@ export function registerSuperAdmin(app: FastifyInstance) {
   app.patch('/api/admin/users/:id', async (req) => {
     const admin = requireAdmin(req);
     const u = getUser((req.params as { id: string }).id);
-    const b = (req.body ?? {}) as { name?: string; plan?: string; period?: string; planExpiresAt?: string | null; extraCreations?: number; suspended?: boolean; reason?: string; superAdmin?: boolean; emailVerified?: boolean };
+    const b = (req.body ?? {}) as { name?: string; email?: string; plan?: string; period?: string; planExpiresAt?: string | null; extraCreations?: number; suspended?: boolean; reason?: string; superAdmin?: boolean; emailVerified?: boolean };
     const self = u.id === admin.id;
     if (b.name !== undefined) { db.prepare('UPDATE users SET name=? WHERE id=?').run(validateName(b.name), u.id); audit(req, 'user.rename', 'user', u.id, `${u.name} → ${b.name}`); }
+    if (b.email !== undefined && String(b.email).trim().toLowerCase() !== u.email.toLowerCase()) {
+      const email = validateEmail(b.email);
+      if (db.prepare('SELECT 1 FROM users WHERE lower(email)=lower(?) AND id<>?').get(email, u.id)) throw new HttpError(409, 'EMAIL_TAKEN', 'Another account already uses that email or sign-in ID.');
+      // Set by a super admin: counts as confirmed, and the old address is told.
+      db.prepare('UPDATE users SET email=?, email_verified_at=CASE WHEN ? LIKE \'%@%\' THEN ? ELSE NULL END WHERE id=?').run(email, email, now(), u.id);
+      if (/@/.test(u.email)) sendMail(u.email, 'email_changed', mails.emailChanged(u.name, email));
+      audit(req, 'user.email', 'user', u.id, `${u.email} → ${email}`);
+    }
     if (b.plan !== undefined) {
       if (!isPlan(b.plan)) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a plan.');
       const from = PLANS[activePlan(u)].name;
@@ -244,6 +279,146 @@ export function registerSuperAdmin(app: FastifyInstance) {
     audit(req, 'user.plan_extend', 'user', u.id, `${u.email}: +1 ${period} → ends ${ends.slice(0, 10)}`);
     notify(u.id, 'billing', `Your ${PLANS[u.plan].name} plan now runs until ${new Date(ends).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`, 'Extended by Jhino.', '/account/plan');
     return { expiresAt: ends };
+  });
+
+  /** Delete someone's account for good: their apps, data and files go too. The admin types their email to confirm. */
+  app.post('/api/admin/users/:id/delete', async (req) => {
+    const admin = requireAdmin(req);
+    const u = getUser((req.params as { id: string }).id);
+    if (u.id === admin.id) throw new HttpError(400, 'VALIDATION_FAILED', 'You cannot delete your own account here. Use Account → Privacy & data.');
+    if (String((req.body as { confirm?: string })?.confirm ?? '').trim().toLowerCase() !== u.email.toLowerCase()) throw new HttpError(400, 'VALIDATION_FAILED', `Type ${u.email} to confirm.`);
+    if (u.is_admin && (db.prepare("SELECT COUNT(*) n FROM users WHERE is_admin=1 AND disabled=0 AND kind='person'").get() as { n: number }).n <= 1) throw new HttpError(400, 'LAST_ADMIN', 'That is the only super admin.');
+    const owned = deleteAccount(u);
+    audit(req, 'user.delete', 'user', u.id, `${u.email} · ${owned.length} apps deleted`);
+    return { ok: true, apps: owned.length };
+  });
+
+  /* ---------- exports: people and payments as CSV (safe to open in Excel) ---------- */
+  const csvCell = (v: unknown) => {
+    let s = v === null || v === undefined ? '' : String(v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // no formulas when opened in a spreadsheet
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = (rows: unknown[][]) => '\ufeff' + rows.map((r) => r.map(csvCell).join(',')).join('\r\n');
+  app.get('/api/admin/export/users.csv', async (req, reply) => {
+    requireAdmin(req);
+    const rows = db.prepare("SELECT * FROM users WHERE kind='person' ORDER BY created_at").all() as UserRow[];
+    audit(req, 'export.users', 'export', 'users', `${rows.length} rows`);
+    reply.header('Content-Type', 'text/csv; charset=utf-8').header('Content-Disposition', `attachment; filename="jhino-users-${now().slice(0, 10)}.csv"`).header('Cache-Control', 'no-store');
+    return csv([['id', 'name', 'email', 'role', 'plan', 'period', 'plan_ends', 'apps', 'storage_mb', 'status', 'email_verified', 'joined', 'last_sign_in'],
+      ...rows.map((u) => { const r = userRow(u); return [u.id, u.name, u.email, r.role, r.usage?.planName ?? '', u.plan_period ?? '', u.plan_expires_at ?? '', r.usage?.used ?? '', (r.storage / 1048576).toFixed(1), r.status, u.email_verified_at ? 'yes' : 'no', u.created_at, u.last_login_at ?? '']; })]);
+  });
+  app.get('/api/admin/export/payments.csv', async (req, reply) => {
+    requireAdmin(req);
+    const rows = db.prepare('SELECT * FROM payments ORDER BY created_at').all() as Record<string, unknown>[];
+    audit(req, 'export.payments', 'export', 'payments', `${rows.length} rows`);
+    reply.header('Content-Type', 'text/csv; charset=utf-8').header('Content-Disposition', `attachment; filename="jhino-payments-${now().slice(0, 10)}.csv"`).header('Cache-Control', 'no-store');
+    return csv([['receipt', 'customer', 'email', 'plan', 'period', 'amount_npr', 'expected_npr', 'method', 'reference', 'paid_on', 'status', 'reject_reason', 'submitted', 'reviewed', 'reviewed_by'],
+      ...rows.map((p) => ['JH-' + String(p.id).slice(-8).toUpperCase(), p.user_name, p.user_email, p.plan, p.period, p.amount, p.expected_amount, p.method_name, p.reference, p.paid_on, p.status, p.reject_reason, p.created_at, p.reviewed_at, p.reviewed_by_email])]);
+  });
+
+  /* ---------- plans & pricing ---------- */
+  app.get('/api/admin/plans', async (req) => {
+    requireAdmin(req);
+    const counts = db.prepare("SELECT plan, COUNT(*) n FROM users WHERE kind='person' AND is_admin=0 AND created_by IS NULL AND (plan_expires_at IS NULL OR plan_expires_at > ?) GROUP BY plan").all(now()) as { plan: string; n: number }[];
+    return { plans: publicPlans(), ...planLimitsInfo(), customers: Object.fromEntries(counts.map((c) => [c.plan, c.n])) };
+  });
+  app.put('/api/admin/plans', async (req) => {
+    requireAdmin(req);
+    const before = JSON.stringify(publicPlans());
+    const plans = savePlans((req.body as { plans?: unknown })?.plans);
+    const changes: string[] = [];
+    const old = JSON.parse(before) as typeof plans;
+    for (const p of plans) {
+      const o = old.find((x) => x.id === p.id)!;
+      if (o.price !== p.price || o.yearly !== p.yearly) changes.push(`${p.name}: NPR ${o.price}/${o.yearly} → ${p.price}/${p.yearly}`);
+      if (o.creations !== p.creations) changes.push(`${p.name}: ${o.creations} → ${p.creations} apps`);
+      if (JSON.stringify(o.features) !== JSON.stringify(p.features)) changes.push(`${p.name}: limits changed`);
+      if (o.name !== p.name || o.blurb !== p.blurb) changes.push(`${p.name}: wording`);
+    }
+    audit(req, 'plans.update', 'settings', 'plans', changes.join('; ').slice(0, 900) || 'no change');
+    return { plans };
+  });
+
+  /* ---------- every app on the platform, with what it holds ---------- */
+  function appsWithNumbers(where: string, args: Record<string, unknown>, limitN = 300) {
+    return db.prepare(`SELECT a.id, a.name, a.slug, a.access, a.created_at createdAt, a.updated_at updatedAt, a.deleted_at deletedAt, a.live_version liveVersion,
+        o.id ownerId, o.name ownerName, o.email ownerEmail,
+        (SELECT COUNT(*) FROM memberships m JOIN users mu ON mu.id=m.user_id WHERE m.app_id=a.id AND mu.kind='person') members,
+        (SELECT COUNT(*) FROM app_versions v WHERE v.app_id=a.id) versions,
+        (SELECT COALESCE(SUM(v.size),0) FROM app_versions v WHERE v.app_id=a.id) appBytes,
+        (SELECT COUNT(*) FROM records r WHERE r.app_id=a.id) records,
+        (SELECT COALESCE(SUM(LENGTH(r.data)),0) FROM records r WHERE r.app_id=a.id) recordBytes,
+        (SELECT COUNT(*) FROM kv k WHERE k.app_id=a.id AND k.value IS NOT NULL) kvKeys,
+        (SELECT COALESCE(SUM(LENGTH(k.value)),0) FROM kv k WHERE k.app_id=a.id) kvBytes,
+        (SELECT COUNT(*) FROM files f WHERE f.app_id=a.id AND f.deleted_at IS NULL) files,
+        (SELECT COALESCE(SUM(f.size),0) FROM files f WHERE f.app_id=a.id) fileBytes,
+        (SELECT MAX(at) FROM activity ac WHERE ac.app_id=a.id) lastActivity,
+        (SELECT builder IS NOT NULL FROM app_versions v WHERE v.app_id=a.id AND v.n=a.live_version) built
+      FROM apps a JOIN users o ON o.id=a.owner_id WHERE ${where} ORDER BY a.updated_at DESC LIMIT ${limitN}`).all(args) as Record<string, number | string | null>[];
+  }
+  app.get('/api/admin/apps/all', async (req) => {
+    requireAdmin(req);
+    const q = req.query as { q?: string; sort?: string };
+    const s = String(q.q ?? '').trim().toLowerCase();
+    const rows = appsWithNumbers("(@s = '' OR lower(a.name) LIKE @like OR lower(o.email) LIKE @like OR lower(COALESCE(a.slug,'')) LIKE @like OR a.id=@s)", { s, like: `%${s}%` }, 500);
+    const size = (r: Record<string, unknown>) => Number(r.appBytes) + Number(r.fileBytes) + Number(r.kvBytes) + Number(r.recordBytes);
+    if (q.sort === 'size') rows.sort((x, y) => size(y) - size(x));
+    const tot = db.prepare(`SELECT (SELECT COUNT(*) FROM apps WHERE deleted_at IS NULL) apps, (SELECT COALESCE(SUM(size),0) FROM app_versions) appBytes, (SELECT COALESCE(SUM(size),0) FROM files) fileBytes,
+      (SELECT COALESCE(SUM(LENGTH(value)),0) FROM kv) kvBytes, (SELECT COALESCE(SUM(LENGTH(data)),0) FROM records) recordBytes, (SELECT COUNT(*) FROM files WHERE deleted_at IS NULL) files, (SELECT COUNT(*) FROM records) records`).get();
+    return { apps: rows, totals: tot };
+  });
+  app.get('/api/admin/apps/:id/detail', async (req) => {
+    requireAdmin(req);
+    const { id } = req.params as { id: string };
+    const a = appsWithNumbers('a.id=@id', { id })[0];
+    if (!a) throw new HttpError(404, 'NOT_FOUND', 'That app does not exist.');
+    return {
+      app: a,
+      members: db.prepare(`SELECT u.id, u.name, u.email, m.role, u.last_login_at lastLoginAt FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.kind='person' ORDER BY m.role='owner' DESC, m.added_at`).all(id),
+      versions: db.prepare('SELECT n, source_name source, size, file_count fileCount, created_at createdAt, builder IS NOT NULL built FROM app_versions WHERE app_id=? ORDER BY n DESC LIMIT 20').all(id),
+      collections: db.prepare('SELECT collection, COUNT(*) n, COALESCE(SUM(LENGTH(data)),0) bytes, MAX(updated_at) updatedAt FROM records WHERE app_id=? GROUP BY collection ORDER BY n DESC').all(id),
+      keys: db.prepare("SELECT ns, CASE WHEN scope='' THEN 'shared' ELSE 'per person' END scope, key, LENGTH(value) bytes, updated_at updatedAt FROM kv WHERE app_id=? AND value IS NOT NULL ORDER BY LENGTH(value) DESC LIMIT 60").all(id),
+      bigFiles: db.prepare('SELECT id, name, type, size, original_size originalSize, status, created_at createdAt, deleted_at deletedAt FROM files WHERE app_id=? ORDER BY size DESC LIMIT 25').all(id),
+      activity: db.prepare('SELECT ac.action, ac.detail, ac.at, u.name FROM activity ac LEFT JOIN users u ON u.id=ac.user_id WHERE ac.app_id=? ORDER BY ac.id DESC LIMIT 25').all(id),
+    };
+  });
+  /** Everything an app has saved, as JSON: for support, backups or a customer who asks. Always audited. */
+  app.get('/api/admin/apps/:id/export', async (req, reply) => {
+    requireAdmin(req);
+    const { id } = req.params as { id: string };
+    const a = db.prepare('SELECT a.*, u.email owner_email FROM apps a JOIN users u ON u.id=a.owner_id WHERE a.id=?').get(id) as (AppRow & { owner_email: string }) | undefined;
+    if (!a) throw new HttpError(404, 'NOT_FOUND', 'That app does not exist.');
+    audit(req, 'app.export', 'app', id, `${a.name} (${a.owner_email})`);
+    const data = {
+      exportedAt: now(), app: { id: a.id, name: a.name, owner: a.owner_email, createdAt: a.created_at, address: a.slug, access: a.access },
+      keyValues: db.prepare('SELECT ns, scope, key, value, updated_at updatedAt FROM kv WHERE app_id=? AND value IS NOT NULL').all(id),
+      records: (db.prepare('SELECT id, collection, data, created_at createdAt, updated_at updatedAt FROM records WHERE app_id=?').all(id) as { data: string }[]).map((r) => ({ ...r, data: (() => { try { return JSON.parse(r.data); } catch { return r.data; } })() })),
+      files: db.prepare('SELECT id, name, type, size, created_at createdAt, deleted_at deletedAt FROM files WHERE app_id=?').all(id),
+    };
+    reply.header('Content-Type', 'application/json; charset=utf-8').header('Content-Disposition', `attachment; filename="jhino-app-${id}.json"`).header('Cache-Control', 'no-store');
+    return JSON.stringify(data, null, 2);
+  });
+
+  /* ---------- an announcement to everyone (or one group), in the bell and by email ---------- */
+  app.post('/api/admin/announce', async (req) => {
+    requireAdmin(req);
+    const b = (req.body ?? {}) as { title?: string; body?: string; link?: string; audience?: string };
+    const title = String(b.title ?? '').trim().slice(0, 140);
+    const body = String(b.body ?? '').trim().slice(0, 600);
+    if (title.length < 3) throw new HttpError(400, 'VALIDATION_FAILED', 'Write a title.');
+    const link = b.link && /^\/[\w\-/?=&#.]*$/.test(String(b.link)) ? String(b.link) : null;
+    const where: Record<string, string> = {
+      everyone: "kind='person' AND disabled=0",
+      customers: "kind='person' AND disabled=0 AND created_by IS NULL AND is_admin=0",
+      paying: "kind='person' AND disabled=0 AND is_admin=0 AND plan IN ('plus','pro') AND (plan_expires_at IS NULL OR plan_expires_at > @t)",
+      free: "kind='person' AND disabled=0 AND is_admin=0 AND created_by IS NULL AND (plan='free' OR plan_expires_at <= @t)",
+    };
+    const aud = where[String(b.audience)] ? String(b.audience) : 'customers';
+    const ids = db.prepare(`SELECT id, name FROM users WHERE ${where[aud]}`).all(aud === 'paying' || aud === 'free' ? { t: now() } : {}) as { id: string; name: string }[];
+    for (const u of ids) notify(u.id, 'announcements' as Category, title, body, link, { kind: 'announcement', mail: { subject: title, lines: [`Hi ${u.name},`, '', body || title] } });
+    audit(req, 'announce', 'announcement', aud, `${title} · ${ids.length} people`);
+    return { sent: ids.length };
   });
 
   app.post('/api/admin/users/:id/password', async (req) => {

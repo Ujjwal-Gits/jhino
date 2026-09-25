@@ -2,7 +2,7 @@ import { useState, type FormEvent, type KeyboardEvent, type ReactNode } from 're
 import '../landing.css';
 import { ApiError, post } from '../api';
 import { Link, useRoute } from '../context';
-import { PLAN_CARDS, nprAmount, priceFor, type Period, type PlanCard } from '../plans';
+import { bestFreeMonths, freeMonths, freeMonthsText, nprAmount, priceFor, usePlans, type Period, type PlanCard } from '../plans';
 import { Icon } from '../ui';
 
 /*
@@ -210,7 +210,7 @@ const MOVES: { id: string; name: string; text: string; spec: () => ReactNode }[]
 
 const perMonth = (p: PlanCard) => nprAmount(Math.round(p.yearly / 12));
 
-function BillingSwitch({ period, onChange }: { period: Period; onChange: (p: Period) => void }) {
+function BillingSwitch({ period, onChange, saving }: { period: Period; onChange: (p: Period) => void; saving: string }) {
   const opts: [Period, string][] = [['month', 'Monthly'], ['year', 'Yearly']];
   const onKey = (e: KeyboardEvent<HTMLButtonElement>) => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
@@ -227,7 +227,7 @@ function BillingSwitch({ period, onChange }: { period: Period; onChange: (p: Per
           aria-checked={period === p} tabIndex={period === p ? 0 : -1}
           onClick={() => onChange(p)} onKeyDown={onKey}
         >
-          {label}{p === 'year' && <span className="bill-free mono">2 months free</span>}
+          {label}{p === 'year' && saving && <span className="bill-free mono">{saving}</span>}
         </button>
       ))}
     </div>
@@ -256,7 +256,7 @@ function PriceCard({ plan, period, signedIn }: { plan: PlanCard; period: Period;
       </p>
       <p className="pcard-sub mono">
         {!paid ? 'No card. No time limit.'
-          : period === 'year' ? `NPR ${perMonth(plan)} a month · 2 months free`
+          : period === 'year' ? `NPR ${perMonth(plan)} a month${freeMonths(plan) ? ` · ${freeMonthsText(freeMonths(plan))}` : ''}`
           : `or NPR ${nprAmount(plan.yearly)} a year`}
       </p>
       <Link to={to} className={`btn ${rec ? 'primary' : ''} pcard-cta`}>{label}</Link>
@@ -276,27 +276,29 @@ const COMPARE: [string, (p: PlanCard) => ReactNode][] = [
   ['Apps', (p) => nprAmount(p.apps)],
   ['Addresses on jhino.com', (p) => nprAmount(p.addresses)],
   ['Short links', (p) => nprAmount(p.shortLinks)],
+  ['Largest file', (p) => `${nprAmount(p.maxUploadMB)} MB`],
   ['Sign-in and public links', () => true],
-  ['Password links', (p) => p.id !== 'free'],
-  ['Hide the top bar', (p) => p.id !== 'free'],
-  ['Download as an HTML file', (p) => p.id !== 'free'],
-  ['Daily click history', (p) => p.id === 'pro'],
-  ['Priority support', (p) => p.id === 'pro'],
+  ['Password links', (p) => p.flags.passwordLinks],
+  ['Hide the top bar', (p) => p.flags.hideBar],
+  ['Download as an HTML file', (p) => p.flags.download],
+  ['Short links with your own names', (p) => p.flags.customCodes],
+  ['Daily click history', (p) => p.flags.linkStats],
+  ['Priority support', (p) => p.flags.prioritySupport],
 ];
 
-function Compare() {
+function Compare({ plans }: { plans: PlanCard[] }) {
   return (
     <div className="cmp-wrap">
       <table className="cmp">
         <caption className="sr-only">What each plan includes</caption>
         <thead>
-          <tr><td /><th scope="col">Free</th><th scope="col" className="is-rec">Plus</th><th scope="col">Pro</th></tr>
+          <tr><td />{plans.map((p) => <th key={p.id} scope="col" className={p.id === 'plus' ? 'is-rec' : undefined}>{p.id === 'free' ? 'Free' : p.name}</th>)}</tr>
         </thead>
         <tbody>
           {COMPARE.map(([name, get]) => (
             <tr key={name}>
               <th scope="row">{name}</th>
-              {PLAN_CARDS.map((p) => {
+              {plans.map((p) => {
                 const v = get(p);
                 return (
                   <td key={p.id} className={p.id === 'plus' ? 'is-rec' : undefined}>
@@ -322,7 +324,8 @@ const FAQ: [string, ReactNode][] = [
   ['Will any HTML file work?', 'Yes. Plain HTML, CSS and JavaScript that saves with localStorage or IndexedDB syncs between everyone with no changes. Its own design stays exactly as it is.'],
   ['Can I use my own address?', 'Yes. Pick jhino.com/your-name when you create an app, or later in Share. Each address is unique. The page opens at that exact address, with no redirect.'],
   ['What are short links?', 'A short address like jhino.com/abc that opens any web link you choose: a Drive folder, a YouTube cut, a form. You see how many times each one was opened.'],
-  ['Monthly or yearly?', 'Either. Pay month by month, or pay for a year at the price of ten months, which is two months free. Both are paid the same way.'],
+  ['Monthly or yearly?', 'Either. Pay month by month, or pay for a whole year at a lower price. Both are paid the same way, and paying again adds to your end date.'],
+  ['How big can a file be?', 'Each plan shows its largest file size. For bigger videos, paste a Google Drive, Dropbox or YouTube link: it shows as a proper preview.'],
   ['How do I pay?', 'Choose a plan, scan the QR code, and upload a screenshot of the payment. We check it and switch the plan on, usually the same day. You get a receipt.'],
   ['Where is my data?', <>On the Jhino server, backed up, and never sold. The <Link to="/privacy">Privacy page</Link> has the details.</>],
 ];
@@ -331,6 +334,7 @@ const FAQ: [string, ReactNode][] = [
 
 export function Landing({ signedIn = false }: { signedIn?: boolean }) {
   const [period, setPeriod] = useState<Period>('month');
+  const plans = usePlans();
   const start = signedIn
     ? <Link to="/apps" className="btn primary lg">Open dashboard</Link>
     : <Link to="/signup" className="btn primary lg">Start free</Link>;
@@ -459,17 +463,17 @@ export function Landing({ signedIn = false }: { signedIn?: boolean }) {
                 <h2 id="pricing-h">Plans, in rupees.</h2>
                 <p>Start free with one app. Move up when you have more clients.</p>
               </div>
-              <BillingSwitch period={period} onChange={setPeriod} />
+              <BillingSwitch period={period} onChange={setPeriod} saving={freeMonthsText(bestFreeMonths(plans))} />
             </div>
             <p className="sr-only" aria-live="polite">{period === 'year' ? 'Showing yearly prices.' : 'Showing monthly prices.'}</p>
             <div className="pr-cards">
-              {PLAN_CARDS.map((p) => <PriceCard key={p.id} plan={p} period={period} signedIn={signedIn} />)}
+              {plans.map((p) => <PriceCard key={p.id} plan={p} period={period} signedIn={signedIn} />)}
             </div>
             <p className="pr-pay">
               <Icon name="qr" size={18} />
               <span><b>How paying works.</b> Scan our QR code, upload a screenshot of the payment, and we switch the plan on, usually the same day.</span>
             </p>
-            <Compare />
+            <Compare plans={plans} />
           </div>
         </section>
 
@@ -588,7 +592,7 @@ export function TermsPage({ signedIn }: { signedIn: boolean }) {
       <h2>Your content</h2>
       <p>The apps, data and links you add stay yours. You give us permission to store, copy and show them only to run Jhino for you and the people you share with. Do not upload anything illegal, harmful, or that you do not have the right to share, and do not use Jhino to attack or spam anyone. We may remove content or suspend accounts that break these rules.</p>
       <h2>Plans and payment</h2>
-      <p>Free Forever lets you keep one app, one address on jhino.com and five short links. Plus (NPR 500 a month, up to 10 apps, 10 addresses and 100 short links) and Pro (NPR 2,000 a month, up to 50 apps, 50 addresses and 1,000 short links) can be paid monthly, or yearly for the price of ten months. Each address on jhino.com belongs to one app and is unique. Plans are paid by QR. A plan turns on after we verify the payment and runs for the month or year you paid for; if we cannot verify it, your plan stays as it was and we tell you why. If something went wrong with a payment, write to us through Help.</p>
+      <p>Free Forever costs nothing. Paid plans are paid monthly or yearly, at the prices and with the limits (apps, addresses, short links and largest file) shown in the Plans section of our home page when you pay. Each address on jhino.com belongs to one app and is unique. Plans are paid by QR. A plan turns on after we verify the payment and runs for the month or year you paid for; if we cannot verify it, your plan stays as it was and we tell you why. If something went wrong with a payment, write to us through Help.</p>
       <h2>Availability</h2>
       <p>We work to keep Jhino running and backed up, but we cannot promise it will never be interrupted. Keep your own copy of anything you cannot afford to lose; you can download your data from Account at any time.</p>
       <h2>Ending</h2>
