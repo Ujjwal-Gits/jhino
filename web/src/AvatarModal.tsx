@@ -109,8 +109,8 @@ export function AvatarViewerModal({
           <img src={src} alt={`Profile photo of ${name}`} className="av-view-img" />
         </div>
         <div className="av-view-meta">
-          <b>{name}</b>
-          {username && <span className="muted">@{username}</span>}
+          <b className="av-view-name">{name}</b>
+          {username && <span className="av-view-handle mono">@{username}</span>}
         </div>
         <div className="av-view-actions">
           {canEdit && onReposition && (
@@ -165,7 +165,7 @@ export function AvatarViewerModal({
 }
 
 /* ---------------- Position & Crop Modal: Pan, zoom, rotate & compress ---------------- */
-const VIEWPORT_SIZE = 280;
+const VIEWPORT_SIZE = 260;
 
 export function AvatarPositionModal({
   src,
