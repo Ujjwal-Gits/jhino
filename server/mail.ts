@@ -64,7 +64,7 @@ export interface Mail {
  * One layout for every email: tables and inline styles, because email apps ignore most modern CSS.
  * Paper and ink, one vermilion mark, the code set large in a monospace with generous spacing.
  */
-function render(m: Mail) {
+export function renderMail(m: Mail) {
   const text = [
     ...m.lines,
     ...(m.code ? ['', `Your code: ${m.code}`, m.codeNote ?? ''] : []),
@@ -73,19 +73,20 @@ function render(m: Mail) {
   ].join('\n');
   const font = "-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif";
   const mono = "'SFMono-Regular',Menlo,Consolas,'Liberation Mono',monospace";
-  const digits = m.code ? m.code.split('').map((d) => `<td style="width:44px;height:56px;border:1px solid #d9d6cf;border-radius:8px;background:#ffffff;text-align:center;font:600 28px/56px ${mono};color:#141414">${esc(d)}</td>`).join('<td style="width:8px"></td>') : '';
+  const codeBox = m.code ? `<td style="padding:16px 22px 16px 30px;border:1px solid #d9d6cf;border-radius:12px;background:#faf8f4;font:600 34px/1 ${mono};letter-spacing:12px;color:#141414;-webkit-user-select:all;user-select:all;white-space:nowrap">${esc(m.code)}</td>` : '';
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(m.subject)}</title></head>
 <body style="margin:0;padding:0;background:#f4f2ee;-webkit-text-size-adjust:100%">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${esc(m.preheader ?? m.lines.find((l) => l && !/^Hi /.test(l)) ?? '')}</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">${esc(m.code ? `${m.code} is your code. ${m.preheader ?? ''}` : m.preheader ?? m.lines.find((l) => l && !/^Hi /.test(l)) ?? '')}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f2ee"><tr><td align="center" style="padding:36px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">
 <tr><td style="padding:0 4px 20px;font:700 20px/1 ${font};color:#141414;letter-spacing:-0.4px">jhino<span style="color:#e0461f">.</span></td></tr>
 <tr><td style="background:#ffffff;border:1px solid #e6e4df;border-radius:14px;padding:32px 28px">
 <h1 style="margin:0 0 16px;font:700 21px/1.3 ${font};color:#141414;letter-spacing:-0.3px">${esc(m.title ?? m.subject)}</h1>
 ${m.lines.map((l) => (l ? `<p style="margin:0 0 12px;font:15px/1.6 ${font};color:#3d3c39">${esc(l)}</p>` : '')).join('')}
-${m.code ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 10px"><tr>${digits}</tr></table>
-<p style="margin:0 0 4px;font:13px/1.5 ${font};color:#75736e">${esc(m.codeNote ?? '')}</p>` : ''}
+${m.code ? `<p style="margin:22px 0 8px;font:600 12px/1 ${font};letter-spacing:1px;text-transform:uppercase;color:#75736e">Your code</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 10px"><tr>${codeBox}</tr></table>
+<p style="margin:0 0 4px;font:13px/1.5 ${font};color:#75736e">Tap and hold the code (or double-click it) to copy it. ${esc(m.codeNote ?? '')}</p>` : ''}
 ${m.action ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 6px"><tr><td style="background:#141414;border-radius:8px"><a href="${esc(m.action.url)}" style="display:inline-block;padding:12px 20px;font:600 15px/1 ${font};color:#ffffff;text-decoration:none">${esc(m.action.label)}</a></td></tr></table>
 <p style="margin:10px 0 0;font:12px/1.5 ${font};color:#75736e;word-break:break-all">${esc(m.action.url)}</p>` : ''}
 </td></tr>
@@ -97,7 +98,7 @@ ${m.action ? `<table role="presentation" cellpadding="0" cellspacing="0" style="
 /** Log and (when a sender is set) send. Never throws: a failed email must not fail the action. */
 export function sendMail(to: string, kind: string, m: Mail) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return; // sign-in IDs are not email addresses
-  const { text, html } = render(m);
+  const { text, html } = renderMail(m);
   // The log keeps no one-time code: Super Admin sees that it went out, not what it was.
   const logged = m.code ? text.split(m.code).join('••••••') : text;
   const id = Number(db.prepare('INSERT INTO email_outbox(to_addr,subject,body,kind,status,created_at) VALUES(?,?,?,?,?,?)')
