@@ -1,4 +1,8 @@
 {
   "extends": "./tsconfig.server.json",
-  "include": ["server"]
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true
+  },
+  "include": ["server", "tests", "scripts", "playwright.config.ts"]
 }
