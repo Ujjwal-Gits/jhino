@@ -448,6 +448,19 @@
 @keyframes otp-in { from { transform: scale(0.92); } }
 @keyframes otp-shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
 .code-meta { margin: -4px 0 0; font-size: 13px; color: var(--ink-3); }
+.otp-paste { position: relative; z-index: 2; margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 1px solid var(--rule-strong); border-radius: 999px; background: var(--paper); font-size: 12.5px; font-weight: 550; color: var(--ink); cursor: pointer; }
+.otp-paste:hover { border-color: var(--ink); }
+.otp-paste:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* jhino.com/verify/code: copy the code from an email */
+.copycode { min-height: 100vh; min-height: 100dvh; display: grid; place-content: center; justify-items: center; gap: 22px; padding: 24px 16px; background: var(--paper-2); }
+.copycode-mark { margin: 0; font: 700 20px/1 var(--font); letter-spacing: -0.03em; }
+.copycode-mark i { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--signal); margin-left: 1px; }
+.copycode-card { width: min(380px, calc(100vw - 32px)); display: grid; gap: 14px; justify-items: stretch; text-align: center; padding: 28px 24px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); }
+.copycode-card h1 { font-size: 22px; }
+.copycode-card p { margin: 0; }
+.copycode-l { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.copycode-code { font-size: 40px; font-weight: 600; letter-spacing: 0.22em; padding-left: 0.22em; user-select: all; }
 .code-meta .mono { color: var(--ink); }
 .code-meta .warn { color: var(--danger); }
 .code-help { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13.5px; color: var(--ink-3); }

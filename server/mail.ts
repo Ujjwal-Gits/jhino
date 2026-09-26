@@ -85,8 +85,9 @@ export function renderMail(m: Mail) {
 <h1 style="margin:0 0 16px;font:700 21px/1.3 ${font};color:#141414;letter-spacing:-0.3px">${esc(m.title ?? m.subject)}</h1>
 ${m.lines.map((l) => (l ? `<p style="margin:0 0 12px;font:15px/1.6 ${font};color:#3d3c39">${esc(l)}</p>` : '')).join('')}
 ${m.code ? `<p style="margin:22px 0 8px;font:600 12px/1 ${font};letter-spacing:1px;text-transform:uppercase;color:#75736e">Your code</p>
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 10px"><tr>${codeBox}</tr></table>
-<p style="margin:0 0 4px;font:13px/1.5 ${font};color:#75736e">Tap and hold the code (or double-click it) to copy it. ${esc(m.codeNote ?? '')}</p>` : ''}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 12px"><tr>${codeBox}</tr></table>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 14px"><tr><td style="border:1px solid #cfccc5;border-radius:8px;background:#ffffff"><a href="${esc(`${baseUrl()}/verify/code#${m.code}`)}" style="display:inline-block;padding:9px 14px;font:600 14px/1 ${font};color:#141414;text-decoration:none">&#10697;&nbsp; Copy code</a></td></tr></table>
+<p style="margin:0 0 4px;font:13px/1.5 ${font};color:#75736e">Or tap and hold the code to copy it. ${esc(m.codeNote ?? '')}</p>` : ''}
 ${m.action ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 6px"><tr><td style="background:#141414;border-radius:8px"><a href="${esc(m.action.url)}" style="display:inline-block;padding:12px 20px;font:600 15px/1 ${font};color:#ffffff;text-decoration:none">${esc(m.action.label)}</a></td></tr></table>
 <p style="margin:10px 0 0;font:12px/1.5 ${font};color:#75736e;word-break:break-all">${esc(m.action.url)}</p>` : ''}
 </td></tr>

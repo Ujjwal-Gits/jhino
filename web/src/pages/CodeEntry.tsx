@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError } from '../api';
+import { Link } from '../context';
 
 /*
  * The one-time code, as six boxes: type, paste the whole code, or let the phone fill it in from
@@ -17,6 +18,12 @@ export function CodeBoxes({ value, onChange, onComplete, disabled, invalid, auto
     onChange(v);
     if (v.length === 6) onComplete?.(v);
   };
+  // "Paste code": one tap after copying it from the email (the browser may ask once to allow it).
+  const canPaste = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText;
+  const paste = async () => {
+    try { const t = (await navigator.clipboard.readText()).match(/\d{6}/)?.[0]; if (t) set(t); else ref.current?.focus(); }
+    catch { ref.current?.focus(); }
+  };
   return (
     <div className={`otp ${invalid ? 'bad' : ''} ${disabled ? 'off' : ''}`} onClick={() => ref.current?.focus()}>
       <input ref={ref} className="otp-input" value={value} onChange={(e) => set(e.target.value)} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
@@ -28,6 +35,11 @@ export function CodeBoxes({ value, onChange, onComplete, disabled, invalid, auto
           return i === 3 ? [<span key="gap" className="otp-gap" />, cell] : cell;
         })}
       </div>
+      {canPaste && !disabled && value.length < 6 && (
+        <button type="button" className="otp-paste" onClick={(e) => { e.stopPropagation(); paste(); }}>
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M9 4h6v3H9zM7 5H5v15h14V5h-2" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /></svg>Paste code
+        </button>
+      )}
     </div>
   );
 }
@@ -111,5 +123,35 @@ export function CodeStep({ title, email, info, onSubmit, onResend, children, sub
       {note && <p className="hint" role="status">{note}</p>}
       {extra}
     </form>
+  );
+}
+
+/**
+ * jhino.com/verify/code#123456, opened from "Copy code" in an email: copies the code (at once where the
+ * browser allows it, otherwise with one tap). The code sits after "#", so it never reaches the server.
+ */
+export function CopyCodePage() {
+  const [code] = useState(() => (/^#(\d{6})$/.exec(location.hash)?.[1] ?? ''));
+  const [copied, setCopied] = useState(false);
+  const copy = async () => { try { await navigator.clipboard.writeText(code); setCopied(true); } catch { setCopied(false); } };
+  useEffect(() => {
+    history.replaceState(null, '', location.pathname); // keep the code out of the address bar and history
+    if (code) copy();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <main className="copycode">
+      <p className="copycode-mark">jhino<i /></p>
+      {!code ? (
+        <div className="copycode-card"><h1>Nothing to copy</h1><p className="muted">Open the "Copy code" button in your latest Jhino email again.</p><Link to="/login" className="btn primary lg">Go to Jhino</Link></div>
+      ) : (
+        <div className="copycode-card">
+          <p className="copycode-l">Your code</p>
+          <p className="copycode-code mono" aria-label={`Code ${code.split('').join(' ')}`}>{code}</p>
+          <button className={`btn lg ${copied ? '' : 'primary'}`} onClick={copy}>{copied ? 'Copied ✓' : 'Copy code'}</button>
+          <p className="muted">{copied ? 'Go back to Jhino and tap “Paste code”, or paste it into the boxes.' : 'Tap the button, then go back to Jhino and paste it.'}</p>
+          <p className="hint">It works for 5 minutes. Never share it; Jhino will never ask you for it.</p>
+        </div>
+      )}
+    </main>
   );
 }

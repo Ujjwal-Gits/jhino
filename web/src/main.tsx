@@ -10,6 +10,7 @@ let firstRef = document.referrer;
 import { live } from './live';
 import { ToastProvider } from './ui';
 import { Forgot, Login, Reset, Signup, Verify } from './pages/Login';
+import { CopyCodePage } from './pages/CodeEntry';
 import { HelpPage, Landing, PrivacyPage, TermsPage } from './pages/Public';
 import { AccountPage, ReceiptPage } from './pages/Account';
 import { AdminPage } from './pages/Admin';
@@ -95,6 +96,7 @@ function App() {
   if (user === undefined) page = null;
   else if (invite) page = <Invite token={invite[1]} user={user} onJoined={refresh} />;
   else if (path === '/verify') page = <Verify signedIn={!!user} onDone={refresh} />;
+  else if (path === '/verify/code') page = <CopyCodePage />;
   else if (path === '/reset') page = <Reset />;
   else if (path === '/help') page = shell(<HelpPage signedIn={!!user} />);
   else if (path === '/terms') page = shell(<TermsPage signedIn={!!user} />);
