@@ -36,15 +36,17 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
         : a.status === 404 ? { title: 'Nothing here', text: 'This link does not exist, or the app was removed.' }
           : { title: 'Could not open this', text: a.message || 'Try again in a moment.' });
     });
-  }, [refId, signedInUser]);
+  }, [refId, signedInUser?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // A visitor's live updates are for this one app.
+  // A visitor's live updates are for this one app. Signed-in people keep their own connection (changing it
+  // here would drop it, and the dashboard reacts to a drop by checking the session again: a reload loop).
+  const signedIn = !!signedInUser;
   useEffect(() => {
-    if (!info?.ready || !info.app) return;
+    if (!info?.ready || !info.app || signedIn) return;
     live.setScope(info.app.id);
     live.start();
-    return () => { live.setScope(null); if (!signedInUser) live.stop(); };
-  }, [info, signedInUser]);
+    return () => { live.setScope(null); live.stop(); };
+  }, [info, signedIn]);
 
   const unlock = async (e: FormEvent) => {
     e.preventDefault();

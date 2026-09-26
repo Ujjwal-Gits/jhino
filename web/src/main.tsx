@@ -47,7 +47,7 @@ function App() {
     try {
       const r = await get<{ user: User | null; csrf?: string }>('/api/me');
       setCsrf(r.csrf ?? '');
-      setUser(r.user);
+      setUser((prev) => (prev && r.user && JSON.stringify(prev) === JSON.stringify(r.user) ? prev : r.user));
     } catch {
       setUser((u) => (u === undefined ? null : u));
     }
@@ -75,7 +75,7 @@ function App() {
   }, [path, user === undefined]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Signed out elsewhere or session ended: the live stream drops; re-check.
-  useEffect(() => live.on((e) => { if (e === 'offline') setTimeout(refresh, 1500); }), [refresh]);
+  useEffect(() => live.on((e, d) => { if (e === 'offline' && !(d as { paused?: boolean } | undefined)?.paused) setTimeout(refresh, 1500); }), [refresh]);
 
   let page: ReactNode;
   const invite = path.match(/^\/invite\/([\w-]+)$/);
