@@ -892,3 +892,48 @@ test('security: general words are not usernames (super admins may), two-step sig
   expect(a.pages.some((p: any) => p.key === '/pricing')).toBe(true);
   expect((await admin.call('GET', '/api/admin/analytics/live')).json.active).toBeGreaterThan(0);
 });
+
+test('super admin usernames: any free name (general words, jhino, short), never the site own addresses or a taken name', async () => {
+  const fs = await import('node:fs');
+  const admin = await session(OWNER);
+  const a = await session(await signup('Namea'));
+  const b = await signup('Nameb');
+  const idOf = async (s: Api) => (await s.call('GET', '/api/account')).json.account.id as string;
+  const aId = await idOf(a), bId = await idOf(await session(b));
+  // A person cannot take a general word or "jhino"...
+  expect((await a.call('PUT', '/api/account/username', { username: 'services' })).json.error).toBe('USERNAME_RESERVED');
+  expect((await a.call('PUT', '/api/account/username', { username: 'jhino' })).json.error).toBe('USERNAME_RESERVED');
+  // ...a super admin can give them (and a 2-letter name), with no 30-day wait.
+  const word = 'services';
+  const taken = (await admin.call('GET', `/api/usernames/check?name=${word}&admin=1`)).json;
+  if (taken.available) {
+    expect((await admin.call('PATCH', `/api/admin/users/${aId}`, { username: word })).status).toBe(200);
+    expect((await a.call('GET', '/api/me')).json.user.username).toBe(word);
+    // The page and short links under that name work like any other.
+    expect((await (await session()).call('GET', `/api/profile/${word}`)).status).toBe(200);
+    await admin.call('PATCH', `/api/admin/users/${aId}`, { plan: 'pro' }); // own short link names are a paid feature
+    const code = 'x' + uniq().slice(-5);
+    expect((await a.call('POST', '/api/links', { url: 'https://example.com/menu', code })).status).toBe(200);
+    const go = await (await pwRequest.newContext({ baseURL: BASE })).get(`/${word}/${code}`, { maxRedirects: 0 });
+    expect(go.status()).toBe(302);
+    expect(go.headers()['location']).toBe('https://example.com/menu');
+    // Taken now: not even a super admin can give it to someone else.
+    const dup = await admin.call('PATCH', `/api/admin/users/${bId}`, { username: word });
+    expect(dup.status).toBe(409);
+    expect(dup.json.error).toBe('USERNAME_TAKEN');
+  }
+  const short = 'q' + uniq().slice(-1);
+  expect((await admin.call('PATCH', `/api/admin/users/${bId}`, { username: short })).status).toBe(200);
+  expect((await admin.call('GET', `/api/usernames/check?name=faq-${uniq().slice(-4)}&admin=1`)).json.available).toBe(true);
+  // Jhino's own addresses are in use, for everyone.
+  for (const own of ['login', 'api', 'admin', 'apps', 'pricing', 'run', 'cdn-cgi']) {
+    const r = await admin.call('PATCH', `/api/admin/users/${bId}`, { username: own });
+    expect(r.status, own).toBe(400);
+    expect(r.json.error).toBe('USERNAME_RESERVED');
+  }
+  expect((await admin.call('PATCH', `/api/admin/users/${bId}`, { username: 'Has Space' })).status).toBe(400);
+  // Every page the website answers at is on the server's list, so no username can hide one.
+  const known = /const KNOWN = new Set\(\[([^\]]+)\]\)/.exec(fs.readFileSync('web/src/main.tsx', 'utf8'))![1].match(/'([^']+)'/g)!.map((x) => x.slice(1, -1));
+  const system = /export const SYSTEM_PATHS = new Set\(\[([\s\S]+?)\]\)/.exec(fs.readFileSync('server/publicshare.ts', 'utf8'))![1].match(/'([^']+)'/g)!.map((x) => x.slice(1, -1));
+  expect(known.filter((k) => !system.includes(k))).toEqual([]);
+});

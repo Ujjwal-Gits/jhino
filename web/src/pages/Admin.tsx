@@ -406,7 +406,7 @@ function CreateUser({ onClose }: { onClose: (madeId?: string) => void }) {
             <p className="hint">Makes a ready account with a password you pass on. Use it for customers who paid you directly, for a teammate (tick super admin), or to set someone up.</p>
             <label className="field"><span>Name</span><input className="input" required maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} autoFocus /></label>
             <label className="field"><span>Email or sign-in ID</span><input className="input" required autoComplete="off" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
-            <label className="field"><span>Username <em>optional: made from the email if empty</em></span><input className="input mono" autoComplete="off" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') })} placeholder="their-studio" /></label>
+            <label className="field"><span>Username <em>optional: made from the email if empty</em></span><input className="input mono" autoComplete="off" maxLength={50} value={f.username} onChange={(e) => setF({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') })} placeholder="their-studio" /><small className="hint">Any free name works, including words people cannot pick themselves (services, jhino…). Only Jhino's own addresses (login, apps, admin…) are off limits.</small></label>
             <label className="field"><span>Password <em>optional</em></span><input className="input" autoComplete="new-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} placeholder="Leave empty to generate one" /></label>
             {!f.superAdmin && (
               <div className="grid2">
@@ -563,7 +563,7 @@ function ProfileEdit({ u, onSaved }: { u: any; onSaved: () => void }) {
         <label className="field"><span>Name</span><input className="input" required maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
         <label className="field"><span>Email or sign-in ID</span><input className="input" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
       </div>
-      <label className="field"><span>Username</span><input className="input mono" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') })} placeholder="username" /></label>
+      <label className="field"><span>Username</span><input className="input mono" maxLength={50} value={f.username} onChange={(e) => setF({ ...f, username: e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '') })} placeholder="username" /><small className="hint">Any free name, including general words and "jhino". No 30-day wait. Only Jhino's own addresses (login, apps, admin…) are off limits.</small></label>
       {f.username && f.username.toLowerCase() !== (u.username ?? '').toLowerCase() && <p className="hint">Their public page moves to jhino.com/{f.username}, and @{u.username} is immediately released for anyone else to take.</p>}
       {f.email.trim().toLowerCase() !== u.email.toLowerCase() && <p className="hint">They sign in with the new one from now on. If the old one was an email address, it gets a notice.</p>}
       {error && <p className="error-text" role="alert">{error}</p>}

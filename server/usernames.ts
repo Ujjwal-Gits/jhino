@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { db, now, type UserRow } from './db.js';
 import { HttpError, requireUser } from './auth.js';
 import { audit, limit, securityEvent } from './security.js';
-import { RESERVED, rootNameInUse } from './publicshare.js';
+import { RESERVED, SYSTEM_PATHS, rootNameInUse } from './publicshare.js';
 import { reservedReason } from './reserved.js';
 
 /*
@@ -22,6 +22,15 @@ const MORE_RESERVED = new Set(['root', 'system', 'null', 'undefined', 'me', 'you
  */
 export function validUsername(v: unknown, byAdmin = false): string {
   const s = String(v ?? '').trim().toLowerCase().replace(/^@/, '');
+  if (byAdmin) {
+    // A super admin may give any name that works as an address and is free: general words (faq, services),
+    // brand words (jhino), short or long names. Only Jhino's own addresses stay off, because they are in use.
+    if (!/^[a-z0-9][a-z0-9_-]{1,49}$/.test(s)) {
+      throw new HttpError(400, 'VALIDATION_FAILED', 'Use 2 to 50 lowercase letters, numbers, dashes or underscores, starting with a letter or number.');
+    }
+    if (SYSTEM_PATHS.has(s)) throw new HttpError(400, 'USERNAME_RESERVED', `${s} is one of Jhino's own addresses (jhino.com/${s}), so it cannot be a username.`);
+    return s;
+  }
   if (!/^[a-z0-9](?:[a-z0-9_-]{1,28}[a-z0-9])$/.test(s)) {
     throw new HttpError(400, 'VALIDATION_FAILED', 'Use 3 to 30 lowercase letters, numbers, dashes or underscores, starting and ending with a letter or number.');
   }
@@ -95,7 +104,8 @@ export function registerUsernames(app: FastifyInstance) {
     const u = requireUser(req);
     if (req.pub || req.desk) throw new HttpError(403, 'FORBIDDEN', 'Not here.');
     limit(req, 'username-change', 10, 24 * 3600_000, u.id);
-    const name = validUsername((req.body as { username?: string })?.username);
+    // A super admin changing their own name has the same freedom as when naming anyone else.
+    const name = validUsername((req.body as { username?: string })?.username, !!u.is_admin);
     if (name === (u.username ?? '').toLowerCase()) return { username: name };
     const next = nextUsernameChange(u);
     if (next) {

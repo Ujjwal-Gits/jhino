@@ -28,6 +28,21 @@ export const RESERVED = new Set(['api', 'run', 'apps', 'app', 'build', 'shared',
   'assets', 'static', 'logout', 'settings', 'dashboard', 'home', 'about', 'contact', 'blog', 'docs', 'status', 'www', 'mail', 'jhino', 'favicon.ico',
   'robots.txt', 'sitemap.xml', 'manifest.json', 'new', 'create', 'upload', 'download', 'files', 'public', 'p', 'u', 'user', 'users', 'auth', 'oauth',
   'links', 'link', 'go', 'l', 'admin-links', 'addresses', 'receipt', 'receipts', 'payments', 'checkout', 'plan', 'features', 'index.html', 'img', 'images', 'fonts']);
+/**
+ * The first part of every address Jhino itself answers at: its pages (web/src/main.tsx KNOWN), its API and
+ * app routes (server), its files, and Cloudflare's own. A username or top-level name equal to one of these
+ * could never be opened (the Jhino page answers first), so nobody can have one, not even from Super Admin.
+ * Keep in step with KNOWN in web/src/main.tsx and the top-level routes in server/*.ts.
+ */
+export const SYSTEM_PATHS = new Set([
+  // web pages
+  '_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash',
+  'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing',
+  // server routes and files
+  '_jhino', 'preview', 'health', 'robots.txt', 'sitemap.xml', 'assets', 'img', 'favicon.ico', 'index.html', 'manifest.json',
+  // Cloudflare answers these itself
+  'cdn-cgi',
+]);
 /** Names Jhino keeps under a username (jhino.com/<username>/<name>). */
 const SUB_RESERVED = new Set(['edit', 'settings', 'analytics', 'apps', 'links', 'link', 'go', 'api', 's', 'p', 'admin', 'profile', 'page', 'design', 'custom', 'new', 'www', 'avatar']);
 /** An address name. `top` = a top-level address (jhino.com/<name>), which only super admins give out. */

@@ -360,14 +360,14 @@ function ProfileTab({ d, run, reload }: { d: EditorT; run: Run; reload: () => vo
           <input
             className="input mono"
             value={uname}
-            maxLength={30}
+            maxLength={50}
             disabled={!!d.usernameNextChange}
             onChange={(e) => setUname(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))}
             aria-label="Username"
           />
           <button
             className="btn sm"
-            disabled={uname === d.username || uname.length < 3 || !!d.usernameNextChange}
+            disabled={uname === d.username || uname.length < 2 || !!d.usernameNextChange}
             onClick={changeName}
           >
             Change

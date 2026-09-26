@@ -35,7 +35,7 @@ function profileOf(userId: string): ProfileRow {
   }
   return p;
 }
-const userByName = (name: string) => (/^[\w-]{2,40}$/.test(name)
+const userByName = (name: string) => (/^[\w-]{2,50}$/.test(name)
   ? db.prepare("SELECT * FROM users WHERE username=? COLLATE NOCASE AND kind='person' AND disabled=0").get(name) as UserRow | undefined
   : undefined);
 

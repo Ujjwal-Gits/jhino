@@ -5,7 +5,7 @@ import { db, newId, now, type UserRow } from './db.js';
 import { HttpError, requireAdmin, requireCreator } from './auth.js';
 import { audit, limit } from './security.js';
 import { assertFeature, featuresOf } from './plans.js';
-import { RESERVED, assertNameFree, baseFor, nameInUse, usernameOf, validSlug } from './publicshare.js';
+import { SYSTEM_PATHS, assertNameFree, baseFor, nameInUse, usernameOf, validSlug } from './publicshare.js';
 
 /*
  * Short links: jhino.com/<username>/<code> sends the visitor on to any web address, and counts the
@@ -84,7 +84,7 @@ export function registerLinks(app: FastifyInstance) {
   app.addHook('onRequest', async (req, reply) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return;
     const m = /^\/([A-Za-z0-9_-]{2,50})(?:\/([A-Za-z0-9-]{2,50}))?\/?(?:\?.*)?$/.exec(req.url);
-    if (!m || RESERVED.has(m[1].toLowerCase())) return;
+    if (!m || SYSTEM_PATHS.has(m[1].toLowerCase())) return;
     const l = (m[2] ? findAt.get(m[1], m[2]) : findRoot.get(m[1])) as { id: string; url: string } | undefined;
     if (!l) return;
     if (req.method === 'GET') {
