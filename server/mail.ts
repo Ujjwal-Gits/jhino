@@ -183,11 +183,6 @@ export const mails = {
     subject: added ? `${provider} sign-in was added to your Jhino account` : `${provider} sign-in was removed from your Jhino account`,
     lines: [`Hi ${name},`, added ? `${provider}${email ? ' (' + email + ')' : ''} can now sign in to your Jhino account.` : `${provider} can no longer sign in to your Jhino account.`, 'If this was not you, change your password, remove it in Account → Security, and contact support.'],
   }),
-  signupExisting: (name: string, loginUrl: string, forgotUrl: string): Mail => ({
-    subject: 'You already have a Jhino account',
-    lines: [`Hi ${name},`, 'Someone (maybe you) tried to create a new Jhino account with this email. You already have one, so nothing was created.', `Sign in at ${loginUrl}, or choose a new password at ${forgotUrl}.`],
-    footer: 'If this was not you, you can ignore this email. Your account has not changed.',
-  }),
   twoFactor: (name: string, on: boolean): Mail => ({
     subject: on ? 'Two-step sign-in is on for your Jhino account' : 'Two-step sign-in was turned off',
     lines: [`Hi ${name},`, on ? 'Signing in now also asks for a code from your authenticator app. Keep your recovery codes somewhere safe.' : 'Signing in no longer asks for a code from your authenticator app.', 'If this was not you, change your password and contact support right away.'],

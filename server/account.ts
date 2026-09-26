@@ -112,11 +112,8 @@ export function registerAccount(app: FastifyInstance) {
     // The username is the name in every address they make (jhino.com/<username>): unique, checked first.
     const username = b.username ? validUsername(b.username) : null;
     if (username) assertUsernameFree(username);
-    const existing = db.prepare("SELECT * FROM users WHERE email=? AND kind='person'").get(email) as UserRow | undefined;
-    if (existing) {
-      limit(req, 'signup-existing', 3, 3600_000, existing.id);
-      sendMail(existing.email, 'signup_existing', mails.signupExisting(existing.name, `${baseUrl(req)}/login`, `${baseUrl(req)}/forgot`));
-      return { ok: true, verify: true, email, sends: 1, maxSends: 5, expiresAt: new Date(Date.now() + 5 * 60_000).toISOString(), again: false };
+    if (db.prepare('SELECT 1 FROM users WHERE email=?').get(email)) {
+      throw new HttpError(409, 'EMAIL_TAKEN', 'An account with this email already exists. Sign in, or reset your password if you forgot it.');
     }
     const u = await createUser(email, name, password, false, { plan: 'free' });
     try { assignUsername(u.id, username, email); } catch (e) { db.prepare('DELETE FROM users WHERE id=?').run(u.id); throw e; }

@@ -155,6 +155,7 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [code, setCode] = useState<CodeInfo | null>(null);
+  const [taken, setTaken] = useState(false);
   const plan = new URLSearchParams(location.search).get('plan');
   const next = () => (plan === 'plus' || plan === 'pro' ? `/account/plan?choose=${plan}&period=${new URLSearchParams(location.search).get('period') === 'year' ? 'year' : 'month'}` : `/${form.username}`);
   // Suggest a username from the email until they type their own.
@@ -168,6 +169,7 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
       await onDone();
       go(next(), true);
     } catch (err) {
+      setTaken(err instanceof ApiError && err.code === 'EMAIL_TAKEN');
       setError(err instanceof ApiError ? err.message : 'Could not create the account.');
       setBusy(false);
     }
@@ -192,11 +194,12 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
         <p className="muted">Free Forever: one app, no card needed.{plan === 'plus' || plan === 'pro' ? ' You can pay for your plan right after.' : ''}</p>
         <Social o={o} verb="Sign up" />
         <label className="field"><span>Your name</span><input className="input" autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoFocus /></label>
-        <label className="field"><span>Email</span><input className="input" type="email" autoComplete="email" value={form.email} onChange={(e) => setEmail(e.target.value)} required /></label>
+        <label className="field"><span>Email</span><input className="input" type="email" autoComplete="email" value={form.email} onChange={(e) => { setEmail(e.target.value); setTaken(false); }} required aria-invalid={taken || undefined} /></label>
+        {taken && <p className="error-text" role="alert">This email already has a Jhino account. <Link to="/login" className="link">Sign in</Link> or <Link to="/forgot" className="link">reset your password</Link>.</p>}
         <UsernameField value={form.username} onChange={(v) => { setTouched(true); setForm({ ...form, username: v }); }} check={check} />
         <label className="field"><span>Password</span><input className="input" type="password" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={10} /><small className="hint">At least 10 characters.</small></label>
         <label className="check-row"><input type="checkbox" checked={form.terms} onChange={(e) => setForm({ ...form, terms: e.target.checked })} /><span>I agree to the <Link to="/terms" className="link">Terms of Service</Link> and <Link to="/privacy" className="link">Privacy Policy</Link>.</span></label>
-        {error && <p className="error-text" role="alert">{error}</p>}
+        {error && !taken && <p className="error-text" role="alert">{error}</p>}
         <button className="btn primary lg" disabled={busy || !form.name.trim() || !form.email || form.password.length < 10 || !form.terms || check.state !== 'ok'}>{busy && <span className="spin" />}Create account</button>
         <p className="hint">Already have an account? <Link to="/login" className="link">Sign in</Link></p>
       </form>

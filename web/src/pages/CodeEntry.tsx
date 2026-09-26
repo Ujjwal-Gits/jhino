@@ -24,7 +24,8 @@ export function CodeBoxes({ value, onChange, onComplete, disabled, invalid, auto
       <div className="otp-cells" aria-hidden="true">
         {Array.from({ length: 6 }, (_, i) => {
           const active = focus && (i === value.length || (i === 5 && value.length === 6));
-          return <span key={i} className={`otp-cell ${value[i] ? 'full' : ''} ${active ? 'on' : ''}`}>{value[i] ?? ''}{active && !value[i] && <i className="otp-caret" />}</span>;
+          const cell = <span key={i} className={`otp-cell ${value[i] ? 'full' : ''} ${active ? 'on' : ''}`}>{value[i] ?? ''}{active && !value[i] && <i className="otp-caret" />}</span>;
+          return i === 3 ? [<span key="gap" className="otp-gap" />, cell] : cell;
         })}
       </div>
     </div>
