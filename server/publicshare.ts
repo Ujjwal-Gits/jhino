@@ -72,7 +72,7 @@ export function assertNameFree(ownerId: string, name: string, except: { appId?: 
 export function rootNameInUse(name: string, except: { appId?: string; linkId?: string; userId?: string } = {}) {
   return !!db.prepare('SELECT 1 FROM users WHERE username=? COLLATE NOCASE AND id<>?').get(name, except.userId ?? '')
     || !!db.prepare('SELECT 1 FROM apps WHERE root_slug=? COLLATE NOCASE AND id<>?').get(name, except.appId ?? '')
-    || !!db.prepare('SELECT 1 FROM short_links WHERE root=1 AND code=? COLLATE NOCASE AND id<>?').get(name, except.linkId ?? '');
+    || !!db.prepare('SELECT 1 FROM short_links WHERE code=? COLLATE NOCASE AND id<>?').get(name, except.linkId ?? '');
 }
 export function assertRootFree(name: string, except: { appId?: string; linkId?: string } = {}) {
   if (rootNameInUse(name, except)) throw new HttpError(409, 'SLUG_TAKEN', `jhino.com/${name} is already taken (a username or another address). Try another name.`);

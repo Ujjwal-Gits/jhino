@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { ApiError, api, get, post } from '../api';
 import { Link, useSession } from '../context';
 import { Icon, ago, copyText, useToast } from '../ui';
-import { PlanTag, useNameCheck } from './Address';
+import { PlanTag } from './Address';
 
 /*
- * Short links: jhino.com/<code> goes on to any web address, and counts clicks.
+ * Short links: jhino.com/s-xxxxx goes on to any web address, and counts clicks.
  * One list, a form on top, details (and the daily chart on Pro) on demand.
  */
 
@@ -67,20 +67,32 @@ export function LinksPage() {
 
 function NewLink({ host, allowance, onMade }: { host: string; allowance: Allowance; onMade: (l: LinkT) => void }) {
   const toast = useToast();
+  const { user } = useSession();
   const [url, setUrl] = useState('');
   const [code, setCode] = useState('');
   const [named, setNamed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const check = useNameCheck(named ? code : '');
   const full = allowance.limit !== null && allowance.used >= allowance.limit;
+
+  const cleanSuffix = code.replace(/^s-/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const codeValid = !named || (cleanSuffix.length >= 4 && cleanSuffix.length <= 5);
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    if (busy) return;
     setBusy(true); setError('');
     try {
-      const r = await post<{ link: LinkT }>('/api/links', { url, code: named && code ? code : undefined });
+      const r = await post<{ link: LinkT; alreadyExists?: boolean }>('/api/links', {
+        url,
+        code: user?.isAdmin && named && cleanSuffix ? `s-${cleanSuffix}` : undefined
+      });
       await copyText(r.link.short).catch(() => {});
-      toast(`${r.link.short.replace(/^https?:\/\//, '')} is ready and copied`);
+      if (r.alreadyExists) {
+        toast(`Already shortened as /${r.link.code} (copied to clipboard)`);
+      } else {
+        toast(`${r.link.short.replace(/^https?:\/\//, '')} is ready and copied`);
+      }
       setUrl(''); setCode(''); setNamed(false);
       onMade(r.link);
     } catch (e2) { setError(e2 instanceof ApiError ? e2.message : 'Could not make it.'); }
@@ -91,20 +103,24 @@ function NewLink({ host, allowance, onMade }: { host: string; allowance: Allowan
       <label className="lk-url">
         <span className="sr-only">Long address</span>
         <Icon name="link" size={17} />
-        <input type="text" inputMode="url" required placeholder="Paste a long address, like https://drive.google.com/…" value={url} onChange={(e) => setUrl(e.target.value)} disabled={full} />
+        <input type="text" inputMode="url" required placeholder="Paste a long address, like https://drive.google.com/…" value={url} onChange={(e) => setUrl(e.target.value)} disabled={full || busy} />
       </label>
-      {named && (
-        <div className={`lk-code addr-input ${check.state}`}>
-          <span className="addr-host mono">{host}/</span>
-          <input className="mono" value={code} maxLength={50} placeholder="spring-reel" aria-label="Short name" onChange={(e) => setCode(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))} />
+      {user?.isAdmin && named && (
+        <div className={`lk-code addr-input ${cleanSuffix && (cleanSuffix.length < 4 || cleanSuffix.length > 5) ? 'bad' : 'ok'}`}>
+          <span className="addr-host mono">{host}/s-</span>
+          <input className="mono" value={cleanSuffix} maxLength={5} placeholder="sale" aria-label="Short name (4-5 chars)" onChange={(e) => setCode(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))} />
         </div>
       )}
-      <button className="btn primary" disabled={busy || full || !url.trim() || (named && !!code && check.state !== 'ok')}>{busy && <span className="spin" />}Shorten</button>
+      <button className="btn primary" disabled={busy || full || !url.trim() || !codeValid}>{busy && <span className="spin" />}Shorten</button>
       <div className="lk-new-foot">
-        {allowance.customCodes
-          ? <button type="button" className="link" onClick={() => setNamed(!named)}>{named ? 'Use a random name' : 'Choose the name'}</button>
-          : <span className="hint">Random names like /k7m2qa. Choosing the name is on Plus <PlanTag /></span>}
-        {named && check.state === 'bad' && <span className="error-text">{check.reason}</span>}
+        {user?.isAdmin ? (
+          <button type="button" className="link" onClick={() => setNamed(!named)}>{named ? 'Use random 5 letters' : 'Choose custom 4-5 letters (super admin)'}</button>
+        ) : (
+          <span className="hint">Short links look like {host}/s-xxxxx (5 random letters).</span>
+        )}
+        {user?.isAdmin && named && cleanSuffix && (cleanSuffix.length < 4 || cleanSuffix.length > 5) && (
+          <span className="error-text">Code must be 4 or 5 characters after s-</span>
+        )}
         {full && <span className="error-text">All {allowance.limit} links on your plan are in use. <Link to="/account/plan" className="link">See plans</Link></span>}
       </div>
       {error && <p className="error-text" role="alert">{error}</p>}
@@ -119,19 +135,35 @@ function LinkDetail({ link, host, allowance, onChanged, onGone }: { link: LinkT;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [days, setDays] = useState<{ day: string; n: number }[] | null>(null);
-  const check = useNameCheck(f.code !== link.code ? f.code : '', { link: link.id });
+
+  const cleanSuffix = f.code.replace(/^s-/, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const codeValid = !user?.isAdmin || f.code === link.code || (cleanSuffix.length >= 4 && cleanSuffix.length <= 5);
+
   useEffect(() => { if (allowance.stats) get<{ days: { day: string; n: number }[] }>(`/api/links/${link.id}/stats`).then((r) => setDays(r.days), () => {}); }, [link.id, allowance.stats]);
+
   const save = async (e: FormEvent) => {
     e.preventDefault();
+    if (busy) return;
     setBusy(true); setError('');
-    try { await api('PATCH', `/api/links/${link.id}`, f); toast('Saved'); onChanged(); }
+    try {
+      const payload: { title?: string; url?: string; code?: string } = { title: f.title };
+      if (user?.isAdmin) {
+        if (f.url !== link.url) payload.url = f.url;
+        if (f.code !== link.code && cleanSuffix) payload.code = `s-${cleanSuffix}`;
+      }
+      await api('PATCH', `/api/links/${link.id}`, payload);
+      toast('Saved');
+      onChanged();
+    }
     catch (e2) { setError(e2 instanceof ApiError ? e2.message : 'Could not save.'); }
     setBusy(false);
   };
+
   const del = async () => {
     if (!confirm(`Delete ${host}/${link.code}? Anyone who clicks it after this gets "Nothing here", and the name becomes free.`)) return;
     try { await api('DELETE', `/api/links/${link.id}`); toast('Deleted'); onGone(); } catch (e) { toast(e instanceof ApiError ? e.message : 'Could not delete.', true); }
   };
+
   const max = days ? Math.max(1, ...days.map((d) => d.n)) : 1;
   return (
     <div className="lk-detail">
@@ -148,21 +180,36 @@ function LinkDetail({ link, host, allowance, onChanged, onGone }: { link: LinkT;
         )}
       </div>
       <form className="lk-edit" onSubmit={save}>
-        <label className="field"><span>Goes to</span><input className="input" value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} /></label>
+        <label className="field">
+          <span>Goes to {!user?.isAdmin && <small className="muted">(Contact super admin to change destination)</small>}</span>
+          <input className="input" value={f.url} disabled={!user?.isAdmin} onChange={(e) => setF({ ...f, url: e.target.value })} />
+        </label>
         <div className="grid2">
-          <label className="field"><span>Label <em>optional, only you see it</em></span><input className="input" maxLength={120} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Spring reel for Himalayan Coffee" /></label>
+          <label className="field">
+            <span>Label <em>optional, only you see it</em></span>
+            <input className="input" maxLength={120} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Spring reel for Himalayan Coffee" />
+          </label>
           <div className="field">
-            <span>Short name {!allowance.customCodes && <PlanTag />}</span>
-            <div className={`addr-input ${f.code !== link.code ? check.state : ''}`}>
-              <span className="addr-host mono">{host}/</span>
-              <input className="mono" value={f.code} maxLength={50} disabled={!allowance.customCodes && !user.isAdmin} aria-label="Short name" onChange={(e) => setF({ ...f, code: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })} />
-            </div>
-            {f.code !== link.code && check.state === 'bad' && <small className="error-text">{check.reason}</small>}
+            <span>Short name {!user?.isAdmin && <small className="muted">(Permanent · Super admin editable)</small>}</span>
+            {user?.isAdmin ? (
+              <div className={`addr-input ${cleanSuffix && (cleanSuffix.length < 4 || cleanSuffix.length > 5) ? 'bad' : 'ok'}`}>
+                <span className="addr-host mono">{host}/s-</span>
+                <input className="mono" value={cleanSuffix} maxLength={5} aria-label="Short code" onChange={(e) => setF({ ...f, code: `s-${e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '')}` })} />
+              </div>
+            ) : (
+              <div className="addr-input">
+                <span className="addr-host mono">{host}/</span>
+                <input className="mono" value={link.code} disabled aria-label="Short name" />
+              </div>
+            )}
+            {user?.isAdmin && cleanSuffix && (cleanSuffix.length < 4 || cleanSuffix.length > 5) && (
+              <small className="error-text">Must be 4 or 5 characters after s-</small>
+            )}
           </div>
         </div>
         {error && <p className="error-text" role="alert">{error}</p>}
         <div className="actions-row">
-          <button className="btn sm primary" disabled={busy || (f.code !== link.code && check.state !== 'ok')}>{busy && <span className="spin" />}Save</button>
+          <button className="btn sm primary" disabled={busy || !codeValid}>{busy && <span className="spin" />}Save</button>
           <a className="btn sm quiet" href={link.url} target="_blank" rel="noopener noreferrer"><Icon name="external" size={14} />Open target</a>
           <button type="button" className="btn sm quiet danger" onClick={del}>Delete</button>
           <span className="muted small lk-made">Made {ago(link.createdAt)}</span>
@@ -171,3 +218,4 @@ function LinkDetail({ link, host, allowance, onChanged, onGone }: { link: LinkT;
     </div>
   );
 }
+

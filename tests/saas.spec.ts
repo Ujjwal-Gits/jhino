@@ -445,7 +445,7 @@ test('usernames and addresses: unique usernames; each person\'s addresses live u
   expect(b.status, JSON.stringify(b.json)).toBe(200);
   const rajId = (await raj.call('GET', '/api/account')).json.account.id;
   await admin.call('PATCH', `/api/admin/users/${rajId}`, { plan: 'plus' });
-  expect((await raj.call('POST', '/api/links', { url: 'https://example.com', code: name })).json.error).toBe('SLUG_TAKEN');
+  expect((await raj.call('POST', '/api/links', { url: 'https://example.com', code: name })).status).toBe(403);
   const v = await session();
   expect((await v.call('GET', `/api/public/${rajName}/${name}`)).json.ready).toBe(true);
   expect((await v.call('GET', `/api/public/${wanted}/${name}`)).json.ready).toBe(true);
@@ -482,53 +482,72 @@ test('short links: go on to the address, count clicks, one namespace, plan limit
   const k = await session(who);
   const kid = (await k.call('GET', '/api/account')).json.account.id;
   const kname = (await k.call('GET', '/api/me')).json.user.username;
-  // Free: random names only; only web addresses.
+  // Free: random s-xxxxx names only; only web addresses; custom codes restricted to super admin.
   expect((await k.call('POST', '/api/links', { url: 'javascript:alert(1)' })).status).toBe(400);
   expect((await k.call('POST', '/api/links', { url: 'https://user:pw@example.com' })).status).toBe(400);
-  expect((await k.call('POST', '/api/links', { url: 'https://example.com', code: 'my-name-' + uniq() })).json.error).toBe('PLAN_FEATURE');
+  expect((await k.call('POST', '/api/links', { url: 'https://example.com', code: 'sale' })).status).toBe(403);
   const made = await k.call('POST', '/api/links', { url: 'example.com/some/long/page?x=1' });
   expect(made.status, JSON.stringify(made.json)).toBe(200);
   const code = made.json.link.code as string;
+  expect(code).toMatch(/^s-[a-z]{5}$/);
   expect(made.json.link.url).toBe('https://example.com/some/long/page?x=1');
-  // Visiting it sends the browser on, and counts the click.
+  // Visiting it at /s-xxxxx sends the browser on, and counts the click.
   const anon = await pwRequest.newContext({ baseURL: BASE });
-  expect(made.json.link.short).toContain(`/${kname}/${code}`);
-  const r = await anon.get(`/${kname}/${code}`, { maxRedirects: 0 });
+  expect(made.json.link.short).toContain(`/${code}`);
+  const r = await anon.get(`/${code}`, { maxRedirects: 0 });
   expect(r.status()).toBe(302);
   expect(r.headers()['location']).toBe('https://example.com/some/long/page?x=1');
-  await anon.get(`/${kname.toUpperCase()}/${code.toUpperCase()}`, { maxRedirects: 0 });
+  await anon.get(`/${code.toUpperCase()}`, { maxRedirects: 0 });
   const list = (await k.call('GET', '/api/links')).json;
   expect(list.links[0].clicks).toBe(2);
-  expect(list.allowance).toMatchObject({ used: 1, limit: 5, customCodes: false, stats: false });
+  expect(list.allowance).toMatchObject({ used: 1, limit: 5, stats: false });
+
+  // Submitting the same URL again returns the existing link without consuming a new code
+  const dup = await k.call('POST', '/api/links', { url: 'example.com/some/long/page?x=1' });
+  expect(dup.status).toBe(200);
+  expect(dup.json.link.id).toBe(made.json.link.id);
+  expect(dup.json.link.code).toBe(code);
+  expect(dup.json.alreadyExists).toBe(true);
+
   // Daily clicks are on Pro.
   expect((await k.call('GET', `/api/links/${made.json.link.id}/stats`)).json.error).toBe('PLAN_FEATURE');
-  // Someone else cannot change or delete it.
+  // Non-admin or other users cannot change destination URL or code.
   const other = await session(await signup('Other'));
   expect((await other.call('PATCH', `/api/links/${made.json.link.id}`, { url: 'https://evil.example' })).status).toBe(404);
   expect((await other.call('DELETE', `/api/links/${made.json.link.id}`)).status).toBe(404);
+  expect((await k.call('PATCH', `/api/links/${made.json.link.id}`, { url: 'https://evil.example' })).status).toBe(403);
+  expect((await k.call('PATCH', `/api/links/${made.json.link.id}`, { code: 's-sale' })).status).toBe(403);
+
   // Free Forever: five links.
   for (let i = 0; i < 4; i++) expect((await k.call('POST', '/api/links', { url: `https://example.com/${i}` })).status).toBe(200);
   expect((await k.call('POST', '/api/links', { url: 'https://example.com/6' })).json.error).toBe('LIMIT_REACHED');
 
-  // Pro: named links, the daily chart; an app address cannot take a link's name.
+  // Pro: daily click stats.
   await admin.call('PATCH', `/api/admin/users/${kid}`, { plan: 'pro' });
-  const named = 'reel-' + uniq();
-  const n = await k.call('POST', '/api/links', { url: 'https://youtube.com/watch?v=abc', code: named });
-  expect(n.status, JSON.stringify(n.json)).toBe(200);
-  await anon.get(`/${kname}/${named}`, { maxRedirects: 0 });
-  const st = (await k.call('GET', `/api/links/${n.json.link.id}/stats`)).json;
+  const st = (await k.call('GET', `/api/links/${made.json.link.id}/stats`)).json;
   expect(st.days).toHaveLength(30);
-  expect(st.days[29].n).toBe(1);
-  expect((await k.call('GET', `/api/addresses/check?name=${named}`)).json.available).toBe(false);
-  expect((await k.call('POST', '/api/links', { url: 'https://example.com', code: 'admin' })).status).toBe(400);
+
+  // Super admin: can create custom 4-5 letter code under s- and edit URL and code.
+  const adminCode1 = 'a' + Math.random().toString(36).slice(2, 5); // 4 chars
+  const adminCode2 = 'b' + Math.random().toString(36).slice(2, 6); // 5 chars
+  const n = await admin.call('POST', '/api/links', { url: 'https://youtube.com/watch?v=abc', code: adminCode1 });
+  expect(n.status, JSON.stringify(n.json)).toBe(200);
+  expect(n.json.link.code).toBe(`s-${adminCode1}`);
+  await anon.get(`/s-${adminCode1}`, { maxRedirects: 0 });
+
+  // Super admin edits URL and code.
+  const edited = await admin.call('PATCH', `/api/admin/links/${n.json.link.id}`, { url: 'https://youtube.com/watch?v=updated', code: adminCode2 });
+  expect(edited.status).toBe(200);
+  expect(edited.json.link.code).toBe(`s-${adminCode2}`);
+  expect(edited.json.link.url).toBe('https://youtube.com/watch?v=updated');
 
   // A super admin turns it off: no more redirect, and it is in the audit log.
   expect((await k.call('PATCH', `/api/admin/links/${n.json.link.id}`, { disabled: true })).status).toBe(403);
   expect((await admin.call('PATCH', `/api/admin/links/${n.json.link.id}`, { disabled: true, reason: 'Test' })).status).toBe(200);
-  const off = await anon.get(`/${kname}/${named}`, { maxRedirects: 0 });
+  const off = await anon.get(`/s-${adminCode2}`, { maxRedirects: 0 });
   expect(off.status()).toBe(200);
   expect((await admin.call('GET', '/api/admin/audit?q=link.disable')).json.entries.length).toBeGreaterThan(0);
-  expect((await admin.call('GET', `/api/admin/links?q=${named}`)).json.links[0]).toMatchObject({ code: named, disabled: true });
+  expect((await admin.call('GET', `/api/admin/links?q=s-${adminCode2}`)).json.links[0]).toMatchObject({ code: `s-${adminCode2}`, disabled: true });
 });
 
 test('plans: monthly and yearly payments set the end date; paying again adds to it; features follow the plan', async () => {
@@ -911,10 +930,8 @@ test('super admin usernames: any free name (general words, jhino, short), never 
     expect((await a.call('GET', '/api/me')).json.user.username).toBe(word);
     // The page and short links under that name work like any other.
     expect((await (await session()).call('GET', `/api/profile/${word}`)).status).toBe(200);
-    await admin.call('PATCH', `/api/admin/users/${aId}`, { plan: 'pro' }); // own short link names are a paid feature
-    const code = 'x' + uniq().slice(-5);
-    expect((await a.call('POST', '/api/links', { url: 'https://example.com/menu', code })).status).toBe(200);
-    const go = await (await pwRequest.newContext({ baseURL: BASE })).get(`/${word}/${code}`, { maxRedirects: 0 });
+    const madeLink = (await a.call('POST', '/api/links', { url: 'https://example.com/menu' })).json.link;
+    const go = await (await pwRequest.newContext({ baseURL: BASE })).get(`/${madeLink.code}`, { maxRedirects: 0 });
     expect(go.status()).toBe(302);
     expect(go.headers()['location']).toBe('https://example.com/menu');
     // Taken now: not even a super admin can give it to someone else.

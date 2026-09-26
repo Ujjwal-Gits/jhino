@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, api, avatarUrl, get, post } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
@@ -301,29 +301,99 @@ function AdminLinks() {
   const toast = useToast();
   const [q, setQ] = useState('');
   const [rows, setRows] = useState<AdminLinkT[] | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editUrl, setEditUrl] = useState('');
+  const [editCode, setEditCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [editError, setEditError] = useState('');
+
   const load = useCallback(() => get<{ links: AdminLinkT[] }>(`/api/admin/links?q=${encodeURIComponent(q)}`).then((r) => setRows(r.links), () => {}), [q]);
   useEffect(() => { const t = setTimeout(load, 150); return () => clearTimeout(t); }, [load]);
+
   const toggle = async (l: AdminLinkT) => {
     let reason = '';
     if (!l.disabled) { const r = prompt(`Turn off /${l.code}? Visitors get "Nothing here". The owner sees your reason.\n\nReason:`, 'Goes to a harmful page'); if (r === null) return; reason = r; }
     try { await api('PATCH', `/api/admin/links/${l.id}`, { disabled: !l.disabled, reason }); toast(l.disabled ? 'Turned back on' : 'Turned off'); load(); } catch (e) { toast(err(e, 'Could not change it.'), true); }
   };
+
+  const startEdit = (l: AdminLinkT) => {
+    setEditingId(l.id);
+    setEditUrl(l.url);
+    const suffix = l.code.replace(/^s-/, '');
+    setEditCode(suffix);
+    setEditError('');
+  };
+
+  const saveEdit = async (e: FormEvent, id: string) => {
+    e.preventDefault();
+    if (busy) return;
+    const cleanSuffix = editCode.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (cleanSuffix.length < 4 || cleanSuffix.length > 5) {
+      setEditError('Short code must have 4 or 5 characters after s- (e.g. s-sale or s-promo).');
+      return;
+    }
+    setBusy(true); setEditError('');
+    try {
+      await api('PATCH', `/api/admin/links/${id}`, {
+        url: editUrl,
+        code: `s-${cleanSuffix}`,
+      });
+      toast('Link updated');
+      setEditingId(null);
+      load();
+    } catch (e2) {
+      setEditError(err(e2, 'Could not update link.'));
+    }
+    setBusy(false);
+  };
+
   return (
     <>
-      <Head title="Short links" lede="Every short link, newest first. Turn off any that goes somewhere harmful." />
+      <Head title="Short links" lede="Every short link, newest first. Edit addresses and codes, or turn off any that goes somewhere harmful." />
       <div className="adm-tools"><label className="ix-search"><Icon name="search" size={16} /><span className="sr-only">Search links</span><input placeholder="Code, address or owner email" value={q} onChange={(e) => setQ(e.target.value)} /></label></div>
       {!rows ? <div className="acc-skel" /> : !rows.length ? <p className="muted">No short links yet.</p> : (
         <table className="adm-table">
           <thead><tr><th>Link</th><th>Goes to</th><th className="hide-sm">Owner</th><th>Clicks</th><th /></tr></thead>
           <tbody>
             {rows.map((l) => (
-              <tr key={l.id} className={l.disabled ? 'row-off' : ''}>
-                <td><a className="mono link" href={l.short} target="_blank" rel="noopener noreferrer">/{l.code}</a>{l.disabled && <small className="reason">Off: {l.disabledReason || 'no reason given'}</small>}</td>
-                <td className="small url-cell" title={l.url}>{l.url}</td>
-                <td className="hide-sm muted small">{l.ownerEmail}</td>
-                <td className="mono">{l.clicks.toLocaleString('en-IN')}</td>
-                <td><button className={`btn sm ${l.disabled ? '' : 'quiet danger'}`} onClick={() => toggle(l)}>{l.disabled ? 'Turn on' : 'Turn off'}</button></td>
-              </tr>
+              <Fragment key={l.id}>
+                <tr className={l.disabled ? 'row-off' : ''}>
+                  <td><a className="mono link" href={l.short} target="_blank" rel="noopener noreferrer">/{l.code}</a>{l.disabled && <small className="reason">Off: {l.disabledReason || 'no reason given'}</small>}</td>
+                  <td className="small url-cell" title={l.url}>{l.url}</td>
+                  <td className="hide-sm muted small">{l.ownerEmail}</td>
+                  <td className="mono">{l.clicks.toLocaleString('en-IN')}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    <button className="btn sm quiet" style={{ marginRight: 6 }} onClick={() => startEdit(l)}>Edit</button>
+                    <button className={`btn sm ${l.disabled ? '' : 'quiet danger'}`} onClick={() => toggle(l)}>{l.disabled ? 'Turn on' : 'Turn off'}</button>
+                  </td>
+                </tr>
+                {editingId === l.id && (
+                  <tr className="adm-edit-row">
+                    <td colSpan={5} style={{ padding: '12px 16px', background: 'var(--bg-sub, rgba(0,0,0,0.03))' }}>
+                      <form className="acc-form" onSubmit={(e) => saveEdit(e, l.id)}>
+                        <div className="grid2">
+                          <label className="field">
+                            <span>Destination address</span>
+                            <input className="input" required value={editUrl} onChange={(e) => setEditUrl(e.target.value)} placeholder="https://example.com" />
+                          </label>
+                          <label className="field">
+                            <span>Short code (4-5 chars after s-)</span>
+                            <div className="addr-input">
+                              <span className="addr-host mono">/s-</span>
+                              <input className="mono" maxLength={5} value={editCode} onChange={(e) => setEditCode(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))} placeholder="sale" />
+                            </div>
+                          </label>
+                        </div>
+                        {editError && <p className="error-text" role="alert">{editError}</p>}
+                        <div className="actions-row" style={{ marginTop: 8 }}>
+                          <button className="btn sm primary" disabled={busy}>{busy && <span className="spin" />}Save</button>
+                          <button type="button" className="btn sm quiet" onClick={() => setEditingId(null)}>Cancel</button>
+                        </div>
+                      </form>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>
