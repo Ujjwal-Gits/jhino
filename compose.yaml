@@ -10,6 +10,7 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@jhino.local}
       ADMIN_NAME: ${ADMIN_NAME:-Admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
       SMTP_URL: ${SMTP_URL:-}
       MAIL_FROM: ${MAIL_FROM:-}
       SUPPORT_EMAIL: ${SUPPORT_EMAIL:-}
@@ -19,6 +20,8 @@ services:
       APPLE_TEAM_ID: ${APPLE_TEAM_ID:-}
       APPLE_KEY_ID: ${APPLE_KEY_ID:-}
       APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY:-}
+      AUTO_BACKUP: ${AUTO_BACKUP:-1}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
       # DATA_DIR=/data, BACKUP_DIR=/data/backups and FFMPEG_PATH are set in the image.
     volumes:
       - jhino-data:/data
