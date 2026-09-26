@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Poll</title>
+<style>
+  body { font: 16px/1.5 Georgia, serif; margin: 0; background: #fffdf8; color: #222; }
+  main { max-width: 520px; margin: 0 auto; padding: 32px 18px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  p { color: #666; margin: 0 0 18px; }
+  .opt { display: flex; justify-content: space-between; width: 100%; padding: 14px 16px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; background: #fff; font: inherit; cursor: pointer; }
+  .opt.mine { border-color: #222; }
+  textarea { width: 100%; min-height: 70px; font: inherit; padding: 10px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+  #note-status { font-size: 13px; color: #888; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Where should we shoot the Tihar reel?</h1>
+  <p id="info">Loading…</p>
+  <div id="opts"></div>
+  <h2 style="font-size:16px;margin-top:26px">My private note</h2>
+  <textarea id="note" placeholder="Only you can see this note"></textarea>
+  <div id="note-status"></div>
+</main>
+<script>
+// Claude artifact style: window.storage with shared votes and a private note.
+const OPTIONS = ['Rooftop at sunset', 'Studio with diyo setup', 'Old town street'];
+let votes = {};
+let myName = localStorage.getItem('poll-name') || '';
+async function load() {
+  try { const r = await window.storage.get('votes', true); votes = r ? JSON.parse(r.value) : {}; } catch (e) { votes = {}; }
+  try { const n = await window.storage.get('note'); document.getElementById('note').value = n ? n.value : ''; } catch (e) {}
+  render();
+}
+function render() {
+  if (!myName) { myName = 'Guest ' + Math.floor(Math.random() * 1000); localStorage.setItem('poll-name', myName); }
+  const total = Object.keys(votes).length;
+  document.getElementById('info').textContent = total + (total === 1 ? ' vote' : ' votes') + ' so far.';
+  document.getElementById('opts').innerHTML = OPTIONS.map(o => {
+    const n = Object.values(votes).filter(v => v === o).length;
+    return '<button class="opt' + (votes[myName] === o ? ' mine' : '') + '" data-o="' + o + '"><span>' + o + '</span><b>' + n + '</b></button>';
+  }).join('');
+}
+document.getElementById('opts').onclick = async e => {
+  const b = e.target.closest('.opt'); if (!b) return;
+  votes[myName] = b.dataset.o;
+  await window.storage.set('votes', JSON.stringify(votes), true);
+  render();
+};
+let t;
+document.getElementById('note').oninput = e => {
+  clearTimeout(t);
+  t = setTimeout(async () => { await window.storage.set('note', e.target.value); document.getElementById('note-status').textContent = 'Saved'; }, 400);
+};
+load();
+</script>
+</body>
+</html>

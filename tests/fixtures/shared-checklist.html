@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shared Checklist</title>
+<script type="application/json" id="jhino-manifest">
+{ "specVersion": 1, "name": "Shared Checklist", "version": "1.0.0", "sdkVersion": 1,
+  "capabilities": ["data", "realtime"],
+  "collections": { "tasks": { "fields": {
+    "title": { "type": "text", "required": true, "maxLength": 200 },
+    "done": { "type": "boolean", "default": false } } } } }
+</script>
+<style>
+  :root { color-scheme: light; }
+  body { margin: 0; font: 16px/1.5 system-ui, sans-serif; background: #fff; color: #161616; }
+  main { max-width: 560px; margin: 0 auto; padding: 28px 18px 60px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  #me { color: #6b6b6b; margin: 0 0 18px; font-size: 14px; }
+  form { display: flex; gap: 8px; }
+  input[type=text] { flex: 1; font: inherit; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; }
+  button { font: inherit; padding: 10px 14px; border-radius: 8px; border: 1px solid #161616; background: #161616; color: #fff; cursor: pointer; }
+  ul { list-style: none; padding: 0; margin: 18px 0 0; }
+  li { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #eee; }
+  li label { flex: 1; display: flex; gap: 12px; align-items: center; cursor: pointer; }
+  li input { width: 20px; height: 20px; }
+  li.done span { text-decoration: line-through; color: #999; }
+  li button { background: none; color: #b3261e; border: 0; padding: 4px 8px; }
+  #msg { min-height: 22px; font-size: 14px; color: #9a5b00; margin-top: 10px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Shared Checklist</h1>
+  <p id="me">Connecting…</p>
+  <form id="add"><input type="text" id="title" placeholder="Add a task" maxlength="200" required><button>Add</button></form>
+  <div id="msg" role="status"></div>
+  <ul id="list"></ul>
+</main>
+<script>
+// Built for Jhino: every task is its own record with a revision.
+let tasks = [];
+const msg = (t) => { document.getElementById('msg').textContent = t || ''; };
+
+async function refresh() {
+  const all = [];
+  let after;
+  do {
+    const page = await jhino.data.list('tasks', { limit: 200, after });
+    all.push(...page.items);
+    after = page.next;
+  } while (after);
+  tasks = all;
+  render();
+}
+
+function render() {
+  const ul = document.getElementById('list');
+  ul.innerHTML = '';
+  for (const t of tasks) {
+    const li = document.createElement('li');
+    li.className = t.data.done ? 'done' : '';
+    li.innerHTML = '<label><input type="checkbox"><span></span></label><button aria-label="Delete">Delete</button>';
+    li.querySelector('span').textContent = t.data.title;
+    const box = li.querySelector('input');
+    box.checked = !!t.data.done;
+    box.onchange = () => toggle(t, box.checked);
+    li.querySelector('button').onclick = () => remove(t);
+    ul.appendChild(li);
+  }
+}
+
+async function toggle(t, done) {
+  try {
+    await jhino.data.update('tasks', t.id, { done }, { expectedRevision: t.revision });
+    msg('');
+  } catch (e) {
+    if (e.code === 'REVISION_CONFLICT') msg('Someone changed this task first. Showing the latest version.');
+    else if (e.code === 'FORBIDDEN') msg('You can view this list but not change it.');
+    else msg(e.message);
+  }
+  refresh();
+}
+async function remove(t) {
+  try { await jhino.data.delete('tasks', t.id); } catch (e) { msg(e.code === 'FORBIDDEN' ? 'You can view this list but not change it.' : e.message); }
+  refresh();
+}
+document.getElementById('add').onsubmit = async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('title');
+  const title = input.value.trim();
+  if (!title) return;
+  try {
+    await jhino.data.create('tasks', { title, done: false });
+    input.value = '';
+    msg('');
+  } catch (err) {
+    msg(err.code === 'FORBIDDEN' ? 'You can view this list but not change it.' : err.message);
+  }
+  refresh();
+};
+
+(async () => {
+  await jhino.ready();
+  const me = await jhino.me();
+  document.getElementById('me').textContent = 'Signed in as ' + me.name + (me.role === 'viewer' ? ' (view only)' : '');
+  await jhino.data.subscribe('tasks', () => refresh());
+  refresh();
+})();
+</script>
+</body>
+</html>

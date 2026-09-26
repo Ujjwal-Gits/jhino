@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 /*
- * A hand-written HTML with its own design (samples/ticket-rail.html: plain HTML, CSS and JS, localStorage,
+ * A hand-written HTML with its own design (tests/fixtures/ticket-rail.html: plain HTML, CSS and JS, localStorage,
  * FileReader), uploaded as it is and used from three sides: the owner on the web, the client on a phone,
  * and the client in the downloaded file.
  */
@@ -25,7 +25,7 @@ test('a hand-written HTML keeps its own design and is live on the web, on a phon
   const api = await pwRequest.newContext({ baseURL: BASE, extraHTTPHeaders: { 'x-jhino': '1' } });
   await api.post('/api/auth/login', { data: OWNER });
   const csrf = (await (await api.get('/api/me')).json()).csrf;
-  const up = await api.post('/api/apps', { multipart: { name: 'Ticket Rail', file: { name: 'ticket-rail.html', mimeType: 'text/html', buffer: fs.readFileSync('samples/ticket-rail.html') } }, headers: { 'x-csrf-token': csrf } });
+  const up = await api.post('/api/apps', { multipart: { name: 'Ticket Rail', file: { name: 'ticket-rail.html', mimeType: 'text/html', buffer: fs.readFileSync('tests/fixtures/ticket-rail.html') } }, headers: { 'x-csrf-token': csrf } });
   expect(up.status()).toBe(200);
   const appId = (await up.json()).app.id as string;
   const login = 'kitchen' + String(Date.now()).slice(-7);

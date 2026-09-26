@@ -87,7 +87,7 @@ test.afterEach(async ({ browser }) => { for (const c of browser.contexts()) awai
 test('full journey: upload a ZIP, share with an invite link, edit together live, data persists', async ({ browser }) => {
   const a = await signIn(browser, OWNER.email, OWNER.password);
   await a.click('header button:has-text("Upload HTML")');
-  await a.setInputFiles('dialog input[type=file]', 'samples/team-tasks.zip');
+  await a.setInputFiles('dialog input[type=file]', 'tests/fixtures/team-tasks.zip');
   await a.click('button:has-text("Upload and publish")');
   await a.waitForURL(/\/apps\//);
   await expect(a.locator('.player-bar h1')).toHaveText('Team Tasks');
@@ -154,7 +154,7 @@ test('full journey: upload a ZIP, share with an invite link, edit together live,
 
 test('text someone is still typing is never wiped by a live update', async ({ browser }) => {
   const owner = await apiAs(OWNER.email, OWNER.password);
-  const appId = (await upload(owner, 'samples/team-tasks.zip', 'Draft test')).json.app.id;
+  const appId = (await upload(owner, 'tests/fixtures/team-tasks.zip', 'Draft test')).json.app.id;
   const page = await signIn(browser, OWNER.email, OWNER.password);
   await page.goto(`/apps/${appId}`);
   const f = frameOf(page);
@@ -174,7 +174,7 @@ test('text someone is still typing is never wiped by a live update', async ({ br
 
 test('a viewer can open the app but the server refuses their changes', async ({ browser }) => {
   const owner = await apiAs(OWNER.email, OWNER.password);
-  const up = await upload(owner, 'samples/team-tasks.zip', 'Viewer test');
+  const up = await upload(owner, 'tests/fixtures/team-tasks.zip', 'Viewer test');
   const appId = up.json.app.id;
   await owner.call('PUT', `/api/apps/${appId}/kv`, { ns: 'ls', scope: 'shared', key: 'team-tasks-v1', value: JSON.stringify([{ id: '1', title: 'Existing', who: 'Anyone', done: false }]), baseRev: 0 });
   const v = await createUser(owner, 'Vera Viewer');
@@ -201,7 +201,7 @@ test('a viewer can open the app but the server refuses their changes', async ({ 
 
 test('removing someone cuts off their open app and their API access right away', async ({ browser }) => {
   const owner = await apiAs(OWNER.email, OWNER.password);
-  const up = await upload(owner, 'samples/team-tasks.zip', 'Revoke test');
+  const up = await upload(owner, 'tests/fixtures/team-tasks.zip', 'Revoke test');
   expect(up.status, JSON.stringify(up.json)).toBe(200);
   const appId = up.json.app.id;
   const e = await createUser(owner, 'Eli Editor');
@@ -220,8 +220,8 @@ test('removing someone cuts off their open app and their API access right away',
 
 test('apps are isolated: members of one app cannot reach another app by guessing ids', async () => {
   const owner = await apiAs(OWNER.email, OWNER.password);
-  const a1 = (await upload(owner, 'samples/shared-checklist.html', 'Isolation A')).json.app.id;
-  const a2 = (await upload(owner, 'samples/shared-checklist.html', 'Isolation B')).json.app.id;
+  const a1 = (await upload(owner, 'tests/fixtures/shared-checklist.html', 'Isolation A')).json.app.id;
+  const a2 = (await upload(owner, 'tests/fixtures/shared-checklist.html', 'Isolation B')).json.app.id;
   const rec = await owner.call('POST', `/api/apps/${a2}/records/tasks`, { data: { title: 'secret' } });
   expect(rec.status).toBe(200);
   const u = await createUser(owner, 'Ira Isolated');
@@ -244,7 +244,7 @@ test('apps are isolated: members of one app cannot reach another app by guessing
 
 test('records API: revisions stop stale edits, idempotency stops duplicates, live subscribe works', async ({ browser }) => {
   const owner = await apiAs(OWNER.email, OWNER.password);
-  const appId = (await upload(owner, 'samples/shared-checklist.html')).json.app.id;
+  const appId = (await upload(owner, 'tests/fixtures/shared-checklist.html')).json.app.id;
   const created = await owner.call('POST', `/api/apps/${appId}/records/tasks`, { data: { title: 'Review cut', done: false }, idempotencyKey: 'k1' });
   const again = await owner.call('POST', `/api/apps/${appId}/records/tasks`, { data: { title: 'Review cut', done: false }, idempotencyKey: 'k1' });
   expect(again.json.record.id).toBe(created.json.record.id);
@@ -271,7 +271,7 @@ test('records API: revisions stop stale edits, idempotency stops duplicates, liv
 
 test('Claude window.storage apps: shared values are shared, private values stay private', async ({ browser }) => {
   const owner = await apiAs(OWNER.email, OWNER.password);
-  const appId = (await upload(owner, 'samples/studio-poll.html')).json.app.id;
+  const appId = (await upload(owner, 'tests/fixtures/studio-poll.html')).json.app.id;
   const e = await createUser(owner, 'Pia Poller');
   await owner.call('POST', `/api/apps/${appId}/members`, { email: e.email, role: 'editor' });
 

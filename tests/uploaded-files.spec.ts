@@ -45,7 +45,7 @@ test('uploaded HTML: photos and videos picked in the app are stored on the serve
 
   // We upload our own HTML (a ZIP) and make a sign-in for the client.
   await a.click('header button:has-text("Upload HTML")');
-  await a.setInputFiles('dialog input[type=file]', 'samples/client-media.zip');
+  await a.setInputFiles('dialog input[type=file]', 'tests/fixtures/client-media.zip');
   await a.click('dialog button:has-text("Upload and publish")');
   await a.waitForURL(/\/apps\//);
   const appId = a.url().split('/').pop()!;

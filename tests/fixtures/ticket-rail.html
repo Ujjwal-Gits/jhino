@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ticket Rail · café orders</title>
+<!--
+  A plain hand-written page: HTML, CSS and JavaScript in one file, nothing made for Jhino.
+  It keeps its orders in localStorage and reads photos with FileReader, like any small web app.
+-->
+<style>
+  :root {
+    --bg: #1c1a17; --rail: #4a4338; --wire: #8d8272; --paper: #f5efe1; --paper-2: #ebe3d0;
+    --ink: #221f1a; --mute: #8f8677; --tomato: #e4492b; --basil: #3d8b57; --butter: #f2c14e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--paper); font: 15px/1.45 "Courier New", Courier, monospace; }
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px 28px; padding: 26px 28px 16px; border-bottom: 3px double var(--rail); }
+  h1 { margin: 0; font: italic 700 38px/0.95 Georgia, "Times New Roman", serif; letter-spacing: -0.02em; }
+  h1 span { color: var(--tomato); }
+  .sub { margin: 6px 0 0; color: var(--mute); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+  .clock { font-size: 30px; letter-spacing: .1em; color: var(--butter); }
+  .stats { display: flex; gap: 22px; }
+  .stats div { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .stats b { display: block; font-size: 24px; color: var(--paper); letter-spacing: 0; }
+
+  main { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 28px; padding: 26px 28px 40px; }
+  form { background: var(--paper); color: var(--ink); padding: 20px 18px 18px; display: grid; gap: 11px; align-self: start; position: relative;
+    -webkit-mask: radial-gradient(circle 6px at 50% 0, #0000 98%, #000) 0 0 / 18px 100%; mask: radial-gradient(circle 6px at 50% 0, #0000 98%, #000) 0 0 / 18px 100%; }
+  form h2 { margin: 4px 0 2px; font: 700 13px/1 "Courier New", monospace; letter-spacing: .22em; text-transform: uppercase; border-bottom: 2px dashed var(--ink); padding-bottom: 10px; }
+  label { display: grid; gap: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: #5b5448; }
+  input, textarea, select { width: 100%; min-width: 0; font: inherit; font-size: 15px; color: var(--ink); background: var(--paper-2); border: 0; border-bottom: 2px solid var(--ink); padding: 8px 6px; text-transform: none; letter-spacing: 0; }
+  textarea { resize: vertical; min-height: 58px; }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) 80px; gap: 10px; }
+  button { font: inherit; cursor: pointer; }
+  .fire { margin-top: 6px; background: var(--tomato); color: #fff; border: 0; padding: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .fire:active { transform: translateY(2px); }
+
+  .rail-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .tabs button { background: none; border: 1px solid var(--rail); color: var(--mute); padding: 6px 12px; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; }
+  .tabs button[aria-pressed="true"] { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .wire { height: 4px; background: repeating-linear-gradient(90deg, var(--wire) 0 14px, var(--rail) 14px 18px); margin-bottom: 0; }
+  .rail { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 22px 18px; padding-top: 0; }
+  .ticket { width: 214px; background: var(--paper); color: var(--ink); padding: 18px 14px 12px; position: relative; border-top: 12px solid var(--tomato); transform: rotate(var(--tilt, 0deg)); transform-origin: top center; box-shadow: 0 10px 0 -5px rgba(0, 0, 0, .45); }
+  .ticket::before { content: ""; position: absolute; top: -20px; left: 50%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--butter); border: 3px solid var(--bg); }
+  .ticket .no { font-size: 11px; letter-spacing: .2em; color: var(--mute); }
+  .ticket h3 { margin: 4px 0 2px; font: 700 20px/1.1 Georgia, serif; }
+  .ticket .meta { font-size: 12px; color: #6b6356; }
+  .ticket .notes { margin: 8px 0 0; font-size: 13px; border-top: 1px dashed #b9ae98; padding-top: 6px; }
+  .ticket img { display: block; width: 100%; height: 120px; object-fit: cover; margin-top: 8px; filter: sepia(.15); }
+  .ticket .acts { display: flex; gap: 6px; margin-top: 10px; }
+  .ticket .acts button { flex: 1; border: 2px solid var(--ink); background: none; padding: 6px 4px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .ticket .acts .x { flex: 0 0 36px; }
+  .ticket.served { border-top-color: var(--basil); }
+  .ticket.served > *:not(.stamp):not(.acts) { opacity: .45; }
+  .stamp { position: absolute; top: 44px; right: 10px; transform: rotate(-14deg); border: 3px solid var(--basil); color: var(--basil); padding: 2px 8px; font-weight: 700; letter-spacing: .2em; font-size: 16px; }
+  .empty { color: var(--mute); padding: 40px 0; font-style: italic; }
+  @media (max-width: 760px) {
+    header { padding: 18px 16px 12px; } h1 { font-size: 30px; }
+    main { grid-template-columns: 1fr; padding: 18px 16px 32px; }
+    .ticket { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Ticket <span>Rail</span></h1>
+    <p class="sub">Monsoon Café · kitchen orders</p>
+  </div>
+  <div class="stats">
+    <div><b id="n-cooking">0</b>cooking</div>
+    <div><b id="n-served">0</b>served</div>
+    <div><b id="n-plates">0</b>plates</div>
+  </div>
+  <div class="clock" id="clock">00:00</div>
+</header>
+<main>
+  <form id="order" autocomplete="off">
+    <h2>New ticket</h2>
+    <div class="row">
+      <label>Dish <input id="dish" required maxlength="60" placeholder="Masala omelette"></label>
+      <label>Qty <input id="qty" type="number" min="1" max="20" value="1"></label>
+    </div>
+    <label>Table <select id="table"><option>Table 1</option><option>Table 2</option><option>Table 3</option><option>Table 4</option><option>Window bar</option><option>Takeaway</option></select></label>
+    <label>Notes <textarea id="notes" maxlength="200" placeholder="No onion, extra chilli"></textarea></label>
+    <label>Photo of the plate <input id="photo" type="file" accept="image/*"></label>
+    <button class="fire" type="submit">Fire ticket</button>
+  </form>
+  <section>
+    <div class="rail-head">
+      <div class="tabs" id="tabs">
+        <button data-f="all" aria-pressed="true">All</button>
+        <button data-f="cooking" aria-pressed="false">Cooking</button>
+        <button data-f="served" aria-pressed="false">Served</button>
+      </div>
+    </div>
+    <div class="wire"></div>
+    <div class="rail" id="rail"></div>
+  </section>
+</main>
+<script>
+  var KEY = 'ticket-rail-orders';
+  var orders = [];
+  try { orders = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { orders = []; }
+  var filter = 'all';
+
+  function save() { localStorage.setItem(KEY, JSON.stringify(orders)); render(); }
+
+  function render() {
+    var rail = document.getElementById('rail');
+    rail.innerHTML = '';
+    var shown = orders.filter(function (o) { return filter === 'all' || (filter === 'served' ? o.served : !o.served); });
+    if (!shown.length) { var p = document.createElement('p'); p.className = 'empty'; p.textContent = 'The rail is empty. Fire a ticket.'; rail.appendChild(p); }
+    shown.forEach(function (o, i) {
+      var t = document.createElement('article');
+      t.className = 'ticket' + (o.served ? ' served' : '');
+      t.style.setProperty('--tilt', ((i % 3) - 1) * 1.2 + 'deg');
+      var no = document.createElement('div'); no.className = 'no'; no.textContent = '#' + o.no + ' · ' + new Date(o.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      var h = document.createElement('h3'); h.textContent = o.qty + ' × ' + o.dish;
+      var m = document.createElement('div'); m.className = 'meta'; m.textContent = o.table;
+      t.append(no, h, m);
+      if (o.notes) { var n = document.createElement('p'); n.className = 'notes'; n.textContent = o.notes; t.appendChild(n); }
+      if (o.photo) { var img = document.createElement('img'); img.src = o.photo; img.alt = o.dish; t.appendChild(img); }
+      if (o.served) { var s = document.createElement('div'); s.className = 'stamp'; s.textContent = 'SERVED'; t.appendChild(s); }
+      var acts = document.createElement('div'); acts.className = 'acts';
+      var serve = document.createElement('button'); serve.textContent = o.served ? 'Undo' : 'Serve';
+      serve.onclick = function () { o.served = !o.served; save(); };
+      var x = document.createElement('button'); x.className = 'x'; x.textContent = '×'; x.title = 'Remove ticket';
+      x.onclick = function () { if (confirm('Remove ticket #' + o.no + '?')) { orders = orders.filter(function (y) { return y.id !== o.id; }); save(); } };
+      acts.append(serve, x);
+      t.appendChild(acts);
+      rail.appendChild(t);
+    });
+    document.getElementById('n-cooking').textContent = orders.filter(function (o) { return !o.served; }).length;
+    document.getElementById('n-served').textContent = orders.filter(function (o) { return o.served; }).length;
+    document.getElementById('n-plates').textContent = orders.reduce(function (s, o) { return s + (Number(o.qty) || 0); }, 0);
+  }
+
+  document.getElementById('order').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var dish = document.getElementById('dish').value.trim();
+    if (!dish) return;
+    var file = document.getElementById('photo').files[0];
+    var add = function (photo) {
+      var no = orders.reduce(function (m, o) { return Math.max(m, o.no || 0); }, 0) + 1;
+      orders.unshift({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), no: no, dish: dish,
+        qty: Math.max(1, Number(document.getElementById('qty').value) || 1),
+        table: document.getElementById('table').value, notes: document.getElementById('notes').value.trim(),
+        photo: photo || '', served: false, at: Date.now(),
+      });
+      e.target.reset();
+      save();
+    };
+    if (file) { var r = new FileReader(); r.onload = function () { add(r.result); }; r.readAsDataURL(file); }
+    else add('');
+  });
+
+  document.getElementById('tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    filter = b.dataset.f;
+    Array.prototype.forEach.call(this.children, function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); });
+    render();
+  });
+
+  function tick() { var d = new Date(); document.getElementById('clock').textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+  tick(); setInterval(tick, 10000);
+  render();
+</script>
+</body>
+</html>
