@@ -367,7 +367,8 @@
     screen([kicker(), el('h2', { text: C.name }),
       el('p', { text: 'Sign in once with the ID and password you were given. After that, this file opens straight away, and every change is shared live with everyone in the app.' }),
       form, el('div', { class: 'foot', text: 'Works while you are online. Saved on ' + HOST + '.' })]);
-    setTimeout(function () { id.focus(); }, 50);
+    // Start in the ID box, unless the person (or a password manager) is already typing somewhere.
+    setTimeout(function () { var f = document.activeElement; if (!f || f === document.body) id.focus(); }, 50);
   }
   function loading() { stop(); bar.hidden = true; stage.textContent = ''; stage.appendChild(el('div', { class: 'screen' }, [el('div', { class: 'spin', role: 'status', 'aria-label': 'Opening' })])); }
 
