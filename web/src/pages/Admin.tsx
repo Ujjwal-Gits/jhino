@@ -22,15 +22,15 @@ const fmtBytes = (n: number | null | undefined) => {
   return b >= 1073741824 ? `${(b / 1073741824).toFixed(2)} GB` : b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : b >= 1024 ? `${Math.round(b / 1024)} KB` : `${b} B`;
 };
 
-type NavKey = 'overview' | 'analytics' | 'users' | 'payments' | 'subscriptions' | 'plans' | 'methods' | 'apps' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
+type NavKey = 'overview' | 'analytics' | 'creations' | 'users' | 'payments' | 'subscriptions' | 'plans' | 'methods' | 'apps' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
 const NAV: { group: string; items: [NavKey, string, string][] }[] = [
   { group: '', items: [['overview', 'Overview', 'chart'], ['analytics', 'Analytics', 'live']] },
   { group: 'Customers', items: [['payments', 'Plan requests', 'receipt'], ['subscriptions', 'Subscriptions', 'card'], ['users', 'Users', 'users']] },
   { group: 'Money', items: [['plans', 'Plans & pricing', 'chart'], ['methods', 'QR & payment methods', 'qr']] },
-  { group: 'Platform', items: [['apps', 'Apps & data', 'grid'], ['hosting', 'Addresses', 'globe'], ['links', 'Short links', 'link']] },
+  { group: 'Platform', items: [['creations', 'Apps made', 'blocks'], ['apps', 'Apps & data', 'grid'], ['hosting', 'Addresses', 'globe'], ['links', 'Short links', 'link']] },
   { group: 'Operations', items: [['support', 'Support', 'help'], ['audit', 'Audit log', 'audit'], ['settings', 'Settings', 'settings']] },
 ];
-const TITLES: Record<NavKey, string> = { overview: 'Overview', analytics: 'Analytics', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', plans: 'Plans & pricing', apps: 'Apps & data', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
+const TITLES: Record<NavKey, string> = { overview: 'Overview', analytics: 'Analytics', creations: 'Apps made', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', plans: 'Plans & pricing', apps: 'Apps & data', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
 
 export function AdminPage({ section, sub }: { section: string; sub?: string }) {
   const { user, refresh } = useSession();
@@ -85,6 +85,7 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
         <main className="adm-body">
           {cur === 'overview' && <Overview />}
           {cur === 'analytics' && <SiteAnalytics />}
+          {cur === 'creations' && <Creations />}
           {cur === 'users' && (sub ? <UserDetail id={sub} /> : <Users />)}
           {cur === 'payments' && (sub ? <PaymentDetail id={sub} onChanged={loadCounts} /> : <Payments />)}
           {cur === 'subscriptions' && <Subscriptions />}
@@ -174,7 +175,6 @@ function Lines({ a, b, labelA, labelB }: { a: { day: string; n: number }[]; b: {
 }
 
 function Overview() {
-  const { user: me } = useSession();
   const [o, setO] = useState<OverviewT | null>(null);
   useEffect(() => { get<OverviewT>('/api/admin/overview').then(setO, () => {}); }, []);
   if (!o) return <div className="dash-skel"><div className="acc-skel sm" /><div className="acc-skel" /></div>;
@@ -183,13 +183,6 @@ function Overview() {
   return (
     <div className="dash">
       <Head title="Overview" lede={`Today, ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`} />
-      {!me.twoFactor && (
-        <div className="adm-alert" role="note">
-          <Icon name="shield" size={16} />
-          <p><b>Turn on two-step sign-in.</b> A super admin can see and change everything; a code from your phone keeps a stolen password from being enough.</p>
-          <Link to="/account/security" className="btn sm">Turn it on</Link>
-        </div>
-      )}
 
       <section className="kpi-strip" aria-label="Key numbers">
         <div className="kpi2">
@@ -1499,4 +1492,81 @@ function PeriodDelta({ now, before, days }: { now: number; before: number; days:
   const d = now - before;
   const pct = before ? Math.round((d / before) * 100) : null;
   return <span className={`kd ${d > 0 ? 'up' : d < 0 ? 'down' : 'flat'}`}>{d > 0 ? '+' : d < 0 ? '−' : ''}{Math.abs(d).toLocaleString('en-IN')}{pct !== null && d !== 0 ? ` (${d > 0 ? '+' : '−'}${Math.abs(pct)}%)` : ''} vs previous {days === 1 ? 'day' : `${days} days`}</span>;
+}
+
+/* ---------------- Apps made: what people build on Jhino, and how ---------------- */
+interface CreationsT {
+  days: number;
+  series: { day: string; built: number; html: number; zip: number; builds: number }[];
+  total: { apps: number; live: number; trash: number; versions: number; kinds: Record<string, number> };
+  period: { apps: number; builds: number; makers: number; kinds: Record<string, number> };
+  previous: { apps: number; builds: number };
+  creators: { id: string; name: string; username: string | null; email: string; apps: number; builds: number }[];
+  recent: { id: string; name: string; kind: string; createdAt: string; deletedAt: string | null; owner: string; username: string | null; versions: number }[];
+}
+const KIND_NAME: Record<string, string> = { built: 'Create app', html: 'HTML upload', zip: 'ZIP upload' };
+
+function Creations() {
+  const [days, setDays] = useState(30);
+  const [d, setD] = useState<CreationsT | null>(null);
+  useEffect(() => { setD(null); get<CreationsT>(`/api/admin/creations?days=${days}`).then(setD, () => {}); }, [days]);
+  const k = (o: Record<string, number>, key: string) => (o[key] ?? 0).toLocaleString('en-IN');
+  return (
+    <div className="dash">
+      <Head title="Apps made" lede="Every app people create on Jhino, and how: built with Create app, or uploaded as HTML or a ZIP. Each later publish counts as a build."
+        actions={<div className="seg range" role="group" aria-label="Range">{[7, 30, 90, 365].map((n) => <button key={n} aria-pressed={days === n} onClick={() => setDays(n)}>{n === 365 ? '1 year' : `${n} days`}</button>)}</div>} />
+      {!d ? <div className="acc-skel" /> : (
+        <>
+          <section className="kpi-strip" aria-label="In this period">
+            <div className="kpi2"><p className="k-l">New apps</p><p className="k-v mono">{d.period.apps.toLocaleString('en-IN')}</p><PeriodDelta now={d.period.apps} before={d.previous.apps} days={d.days} /></div>
+            <div className="kpi2"><p className="k-l">Builds and updates</p><p className="k-v mono">{d.period.builds.toLocaleString('en-IN')}</p><PeriodDelta now={d.period.builds} before={d.previous.builds} days={d.days} /></div>
+            <div className="kpi2"><p className="k-l">Made with Create app</p><p className="k-v mono">{k(d.period.kinds, 'built')}</p><p className="k-s">{k(d.period.kinds, 'html')} HTML · {k(d.period.kinds, 'zip')} ZIP uploads</p></div>
+            <div className="kpi2"><p className="k-l">People making apps</p><p className="k-v mono">{d.period.makers.toLocaleString('en-IN')}</p><p className="k-s">in this period</p></div>
+          </section>
+
+          <div className="dash-grid">
+            <section className="dpanel span2">
+              <div className="panel-h"><h2>New apps and builds</h2></div>
+              <Lines a={d.series.map((x) => ({ day: x.day, n: x.built + x.html + x.zip }))} b={d.series.map((x) => ({ day: x.day, n: x.builds }))} labelA="New apps" labelB="Builds and updates" />
+            </section>
+            <section className="dpanel">
+              <div className="panel-h"><h2>All time</h2></div>
+              <dl className="facts">
+                <div><dt>Apps made</dt><dd className="mono">{d.total.apps.toLocaleString('en-IN')}</dd></div>
+                <div><dt>Live now</dt><dd className="mono">{d.total.live.toLocaleString('en-IN')}</dd></div>
+                <div><dt>In trash</dt><dd className="mono">{d.total.trash.toLocaleString('en-IN')}</dd></div>
+                <div><dt>Builds and updates</dt><dd className="mono">{d.total.versions.toLocaleString('en-IN')}</dd></div>
+                <div><dt>Create app</dt><dd className="mono">{k(d.total.kinds, 'built')}</dd></div>
+                <div><dt>HTML uploads</dt><dd className="mono">{k(d.total.kinds, 'html')}</dd></div>
+                <div><dt>ZIP uploads</dt><dd className="mono">{k(d.total.kinds, 'zip')}</dd></div>
+              </dl>
+            </section>
+
+            <section className="dpanel">
+              <div className="panel-h"><h2>Who makes the most</h2></div>
+              {!d.creators.length ? <p className="muted small">No apps made in this period.</p> : (
+                <table className="adm-table"><thead><tr><th>Person</th><th className="num">Apps</th><th className="num">Builds</th></tr></thead>
+                  <tbody>{d.creators.map((c) => <tr key={c.id}><td><Link to={`/admin/users/${c.id}`} className="link">{c.name}</Link>{c.username && <small className="muted"> @{c.username}</small>}</td><td className="num mono">{c.apps}</td><td className="num mono">{c.builds}</td></tr>)}</tbody></table>
+              )}
+            </section>
+            <section className="dpanel span2">
+              <div className="panel-h"><h2>Latest apps</h2><Link to="/admin/apps" className="link small">All apps</Link></div>
+              <table className="adm-table">
+                <thead><tr><th>App</th><th>Made with</th><th>By</th><th className="num">Versions</th><th>Made</th></tr></thead>
+                <tbody>{d.recent.map((a) => (
+                  <tr key={a.id}>
+                    <td><Link to={`/admin/apps/${a.id}`} className="link">{a.name}</Link>{a.deletedAt && <small className="muted"> · in trash</small>}</td>
+                    <td className="small">{KIND_NAME[a.kind] ?? a.kind}</td>
+                    <td className="small">{a.owner}{a.username && <span className="muted"> @{a.username}</span>}</td>
+                    <td className="num mono">{a.versions}</td>
+                    <td className="small muted">{ago(a.createdAt)}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </section>
+          </div>
+        </>
+      )}
+    </div>
+  );
 }

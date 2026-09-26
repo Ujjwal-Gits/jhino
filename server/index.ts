@@ -26,7 +26,7 @@ import { startPlanNotices } from './plans.js';
 import { startBookingReminders } from './booking.js';
 import { limit } from './security.js';
 import { trustHop } from './clientip.js';
-import { registerSiteAnalytics } from './analytics.js';
+import { registerCreations, registerSiteAnalytics } from './analytics.js';
 import { startAutoBackups } from './autobackup.js';
 import { closeAllStreams } from './realtime.js';
 import { stopVideo } from './video.js';
@@ -87,6 +87,7 @@ registerLinks(app);
 registerUsernames(app);
 registerProfiles(app);
 registerSiteAnalytics(app);
+registerCreations(app);
 
 // Search engines: the website is public; dashboards, apps, links and the API are not for indexing.
 app.get('/robots.txt', async (req, reply) => {

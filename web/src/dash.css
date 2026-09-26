@@ -458,10 +458,6 @@ details.adv[open] { display: grid; gap: 12px; }
   .mp-form .actions-row .danger { grid-column: 1 / -1; }
 }
 .code-input { font-size: 22px; letter-spacing: 0.4em; text-align: center; height: 52px; }
-.adm-alert { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 18px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--signal) 35%, var(--rule)); border-radius: var(--r-lg); background: color-mix(in srgb, var(--signal) 6%, var(--paper)); }
-.adm-alert p { margin: 0; flex: 1 1 280px; font-size: 13.5px; color: var(--ink-2); }
-.adm-alert b { color: var(--ink); }
-.adm-alert > .svg { color: var(--signal); flex: none; }
 
 /* ---------- Analytics: the live panel ---------- */
 .live-panel { display: grid; grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1fr) minmax(0, 1.2fr); border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); margin-bottom: 18px; }

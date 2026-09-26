@@ -196,3 +196,38 @@ export function registerSiteAnalytics(app: FastifyInstance) {
     };
   });
 }
+
+/* ---------------- Super Admin: apps made on Jhino ---------------- */
+// How an app was made, from its first version: built with Create app, an uploaded HTML file, or a ZIP.
+const KIND = `CASE WHEN v.builder IS NOT NULL THEN 'built' WHEN lower(v.source_name) LIKE '%.zip' THEN 'zip' ELSE 'html' END`;
+
+export function registerCreations(app: FastifyInstance) {
+  app.get('/api/admin/creations', async (req) => {
+    requireAdmin(req);
+    const days = Math.max(1, Math.min(365, Number((req.query as { days?: string }).days) || 30));
+    const from = day(days - 1), pFrom = day(days * 2 - 1), pTo = day(days);
+    const first = `SELECT a.id, a.name, a.owner_id, a.created_at, a.deleted_at, ${KIND} kind FROM apps a JOIN app_versions v ON v.app_id=a.id AND v.n=1`;
+    const kinds = (sql: string, ...args: unknown[]) => Object.fromEntries((db.prepare(`SELECT kind, COUNT(*) n FROM (${first}) ${sql} GROUP BY kind`).all(...args) as { kind: string; n: number }[]).map((r) => [r.kind, r.n]));
+    const count = (sql: string, ...args: unknown[]) => (db.prepare(sql).get(...args) as { n: number }).n;
+    const perDay = new Map((db.prepare(`SELECT substr(created_at,1,10) d, kind, COUNT(*) n FROM (${first}) WHERE created_at >= ? GROUP BY d, kind`).all(from) as { d: string; kind: string; n: number }[])
+      .reduce((m, r) => m.set(r.d, { ...(m.get(r.d) ?? {}), [r.kind]: r.n }), new Map<string, Record<string, number>>()));
+    const buildsPerDay = new Map((db.prepare('SELECT substr(created_at,1,10) d, COUNT(*) n FROM app_versions WHERE created_at >= ? GROUP BY d').all(from) as { d: string; n: number }[]).map((r) => [r.d, r.n]));
+    const series = Array.from({ length: days }, (_, i) => {
+      const d = day(days - 1 - i); const k = perDay.get(d) ?? {};
+      return { day: d, built: k.built ?? 0, html: k.html ?? 0, zip: k.zip ?? 0, builds: buildsPerDay.get(d) ?? 0 };
+    });
+    const creators = db.prepare(`SELECT u.id, u.name, u.username, u.email, COUNT(DISTINCT a.id) apps,
+        (SELECT COUNT(*) FROM app_versions v JOIN apps x ON x.id=v.app_id WHERE x.owner_id=u.id AND v.created_at >= ?) builds
+      FROM apps a JOIN users u ON u.id=a.owner_id WHERE a.created_at >= ? GROUP BY u.id ORDER BY apps DESC, builds DESC LIMIT 10`).all(from, from);
+    const recent = db.prepare(`SELECT f.id, f.name, f.kind, f.created_at createdAt, f.deleted_at deletedAt, u.name owner, u.username,
+        (SELECT COUNT(*) FROM app_versions WHERE app_id=f.id) versions FROM (${first}) f JOIN users u ON u.id=f.owner_id ORDER BY f.created_at DESC LIMIT 25`).all();
+    return {
+      days, series, creators, recent,
+      total: { apps: count('SELECT COUNT(*) n FROM apps'), live: count('SELECT COUNT(*) n FROM apps WHERE deleted_at IS NULL'), trash: count('SELECT COUNT(*) n FROM apps WHERE deleted_at IS NOT NULL'),
+        versions: count('SELECT COUNT(*) n FROM app_versions'), kinds: kinds('') },
+      period: { apps: count('SELECT COUNT(*) n FROM apps WHERE created_at >= ?', from), builds: count('SELECT COUNT(*) n FROM app_versions WHERE created_at >= ?', from), kinds: kinds('WHERE created_at >= ?', from),
+        makers: count('SELECT COUNT(DISTINCT owner_id) n FROM apps WHERE created_at >= ?', from) },
+      previous: { apps: count('SELECT COUNT(*) n FROM apps WHERE created_at >= ? AND created_at < ?', pFrom, from), builds: count('SELECT COUNT(*) n FROM app_versions WHERE created_at >= ? AND created_at < ?', pFrom, from) },
+    };
+  });
+}
