@@ -606,13 +606,19 @@ export function TermsPage({ signedIn }: { signedIn: boolean }) {
 
 export function PrivacyPage({ signedIn }: { signedIn: boolean }) {
   return (
-    <LegalPage title="Privacy Policy" updated="25 September 2026" signedIn={signedIn}>
+    <LegalPage title="Privacy Policy" updated="26 September 2026" signedIn={signedIn}>
       <h2>What we keep</h2>
       <p>Your name, email, the profile details you choose to add, your apps and the data saved in them, payment records (amount, plan, reference and the screenshot you upload), and security records such as sign-in times, device type and IP address.</p>
       <h2>Why</h2>
       <p>To run your account and your apps, to verify payments, to keep accounts safe (for example to warn you about a new sign-in), and to answer you when you write to us. We do not sell your data and we do not show ads.</p>
+      <h2>Visits and cookies</h2>
+      <p>We count visits to Jhino pages and apps (which page, the country, the kind of device and browser, and the site you came from) to see what is used. A visitor is counted with a code that changes every day, so we cannot follow anyone from one day to the next, and these counts store no IP address. We use no advertising or tracking cookies: only the cookies that keep you signed in and protect forms, which Jhino needs to work.</p>
       <h2>Who sees it</h2>
       <p>The people you share an app with see that app and what is saved in it. Our administrators can see account and payment records to support you and verify payments; they never see your password. Payment screenshots are private to you and our administrators.</p>
+      <h2>Services we use</h2>
+      <p>Jhino runs on our own server with Hostinger (in India). Cloudflare delivers the site and protects it from attacks, so your requests pass through it. Resend sends our emails (such as your sign-in codes). Each only handles what it needs for that job.</p>
+      <h2>Backups and how long we keep things</h2>
+      <p>We back up Jhino every day and keep those copies for 30 days, and the server is backed up weekly, so your work survives an outage. Security records (sign-ins, codes and emails sent) are kept for your account's safety; email contents are cleared after 14 days. Messages you send us through Help are kept to answer you and to keep a record of support.</p>
       <h2>Emails</h2>
       <p>Security and account emails (verification, password reset, sign-in alerts) are always sent. Product news and marketing are off unless you turn them on in Account → Notifications.</p>
       <h2>Your choices</h2>

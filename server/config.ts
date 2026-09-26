@@ -64,7 +64,9 @@ export const config = {
   // Backups (npm run backup). Defaults to a folder inside the data volume, never the app folder.
   backupDir: path.resolve(ROOT, env.BACKUP_DIR || path.join(dataDir, 'backups')),
   publicUrl,
-  cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === '1' : publicUrl.startsWith('https://'),
+  // Secure cookies and HSTS: on with an https PUBLIC_URL (or COOKIE_SECURE=1/true/yes/on); off only when COOKIE_SECURE says so.
+  cookieSecure: ['0', 'false', 'no', 'off'].includes((env.COOKIE_SECURE ?? '').trim().toLowerCase()) ? false
+    : ['1', 'true', 'yes', 'on'].includes((env.COOKIE_SECURE ?? '').trim().toLowerCase()) || publicUrl.startsWith('https://'),
   isProd: env.NODE_ENV === 'production',
   admin: {
     email: env.ADMIN_EMAIL || 'admin@jhino.local',
