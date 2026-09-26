@@ -9,7 +9,9 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   workers: 1,
   fullyParallel: false,
-  reporter: [['list']],
+  // On GitHub: failures show as notes on the run, and a test gets one retry (its machines are slower).
+  reporter: process.env.CI ? [['list'], ['github']] : [['list']],
+  retries: process.env.CI ? 1 : 0,
   use: { baseURL: `http://127.0.0.1:${PORT}`, viewport: { width: 1280, height: 820 } },
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },
