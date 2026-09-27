@@ -537,7 +537,10 @@
       return function () { kvListeners = kvListeners.filter(function (x) { return x !== fn; }); };
     },
     /** Everyone who can open this app: [{ id, name, role }] */
-    people: function () { return req('people').then(function (r) { return r.people; }); },
+    people: function (opts) {
+      var all = !!(opts && opts.includeFormer);
+      return req('people', { former: all }).then(function (r) { return all ? r.people.concat(r.former || []) : r.people; });
+    },
     /** Who did what in this app: list({ limit, before }) -> { activity, seen, me }; seen(id); subscribe(fn). */
     activity: Object.freeze({
       list: function (opts) { opts = opts || {}; return req('activity.list', { limit: opts.limit, before: opts.before }); },

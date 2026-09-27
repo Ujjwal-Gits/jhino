@@ -367,7 +367,15 @@ export function registerApps(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     access(req, id);
     const rows = db.prepare(`SELECT u.id, u.name, u.username, m.role, u.kind='visitor' guest FROM memberships m JOIN users u ON u.id=m.user_id JOIN apps a ON a.id=m.app_id WHERE m.app_id=? AND u.disabled=0 AND (u.kind='person' OR (u.kind='visitor' AND u.id <> COALESCE(a.visitor_id,''))) ORDER BY u.name`).all(id) as { guest: number }[];
-    return { people: rows.map((p) => ({ ...p, guest: !!p.guest })) };
+    const people = rows.map((p) => ({ ...p, guest: !!p.guest }));
+    if ((req.query as { former?: string }).former !== '1') return { people };
+    // Everyone who added or changed something here but is no longer in the app, so every item keeps a name.
+    // Visits from before guests gave their name all used one shared account: it reads "Link visitor".
+    const former = db.prepare(`SELECT DISTINCT u.id, u.name, u.username, u.kind, u.id = COALESCE(a.visitor_id,'') linkVisitor
+      FROM (SELECT created_by uid FROM records WHERE app_id=@app UNION SELECT updated_by FROM records WHERE app_id=@app) x
+      JOIN users u ON u.id=x.uid JOIN apps a ON a.id=@app
+      WHERE NOT EXISTS (SELECT 1 FROM memberships m WHERE m.app_id=@app AND m.user_id=u.id) LIMIT 1000`).all({ app: id }) as { id: string; name: string; username: string | null; kind: string; linkVisitor: number }[];
+    return { people, former: former.map((p) => ({ id: p.id, name: p.linkVisitor ? 'Link visitor' : p.name, username: p.username, guest: p.kind === 'visitor', former: true })) };
   });
 
   /**

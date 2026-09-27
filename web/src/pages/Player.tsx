@@ -95,7 +95,7 @@ class Bridge {
           return await api('PUT', `${base}/kv`, { ns: a.ns, scope: a.scope === 'private' ? 'private' : 'shared', key: a.key, value: a.value, baseRev: Number(a.baseRev) || 0 });
         }
         case 'kv.snapshot': return await get(`${base}/kv`);
-        case 'people': return await get(`${base}/people`);
+        case 'people': return await get(`${base}/people${a.former ? '?former=1' : ''}`);
         case 'files.list': return await get(`${base}/files`);
         case 'activity.list': {
           const q = new URLSearchParams();

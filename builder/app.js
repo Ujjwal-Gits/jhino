@@ -354,7 +354,7 @@
     return btn;
   }
   const selectOptions = (f) => (f.options || []).map((v, i) => ({ value: v, label: optLabel(f, v), tone: i % 8 }));
-  const peopleOptions = () => S.people.map((p) => ({ value: p.id, label: p.name + (p.id === S.me.id ? ' (you)' : ''), person: true, hint: p.username ? '@' + p.username : p.guest ? 'Guest' : undefined }));
+  const peopleOptions = () => S.people.filter((p) => !p.former).map((p) => ({ value: p.id, label: p.name + (p.id === S.me.id ? ' (you)' : ''), person: true, hint: p.username ? '@' + p.username : p.guest ? 'Guest' : undefined }));
 
   /** A month calendar in a popover for picking a date (BS with AD in the corner). */
   function datePicker(o) {
@@ -398,7 +398,7 @@
     return {
       ready: () => J.ready(),
       me: () => J.me(),
-      people: () => J.people(),
+      people: () => J.people({ includeFormer: true }),
       async list(col) {
         const all = []; let after;
         do { const p = await J.data.list(col, { limit: 500, after }); all.push(...p.items); after = p.next; } while (after && all.length < 20000);
@@ -573,8 +573,8 @@
   function byLine(r, cls) {
     if (!r || !r.createdBy) return null;
     const p = person(r.createdBy), mine = r.createdBy === S.me.id;
-    return h('small', { class: 'rec-by' + (cls ? ' ' + cls : ''), title: 'Added by ' + (mine ? 'you' : nameOf(r.createdBy, 'someone')) + ', ' + new Date(r.createdAt).toLocaleString() }, 'Added by ',
-      mine ? 'you' : p ? [h('span', { class: 't-name', text: p.name }), p.username ? h('span', { class: 'uname', text: ' @' + p.username }) : null] : 'someone',
+    return h('small', { class: 'rec-by' + (cls ? ' ' + cls : ''), title: 'Added by ' + nameOf(r.createdBy, 'a former member') + ', ' + new Date(r.createdAt).toLocaleString() }, 'Added by ',
+      p ? [h('span', { class: 't-name', text: p.name }), p.username ? h('span', { class: 'uname', text: ' @' + p.username }) : null, mine ? h('span', { class: 'uname', text: ' (you)' }) : null] : 'a former member',
       ' · ' + ago(r.createdAt));
   }
   /**
@@ -596,7 +596,7 @@
     const f = fieldOf(b, b.titleField);
     const v = r.data[b.titleField];
     if (f && f.type === 'date') return fmtDate(v);
-    if (f && f.type === 'user') return (person(v) || {}).name || 'Someone';
+    if (f && f.type === 'user') return (person(v) || {}).name || 'A former member';
     return v ? String(v) : 'Untitled';
   };
 
@@ -1118,11 +1118,11 @@
     const b = d.block, rec = d.rec;
     const readOnly = rec ? !canChange(b, rec) : !canCreate(b);
     const heading = rec ? titleOf(b, rec) : 'New ' + (b.item || singular(b.title));
-    const sub = rec ? 'Added by ' + nameOf(rec.createdBy, 'someone') + ', ' + ago(rec.createdAt) + (rec.updatedAt !== rec.createdAt ? ' · updated ' + ago(rec.updatedAt) : '') : null;
+    const sub = rec ? 'Added by ' + nameOf(rec.createdBy, 'a former member') + ', ' + ago(rec.createdAt) + (rec.updatedAt !== rec.createdAt ? ' · updated ' + ago(rec.updatedAt) : '') : null;
     const body = h('div', { class: 'drawer-b' });
     if (d.gone) body.appendChild(h('div', { class: 'notice warn' }, h('span', { class: 'grow', text: 'Someone deleted this item.' })));
     if (d.stale) {
-      const by = nameOf(d.stale.updatedBy, 'Someone');
+      const by = nameOf(d.stale.updatedBy, 'A former member');
       body.appendChild(h('div', { class: 'notice warn' },
         h('span', { class: 'grow', text: by + ' changed this while you were editing. Your text is kept.' }),
         h('button', { class: 'btn sm', onClick: () => { d.rec = d.stale; d.draft = JSON.parse(JSON.stringify(d.stale.data)); d.stale = null; d.dirty = false; renderDrawer(); } }, 'Load theirs')));
@@ -1431,7 +1431,7 @@
     const hero = heroFieldOf(b);
     const statusKey = b.boardField || (b.workflow && b.workflow.field) || (fieldOf(b, 'status') ? 'status' : null);
     const statusF = statusKey ? fieldOf(b, statusKey) : null;
-    const by = (id) => nameOf(id, 'someone');
+    const by = (id) => nameOf(id, 'a former member');
     if (S.solo) API.setTitle(titleOf(b, rec));
     const top = S.solo ? soloBar(b, rec) : h('div', { class: 'ip-top' },
       h('button', { class: 'btn ghost sm', onClick: () => go(b.id) }, icon('chevL', 15), b.title),
@@ -2824,7 +2824,7 @@
         h('button', { class: 'btn sm', onClick: () => { docState = null; renderMain(); } }, 'Load theirs'),
         h('button', { class: 'btn sm primary', onClick: () => { const fresh = col(b.id).byId.get(r.id); st.rev = fresh ? fresh.revision : st.rev; st.conflict = null; st.save(); } }, 'Keep mine')) : null,
       h('input', { class: 'doc-title', value: st.title, disabled: !can, 'aria-label': 'Title', 'data-keep': 'doc-title', onInput: (e) => { st.title = e.target.value; schedule(); const li = main.querySelector('.doc-item[data-rec="' + r.id + '"] .doc-item-t b'); if (li) li.textContent = st.title || 'Untitled'; } }),
-      h('p', { class: 'doc-by muted', text: 'Written by ' + nameOf(r.createdBy, 'someone') + ', ' + ago(r.createdAt) + (r.updatedAt !== r.createdAt ? ' · last change by ' + nameOf(r.updatedBy, 'someone') + ', ' + ago(r.updatedAt) : '') }),
+      h('p', { class: 'doc-by muted', text: 'Written by ' + nameOf(r.createdBy, 'a former member') + ', ' + ago(r.createdAt) + (r.updatedAt !== r.createdAt ? ' · last change by ' + nameOf(r.updatedBy, 'a former member') + ', ' + ago(r.updatedAt) : '') }),
       meta.children.length ? meta : null,
       approval,
       body,
@@ -2884,7 +2884,7 @@
         h('div', { class: 'feed' }, all.map((r) => {
           const img = r.data.image ? fileMeta(r.data.image) : null;
           return h('article', { class: 'post' + (r.data.pinned ? ' pinned' : '') },
-            h('div', { class: 'by' }, userChip(r.createdBy, true), nameTag(r.createdBy, 'Someone'), h('span', { text: ago(r.createdAt) }), r.data.pinned ? h('span', { class: 'badge b0', text: 'Pinned' }) : null,
+            h('div', { class: 'by' }, userChip(r.createdBy, true), nameTag(r.createdBy, 'A former member'), h('span', { text: ago(r.createdAt) }), r.data.pinned ? h('span', { class: 'badge b0', text: 'Pinned' }) : null,
               h('span', { style: { flex: 1 } }),
               canChange(b, r) ? h('button', { class: 'btn sm ghost', onClick: () => openDrawer(b, r) }, 'Edit') : null),
             h('h3', { text: r.data.title || '' }),
@@ -3035,7 +3035,7 @@
               return h('button', { class: 'opt' + (mine && mine.data.choice === i ? ' mine' : ''), disabled: closed || !canAdd(), onClick: () => vote(b, p, i, mine) },
                 h('i', { class: 'fill', style: { transform: 'scaleX(' + pct / 100 + ')' } }), h('span', { text: o }), h('b', { class: 'num', text: counts[i] + ' · ' + pct + '%' }));
             }),
-            h('p', { class: 'hint', text: total + (total === 1 ? ' vote' : ' votes') + (mine ? ' · you voted' : canAdd() && !closed ? ' · tap an option to vote' : '') + ' · asked by ' + nameOf(p.createdBy, 'someone') }));
+            h('p', { class: 'hint', text: total + (total === 1 ? ' vote' : ' votes') + (mine ? ' · you voted' : canAdd() && !closed ? ' · tap an option to vote' : '') + ' · asked by ' + nameOf(p.createdBy, 'a former member') }));
         })))];
   };
   async function vote(b, p, choice, mine) {
