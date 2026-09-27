@@ -577,19 +577,19 @@
       mine ? 'you' : p ? [h('span', { class: 't-name', text: p.name }), p.username ? h('span', { class: 'uname', text: ' @' + p.username }) : null] : 'someone',
       ' · ' + ago(r.createdAt));
   }
-  /** The owner of the app: the studio or agency side. */
-  const ownerPerson = () => S.people.find((p) => p.role === 'owner');
   /**
    * Choices that stand for the two sides ("Us" or "Agency", and "Client") read as the real names, so each
    * side sees who is meant: the studio's name and the client's. What is saved stays the same.
    */
   function optLabel(f, v) {
-    if (!f || !f.options || !v || !f.options.includes('Client') || !(f.options.includes('Us') || f.options.includes('Agency'))) return v;
+    if (!isSideField(f) || !v) return v;
     if (v === 'Client') return CFG.client || 'Client';
-    // A side, not a person: "Roshan's team", so it never reads as who added the item.
-    if (v === 'Us' || v === 'Agency') { const o = ownerPerson(); return o ? o.name + "'s team" : v; }
+    // A side, never a person's name: who added an item is shown by "Added by".
+    if (v === 'Us' || v === 'Agency') return 'Studio';
     return v;
   }
+  /** A choice between the two sides ("Us" or "Agency", and "Client"). */
+  function isSideField(f) { return !!(f && f.type === 'select' && f.options && f.options.includes('Client') && (f.options.includes('Us') || f.options.includes('Agency'))); }
   const blockById = (id) => (id === 'trash' ? TRASH : BLOCKS.find((b) => b.id === id));
   const fieldOf = (b, key) => (b.fields || []).find((f) => f.key === key);
   const titleOf = (b, r) => {
@@ -1088,6 +1088,9 @@
     (b.fields || []).forEach((f) => {
       if (f.default === 'today') d[f.key] = today();
       else if (f.default === 'me') d[f.key] = S.me.id;
+      // Which side something is for is chosen by the person, never filled in: an empty choice, sent as such
+      // so the app's saved default ("Us") is not applied either.
+      else if (isSideField(f)) d[f.key] = null;
       else if (f.default !== undefined) d[f.key] = f.default;
     });
     return Object.assign(d, prefill || {});
@@ -2009,7 +2012,8 @@
         content),
     ];
   };
-  function listFields(b) { return (b.fields || []).filter((f) => f.list).slice(0, 7); }
+  // Cards and rows show "Added by" for who it is from; the side choice stays in the item and the filter.
+  function listFields(b) { return (b.fields || []).filter((f) => f.list && !isSideField(f)).slice(0, 7); }
   function tableView(b, items) {
     const fields = listFields(b);
     const img = b.imageField && fieldOf(b, b.imageField);

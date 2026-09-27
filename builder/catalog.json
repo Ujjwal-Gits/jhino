@@ -1973,9 +1973,7 @@
           "options": [
             "Agency",
             "Client"
-          ],
-          "default": "Agency",
-          "list": true
+          ]
         },
         {
           "key": "image",
@@ -2368,9 +2366,7 @@
           "options": [
             "Us",
             "Client"
-          ],
-          "default": "Us",
-          "list": true
+          ]
         },
         {
           "key": "assignee",
