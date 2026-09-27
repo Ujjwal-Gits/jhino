@@ -135,7 +135,9 @@ export function Menu({ anchor, onClose, children }: { anchor: HTMLElement; onClo
     ref.current?.querySelector<HTMLButtonElement>('button')?.focus();
   }, [anchor]);
   useEffect(() => {
-    const down = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node) && !anchor.contains(e.target as Node)) onClose(); };
+    const down = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node) && !anchor.contains(e.target as Node)) onClose(); };
+    // A click inside an app's frame never reaches this page; it moves the focus into the frame instead.
+    const blur = () => setTimeout(() => { if (document.activeElement?.tagName === 'IFRAME') onClose(); }, 0);
     const key = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { onClose(); anchor.focus(); }
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -145,9 +147,10 @@ export function Menu({ anchor, onClose, children }: { anchor: HTMLElement; onClo
         e.preventDefault();
       }
     };
-    document.addEventListener('mousedown', down);
+    document.addEventListener('pointerdown', down);
     document.addEventListener('keydown', key);
-    return () => { document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key); };
+    window.addEventListener('blur', blur);
+    return () => { document.removeEventListener('pointerdown', down); document.removeEventListener('keydown', key); window.removeEventListener('blur', blur); };
   }, [anchor, onClose]);
   return <div className="menu" role="menu" ref={ref} style={pos} onClick={(e) => { if ((e.target as HTMLElement).closest('button')) onClose(); }}>{children}</div>;
 }
