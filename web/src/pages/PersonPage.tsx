@@ -59,7 +59,7 @@ function PublicProfile({ d }: { d: PublicResp }) {
 /** "Made with jhino" over a page made from the person's own HTML (it cannot go inside their sandbox). */
 function CustomBadge({ preview }: { preview?: boolean }) {
   return (
-    <a className="pf-custom-badge" href="/" target={preview ? '_blank' : undefined} rel="noopener" onClick={preview ? (e) => e.preventDefault() : undefined}>
+    <a className="pf-custom-badge" href="/" target={preview ? '_blank' : undefined} rel="noopener">
       <span>Made with</span><span className="pf-wordmark">jhino<i aria-hidden="true" /></span>
     </a>
   );

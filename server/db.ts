@@ -595,6 +595,10 @@ function ensureSchema() {
     add('users', 'totp_recovery', 'TEXT');
     // A Pro page can switch its "Made with jhino" badge off (plans.ts removeBranding).
     add('profiles', 'hide_branding', 'INTEGER NOT NULL DEFAULT 0');
+    // People who came in by a public or password link: signed-in people as themselves, others as a named
+    // guest for that one app (publicshare.ts). Removed again when the link is turned off or its password changes.
+    add('memberships', 'via_link', 'INTEGER NOT NULL DEFAULT 0');
+    add('pub_sessions', 'user_id', 'TEXT');
     db.exec('CREATE TABLE IF NOT EXISTS code_usage(user_id TEXT NOT NULL, day TEXT NOT NULL, issued INTEGER NOT NULL DEFAULT 0, wrong INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(user_id, day))');
   })();
 }

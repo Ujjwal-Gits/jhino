@@ -354,7 +354,7 @@
     return btn;
   }
   const selectOptions = (f) => (f.options || []).map((v, i) => ({ value: v, label: optLabel(f, v), tone: i % 8 }));
-  const peopleOptions = () => S.people.map((p) => ({ value: p.id, label: p.name + (p.id === S.me.id ? ' (you)' : ''), person: true, hint: p.username ? '@' + p.username : undefined }));
+  const peopleOptions = () => S.people.map((p) => ({ value: p.id, label: p.name + (p.id === S.me.id ? ' (you)' : ''), person: true, hint: p.username ? '@' + p.username : p.guest ? 'Guest' : undefined }));
 
   /** A month calendar in a popover for picking a date (BS with AD in the corner). */
   function datePicker(o) {
@@ -569,6 +569,14 @@
   const handleOf = (id, fallback) => { const p = person(id); if (!p) return fallback || ''; return p.username ? '@' + p.username : p.name; };
   /** The name in bold with the @username beside it, quieter. */
   const nameTag = (id, fallback) => { const p = person(id); return h('b', { class: 'pname' }, p ? p.name : (fallback || 'Former member'), p && p.username ? h('span', { class: 'uname', text: ' @' + p.username }) : null); };
+  /** "Added by Sita @sita · 2 h ago" ("you" for yourself), small, under an item's title. */
+  function byLine(r, cls) {
+    if (!r || !r.createdBy) return null;
+    const p = person(r.createdBy), mine = r.createdBy === S.me.id;
+    return h('small', { class: 'rec-by' + (cls ? ' ' + cls : ''), title: 'Added by ' + (mine ? 'you' : nameOf(r.createdBy, 'someone')) + ', ' + new Date(r.createdAt).toLocaleString() }, 'Added by ',
+      mine ? 'you' : p ? [h('span', { class: 't-name', text: p.name }), p.username ? h('span', { class: 'uname', text: ' @' + p.username }) : null] : 'someone',
+      ' · ' + ago(r.createdAt));
+  }
   /** The owner of the app: the studio or agency side. */
   const ownerPerson = () => S.people.find((p) => p.role === 'owner');
   /**
@@ -578,7 +586,8 @@
   function optLabel(f, v) {
     if (!f || !f.options || !v || !f.options.includes('Client') || !(f.options.includes('Us') || f.options.includes('Agency'))) return v;
     if (v === 'Client') return CFG.client || 'Client';
-    if (v === 'Us' || v === 'Agency') { const o = ownerPerson(); return o ? o.name : v; }
+    // A side, not a person: "Roshan's team", so it never reads as who added the item.
+    if (v === 'Us' || v === 'Agency') { const o = ownerPerson(); return o ? o.name + "'s team" : v; }
     return v;
   }
   const blockById = (id) => (id === 'trash' ? TRASH : BLOCKS.find((b) => b.id === id));
@@ -2015,7 +2024,7 @@
       h('thead', null, h('tr', null, h('th', { class: 'pick' }, h('input', { type: 'checkbox', checked: !!allOn, 'aria-label': 'Select all', onChange: (e) => { items.forEach((r) => (e.target.checked ? set.add(r.id) : set.delete(r.id))); renderMain(); } })),
         cols.map((f, i) => h('th', { class: (numeric(f) ? 'r ' : '') + (i > 2 ? 'hide-m' : ''), scope: 'col', text: f === img ? '' : f.label })))),
       h('tbody', null, items.map((r) => h('tr', { tabindex: '0', 'data-rec': r.id, class: set.has(r.id) ? 'on' : null, onClick: () => openRecord(b, r.id), onKeydown: (e) => { if (e.key === 'Enter') openRecord(b, r.id); } }, tick(r),
-        cols.map((f, i) => h('td', { class: (numeric(f) ? 'r ' : '') + (i > 2 ? 'hide-m' : '') }, f.key === b.titleField ? [h('b', { style: { fontWeight: 560 } }, display(b, f, r)), commentCount(b, r)] : display(b, f, r)))))),
+        cols.map((f, i) => h('td', { class: (numeric(f) ? 'r ' : '') + (i > 2 ? 'hide-m' : '') }, f.key === b.titleField ? [h('b', { style: { fontWeight: 560 } }, display(b, f, r)), commentCount(b, r), byLine(r)] : display(b, f, r)))))),
       foot))];
   }
   function cardsView(b, items) {
@@ -2028,7 +2037,7 @@
       return h('button', { class: 'card', onClick: open },
         vlink ? h('div', { class: 'cover vcover' }, ytId(vlink) ? h('img', { src: 'https://i.ytimg.com/vi/' + ytId(vlink) + '/hqdefault.jpg', alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }) : h('span', { class: 'vhost', text: hostOf(vlink) }), h('span', { class: 'play' }, h('span', null, icon('play', 18)))) : null,
         fm ? h('div', { class: 'cover' }, isImage(fm) ? h('img', { src: fm.url, alt: '', loading: 'lazy' }) : isVideo(fm) ? videoThumb(fm, 'fill') : icon('file', 28), procBadge(fm)) : null,
-        h('div', { class: 'cb' }, h('h4', null, titleOf(b, r), commentCount(b, r)),
+        h('div', { class: 'cb' }, h('h4', null, titleOf(b, r), commentCount(b, r)), byLine(r),
           link ? h('a', { href: link, target: '_blank', rel: 'noopener', onClick: (e) => e.stopPropagation(), class: 'muted', style: { fontSize: '12.5px', display: 'inline-flex', gap: '5px', alignItems: 'center' } }, icon('external', 13), link.replace(/^https?:\/\/(www\.)?/, '').slice(0, 36)) : null,
           h('div', { class: 'meta' }, fields.map((f) => display(b, f, r)))));
     }));
@@ -2052,7 +2061,7 @@
             onDragstart: (e) => { S.dragId = r.id; e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', r.id); } catch (err) { /* ignore */ } e.currentTarget.classList.add('dragging'); },
             onDragend: (e) => { e.currentTarget.classList.remove('dragging'); S.dragId = null; if (S.redrawAfterDrag) { S.redrawAfterDrag = false; renderMain(); } },
           }, fm && isImage(fm) ? h('img', { src: fm.url, alt: '', loading: 'lazy' }) : fm && isVideo(fm) ? videoThumb(fm, 'fill tile-v') : null,
-          h('b', null, titleOf(b, r), commentCount(b, r)), h('div', { class: 'meta' }, meta.map((x) => display(b, x, r))));
+          h('b', null, titleOf(b, r), commentCount(b, r)), byLine(r), h('div', { class: 'meta' }, meta.map((x) => display(b, x, r))));
         }),
         canCreate(b) ? quickAdder(b, { [b.boardField]: lane }, 'Add') : null);
       colEl.addEventListener('dragover', (e) => { if (S.dragId) { e.preventDefault(); colEl.classList.add('drop'); } });
@@ -2920,10 +2929,7 @@
         title.addEventListener('click', rename);
         title.addEventListener('keydown', (e) => { if (e.key === 'Enter') rename(); });
       }
-      const addedBy = r.createdBy === S.me.id ? 'you' : nameOf(r.createdBy, 'someone');
-      const by = h('small', { class: 't-by', title: 'Added by ' + addedBy + ', ' + new Date(r.createdAt).toLocaleString() }, 'Added by ',
-        r.createdBy === S.me.id ? 'you' : person(r.createdBy) ? [h('span', { class: 't-name', text: person(r.createdBy).name }), person(r.createdBy).username ? h('span', { class: 'uname', text: ' @' + person(r.createdBy).username }) : null] : 'someone',
-        ' · ' + ago(r.createdAt));
+      const by = byLine(r, 't-by');
       return h('div', { class: 'check-row' + (r.data.done ? ' done' : ''), 'data-rec': r.id },
         h('input', { type: 'checkbox', checked: !!r.data.done, disabled: !can, 'aria-label': 'Done: ' + (r.data.title || ''), onChange: (e) => quickSet(b, r, 'done', e.target.checked, e.target.checked ? 'Done' : 'Opened again') }),
         h('span', { class: 't-wrap' }, title, by),

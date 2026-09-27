@@ -9,6 +9,7 @@ import { DetailsPanel } from './Details';
 import { SANDBOX } from '../sandbox';
 import { standalone } from '../install';
 import { InstallSheet, clearInstallFlag, hasInstallFlag, useCanPrompt, useInstallable } from './Install';
+import { PublicApp } from './PublicApp';
 
 /** The app as one .html file: open it, sign in once, and it works live with everyone (while online). */
 export async function downloadHtml(appId: string): Promise<string | null> {
@@ -152,12 +153,14 @@ const mb = (n: number) => (n >= 1073741824 ? (n / 1073741824).toFixed(2) + ' GB'
  * The Jhino page around an app. With `solo`, it is the "open in a new tab" view of one item:
  * the item fills the tab, with no Jhino bar and none of the app's menus.
  */
-export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visitor?: { name: string; showBar: boolean } }) {
+export function Player({ id, solo, visitor, noFallback }: { id: string; solo?: boolean; visitor?: { name: string; showBar: boolean }; noFallback?: boolean }) {
   const { user, refresh } = useSession();
   const { go } = useRoute();
   const toast = useToast();
   const [app, setApp] = useState<AppDetail | null>(null);
   const [fatal, setFatal] = useState<{ title: string; text: string } | null>(null);
+  // Not a member (a copied /apps/<id> link): open it the way its share link does (password, name, or join as yourself).
+  const [byLink, setByLink] = useState(false);
   const [run, setRun] = useState<Run | null>(null);
   const [sync, setSync] = useState<Sync>('saved');
   const [online, setOnline] = useState(true);
@@ -226,6 +229,7 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
       } catch (e) {
         if (!alive) return;
         const err = e as ApiError;
+        if (err.status === 404 && !visitor && !solo && !noFallback) { setByLink(true); return; }
         setFatal(err.status === 404
           ? { title: 'App not found', text: 'This app does not exist, or it is not shared with you.' }
           : err.code === 'IN_TRASH'
@@ -373,7 +377,9 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
       : sync === 'retry' ? <><span className="dot warn" />Retrying</>
         : <><span className="dot ok" />Saved</>;
 
+  if (byLink) return <PublicApp refId={id} signedInUser={user.id === 'visitor' ? null : user} />;
   if (fatal) {
+
     return (
       <main className="state-card">
         <h2>{fatal.title}</h2>

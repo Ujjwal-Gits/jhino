@@ -54,7 +54,7 @@ function versionRow(appId: string, n: number) {
 }
 
 function appSummary(a: AppRow, userId: string) {
-  const members = db.prepare(`SELECT u.id, u.name, m.role FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.kind='person' ORDER BY m.added_at`).all(a.id) as { id: string; name: string; role: Role }[];
+  const members = db.prepare(`SELECT u.id, u.name, m.role FROM memberships m JOIN users u ON u.id=m.user_id JOIN apps a ON a.id=m.app_id WHERE m.app_id=? AND (u.kind='person' OR (u.kind='visitor' AND u.id <> COALESCE(a.visitor_id,''))) ORDER BY m.added_at`).all(a.id) as { id: string; name: string; role: Role }[];
   const v = versionRow(a.id, a.live_version) as (ReturnType<typeof versionRow> & { builder?: string | null }) | undefined;
   const last = db.prepare(`SELECT a.action, a.at, u.name FROM activity a LEFT JOIN users u ON u.id=a.user_id WHERE a.app_id=? ORDER BY a.id DESC LIMIT 1`).get(a.id) as { action: string; at: string; name: string | null } | undefined;
   // For created apps: who it is for, their colour and whether there is a logo (served by /api/apps/:id/logo).
@@ -230,8 +230,9 @@ export function registerApps(app: FastifyInstance) {
     const { user, app: a, role } = access(req, id);
     const s = appSummary(a, user.id);
     if (req.pub) return { app: { ...s, members: [], versions: [], ownerId: '', privateKeys: [], storage: undefined } };
-    const members = (db.prepare(`SELECT u.id, u.name, u.email, m.role, u.created_by, u.is_admin FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.kind='person' ORDER BY m.role='owner' DESC, m.added_at`).all(id) as any[])
-      .map(({ created_by, is_admin, ...m }) => ({ ...m, madeByMe: role === 'owner' && created_by === user.id && !is_admin }));
+    const members = (db.prepare(`SELECT u.id, u.name, u.email, u.username, u.kind, m.role, m.via_link, u.created_by, u.is_admin FROM memberships m JOIN users u ON u.id=m.user_id JOIN apps a ON a.id=m.app_id WHERE m.app_id=? AND (u.kind='person' OR (u.kind='visitor' AND u.id <> COALESCE(a.visitor_id,''))) ORDER BY m.role='owner' DESC, m.added_at`).all(id) as any[])
+      // A guest's sign-in is a placeholder: never shown. Guests and link visitors are marked, so the owner knows who they are.
+      .map(({ created_by, is_admin, kind, via_link, ...m }) => ({ ...m, email: kind === 'visitor' ? '' : m.email, guest: kind === 'visitor', viaLink: !!via_link, madeByMe: role === 'owner' && created_by === user.id && !is_admin && kind !== 'visitor' }));
     const versions = role === 'owner'
       ? db.prepare(`SELECT v.n, v.file_count fileCount, v.size, v.source_name sourceName, v.created_at createdAt, v.features, u.name uploadedBy FROM app_versions v LEFT JOIN users u ON u.id=v.uploaded_by WHERE app_id=? ORDER BY n DESC`).all(id)
         .map((v: any) => ({ ...v, features: JSON.parse(v.features) }))
@@ -338,7 +339,8 @@ export function registerApps(app: FastifyInstance) {
     const role = (req.body as { role?: Role })?.role;
     if (!ROLES.includes(role as Role)) throw new HttpError(400, 'VALIDATION_FAILED', PICK_ROLE);
     if (roleOf(id, userId) === 'owner') throw new HttpError(400, 'VALIDATION_FAILED', 'The owner keeps full access.');
-    const r = db.prepare('UPDATE memberships SET role=? WHERE app_id=? AND user_id=?').run(role, id, userId);
+    // Set by the owner, access no longer follows the link: it stays when the link changes.
+    const r = db.prepare('UPDATE memberships SET role=?, via_link=0 WHERE app_id=? AND user_id=?').run(role, id, userId);
     if (!r.changes) throw new HttpError(404, 'NOT_FOUND', 'That person is not in this app.');
     const name = (db.prepare('SELECT name FROM users WHERE id=?').get(userId) as { name: string }).name;
     logActivity(id, user.id, `changed ${name}'s access`, roleWord(role as Role));
@@ -364,8 +366,8 @@ export function registerApps(app: FastifyInstance) {
   app.get('/api/apps/:id/people', async (req) => {
     const { id } = req.params as { id: string };
     access(req, id);
-    const rows = db.prepare("SELECT u.id, u.name, u.username, m.role FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.disabled=0 AND u.kind='person' ORDER BY u.name").all(id);
-    return { people: rows };
+    const rows = db.prepare(`SELECT u.id, u.name, u.username, m.role, u.kind='visitor' guest FROM memberships m JOIN users u ON u.id=m.user_id JOIN apps a ON a.id=m.app_id WHERE m.app_id=? AND u.disabled=0 AND (u.kind='person' OR (u.kind='visitor' AND u.id <> COALESCE(a.visitor_id,''))) ORDER BY u.name`).all(id) as { guest: number }[];
+    return { people: rows.map((p) => ({ ...p, guest: !!p.guest })) };
   });
 
   /**
@@ -623,7 +625,8 @@ export function registerApps(app: FastifyInstance) {
       reply.header('Cache-Control', 'no-store');
       const boot = {
         v: 1, nonce: run.nonce, appId: a.id, version: run.n,
-        user: { id: u.id, name: u.name, email: u.email, username: u.username ?? null, role },
+        // A guest's sign-in is only a placeholder: the app gets their name, not that.
+        user: { id: u.id, name: u.name, email: u.kind === 'visitor' ? '' : u.email, username: u.username ?? null, role },
         privateKeys: JSON.parse(a.private_keys),
         data: snapshotFor(a.id, u.id),
         uploads: uploadsOn(),

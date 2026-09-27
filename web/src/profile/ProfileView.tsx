@@ -2,7 +2,7 @@
  * A person's public page (jhino.com/<username>). Pure presentation: the same markup for every theme;
  * themes.css changes only how it looks. Class names here are a contract with the editor and server.
  */
-import { useEffect, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ProfileData, ProfileItem, SocialKind } from './types';
 import { AvatarViewerModal } from '../AvatarModal';
 import './profile.css';
@@ -25,7 +25,7 @@ function initialsOf(name: string, username: string): string {
 }
 
 export function ProfileView({ data, preview = false }: { data: ProfileData; preview?: boolean }) {
-  const stop = preview ? (e: MouseEvent) => e.preventDefault() : undefined;
+  // In a preview everything still works, opening in a new tab: the owner can try their links and "Add to home screen".
   const [viewingAvatar, setViewingAvatar] = useState(false);
   let linkNo = 0;
 
@@ -45,14 +45,11 @@ export function ProfileView({ data, preview = false }: { data: ProfileData; prev
                 role="button"
                 tabIndex={0}
                 title={`Click to view photo of ${data.name || data.username}`}
-                onClick={(e) => {
-                  if (stop) stop(e);
-                  else setViewingAvatar(true);
-                }}
+                onClick={() => setViewingAvatar(true)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    if (!stop) setViewingAvatar(true);
+                    setViewingAvatar(true);
                   }
                 }}
               />
@@ -76,7 +73,7 @@ export function ProfileView({ data, preview = false }: { data: ProfileData; prev
             <ul className="pf-socials">
               {data.socials.map((s, i) => (
                 <li key={s.kind + i}>
-                  <a className="pf-social" data-kind={s.kind} href={s.url} target="_blank" rel="noopener" aria-label={SOCIAL_LABEL[s.kind] ?? 'Link'} onClick={stop}>
+                  <a className="pf-social" data-kind={s.kind} href={s.url} target="_blank" rel="noopener" aria-label={SOCIAL_LABEL[s.kind] ?? 'Link'}>
                     <SocialIcon kind={s.kind} />
                   </a>
                 </li>
@@ -88,13 +85,13 @@ export function ProfileView({ data, preview = false }: { data: ProfileData; prev
         <section className="pf-items" aria-label="Links">
           {data.items.map((item, i) => {
             if (item.type === 'link' || item.type === 'app') linkNo++;
-            return <Item key={item.id} item={item} index={i} no={linkNo} stop={stop} />;
+            return <Item key={item.id} item={item} index={i} no={linkNo} preview={preview} />;
           })}
         </section>
 
         {data.branding !== 'none' && (
           <footer className="pf-foot">
-            <a className="pf-badge" href="/" onClick={stop}>
+            <a className="pf-badge" href="/" target={preview ? '_blank' : undefined} rel="noopener">
               <span>Made with</span>
               <span className="pf-wordmark">jhino<i aria-hidden="true" /></span>
             </a>
@@ -106,7 +103,7 @@ export function ProfileView({ data, preview = false }: { data: ProfileData; prev
   );
 }
 
-function Item({ item, index, no, stop }: { item: ProfileItem; index: number; no: number; stop?: (e: MouseEvent) => void }) {
+function Item({ item, index, no, preview }: { item: ProfileItem; index: number; no: number; preview?: boolean }) {
   const style = { '--i': index, '--n': no } as CSSProperties;
   // Switched off: only the owner's preview gets these, and shows them faded.
   const off = item.hidden ? '' : undefined;
@@ -127,7 +124,7 @@ function Item({ item, index, no, stop }: { item: ProfileItem; index: number; no:
       );
     case 'app': {
       const link = (
-        <a className="pf-link pf-app" href={item.href} target="_blank" rel="noopener" style={item.installable ? undefined : style} onClick={stop} data-hidden={item.installable ? undefined : off}>
+        <a className="pf-link pf-app" href={item.href} target="_blank" rel="noopener" style={item.installable ? undefined : style} data-hidden={item.installable ? undefined : off}>
           <span className="pf-link-icon" aria-hidden="true"><AppGlyph /></span>
           <span className="pf-link-text">
             <b>{item.title}</b>
@@ -144,7 +141,7 @@ function Item({ item, index, no, stop }: { item: ProfileItem; index: number; no:
           {link}
           {/* A button, not a second link: some designs style links by their order. */}
           <button type="button" className="pf-install" aria-label={`Add ${item.title} to your home screen`}
-            onClick={(e) => { if (stop) stop(e); else location.assign(`${item.href}?install=1`); }}>
+            onClick={() => { if (preview) window.open(`${item.href}?install=1`, '_blank', 'noopener'); else location.assign(`${item.href}?install=1`); }}>
             <InstallGlyph />Add to home screen
           </button>
         </div>
@@ -153,7 +150,8 @@ function Item({ item, index, no, stop }: { item: ProfileItem; index: number; no:
     case 'link': {
       const host = hostOf(item.url);
       return (
-        <a className="pf-link" href={item.href} target="_blank" rel="noopener" style={style} onClick={stop}
+        <a className="pf-link" href={preview ? item.url : item.href} target="_blank" rel="noopener" style={style}
+
           data-highlight={item.highlight ? '' : undefined} data-hidden={off}>
           <span className="pf-link-icon" aria-hidden="true">
             {item.thumb ? <img src={item.thumb} alt="" loading="lazy" /> : <span className="pf-letter">{(host[0] || '').toUpperCase() || <LinkGlyph />}</span>}

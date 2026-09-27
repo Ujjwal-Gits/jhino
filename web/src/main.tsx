@@ -112,6 +112,8 @@ function App() {
   else if (path === '/_themes' && user?.isAdmin) page = <ThemeGallery />;
   // The website is always at the main address; the dashboard lives at /apps.
   else if (path === '/' || path === '/pricing') page = <Landing signedIn={!!user} at={path === '/pricing' ? 'pricing' : undefined} />;
+  // A copied /apps/<id> link, signed out: open it like its share link (a guest name, a password, or sign in).
+  else if (!user && appMatch) page = <PublicApp refId={appMatch[1]} signedInUser={null} />;
   else if (!user) {
     if (path === '/signup') page = <Signup onDone={refresh} />;
     else if (path === '/forgot') page = <Forgot />;

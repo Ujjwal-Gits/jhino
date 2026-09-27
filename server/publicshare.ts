@@ -156,15 +156,21 @@ export async function setSharing(appId: string, b: { access?: unknown; publicRol
     db.prepare("UPDATE apps SET access='private', public_role=?, share_password_hash=? WHERE id=?").run(role, hash, appId);
     db.prepare('DELETE FROM pub_sessions WHERE app_id=?').run(appId);
     if (a.visitor_id) { db.prepare('DELETE FROM memberships WHERE app_id=? AND user_id=?').run(appId, a.visitor_id); revoke(appId, a.visitor_id); }
+    dropLinkMembers(appId);
   } else {
     const vid = await ensureVisitor(a);
     db.transaction(() => {
       db.prepare('UPDATE apps SET access=?, public_role=?, share_password_hash=? WHERE id=?').run(access, role, hash, appId);
       db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?) ON CONFLICT(app_id,user_id) DO UPDATE SET role=excluded.role').run(appId, vid, role, now());
     })();
-    // A new password (or going from open to password) sends current visitors back to the password screen.
-    if (passwordChanged || (a.access === 'public' && access === 'password')) db.prepare('DELETE FROM pub_sessions WHERE app_id=?').run(appId);
-    if (a.public_role !== role) publish(appId, 'role-changed', { userId: vid, role }, vid);
+    // A new password (or going from open to password) sends everyone who came by the link back to the password screen.
+    if (passwordChanged || (a.access === 'public' && access === 'password')) { db.prepare('DELETE FROM pub_sessions WHERE app_id=?').run(appId); dropLinkMembers(appId); }
+    if (a.public_role !== role) {
+      publish(appId, 'role-changed', { userId: vid, role }, vid);
+      const ids = (db.prepare('SELECT user_id FROM memberships WHERE app_id=? AND via_link=1').all(appId) as { user_id: string }[]).map((r) => r.user_id);
+      db.prepare('UPDATE memberships SET role=? WHERE app_id=? AND via_link=1').run(role, appId);
+      ids.forEach((id) => publish(appId, 'role-changed', { userId: id, role }, id));
+    }
   }
   ensureShareToken(appId);
   return db.prepare('SELECT * FROM apps WHERE id=?').get(appId) as AppRow;
@@ -179,28 +185,45 @@ function allowedPath(appId: string, method: string, url: string) {
   return rest !== null && /^(kv|records|files|people|activity|trash|launch|watch|unwatch|logo)(\/|$)/.test(rest);
 }
 
-/** A share token (/s/<token>) or a top-level address (jhino.com/<name>). */
+/** A share token (/s/<token>), a top-level address (jhino.com/<name>), or the app's id (a copied /apps/<id> link). */
 function resolve(ref: string) {
   const r = String(ref ?? '').trim();
   if (!/^[\w-]{1,64}$/.test(r)) return undefined;
   return (db.prepare('SELECT * FROM apps WHERE share_token=? AND deleted_at IS NULL').get(r)
-    ?? db.prepare('SELECT * FROM apps WHERE root_slug=? COLLATE NOCASE AND deleted_at IS NULL').get(r)) as AppRow | undefined;
+    ?? db.prepare('SELECT * FROM apps WHERE root_slug=? COLLATE NOCASE AND deleted_at IS NULL').get(r)
+    ?? (r.startsWith('app_') ? db.prepare('SELECT * FROM apps WHERE id=? AND deleted_at IS NULL').get(r) : undefined)) as AppRow | undefined;
 }
 /** jhino.com/<username>/<name> */
 function resolveAt(username: string, name: string) {
   if (!/^[\w-]{2,64}$/.test(username) || !/^[\w-]{2,64}$/.test(name)) return undefined;
   return db.prepare(`SELECT a.* FROM apps a JOIN users u ON u.id=a.owner_id WHERE u.username=? COLLATE NOCASE AND a.slug=? COLLATE NOCASE AND a.deleted_at IS NULL`).get(username, name) as AppRow | undefined;
 }
-function startVisit(reply: FastifyReply, a: AppRow, req: FastifyRequest) {
+/** A guest's visit: their cookie stands for their own guest account in this one app. */
+function startVisit(reply: FastifyReply, a: AppRow, req: FastifyRequest, guestId: string) {
   const token = crypto.randomBytes(32).toString('base64url');
   const expires = new Date(Date.now() + PUB_DAYS * 864e5);
-  db.prepare('INSERT INTO pub_sessions(token_hash,app_id,ip,created_at,expires_at) VALUES(?,?,?,?,?)').run(sha256(token), a.id, req.ip, now(), expires.toISOString());
+  db.prepare('INSERT INTO pub_sessions(token_hash,app_id,ip,created_at,expires_at,user_id) VALUES(?,?,?,?,?,?)').run(sha256(token), a.id, req.ip, now(), expires.toISOString(), guestId);
   reply.setCookie(cookieName(a.id), token, { path: '/', httpOnly: true, sameSite: 'strict', secure: config.cookieSecure, expires });
 }
-function visiting(req: FastifyRequest, a: AppRow) {
+/** The guest this browser is in this app, if any (visits from before guests had names count as none). */
+function visitingAs(req: FastifyRequest, a: AppRow): string | null {
   const c = req.cookies?.[cookieName(a.id)];
-  if (!c) return false;
-  return !!db.prepare('SELECT 1 FROM pub_sessions WHERE token_hash=? AND app_id=? AND expires_at > ?').get(sha256(c), a.id, now());
+  if (!c) return null;
+  const r = db.prepare('SELECT user_id FROM pub_sessions WHERE token_hash=? AND app_id=? AND expires_at > ?').get(sha256(c), a.id, now()) as { user_id: string | null } | undefined;
+  return r?.user_id && roleOf(a.id, r.user_id) ? r.user_id : null;
+}
+/** A real Jhino account (not a guest, not a downloaded file, not a link visit). */
+const signedInPerson = (req: FastifyRequest) => (req.user && !req.pub && !req.desk && req.user.kind !== 'visitor' ? req.user : null);
+/** Someone came in by the link: a member with the role the owner gave link visitors, until the link changes. */
+function joinByLink(a: AppRow, userId: string, how: string) {
+  const r = db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at,via_link) VALUES(?,?,?,?,1) ON CONFLICT(app_id,user_id) DO NOTHING').run(a.id, userId, a.public_role ?? 'viewer', now());
+  if (r.changes) logActivity(a.id, userId, how, a.public_role === 'editor' ? 'can edit' : a.public_role === 'contributor' ? 'can add' : 'can view');
+}
+/** Everyone who came in by the link loses that access (the link was turned off or got a new password). */
+function dropLinkMembers(appId: string) {
+  const ids = (db.prepare('SELECT user_id FROM memberships WHERE app_id=? AND via_link=1').all(appId) as { user_id: string }[]).map((r) => r.user_id);
+  db.prepare('DELETE FROM memberships WHERE app_id=? AND via_link=1').run(appId);
+  ids.forEach((id) => revoke(appId, id));
 }
 function visitorApp(a: AppRow) {
   let brand: { accent?: string; logo?: boolean; client?: string } | null = null;
@@ -220,34 +243,60 @@ export function registerPublicShare(app: FastifyInstance) {
     const c = req.cookies?.[cookieName(appId)];
     if (!c) return;
     if (req.user && !req.desk && roleOf(appId, req.user.id) && req.user.kind !== 'visitor') return;
-    const row = db.prepare(`SELECT a.visitor_id FROM pub_sessions p JOIN apps a ON a.id=p.app_id
-      WHERE p.token_hash=? AND p.app_id=? AND p.expires_at > ? AND a.access <> 'private' AND a.deleted_at IS NULL`).get(sha256(c), appId, now()) as { visitor_id: string | null } | undefined;
-    if (!row?.visitor_id || !allowedPath(appId, req.method, req.url)) return;
-    const v = db.prepare('SELECT * FROM users WHERE id=?').get(row.visitor_id) as UserRow | undefined;
-    if (!v) return;
+    const row = db.prepare(`SELECT p.user_id FROM pub_sessions p JOIN apps a ON a.id=p.app_id
+      WHERE p.token_hash=? AND p.app_id=? AND p.expires_at > ? AND a.access <> 'private' AND a.deleted_at IS NULL`).get(sha256(c), appId, now()) as { user_id: string | null } | undefined;
+    if (!row?.user_id || !allowedPath(appId, req.method, req.url)) return;
+    const v = db.prepare("SELECT * FROM users WHERE id=? AND kind='visitor'").get(row.user_id) as UserRow | undefined;
+    if (!v || !roleOf(appId, v.id)) return;
     req.user = v; req.pub = appId; req.csrf = null; req.desk = null; req.sessionHash = null;
   });
 
-  /** Open a shared link: /s/<token>, jhino.com/<username>/<name>, or a top-level address. */
-  const open = async (req: FastifyRequest, reply: FastifyReply, a: AppRow | undefined) => {
+  /**
+   * Open a shared link: /s/<token>, jhino.com/<username>/<name>, a top-level address, or the app's id.
+   * Signed in, you come in as yourself (after the password, if it has one). Otherwise you give your name
+   * once: you are a guest with that name in this one app, and everything you add shows it.
+   */
+  const open = async (req: FastifyRequest, _reply: FastifyReply, a: AppRow | undefined) => {
     limit(req, 'public-open', 120, 60_000);
     if (!a) throw new HttpError(404, 'NOT_FOUND', 'This link does not exist or the app was removed.');
-    if (req.user && !req.pub && req.user.kind !== 'visitor' && roleOf(a.id, req.user.id)) return { member: true, appId: a.id, app: visitorApp(a) };
+    const me = signedInPerson(req);
+    if (me && roleOf(a.id, me.id)) return { member: true, appId: a.id, app: visitorApp(a) };
     if (a.access === 'private' || !a.access) throw new HttpError(403, 'NOT_PUBLIC', 'This app is private. Ask its owner to add you, then sign in.');
-    if (visiting(req, a)) return { ready: true, app: visitorApp(a) };
-    if (a.access === 'password') return { needsPassword: true, app: { id: a.id, name: a.name } };
-    startVisit(reply, a, req);
-    return { ready: true, app: visitorApp(a) };
+    const needsPassword = a.access === 'password';
+    if (me) {
+      if (needsPassword) return { needsPassword: true, joinAs: { name: me.name, username: me.username ?? null }, app: { id: a.id, name: a.name } };
+      joinByLink(a, me.id, 'joined with the link');
+      return { member: true, appId: a.id, app: visitorApp(a) };
+    }
+    const guest = visitingAs(req, a);
+    if (guest) return { ready: true, app: visitorApp(a), guest: (db.prepare('SELECT name FROM users WHERE id=?').get(guest) as { name: string }).name };
+    return { needsName: true, needsPassword, app: { id: a.id, name: a.name } };
   };
   app.get('/api/public/:ref', async (req, reply) => open(req, reply, resolve((req.params as { ref: string }).ref)));
   app.get('/api/public/:user/:name', async (req, reply) => { const p = req.params as { user: string; name: string }; return open(req, reply, resolveAt(p.user, p.name)); });
+  /** Come in by the link: the password when it has one, and a name for guests (signed-in people are themselves). */
   const unlock = async (req: FastifyRequest, reply: FastifyReply, a: AppRow | undefined) => {
-    if (!a || a.access !== 'password' || !a.share_password_hash) throw new HttpError(404, 'NOT_FOUND', 'This link does not need a password.');
-    limit(req, 'public-unlock', 10, 15 * 60_000, a.id);
-    const ok = await verify(a.share_password_hash, String((req.body as { password?: string })?.password ?? ''));
-    if (!ok) throw new HttpError(401, 'BAD_PASSWORD', 'That password is not right.');
-    startVisit(reply, a, req);
-    return { ready: true, app: visitorApp(a) };
+    if (!a || !a.access || a.access === 'private') throw new HttpError(404, 'NOT_FOUND', 'This link does not exist or the app was removed.');
+    const b = (req.body ?? {}) as { password?: string; name?: string };
+    if (a.access === 'password') {
+      if (!a.share_password_hash) throw new HttpError(404, 'NOT_FOUND', 'This link does not exist or the app was removed.');
+      limit(req, 'public-unlock', 10, 15 * 60_000, a.id);
+      const ok = await verify(a.share_password_hash, String(b.password ?? ''));
+      if (!ok) throw new HttpError(401, 'BAD_PASSWORD', 'That password is not right.');
+    }
+    const me = signedInPerson(req);
+    if (me) {
+      joinByLink(a, me.id, 'joined with the link');
+      return { member: true, appId: a.id, app: visitorApp(a) };
+    }
+    const name = String(b.name ?? '').replace(/\s+/g, ' ').trim();
+    if (name.length < 2 || name.length > 60) throw new HttpError(400, 'VALIDATION_FAILED', 'Write your name (2 to 60 characters). The others in this app see it next to what you add.');
+    limit(req, 'public-guest', 30, 60 * 60_000);
+    const guest = await createUser(`guest.${crypto.randomBytes(9).toString('hex')}@visitors.invalid`, name, makePassword(24), false, { createdBy: a.owner_id, kind: 'visitor' });
+    db.prepare('UPDATE users SET password_set=0 WHERE id=?').run(guest.id);
+    joinByLink(a, guest.id, 'joined as a guest');
+    startVisit(reply, a, req, guest.id);
+    return { ready: true, app: visitorApp(a), guest: name };
   };
   app.post('/api/public/:ref/unlock', async (req, reply) => unlock(req, reply, resolve((req.params as { ref: string }).ref)));
   app.post('/api/public/:user/:name/unlock', async (req, reply) => { const p = req.params as { user: string; name: string }; return unlock(req, reply, resolveAt(p.user, p.name)); });

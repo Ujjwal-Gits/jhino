@@ -7,7 +7,7 @@ import { downloadHtml } from './Player';
 import { AddressField, HOST, PlanTag, addrBase, slugify, useNameCheck } from './Address';
 
 interface InviteRow { id: string; role: Role; createdAt: string; expiresAt: string; usedAt: string | null; revokedAt: string | null; usedBy: string | null }
-interface Member { id: string; name: string; email: string; role: Role; madeByMe?: boolean }
+interface Member { id: string; name: string; email: string; username?: string | null; role: Role; madeByMe?: boolean; guest?: boolean; viaLink?: boolean }
 
 export const ROLE_LABEL: Record<Role, string> = { owner: 'Owner', editor: 'Can edit', contributor: 'Can add', viewer: 'Can view' };
 const ROLE_HELP: Record<Exclude<Role, 'owner'>, string> = {
@@ -186,7 +186,9 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
                 <Avatar name={m.name} />
                 <div className="grow">
                   <b>{m.name}{m.id === user.id ? ' (you)' : ''}</b>
-                  <div className="sub mono">{m.email}</div>
+                  <div className="sub">{m.guest
+                    ? 'Guest, came in by the link'
+                    : <><span className="mono">{m.username ? `@${m.username}` : m.email}</span>{m.viaLink ? ' · came in by the link' : ''}</>}</div>
                 </div>
                 {m.role === 'owner' ? <span className="hint">Owner</span> : (
                   <>
