@@ -558,7 +558,9 @@ test('short links: go on to the address, count clicks, one namespace, plan limit
   expect((await k.call('PATCH', `/api/admin/links/${n.json.link.id}`, { disabled: true })).status).toBe(403);
   expect((await admin.call('PATCH', `/api/admin/links/${n.json.link.id}`, { disabled: true, reason: 'Test' })).status).toBe(200);
   const off = await anon.get(`/s-${adminCode2}`, { maxRedirects: 0 });
-  expect(off.status()).toBe(200);
+  // Turned off: no redirect; the address is gone (404, the site's "Nothing here" page).
+  expect(off.status()).toBe(404);
+  expect(off.headers()['location']).toBeUndefined();
   expect((await admin.call('GET', '/api/admin/audit?q=link.disable')).json.entries.length).toBeGreaterThan(0);
   expect((await admin.call('GET', `/api/admin/links?q=s-${adminCode2}`)).json.links[0]).toMatchObject({ code: `s-${adminCode2}`, disabled: true });
 });
