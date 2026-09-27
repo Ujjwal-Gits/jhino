@@ -13,7 +13,7 @@ import { live } from './live';
 import { ToastProvider } from './ui';
 import { Forgot, Login, Reset, Signup, Verify } from './pages/Login';
 import { CopyCodePage } from './pages/CodeEntry';
-import { HelpPage, Landing, PrivacyPage, TermsPage } from './pages/Public';
+import { HelpPage, Landing, PrivacyPage, TermsPage } from './pages/Site';
 import { PublicApp } from './pages/PublicApp';
 import { Invite } from './pages/Invite';
 import { AppsPage } from './pages/Apps';
@@ -92,22 +92,22 @@ function App() {
   const under = seg.length === 2 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) && /^[a-z0-9][a-z0-9-]{1,49}$/i.test(seg[1]) ? `${seg[0]}/${seg[1]}` : null;
   // jhino.com/<username>/preview: the owner's own page in a tab of its own (anyone else gets whatever is at that address).
   const previewOf = under && seg[1].toLowerCase() === 'preview' ? seg[0].toLowerCase() : null;
-  const shell = (n: ReactNode) => (user ? <Shell>{n}</Shell> : n);
   if (user === undefined) page = null;
   else if (invite) page = <Invite token={invite[1]} user={user} onJoined={refresh} />;
   else if (path === '/verify') page = <Verify signedIn={!!user} onDone={refresh} />;
   else if (path === '/verify/code') page = <CopyCodePage />;
   else if (path === '/reset') page = <Reset />;
-  else if (path === '/help') page = shell(<HelpPage signedIn={!!user} />);
-  else if (path === '/terms') page = shell(<TermsPage signedIn={!!user} />);
-  else if (path === '/privacy') page = shell(<PrivacyPage signedIn={!!user} />);
+  // The website's pages look the same signed in or out; the header leads to the dashboard.
+  else if (path === '/help') page = <HelpPage signedIn={!!user} />;
+  else if (path === '/terms') page = <TermsPage signedIn={!!user} />;
+  else if (path === '/privacy') page = <PrivacyPage signedIn={!!user} />;
   else if (previewOf && !user) page = <Login onDone={refresh} />;
   else if (previewOf && user?.username?.toLowerCase() === previewOf) page = <PagePreview />;
   else if (shareMatch || under) page = <PublicApp refId={shareMatch ? shareMatch[1] : under!} signedInUser={user} />;
   else if (person) page = <PersonPage name={person} user={user} />;
   else if (path === '/_themes' && user?.isAdmin) page = <ThemeGallery />;
   // The website is always at the main address; the dashboard lives at /apps.
-  else if (path === '/' || path === '/pricing') page = <Landing signedIn={!!user} at={path === '/pricing' ? 'pricing' : undefined} />;
+  else if (path === '/' || path === '/pricing') page = <Landing signedIn={!!user} at={path === '/pricing' ? 'plans' : undefined} />;
   // A copied /apps/<id> link, signed out: open it like its share link (a guest name, a password, or sign in).
   else if (!user && appMatch) page = <PublicApp refId={appMatch[1]} signedInUser={null} />;
   else if (!user) {

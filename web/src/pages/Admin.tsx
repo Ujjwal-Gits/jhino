@@ -1,3 +1,4 @@
+import { Wordmark } from '../Logo';
 import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, api, avatarUrl, get, post } from '../api';
 import { Link, useRoute, useSession } from '../context';
@@ -48,7 +49,7 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
     <div className="adm">
       <aside className={`adm-side ${drawer ? 'open' : ''}`} aria-label="Super Admin">
         <div className="adm-brand">
-          <Link to="/admin" className="wordmark" aria-label="Jhino Admin">jhino<i /></Link>
+          <Link to="/admin" className="wordmark" aria-label="Jhino Admin"><Wordmark /></Link>
           <span className="adm-badge mono">admin</span>
           <button className="icon-btn adm-close" onClick={() => setDrawer(false)} aria-label="Close menu"><Icon name="close" /></button>
         </div>

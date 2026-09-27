@@ -1,3 +1,4 @@
+import { Wordmark } from '../Logo';
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, api, avatarUrl, get, post, type PlanFeatures } from '../api';
 import { Link, applyTheme, readTheme, useRoute, useSession, type Theme } from '../context';
@@ -672,7 +673,7 @@ export function ReceiptPage({ id }: { id: string }) {
       {error && <p className="error-text">{error}</p>}
       {p && (
         <article className="receipt">
-          <header><span className="wordmark">jhino<i /></span><div><b>Receipt</b><span className="mono">{p.receiptNo}</span></div></header>
+          <header><span className="wordmark"><Wordmark /></span><div><b>Receipt</b><span className="mono">{p.receiptNo}</span></div></header>
           <dl className="facts wide">
             <div><dt>Billed to</dt><dd>{user.name}<br /><span className="muted">{user.email}</span></dd></div>
             <div><dt>Status</dt><dd>{p.status === 'approved' ? 'Paid' : STATUS_TEXT[p.status]}</dd></div>

@@ -1,3 +1,4 @@
+import { Wordmark } from '../Logo';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, get, post } from '../api';
 import { Link, useRoute } from '../context';
@@ -44,7 +45,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <main className="auth">
       <section className="auth-side" aria-hidden="true">
-        <Link to="/" className="wordmark" tabIndex={-1}>jhino<i /></Link>
+        <Link to="/" className="wordmark" tabIndex={-1}><Wordmark /></Link>
         <p className="big">One live page for you and your client.</p>
         <p className="small">Approvals, bookings, receipts and files, saved once and seen on both sides as they happen.</p>
       </section>

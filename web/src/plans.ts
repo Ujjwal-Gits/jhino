@@ -28,6 +28,8 @@ export interface PlanCard {
   features: string[];
   /** Shown faded on the card: what a higher plan adds. */
   missing: string[];
+  /** Everything the plan includes, as the server has it. */
+  f: PlanFeatures;
 }
 
 const DEFAULTS: ServerPlan[] = [
@@ -68,7 +70,7 @@ export function cardOf(p: ServerPlan): PlanCard {
   ].slice(0, 3);
   return {
     id: p.id, name: p.name, monthly: p.price, yearly: p.yearly, apps: p.creations, addresses: f.addresses, shortLinks: f.shortLinks,
-    maxUploadMB: f.maxUploadMB, themeTier: f.themeTier, blurb: p.blurb, features, missing,
+    maxUploadMB: f.maxUploadMB, themeTier: f.themeTier, blurb: p.blurb, features, missing, f,
     flags: { customCodes: f.customCodes, passwordLinks: f.passwordLinks, hideBar: f.hideBar, download: f.download, linkStats: f.linkStats, prioritySupport: f.prioritySupport },
   };
 }

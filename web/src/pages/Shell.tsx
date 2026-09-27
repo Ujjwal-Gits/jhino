@@ -1,3 +1,4 @@
+import { Wordmark } from '../Logo';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
 import { Link, useRoute, useSession } from '../context';
@@ -148,7 +149,7 @@ export function Shell({ children }: { children: ReactNode }) {
       {user.mustVerify && <VerifyGate user={user} onDone={refresh} />}
       <header className="topbar">
         <div className="topbar-inner">
-          <Link to={user.username ? `/${user.username}` : '/apps'} className="wordmark" aria-label="Your Jhino home">jhino<i /></Link>
+          <Link to={user.username ? `/${user.username}` : '/apps'} className="wordmark" aria-label="Your Jhino home"><Wordmark /></Link>
           {user.canCreate ? (
             <nav className="tabs" aria-label="Apps">
               {user.username && tab(`/${user.username}`, 'My page')}

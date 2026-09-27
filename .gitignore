@@ -33,3 +33,8 @@ docs/MASTER_PROMPT.md
 .idea/
 .DS_Store
 Thumbs.db
+
+# Design sources (kept locally; the site uses web/public/brand and web/src/assets)
+/Jhino Branding/
+/__MACOSX/
+/Jhino Landing.html

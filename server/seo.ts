@@ -55,21 +55,27 @@ interface Doc {
 }
 
 /* ---------------- the website ---------------- */
-// Keep in step with FAQ in web/src/pages/Public.tsx (schema must match what the page shows).
+// Keep in step with HOME_FAQ and MORE_FAQ in web/src/pages/Site.tsx (schema must match what the page shows).
+/** The questions on the home page. */
 const FAQ: [string, string][] = [
-  ['What counts as an app?', 'One app on your account: an HTML you uploaded, or one you made with Create app. Apps in Trash count until you delete them for good.'],
-  ['Does my client need an account?', 'Only if you want one. Give them a sign-in, or share the app by public link or by link and password. You decide what visitors can do: view, add or edit.'],
+  ['What can I upload?', 'A single .html file, or a .zip with an index.html inside, made with Claude or any other tool. It is checked, stored as version 1 and opens straight away, visible only to you.'],
+  ['Do my clients need an account?', 'They sign in with the ID and password you create for them, or through a single-use invite link. You can also share by a public link, or a password link on Plus and Pro.'],
+  ['How do I pay for Plus or Pro?', 'Pick a plan, pay by QR and upload a screenshot of the payment. Once it is reviewed, your plan switches on. A year costs ten months.'],
+  ['What happens when my plan ends?', 'You are told three days before. An ended plan counts as Free Forever, and your apps keep working.'],
+  ['Do dates show in Nepali?', 'Yes. Dates show in Bikram Sambat with the AD date small beside them, or AD only if you pick that when creating the app.'],
+];
+/** The help page shows those and these. */
+const HELP_FAQ: [string, string][] = [...FAQ,
   ['Will any HTML file work?', 'Yes. Plain HTML, CSS and JavaScript that saves with localStorage or IndexedDB syncs between everyone with no changes. Its own design stays exactly as it is.'],
   ['Can I use my own address?', 'Yes. Pick jhino.com/your-name when you create an app, or later in Share. Each address is unique. The page opens at that exact address, with no redirect.'],
   ['What is jhino.com/your-name?', 'Your own page, like a link in bio: your links, socials, videos and apps in one of 40 designs, as a list or a full profile. It can show up on Google. Share it anywhere and see who clicks what.'],
   ['Can my app show up on Google?', 'On Pro, yes: tick "Show on Google" in Share, then give it a title, a description, an address and a keyword. It becomes a public page anyone can open without signing in, and search engines can list it. Up to 10 pages on Pro.'],
-  ['What are short links?', 'A short address like jhino.com/abc that opens any web link you choose: a Drive folder, a YouTube cut, a form. You see how many times each one was opened.'],
-  ['Monthly or yearly?', 'Either. Pay month by month, or pay for a whole year at a lower price. Both are paid the same way, and paying again adds to your end date.'],
   ['How big can a file be?', 'Each plan shows its largest file size. For bigger videos, paste a Google Drive, Dropbox or YouTube link: it shows as a proper preview.'],
-  ['How do I pay?', 'Choose a plan, scan the QR code, and upload a screenshot of the payment. We check it and switch the plan on, usually the same day. You get a receipt.'],
-  ['Where is my data?', 'On the Jhino server, backed up, and never sold. The Privacy page has the details.'],
+  ['Where is my data?', 'On the Jhino server, backed up every day, and never sold. The Privacy page has the details.'],
 ];
-const HOME_KEYWORDS = ['client portal', 'client portal for agencies', 'client approval app', 'video review and approval', 'photo proofing', 'design proofing', 'host HTML app', 'share HTML with clients', 'link in bio', 'link in bio Nepal', 'short links', 'studio booking', 'Jhino'];
+const faqPage = (list: [string, string][]) => ({ '@type': 'FAQPage', mainEntity: list.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) });
+const faqList = (list: [string, string][]) => `<dl>${list.map(([q, a]) => `<dt>${esc(q)}</dt><dd>${esc(a)}</dd>`).join('')}</dl>`;
+const HOME_KEYWORDS = ['publish HTML online', 'host HTML file', 'upload HTML website', 'client portal', 'client portal for agencies', 'client approval app', 'video review and approval', 'photo proofing', 'design proofing', 'host HTML app', 'share HTML with clients', 'link in bio', 'link in bio Nepal', 'short links', 'studio booking', 'Jhino'];
 
 const org = (b: string) => ({ '@type': 'Organization', '@id': `${b}/#org`, name: 'Jhino', url: `${b}/`, logo: { '@type': 'ImageObject', url: `${b}/_jhino/logo-512.png`, width: 512, height: 512 }, email: 'jhinoapp@gmail.com', areaServed: 'NP' });
 const website = (b: string) => ({ '@type': 'WebSite', '@id': `${b}/#website`, url: `${b}/`, name: 'Jhino', alternateName: 'jhino.com', inLanguage: 'en', publisher: { '@id': `${b}/#org` } });
@@ -98,18 +104,19 @@ function sitePage(p: string, b: string): Doc | null {
     case '/':
       return {
         status: 200, index: true, path: '/', verify: true, card: 'summary_large_image', keywords: HOME_KEYWORDS,
-        title: 'Client portal and link in bio for studios' + SUFFIX,
-        description: 'Give every client one live page for cuts, photos, bookings and bills, and get their approval the moment they give it. Host HTML apps, a link in bio and short links. Free.',
-        jsonld: [org(b), website(b), software(b), { '@type': 'FAQPage', mainEntity: FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }],
-        body: `<h1>Send the work. Get the yes.</h1>
-<p>Every client gets one live page. The cut, the photos, the booking and the bill sit on it, and their answer reaches you the moment they give it.</p>
-<p>For video, photo and design studios, agencies and their clients. Upload the HTML you already have, or build one here in a few minutes. Prices in rupees, dates in Bikram Sambat.</p>
-<h2>What moves between you</h2><p>Six things a studio sends a client every week: video cuts for review and approval, photo proofing with client picks, design proofs, shoots and bookings, invoices and receipts, and messages. Each one lands on their screen when you add it, and their answer lands on yours.</p>
-<h2>Two ways to make one</h2><p>Bring the HTML you already have: a single file or a ZIP goes live at once and keeps its own design, and anything it saves with localStorage or IndexedDB syncs for everyone you let in. Or build it here in a few minutes: say who it is for, tick what the job needs, and it is ready to share. No code.</p>
-<h2>Share it the way the job needs</h2><p>Keep it to the people you add, open it to anyone with the link, or put a password on the link, then choose what visitors can do. Give it its own address, like jhino.com/your-studio/client-room. On Pro, tick "Show on Google" and it becomes a public page search engines can list.</p>
-<h2>Your page, and short links</h2><p>jhino.com/you is your link in bio: your links, socials, videos and apps in one of 40 designs, with analytics. Short links like jhino.com/s-promo open any address and count every click.</p>
-<h2>Plans, in rupees</h2><ul>${planLines()}</ul>
-<h2>Questions</h2><dl>${FAQ.map(([q, a]) => `<dt>${esc(q)}</dt><dd>${esc(a)}</dd>`).join('')}</dl>
+        title: 'Publish your HTML as a live website' + SUFFIX,
+        description: 'Upload an HTML file or ZIP and it is a live website at once. Share it with clients, sync every save live, and add a link-in-bio page and short links. Start free.',
+        jsonld: [org(b), website(b), software(b), faqPage(FAQ)],
+        body: `<h1>Your HTML. Out in the world.</h1>
+<p>Upload your HTML. Publish a live website. Share it with the people who matter. Start free with an .html file or a .zip website package.</p>
+<h2>Write it with Jhino, or bring the HTML you already made</h2><p>Both ways open straight away, save to your server and sync live for everyone you share with. Create HTML: say who it is for and what kind of work, tick features from 45, pick the colour, lettering and logo, and Jhino writes the whole file. Upload HTML: bring an .html file or a .zip made with Claude or any other tool; its localStorage is redirected to Jhino, so every save lands on the server. Change it later: unticked features keep their data.</p>
+<h2>Everything a client project leaves behind</h2><p>Built for work between a studio and its clients: video, photography, design, social media, apps and websites. Video deliveries the client watches, comments on and approves; photo proofing with Pick, Maybe or No; invoices, quotes, receipts and payments. Dates show in Bikram Sambat, with AD beside them.</p>
+<h2>One page for your work, your socials and your apps</h2><p>Links, headings, text, YouTube and Vimeo videos, your Jhino apps and social icons, all at jhino.com/you, in a list or a profile layout and one of 40 designs. Each app can be added to a home screen, and you see who visits.</p>
+<h2>Long link in, short link out. Every click counted.</h2><p>Turn any web address into jhino.com/your-name. Visitors go straight to the page, and you see how many opened it.</p>
+<h2>Live sync</h2><p>Every save goes to the server with a revision number, then out to everyone who has the app open. When two people change the same thing, both changes are merged.</p>
+<h2>Give each person exactly the access they need</h2><p>Add people with their own ID and password, send a single-use invite link, or share by a public or password link and pick what visitors can do: view, add or edit. On Pro, tick "Show on Google" and an app becomes a public page search engines can list.</p>
+<h2>Start free. Pay by QR when you grow.</h2><ul>${planLines()}</ul>
+<h2>A few things before you begin</h2>${faqList(FAQ)}
 ${siteNav}`,
       };
     case '/pricing':
@@ -118,15 +125,15 @@ ${siteNav}`,
         title: 'Pricing: Free, Plus and Pro plans in rupees' + SUFFIX,
         description: `${priceLine} Your own page, short links, password links and pages on Google. Pay monthly or yearly by QR.`,
         jsonld: [org(b), website(b), { ...software(b), '@id': `${b}/pricing#app` }, crumbs(b, [['Jhino', '/'], ['Pricing', '/pricing']])],
-        body: `<h1>Plans, in rupees</h1><p>Start free with one app. Move up when you have more clients.</p><ul>${planLines()}</ul><p>Scan our QR code, upload a screenshot of the payment, and we switch the plan on, usually the same day. Yearly costs ten months.</p>${siteNav}`,
+        body: `<h1>Start free. Pay by QR when you grow.</h1><p>Start free with one app. Move up when you have more clients.</p><ul>${planLines()}</ul><p>Scan our QR code, upload a screenshot of the payment, and we switch the plan on, usually the same day. Yearly costs ten months.</p>${siteNav}`,
       };
     case '/help':
       return {
         status: 200, index: true, path: '/help', keywords: ['Jhino help', 'how to share HTML app with client', 'client portal guide'],
         title: 'Help and guides' + SUFFIX,
-        description: 'How to upload an HTML app, build one without code, share it with a client by sign-in or link, set your address, and put a page on Google. Or write to us.',
-        jsonld: [org(b), website(b), crumbs(b, [['Jhino', '/'], ['Help', '/help']])],
-        body: `<h1>Help</h1><p>Guides for uploading your own HTML, building an app here, sharing it with clients, your page at jhino.com/you, short links and plans. Write to us from this page: we reply by email, usually within a working day.</p>${siteNav}`,
+        description: 'How to upload an HTML app, build one without code, share it with a client by sign-in or link, set up your page, make short links and pay for a plan. Or write to us.',
+        jsonld: [org(b), website(b), crumbs(b, [['Jhino', '/'], ['Help', '/help']]), faqPage(HELP_FAQ)],
+        body: `<h1>How can we help.</h1><p>Guides for your first week, straight answers, and a way to reach us. We reply by email, usually within a working day.</p><h2>Questions</h2>${faqList(HELP_FAQ)}${siteNav}`,
       };
     case '/terms':
       return { status: 200, index: true, path: '/terms', title: 'Terms of Service' + SUFFIX, description: 'The terms for using Jhino: your account, your content, plans and payment, availability and ending your account.', jsonld: [org(b), crumbs(b, [['Jhino', '/'], ['Terms of Service', '/terms']])], body: `<h1>Terms of Service</h1><p>Using Jhino, your account, your content, plans and payment, availability, and ending.</p>${siteNav}` };
@@ -379,7 +386,7 @@ export function renderDocument(req: FastifyRequest, html: string): { status: num
  * their page settings, links or photo; for apps on Google, their settings, a new version, or their data.
  */
 const SITE_PAGES: [string, string, string, number][] = [
-  ['/', 'Home: client portal and link in bio', 'weekly', 1.0], ['/pricing', 'Pricing', 'weekly', 0.9], ['/signup', 'Create a free account', 'monthly', 0.7],
+  ['/', 'Home: publish your HTML as a live website', 'weekly', 1.0], ['/pricing', 'Pricing', 'weekly', 0.9], ['/signup', 'Create a free account', 'monthly', 0.7],
   ['/help', 'Help and guides', 'monthly', 0.6], ['/sitemap', 'Sitemap', 'weekly', 0.4], ['/terms', 'Terms of Service', 'yearly', 0.3], ['/privacy', 'Privacy Policy', 'yearly', 0.3],
 ];
 /** When the website itself last changed: the deployed build's date. */
@@ -534,6 +541,25 @@ export function pingSearchEngines(paths: string[]) {
   }).catch(() => { /* best effort */ });
 }
 
+/* ---------------- Jhino's brand files ---------------- */
+const brandCache = new Map<string, Buffer | null>();
+/** A file from web/public/brand (built into dist/web/brand), or null when it is not there. */
+function brandFile(name: string): Buffer | null {
+  if (!brandCache.has(name)) {
+    const found = [path.join(ROOT, 'dist', 'web', 'brand', name), path.join(ROOT, 'web', 'public', 'brand', name)].find((f) => fs.existsSync(f));
+    brandCache.set(name, found ? fs.readFileSync(found) : null);
+  }
+  return brandCache.get(name)!;
+}
+/** An .ico holding one PNG. */
+function icoOf(png: Buffer, size: number) {
+  const head = Buffer.alloc(22);
+  head.writeUInt16LE(0, 0); head.writeUInt16LE(1, 2); head.writeUInt16LE(1, 4);
+  head[6] = size; head[7] = size; head.writeUInt16LE(1, 10); head.writeUInt16LE(32, 12);
+  head.writeUInt32LE(png.length, 14); head.writeUInt32LE(22, 18);
+  return Buffer.concat([head, png]);
+}
+
 /* ---------------- "Show on Google" for an app ---------------- */
 function seoInfo(a: SeoApp, viewer: UserRow) {
   const owner = db.prepare('SELECT * FROM users WHERE id=?').get(a.owner_id) as UserRow;
@@ -587,12 +613,15 @@ export function registerSeo(app: FastifyInstance) {
   // Jhino's marks: favicons Google can show in results, and the picture for shared links.
   const image = (buf: () => Buffer, type = 'image/png') => async (_req: FastifyRequest, reply: import('fastify').FastifyReply) =>
     reply.type(type).header('Cache-Control', 'public, max-age=604800').header('X-Content-Type-Options', 'nosniff').send(buf());
-  app.get('/favicon.ico', image(faviconIco, 'image/x-icon'));
-  app.get('/_jhino/og.png', image(ogPng));
+  app.get('/favicon.ico', image(() => { const png = brandFile('icon-48-round.png'); return png ? icoOf(png, 48) : faviconIco(); }, 'image/x-icon'));
+  app.get('/_jhino/og.png', image(() => brandFile('og.png') ?? ogPng()));
   app.get('/_jhino/logo-:size.png', async (req, reply) => {
     const m = /^(48|96|180|192|512)(-m)?$/.exec((req.params as { size: string }).size);
     if (!m) return reply.code(404).type('text/plain').send('Not found');
-    return reply.type('image/png').header('Cache-Control', 'public, max-age=604800').send(logoPng(Number(m[1]), !!m[2]));
+    // The brand files (web/public/brand): rounded for tabs and results, full-bleed (-m) for home screens.
+    const n = Number(m[1]);
+    const file = m[2] || n === 180 ? `icon-${n === 48 || n === 96 ? 192 : n}.png` : `icon-${n}-round.png`;
+    return reply.type('image/png').header('Cache-Control', 'public, max-age=604800').send(brandFile(file) ?? logoPng(n, !!m[2]));
   });
 
   app.get('/api/apps/:id/seo', async (req) => {

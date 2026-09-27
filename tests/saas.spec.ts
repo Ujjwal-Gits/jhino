@@ -343,8 +343,8 @@ test('studio booking: a reminder is sent once before the booking, to the owner',
 test('screens: website, sign up, account menu, booking day and hidden top bar', async ({ browser }) => {
   const page = await (await browser.newContext()).newPage();
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Send the work. Get the yes.');
-  await expect(page.locator('.price-card')).toHaveCount(3);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Your HTML\.\s*Out in the world\./);
+  await expect(page.locator('#plans article')).toHaveCount(3);
   await page.getByRole('link', { name: 'Start free' }).first().click();
   const email = `ui.${uniq()}@example.com`;
   await page.fill('input[autocomplete=name]', 'Ui Person');
@@ -366,7 +366,7 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   await expect(page.getByRole('heading', { name: 'My apps' })).toBeVisible();
   // Signed in, the main address is still the website; the dashboard is at /apps.
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Send the work. Get the yes.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Your HTML\.\s*Out in the world\./);
   await expect(page.getByRole('link', { name: 'Sign in' })).toHaveCount(0);
   await page.getByRole('link', { name: 'Open dashboard' }).first().click();
   await expect(page).toHaveURL(/\/apps$/);

@@ -119,8 +119,9 @@ p { margin: 0; }
   border-bottom: 1px solid var(--rule);
 }
 .topbar-inner { display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 28px; max-width: 1240px; margin: 0 auto; }
-.wordmark { display: inline-flex; align-items: baseline; gap: 1px; font-weight: 700; font-size: 19px; letter-spacing: -0.04em; text-decoration: none; }
-.wordmark i { width: 6px; height: 6px; border-radius: 50%; background: var(--signal); display: inline-block; margin-left: 1px; }
+.wordmark { display: inline-flex; align-items: center; font-size: 19px; line-height: 1; color: var(--ink); text-decoration: none; }
+.wordmark .logo { display: block; height: 1em; width: auto; }
+.logo-mark { display: block; height: 1em; width: auto; }
 .tabs { display: flex; gap: 22px; height: 100%; }
 .tab {
   position: relative; display: inline-flex; align-items: center; height: 100%;

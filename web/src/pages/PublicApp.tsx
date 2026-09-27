@@ -1,3 +1,4 @@
+import { Wordmark } from '../Logo';
 import { useEffect, useState, type FormEvent } from 'react';
 import { ApiError, get, post, type User } from '../api';
 import { SessionCtx } from '../context';
@@ -83,7 +84,7 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
     return (
       <main className="pw-gate">
         <form onSubmit={unlock} className="pw-card">
-          <span className="wordmark">jhino<i /></span>
+          <span className="wordmark"><Wordmark /></span>
           <h1>{info.app?.name}</h1>
           {info.joinAs
             ? <p className="muted">You open it as <b>{info.joinAs.name}</b>{info.joinAs.username ? <> (@{info.joinAs.username})</> : null}. {info.needsPassword ? 'Enter the password you were given.' : ''}</p>

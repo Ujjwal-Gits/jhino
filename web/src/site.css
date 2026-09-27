@@ -1,6 +1,6 @@
 /* ======================================================================
    Shared controls kept here (account, admin, share dialogs). The public
-   website's own styles live in landing.css.
+   website's own styles live in website.css.
    ====================================================================== */
 .radio { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--ink-3); flex: none; position: relative; }
 [aria-checked='true'] > .radio { border-color: var(--ink); }
