@@ -87,7 +87,9 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
           <h1>{info.app?.name}</h1>
           {info.joinAs
             ? <p className="muted">You open it as <b>{info.joinAs.name}</b>{info.joinAs.username ? <> (@{info.joinAs.username})</> : null}. {info.needsPassword ? 'Enter the password you were given.' : ''}</p>
-            : <p className="muted">{info.needsPassword ? 'This app is protected. ' : ''}Tell the others who you are. Your name shows next to everything you add, in this app only.</p>}
+            : askName
+              ? <p className="muted">{info.needsPassword ? 'This app is protected. ' : ''}Tell the others who you are. Your name shows next to everything you add, in this app only.</p>
+              : <p className="muted">This app is protected. Enter the password you were given.</p>}
           {askName && (
             <label className="field"><span>Your full name</span>
               <input className="input" autoFocus required minLength={2} maxLength={60} autoComplete="name" placeholder="Sita Sharma" value={name} onChange={(e) => setName(e.target.value)} />

@@ -166,10 +166,15 @@ export async function setSharing(appId: string, b: { access?: unknown; publicRol
     // A new password (or going from open to password) sends everyone who came by the link back to the password screen.
     if (passwordChanged || (a.access === 'public' && access === 'password')) { db.prepare('DELETE FROM pub_sessions WHERE app_id=?').run(appId); dropLinkMembers(appId); }
     if (a.public_role !== role) {
+      // Viewing and working together open differently (anonymous vs. by name): everyone comes in again.
+      db.prepare('DELETE FROM pub_sessions WHERE app_id=?').run(appId);
       publish(appId, 'role-changed', { userId: vid, role }, vid);
-      const ids = (db.prepare('SELECT user_id FROM memberships WHERE app_id=? AND via_link=1').all(appId) as { user_id: string }[]).map((r) => r.user_id);
-      db.prepare('UPDATE memberships SET role=? WHERE app_id=? AND via_link=1').run(role, appId);
-      ids.forEach((id) => publish(appId, 'role-changed', { userId: id, role }, id));
+      if (!collaborative(role)) dropLinkMembers(appId);
+      else {
+        const ids = (db.prepare('SELECT user_id FROM memberships WHERE app_id=? AND via_link=1').all(appId) as { user_id: string }[]).map((r) => r.user_id);
+        db.prepare('UPDATE memberships SET role=? WHERE app_id=? AND via_link=1').run(role, appId);
+        ids.forEach((id) => publish(appId, 'role-changed', { userId: id, role }, id));
+      }
     }
   }
   ensureShareToken(appId);
@@ -212,6 +217,16 @@ function visitingAs(req: FastifyRequest, a: AppRow): string | null {
   const r = db.prepare('SELECT user_id FROM pub_sessions WHERE token_hash=? AND app_id=? AND expires_at > ?').get(sha256(c), a.id, now()) as { user_id: string | null } | undefined;
   return r?.user_id && roleOf(a.id, r.user_id) ? r.user_id : null;
 }
+/**
+ * Link visitors can add or edit: then they come in by name (signed-in people as themselves, others as a
+ * named guest). A view-only link opens straight away for everyone, anonymously, and makes nobody a member.
+ */
+const collaborative = (role: string | null | undefined) => role === 'contributor' || role === 'editor';
+/** An anonymous visit to a view-only link, as the app's shared visitor account. */
+async function viewVisit(reply: FastifyReply, a: AppRow, req: FastifyRequest) {
+  startVisit(reply, a, req, await ensureVisitor(a));
+  return { ready: true, app: visitorApp(a) };
+}
 /** A real Jhino account (not a guest, not a downloaded file, not a link visit). */
 const signedInPerson = (req: FastifyRequest) => (req.user && !req.pub && !req.desk && req.user.kind !== 'visitor' ? req.user : null);
 /** Someone came in by the link: a member with the role the owner gave link visitors, until the link changes. */
@@ -234,6 +249,12 @@ function visitorApp(a: AppRow) {
 setInterval(() => db.prepare('DELETE FROM pub_sessions WHERE expires_at < ?').run(now()), 3600_000).unref();
 
 export function registerPublicShare(app: FastifyInstance) {
+  // View-only links never make anyone a member (joins made by them before this rule are undone).
+  const stale = db.prepare(`SELECT m.app_id, m.user_id FROM memberships m JOIN apps a ON a.id=m.app_id
+    WHERE m.via_link=1 AND (a.access='private' OR COALESCE(a.public_role,'viewer') NOT IN ('contributor','editor'))`).all() as { app_id: string; user_id: string }[];
+  const drop = db.prepare('DELETE FROM memberships WHERE app_id=? AND user_id=?');
+  db.transaction(() => stale.forEach((r) => drop.run(r.app_id, r.user_id)))();
+
   // A link visitor's cookie: that app's data only. A signed-in member keeps their own account.
   app.addHook('onRequest', async (req) => {
     if (!req.url.startsWith('/api/')) return;
@@ -256,13 +277,18 @@ export function registerPublicShare(app: FastifyInstance) {
    * Signed in, you come in as yourself (after the password, if it has one). Otherwise you give your name
    * once: you are a guest with that name in this one app, and everything you add shows it.
    */
-  const open = async (req: FastifyRequest, _reply: FastifyReply, a: AppRow | undefined) => {
+  const open = async (req: FastifyRequest, reply: FastifyReply, a: AppRow | undefined) => {
     limit(req, 'public-open', 120, 60_000);
     if (!a) throw new HttpError(404, 'NOT_FOUND', 'This link does not exist or the app was removed.');
     const me = signedInPerson(req);
     if (me && roleOf(a.id, me.id)) return { member: true, appId: a.id, app: visitorApp(a) };
     if (a.access === 'private' || !a.access) throw new HttpError(403, 'NOT_PUBLIC', 'This app is private. Ask its owner to add you, then sign in.');
     const needsPassword = a.access === 'password';
+    // View only: open it (after the password), with no name and no joining, signed in or not.
+    if (!collaborative(a.public_role)) {
+      if (visitingAs(req, a)) return { ready: true, app: visitorApp(a) };
+      return needsPassword ? { needsPassword: true, app: { id: a.id, name: a.name } } : viewVisit(reply, a, req);
+    }
     if (me) {
       if (needsPassword) return { needsPassword: true, joinAs: { name: me.name, username: me.username ?? null }, app: { id: a.id, name: a.name } };
       joinByLink(a, me.id, 'joined with the link');
@@ -284,6 +310,7 @@ export function registerPublicShare(app: FastifyInstance) {
       const ok = await verify(a.share_password_hash, String(b.password ?? ''));
       if (!ok) throw new HttpError(401, 'BAD_PASSWORD', 'That password is not right.');
     }
+    if (!collaborative(a.public_role)) return viewVisit(reply, a, req);
     const me = signedInPerson(req);
     if (me) {
       joinByLink(a, me.id, 'joined with the link');
