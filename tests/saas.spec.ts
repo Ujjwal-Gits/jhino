@@ -193,9 +193,17 @@ test('sharing by link: public, password and private; visitors only reach that ap
   expect((await v.call('GET', '/api/apps')).status).toBe(401);
   expect((await v.call('GET', `/api/apps/${id}/invites`)).status).toBe(401);
   expect((await v.call('GET', `/api/apps/${id}`)).json.app.members).toEqual([]);
-  // Visitors who may add can add.
+  // Visitors who may add come in by name: the anonymous visit ends, and they give their full name once,
+  // for this app only. What they add carries that name.
   await sita.call('PATCH', `/api/apps/${id}/sharing`, { publicRole: 'contributor' });
-  expect((await v.call('POST', `/api/apps/${id}/records/todos_l1`, { data: { title: 'From a visitor' } })).status).toBe(200);
+  expect((await v.call('POST', `/api/apps/${id}/records/todos_l1`, { data: { title: 'Too soon' } })).status).toBe(401);
+  expect((await v.call('GET', `/api/public/${token}`)).json.needsName).toBe(true);
+  expect((await v.call('POST', `/api/public/${token}/unlock`, {})).status).toBe(400);
+  expect((await v.call('POST', `/api/public/${token}/unlock`, { name: 'Asha Guest' })).json.ready).toBe(true);
+  const fromVisitor = await v.call('POST', `/api/apps/${id}/records/todos_l1`, { data: { title: 'From a visitor' } });
+  expect(fromVisitor.status).toBe(200);
+  const guests = (await sita.call('GET', `/api/apps/${id}/people`)).json.people;
+  expect(guests.find((p: any) => p.id === fromVisitor.json.record.createdBy)).toMatchObject({ name: 'Asha Guest', guest: true });
 
   // Password links are on Plus and Pro: refused on Free Forever, then allowed after an upgrade.
   const free = await sita.call('PATCH', `/api/apps/${id}/sharing`, { access: 'password', password: 'open-sesame' });
@@ -210,7 +218,8 @@ test('sharing by link: public, password and private; visitors only reach that ap
   expect((await v.call('GET', `/api/apps/${id}/records/todos_l1`)).status).toBe(401);
   expect((await v.call('GET', `/api/public/${token}`)).json.needsPassword).toBe(true);
   expect((await v.call('POST', `/api/public/${token}/unlock`, { password: 'nope' })).status).toBe(401);
-  expect((await v.call('POST', `/api/public/${token}/unlock`, { password: 'open-sesame' })).json.ready).toBe(true);
+  expect((await v.call('POST', `/api/public/${token}/unlock`, { password: 'open-sesame' })).status).toBe(400); // and their name
+  expect((await v.call('POST', `/api/public/${token}/unlock`, { password: 'open-sesame', name: 'Asha Guest' })).json.ready).toBe(true);
   expect((await v.call('GET', `/api/apps/${id}/records/todos_l1`)).status).toBe(200);
 
   // The owner gives the app its own address; the admin-only route stays admin-only; reserved words are refused.
@@ -226,6 +235,9 @@ test('sharing by link: public, password and private; visitors only reach that ap
   // Opened at exactly that address, under the owner's username: no redirect.
   const page = await (await browser.newContext()).newPage();
   await page.goto(`/${sitaName}/${slug}`);
+  // Visitors here can add, so they give their name first.
+  await page.fill('.pw-card input[autocomplete=name]', 'Ram Visitor');
+  await page.click('.pw-card button.primary');
   await expect(page.frameLocator('iframe').getByText('Visible to visitors')).toBeVisible({ timeout: 20_000 });
   await expect(page.locator('.player-bar h1')).toContainText('Link test');
   await expect(page).toHaveURL(new RegExp(`/${sitaName}/${slug}(#.*)?$`));
@@ -241,7 +253,8 @@ test('sharing by link: public, password and private; visitors only reach that ap
   expect(nonAdminRoot.json.error).toBe('FORBIDDEN');
 
   const rootSlug = 'r' + uniq();
-  const adminSetRoot = await admin.call('PUT', `/api/apps/${id}/address`, { mode: 'root', slug: rootSlug, access: 'public' });
+  // View only this time: it opens straight away, with no name asked.
+  const adminSetRoot = await admin.call('PUT', `/api/apps/${id}/address`, { mode: 'root', slug: rootSlug, access: 'public', publicRole: 'viewer' });
   expect(adminSetRoot.status, JSON.stringify(adminSetRoot.json)).toBe(200);
   expect(adminSetRoot.json.rootUrl).toContain(`/${rootSlug}`);
   // Opens directly at the root address without username
@@ -778,13 +791,15 @@ test('my page: links, socials, video, design by plan, public at /<username>, cli
   expect((await me.call('GET', `/api/profile/${uname}`)).json.owner).toBe(true);
   await me.call('PUT', '/api/me/page', { published: true });
 
-  // Pro: every design, no branding, and a page from their own HTML, served sandboxed.
+  // Pro: every design, a badge they can switch off, and a page from their own HTML, served sandboxed.
   await admin.call('PATCH', `/api/admin/users/${uid}`, { plan: 'pro' });
   expect((await me.call('PUT', '/api/me/page', { theme: proTheme })).status).toBe(200);
   d = (await me.call('PUT', '/api/me/page', { customHtml: '<html><head></head><body><h1>{{name}}</h1><p>{{bio}}</p>{{links}}<script>document.title="x"</script></body></html>', useCustom: true })).json;
   expect(d.settings.useCustom).toBe(true);
   const p2 = (await anon.call('GET', `/api/profile/${uname}`)).json;
-  expect(p2).toMatchObject({ custom: true, profile: { branding: 'none', theme: proTheme } });
+  expect(p2).toMatchObject({ custom: true, profile: { branding: 'badge', theme: proTheme } });
+  expect((await me.call('PUT', '/api/me/page', { hideBranding: true })).status).toBe(200);
+  expect((await anon.call('GET', `/api/profile/${uname}`)).json.profile.branding).toBe('none');
   const custom = await (await pwRequest.newContext({ baseURL: BASE })).get(`/p/${uname}/custom`);
   expect(custom.status()).toBe(200);
   expect(custom.headers()['content-security-policy']).toContain('sandbox allow-scripts');
@@ -797,6 +812,9 @@ test('my page: links, socials, video, design by plan, public at /<username>, cli
   const p3 = (await anon.call('GET', `/api/profile/${uname}`)).json;
   expect(p3.custom).toBe(false);
   expect(p3.profile.theme).toBe('paper');
+  // The badge comes back on Free (and cannot be switched off there).
+  expect(p3.profile.branding).toBe('popup');
+  expect((await me.call('PUT', '/api/me/page', { hideBranding: true })).status).toBe(403);
   expect((await (await pwRequest.newContext({ baseURL: BASE })).get(`/p/${uname}/custom`)).status()).toBe(404);
   // Someone else's editor calls are theirs only.
   const other = await session(await signup('Nosy'));
