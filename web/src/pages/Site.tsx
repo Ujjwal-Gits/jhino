@@ -104,7 +104,7 @@ function SiteFrame({ signedIn, children }: { signedIn: boolean; children: ReactN
       <div style={{ minHeight: '100vh', background: 'var(--bg,#090b10)', color: 'var(--ink,#f7f7fb)', overflowX: 'hidden', lineHeight: '1.6', transition: 'background .3s,color .3s' }}>
 <header style={{ position: "sticky", top: "0", zIndex: "60", background: "var(--hdr,rgba(9,11,16,0.93))", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderBottom: "1px solid var(--line,#2b303e)" }}>
   <div style={{ maxWidth: "1240px", margin: "0 auto", padding: "0 20px", height: "72px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "28px" }}>
-    <a href="/" onClick={toTop} aria-label="Jhino, home" className="jh-logo" style={{ display: "flex", alignItems: "center", height: "25px", color: "var(--ink,#f7f7fb)" }}><Wordmark /></a>
+    <a href="/" onClick={toTop} aria-label="Jhino, home" className="jh-logo" style={{ display: "flex", alignItems: "center", height: "33px", color: "var(--ink,#f7f7fb)" }}><Wordmark /></a>
     {showNav && (<><nav style={{ display: "flex", gap: "26px", whiteSpace: "nowrap", fontSize: "14px", alignItems: "center", flexWrap: "wrap" }}>
       {NAV.map(([label, href]) => (href.startsWith('/#') ? <a key={href} href={href}>{label}</a> : <Link key={href} to={href}>{label}</Link>))}
     </nav></>)}
@@ -130,9 +130,9 @@ function SiteFrame({ signedIn, children }: { signedIn: boolean; children: ReactN
 <footer style={{ background: "#08090b", color: "#b8c3d6", padding: "32px 24px" }}>
   <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "24px", flexWrap: "wrap" }}>
-      <a href="/" onClick={toTop} aria-label="Jhino, home" className="jh-logo" style={{ display: "flex", alignItems: "center", height: "25px", color: "#f3f5ef" }}><Wordmark /></a>
+      <a href="/" onClick={toTop} aria-label="Jhino, home" className="jh-logo" style={{ display: "flex", alignItems: "center", height: "33px", color: "#f3f5ef" }}><Wordmark /></a>
       <nav style={{ display: "flex", gap: "25px", flexWrap: "wrap", fontSize: "14px" }}>
-        <Link to="/apps">Dashboard</Link><Link to="/links">Short links</Link><Link to="/help">Help</Link><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link><a href="/sitemap">Sitemap</a>
+        <Link to="/apps">Dashboard</Link><Link to="/links">Short links</Link><Link to="/help">Help</Link><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link>
       </nav>
     </div>
     <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", flexWrap: "wrap", marginTop: "24px", fontSize: "12px", color: "#959fb3" }}>
@@ -224,7 +224,6 @@ function planView(p: PlanCard, prev: PlanCard | undefined, yearly: boolean, sign
     ...(f.linkStats && !g?.linkStats ? ['Daily click history'] : []),
     ...(prev && f.themeTier === 'pro' && g?.themeTier !== 'pro' ? [designs] : []),
     ...(prev && f.analyticsDays >= 365 && (g?.analyticsDays ?? 0) < 365 ? [days] : []),
-    ...(f.seoPages && !g?.seoPages ? [`${count(f.seoPages, 'page')} on Google search`] : []),
   ];
   const featured = p.id === 'plus';
   return {
@@ -307,32 +306,22 @@ export function Landing({ signedIn = false, at }: { signedIn?: boolean; at?: str
 
   return (
     <SiteFrame signedIn={signedIn}>
-{/* HERO: flush-left type on the page grid (it lines up with the logo). The full stops are the logo's
-    orange dot. The one moving part: the readout, where a file becomes a live address. */}
-<section id="top" className="jh-hero">
-  <div className="jh-wrap">
-    <h1 className="jh-hero-title">Your HTML<span className="jh-dot">.</span><br />Out in the world<span className="jh-dot">.</span></h1>
-    <div className="jh-hero-row">
-      <p className="jh-hero-lede">Upload your HTML. Publish a live website. Share it with the people who matter.</p>
-      <div className="jh-pub" role="img" aria-label="For example, the file portfolio.zip, live at jhino.com/you/portfolio">
-        <div className="jh-pub-step">
-          <span className="jh-pub-k">Your file</span>
-          <i className="jh-pub-dot jh-pub-from" aria-hidden="true" />
-          <span className="jh-pub-v">portfolio.zip</span>
-        </div>
-        <div className="jh-pub-step jh-pub-live">
-          <span className="jh-pub-k">Live at</span>
-          <i className="jh-pub-dot jh-pub-to" aria-hidden="true" />
-          <span className="jh-pub-v">jhino.com/you/portfolio</span>
-        </div>
-      </div>
-      <div className="jh-hero-act">
-        <Link to={start} className="jh-hero-cta">Publish your HTML</Link>
-        <a href="#how" className="jh-hero-link">See how it works</a>
-        <small>Start free. No card. HTML or ZIP.</small>
-      </div>
-    </div>
+{/* HERO */}
+<section id="top" style={{ padding: "clamp(40px,7vw,67px) 20px clamp(36px,6vw,59px)", textAlign: "center", background: "var(--heroGlow,radial-gradient(ellipse at 66% 12%,rgba(102,98,197,0.075),transparent 65%))" }}>
+  <div style={{ fontFamily: "'Geist Mono',monospace", fontSize: "12px", letterSpacing: ".11em", textTransform: "uppercase", color: "var(--mu,#acb1c0)" }}>A place for the things you make</div>
+  <h1 style={{ fontSize: "clamp(44px,8.1vw,118px)", letterSpacing: "-.07em", lineHeight: ".99", margin: "23px auto 27px", maxWidth: "1150px", fontWeight: "700", animation: "jhEnter .8s cubic-bezier(.2,.75,.2,1) both" }}>Your HTML.<br />Out in the <em style={{ fontStyle: "normal", fontFamily: "inherit", fontWeight: "inherit", letterSpacing: "inherit", color: "#e0461f" }}>world</em><span style={{ color: "#e0461f" }}>.</span></h1>
+  <p style={{ fontSize: "19px", lineHeight: "1.6", maxWidth: "510px", margin: "0 auto", color: "var(--mu,#acb1c0)", animation: "jhEnter .8s .08s cubic-bezier(.2,.75,.2,1) both" }}>Upload your HTML. Publish a live website.<br />Share it with the people who matter.</p>
+  <div style={{ display: "flex", gap: "12px", justifyContent: "center", alignItems: "center", marginTop: "29px", flexWrap: "wrap", animation: "jhEnter .8s .16s cubic-bezier(.2,.75,.2,1) both" }}>
+    <Link className="jh-h3" to={start} style={{ display: "inline-flex", alignItems: "center", gap: "15px", padding: "15px 25px", minHeight: "54px", borderRadius: "100px", background: "#e0461f", color: "#ffffff", fontSize: "15px", fontWeight: "700", boxShadow: "0 6px 26px rgba(224,70,31,0.25)", transition: "background .2s,transform .3s" }}>
+      Publish your HTML
+      <svg viewBox="0 0 24 24" style={{ width: "18px", height: "18px", stroke: "currentColor", fill: "none", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round" }}><path d="M12 17V3M7 8l5-5 5 5M4 16v5h16v-5"></path></svg>
+    </Link>
+    <a className="jh-h4" href="#how" style={{ display: "inline-flex", alignItems: "center", gap: "15px", padding: "15px 25px", minHeight: "54px", borderRadius: "100px", border: "1px solid var(--outl,#363d4d)", background: "var(--soft,#171b25)", fontSize: "15px", fontWeight: "700", transition: "background .2s,transform .3s" }}>
+      See how it works
+      <svg viewBox="0 0 24 24" style={{ width: "18px", height: "18px", stroke: "currentColor", fill: "none", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round" }}><path d="M4 12h16M14 6l6 6-6 6"></path></svg>
+    </a>
   </div>
+  <small style={{ display: "block", fontSize: "13px", color: "var(--mu,#acb1c0)", marginTop: "17px" }}>Start free. <b style={{ fontWeight: "400", color: "var(--ink,#f7f7fb)" }}>HTML or ZIP.</b> All your ideas welcome.</small>
 </section>
 
 <div style={{ padding: "0 clamp(12px,2.5vw,26px) 26px" }}>
