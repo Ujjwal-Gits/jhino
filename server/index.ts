@@ -22,6 +22,7 @@ import { registerPublicShare } from './publicshare.js';
 import { registerLinks } from './links.js';
 import { registerUsernames, ensureUsernames } from './usernames.js';
 import { registerProfiles } from './profiles.js';
+import { registerPwa } from './pwa.js';
 import { startPlanNotices } from './plans.js';
 import { startBookingReminders } from './booking.js';
 import { limit } from './security.js';
@@ -86,6 +87,7 @@ registerPublicShare(app);
 registerLinks(app);
 registerUsernames(app);
 registerProfiles(app);
+registerPwa(app);
 registerSiteAnalytics(app);
 registerCreations(app);
 

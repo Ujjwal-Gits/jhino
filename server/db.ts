@@ -593,6 +593,8 @@ function ensureSchema() {
     add('users', 'totp_enabled_at', 'TEXT');
     add('users', 'totp_last_step', 'INTEGER');
     add('users', 'totp_recovery', 'TEXT');
+    // A Pro page can switch its "Made with jhino" badge off (plans.ts removeBranding).
+    add('profiles', 'hide_branding', 'INTEGER NOT NULL DEFAULT 0');
     db.exec('CREATE TABLE IF NOT EXISTS code_usage(user_id TEXT NOT NULL, day TEXT NOT NULL, issued INTEGER NOT NULL DEFAULT 0, wrong INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(user_id, day))');
   })();
 }

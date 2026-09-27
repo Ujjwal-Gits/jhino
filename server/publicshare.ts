@@ -44,7 +44,7 @@ export const SYSTEM_PATHS = new Set([
   'cdn-cgi',
 ]);
 /** Names Jhino keeps under a username (jhino.com/<username>/<name>). */
-const SUB_RESERVED = new Set(['edit', 'settings', 'analytics', 'apps', 'links', 'link', 'go', 'api', 's', 'p', 'admin', 'profile', 'page', 'design', 'custom', 'new', 'www', 'avatar']);
+const SUB_RESERVED = new Set(['edit', 'settings', 'analytics', 'apps', 'links', 'link', 'go', 'api', 's', 'p', 'admin', 'profile', 'page', 'design', 'custom', 'new', 'www', 'avatar', 'preview']);
 /** An address name. `top` = a top-level address (jhino.com/<name>), which only super admins give out. */
 export function validSlug(s: unknown, top = false): string {
   const v = String(s ?? '').trim().toLowerCase();

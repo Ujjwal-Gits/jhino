@@ -7,6 +7,8 @@ import { UploadDialog } from './Shell';
 import { ShareDialog } from './Share';
 import { DetailsPanel } from './Details';
 import { SANDBOX } from '../sandbox';
+import { standalone } from '../install';
+import { InstallSheet, clearInstallFlag, hasInstallFlag, useCanPrompt, useInstallable } from './Install';
 
 /** The app as one .html file: open it, sign in once, and it works live with everyone (while online). */
 export async function downloadHtml(appId: string): Promise<string | null> {
@@ -186,6 +188,9 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
     setNotify(true);
     toast('You will get a notification when someone changes something while this tab is in the background.');
   };
+  // Opened from "Add to home screen" on someone's page (?install=1): the install sheet opens with the app.
+  const [installOpen, setInstallOpen] = useState(() => !solo && hasInstallFlag());
+  useEffect(() => { clearInstallFlag(); }, []);
   const frame = useRef<HTMLIFrameElement>(null);
   const bridge = useRef<Bridge | null>(null);
   const scroll = useRef<[number, number] | null>(null);
@@ -342,6 +347,11 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
 
   useEffect(() => { document.title = app ? `${app.name} · Jhino` : 'Jhino'; return () => { document.title = 'Jhino'; }; }, [app]);
 
+  // The app's own address is what gets installed: visitors keep the one they opened, members the app's address.
+  const installPath = solo || !app ? null : visitor ? location.pathname : app.rootSlug ? `/${app.rootSlug}` : app.slug && app.ownerUsername ? `/${app.ownerUsername}/${app.slug}` : `/apps/${id}`;
+  const install = useInstallable(installPath);
+  const offered = useCanPrompt();
+  const openInstall = () => { setMenuFor(null); setInstallOpen(true); };
   const back = () => go(app && app.role !== 'owner' ? '/shared' : '/apps');
   const isOwner = app?.role === 'owner';
   const others = people.filter((p) => p.id !== user.id);
@@ -409,6 +419,7 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
         {upload && <span className="sync upload" title={upload.name}><span className="up-bar"><i style={{ transform: `scaleX(${upload.pct / 100})` }} /></span><span className="hide-sm">{upload.name.length > 22 ? upload.name.slice(0, 20) + '…' : upload.name}</span> {upload.pct}%</span>}
         {Object.values(shrinking).slice(0, 1).map((p) => <span key="shrink" className="sync upload" title={`Making a smaller copy of ${p.name}. The original plays until it is ready.`}><span className="up-bar"><i style={{ transform: `scaleX(${p.pct / 100})` }} /></span><span className="hide-sm">Making a smaller copy</span> {p.pct}%</span>)}
         <span className="sync" role="status" aria-live="polite">{syncView}</span>
+        {install && offered && !standalone() && <button className="btn sm ins-bar" onClick={openInstall} title="Install this app on this device"><Icon name="download" size={14} /><span className="hide-sm">Install</span></button>}
         {isOwner && <button className="btn sm" onClick={() => setDialog('share')}>Share</button>}
         <button className="icon-btn" onClick={(e) => setMenuFor(e.currentTarget)} aria-label="More" aria-haspopup="menu" aria-expanded={!!menuFor}><Icon name="more" /></button>
       </header> : !visitor && (
@@ -437,6 +448,7 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
       {menuFor && app && visitor && (
         <Menu anchor={menuFor} onClose={() => setMenuFor(null)}>
           <button role="menuitem" onClick={() => launch()}>Reload</button>
+          {install && !standalone() && <button role="menuitem" onClick={openInstall}>Add to home screen</button>}
           <button role="menuitem" onClick={() => go('/')}>About Jhino</button>
         </Menu>
       )}
@@ -446,6 +458,7 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
           {!showBar && isOwner && <button role="menuitem" onClick={() => setDialog('share')}>Share</button>}
           <button role="menuitem" onClick={() => setDialog('details')}>Details and activity</button>
           <button role="menuitem" onClick={() => launch()}>Reload app</button>
+          {install && !standalone() && <button role="menuitem" onClick={openInstall}>Install on this device</button>}
           <button role="menuitem" onClick={async () => { setMenuFor(null); const fail = await downloadHtml(app.id); toast(fail ?? 'Downloaded. Open the file, sign in once, and it stays in sync with everyone.', !!fail); }}>Download as HTML file</button>
           <button role="menuitem" onClick={() => { setMenuFor(null); toggleNotify(); }}>{notify ? 'Turn off desktop notifications' : 'Turn on desktop notifications'}</button>
           {isOwner && <button role="menuitem" onClick={() => setBar(!showBar)}>{showBar ? 'Hide top bar' : 'Show top bar'}</button>}
@@ -458,6 +471,7 @@ export function Player({ id, solo, visitor }: { id: string; solo?: boolean; visi
           <button role="menuitem" onClick={async () => { await post('/api/auth/logout'); await refresh(); go('/login', true); }}>Sign out</button>
         </Menu>
       )}
+      {installOpen && install && <InstallSheet info={install} onClose={() => setInstallOpen(false)} />}
       {dialog === 'share' && app && <ShareDialog app={app} onClose={() => { setDialog(null); loadApp().catch(() => {}); }} />}
       {dialog === 'details' && app && <DetailsPanel app={app} onClose={() => setDialog(null)} onChanged={() => loadApp().catch(() => {})} onUpload={() => setDialog('upload')} />}
       {dialog === 'upload' && app && <UploadDialog replaceAppId={app.id} onClose={() => { setDialog(null); loadApp().then(() => launch()).catch(() => {}); }} />}

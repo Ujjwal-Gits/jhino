@@ -13,9 +13,19 @@ import { publish, revoke, notifyUser, watch, unwatch, openStream } from './realt
 import { snapshotFor } from './data.js';
 import { assertCanCreate, uploadLimitBytes } from './plans.js';
 import { assertNameFree, readAddressRequest, setSharing, usernameOf } from './publicshare.js';
-import { uploadsOn } from './security.js';
+import { limit, uploadsOn } from './security.js';
+import { withCurrentBuilder } from './builder.js';
 
 const ROLES: Role[] = ['editor', 'contributor', 'viewer'];
+/** An account by what someone typed: a sign-in ID or email, or a username (with or without @). */
+export function findAccount(typed: string): UserRow | undefined {
+  const t = typed.trim();
+  if (!t) return undefined;
+  const byLogin = t.startsWith('@') ? undefined : db.prepare("SELECT * FROM users WHERE email=? AND kind='person'").get(t) as UserRow | undefined;
+  if (byLogin) return byLogin;
+  const name = t.replace(/^@/, '');
+  return /^[\w-]{2,50}$/.test(name) ? db.prepare("SELECT * FROM users WHERE username=? COLLATE NOCASE AND kind='person'").get(name) as UserRow | undefined : undefined;
+}
 const roleWord = (r: Role) => (r === 'editor' ? 'can edit' : r === 'contributor' ? 'can add' : 'can view');
 const PICK_ROLE = 'Pick Can edit, Can add or Can view.';
 
@@ -313,8 +323,9 @@ export function registerApps(app: FastifyInstance) {
     const { user, app: a } = access(req, id, 'owner');
     const b = (req.body ?? {}) as { email?: string; role?: Role };
     if (!ROLES.includes(b.role as Role)) throw new HttpError(400, 'VALIDATION_FAILED', PICK_ROLE);
-    const u = db.prepare('SELECT * FROM users WHERE email=?').get(String(b.email ?? '').trim()) as UserRow | undefined;
-    if (!u) throw new HttpError(404, 'NO_SUCH_USER', 'Nobody with that email has an account yet. Send them an invite link instead.');
+    limit(req, 'members-add', 60, 60_000, user.id);
+    const u = findAccount(String(b.email ?? ''));
+    if (!u) throw new HttpError(404, 'NO_SUCH_USER', 'Nobody with that email, sign-in ID or username has an account yet. Send them an invite link instead.');
     if (roleOf(id, u.id)) throw new HttpError(409, 'ALREADY_MEMBER', `${u.name} already has access.`);
     db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?)').run(id, u.id, b.role, now());
     logActivity(id, user.id, `added ${u.name}`, roleWord(b.role as Role));
@@ -353,8 +364,57 @@ export function registerApps(app: FastifyInstance) {
   app.get('/api/apps/:id/people', async (req) => {
     const { id } = req.params as { id: string };
     access(req, id);
-    const rows = db.prepare("SELECT u.id, u.name, m.role FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.disabled=0 AND u.kind='person' ORDER BY u.name").all(id);
+    const rows = db.prepare("SELECT u.id, u.name, u.username, m.role FROM memberships m JOIN users u ON u.id=m.user_id WHERE m.app_id=? AND u.disabled=0 AND u.kind='person' ORDER BY u.name").all(id);
     return { people: rows };
+  });
+
+  /**
+   * Suggestions while the owner types a name, email, sign-in ID or @username in Share → Existing account.
+   * People the owner already works with (their other apps, sign-ins they made) come first and show their
+   * sign-in; anyone else is found only by their public username or name, and never shows an email, except
+   * when the whole email or sign-in is typed (which "Add" would reveal anyway).
+   */
+  app.get('/api/apps/:id/people/suggest', async (req) => {
+    const { id } = req.params as { id: string };
+    const { user } = access(req, id, 'owner');
+    limit(req, 'people-suggest', 120, 60_000, user.id);
+    const raw = String((req.query as { q?: string }).q ?? '').trim().slice(0, 80);
+    const q = raw.replace(/^@/, '').toLowerCase();
+    if (q.length < 1) return { people: [] };
+    const like = q.replace(/[!%_]/g, (c) => '!' + c) + '%';
+    const word = '% ' + like;
+    type Row = { id: string; name: string; email: string; username: string | null; avatar: string | null };
+    const inApp = new Set((db.prepare('SELECT user_id FROM memberships WHERE app_id=?').all(id) as { user_id: string }[]).map((r) => r.user_id));
+    // People this owner already works with: members of their apps and sign-ins they made.
+    const known = db.prepare(`SELECT DISTINCT u.id, u.name, u.email, u.username, u.avatar FROM users u
+      WHERE u.kind='person' AND u.disabled=0 AND u.id<>@me AND (
+        u.created_by=@me OR u.id IN (SELECT m2.user_id FROM memberships m2 JOIN memberships m1 ON m1.app_id=m2.app_id AND m1.user_id=@me AND m1.role='owner'))
+      AND (lower(u.name) LIKE @like ESCAPE '!' OR lower(u.name) LIKE @word ESCAPE '!' OR lower(u.email) LIKE @like ESCAPE '!' OR lower(COALESCE(u.username,'')) LIKE @like ESCAPE '!' OR lower(COALESCE(u.display_name,'')) LIKE @like ESCAPE '!')
+      ORDER BY (lower(COALESCE(u.username,''))=@q OR lower(u.email)=@q) DESC, u.name LIMIT 8`).all({ me: user.id, like, word, q }) as Row[];
+    const seen = new Set(known.map((r) => r.id));
+    // Everyone else: by public username (or name, from 2 letters), or by the exact email / sign-in typed in full.
+    // People who hid their page are found only by their exact username.
+    const others = q.length < 2 ? [] : db.prepare(`SELECT u.id, u.name, u.email, u.username, u.avatar FROM users u
+      WHERE u.kind='person' AND u.disabled=0 AND u.id<>@me AND COALESCE(u.verify_required,0)=0 AND (
+        lower(u.email)=@q OR lower(COALESCE(u.username,''))=@q
+        OR (u.username IS NOT NULL AND NOT EXISTS(SELECT 1 FROM profiles p WHERE p.user_id=u.id AND p.published=0)
+          AND (lower(u.username) LIKE @like ESCAPE '!' OR lower(COALESCE(u.display_name,u.name)) LIKE @like ESCAPE '!' OR lower(COALESCE(u.display_name,u.name)) LIKE @word ESCAPE '!')))
+      ORDER BY (lower(COALESCE(u.username,''))=@q OR lower(u.email)=@q) DESC, length(COALESCE(u.username,u.email)), u.username LIMIT 12`).all({ me: user.id, like, word, q }) as Row[];
+    const out = [
+      ...known.map((r) => ({ r, known: true })),
+      ...others.filter((r) => !seen.has(r.id)).map((r) => ({ r, known: false })),
+    ].slice(0, 8).map(({ r, known: k }) => {
+      const exact = r.email.toLowerCase() === q;
+      return {
+        id: r.id, name: r.name, username: r.username,
+        // What goes in the box when picked, and what the owner sees under the name.
+        pick: r.username && !k ? '@' + r.username : r.email,
+        login: k || exact ? r.email : null,
+        avatarUrl: r.avatar && r.username ? `/api/profile/${encodeURIComponent(r.username)}/avatar?v=${sha256(r.avatar).slice(0, 8)}` : null,
+        known: k, member: inApp.has(r.id),
+      };
+    });
+    return { people: out };
   });
 
   /** The app owner makes a sign-in (ID + password) for someone and gives them a role in this app. */
@@ -563,15 +623,19 @@ export function registerApps(app: FastifyInstance) {
       reply.header('Cache-Control', 'no-store');
       const boot = {
         v: 1, nonce: run.nonce, appId: a.id, version: run.n,
-        user: { id: u.id, name: u.name, email: u.email, role },
+        user: { id: u.id, name: u.name, email: u.email, username: u.username ?? null, role },
         privateKeys: JSON.parse(a.private_keys),
         data: snapshotFor(a.id, u.id),
         uploads: uploadsOn(),
       };
       let usesIdb = false;
       try { usesIdb = !!JSON.parse(v.features).indexedDB; } catch { /* old version row */ }
-      if (file === path.join(root, v.entry)) trackRun(req, a.id, a.name);
-      return inject(fs.readFileSync(file, 'utf8'), boot, usesIdb);
+      const entry = file === path.join(root, v.entry);
+      if (entry) trackRun(req, a.id, a.name);
+      let html = fs.readFileSync(file, 'utf8');
+      // Built apps run today's builder code (their own config and manifest stay as built).
+      if (entry && (v as { builder?: string | null }).builder) html = withCurrentBuilder(html);
+      return inject(html, boot, usesIdb);
     }
     reply.header('Cache-Control', 'private, max-age=3600');
     return fs.createReadStream(file);

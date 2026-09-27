@@ -531,7 +531,7 @@
     /** False when the platform keeps files as links only (no uploads). */
     uploadsAllowed: B.uploads !== false,
     ready: function () { return readyPromise; },
-    me: function () { return Promise.resolve({ id: user.id, name: user.name, email: user.email, role: user.role }); },
+    me: function () { return Promise.resolve({ id: user.id, name: user.name, username: user.username || null, email: user.email, role: user.role }); },
     onChange: function (fn) {
       kvListeners.push(fn);
       return function () { kvListeners = kvListeners.filter(function (x) { return x !== fn; }); };

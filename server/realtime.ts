@@ -129,7 +129,7 @@ export const setActivityFilter = (fn: ActivityFilter) => { activityFilter = fn; 
 onActivity((row) => {
   if (!row.appId) return;
   setImmediate(() => {
-    const exists = db.prepare(`SELECT a.id, a.action, a.detail, a.at, a.app_id appId, u.name, ap.name appName, a.user_id userId, a.collection, a.record_id recordId, a.kind, a.note
+    const exists = db.prepare(`SELECT a.id, a.action, a.detail, a.at, a.app_id appId, u.name, u.username, ap.name appName, a.user_id userId, a.collection, a.record_id recordId, a.kind, a.note
       FROM activity a LEFT JOIN users u ON u.id=a.user_id JOIN apps ap ON ap.id=a.app_id WHERE a.id=?`).get(row.id) as Record<string, unknown> | undefined;
     if (!exists) return;
     const allowed = new Map<string, boolean>();

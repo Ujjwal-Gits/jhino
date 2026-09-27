@@ -14,9 +14,11 @@ Saving data (pick one)
    - Listen for changes so the screen updates without a reload:
        window.addEventListener('storage', () => { state = load(); render(); });
    - Keys meant for one person only (theme, last tab) can be marked private by the owner.
+   - To show who added an item, save the author with it: const me = await jhino.me();
+     item.by = { id: me.id, name: me.name, username: me.username }. Show "name (@username)".
 2. Records API (best for bigger apps): window.jhino is available automatically.
        await jhino.ready();
-       const me = await jhino.me();                       // { id, name, email, role }
+       const me = await jhino.me();                       // { id, name, username, email, role }
        const { items, next } = await jhino.data.list('tasks', { limit: 50, after });
        const task = await jhino.data.create('tasks', { title: 'Hello', done: false });
        await jhino.data.update('tasks', task.id, { done: true }, { expectedRevision: task.revision });
@@ -28,7 +30,8 @@ Saving data (pick one)
        // f = { id, name, type, size, url, downloadUrl }; store f.id in a record field
        img.src = jhino.files.url(f.id);   // videos stream and can seek
        await jhino.files.delete(f.id);
-   People who can open the app: await jhino.people()  ->  [{ id, name, role }]
+   People who can open the app: await jhino.people()  ->  [{ id, name, username, role }]
+   Show who added each item: find record.createdBy in jhino.people() and print "name (@username)".
    Optional manifest (lets the server check every save):
        <script type="application/json" id="jhino-manifest">
        { "specVersion": 1, "collections": { "tasks": { "fields": {

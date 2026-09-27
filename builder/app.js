@@ -301,11 +301,11 @@
     return api;
   }
   /** Options: [{ value, label, tone (0-7, a coloured dot), person: true (initials), hint }]. */
-  function optFace(x) {
+  function optFace(x, face) {
     return h('span', { class: 'dd-face' },
       x.tone !== undefined ? h('i', { class: 'dot t' + x.tone }) : null,
       x.person ? h('span', { class: 'avatar sm', text: initials(x.label) }) : null,
-      h('span', { class: 'dd-t', text: x.label }), x.hint ? h('small', { text: x.hint }) : null);
+      h('span', { class: 'dd-t', text: x.label }), x.hint && !(face && x.person) ? h('small', { text: x.hint }) : null);
   }
   /**
    * A designed dropdown (listbox) used everywhere instead of the browser's select.
@@ -315,7 +315,7 @@
     const btn = h('button', { type: 'button', class: 'dd' + (o.compact ? ' dd-sm' : ''), id: o.id || null, disabled: o.disabled, 'aria-haspopup': 'listbox', 'aria-expanded': 'false', 'aria-label': o.label || null });
     const paint = () => {
       const cur = o.options.find((x) => x.value === o.value);
-      fill(btn, cur ? optFace(cur) : h('span', { class: 'dd-ph', text: o.placeholder || 'Choose' }), o.disabled ? null : icon('chevD', 15));
+      fill(btn, cur ? optFace(cur, true) : h('span', { class: 'dd-ph', text: o.placeholder || 'Choose' }), o.disabled ? null : icon('chevD', 15));
     };
     paint();
     const openList = () => {
@@ -325,7 +325,7 @@
       const list = h('div', { class: 'dd-list', role: 'listbox', 'aria-label': o.label || o.placeholder || 'Options' });
       const search = all.length > 8 ? h('input', { class: 'input dd-search', placeholder: 'Search', 'aria-label': 'Search options', onInput: (e) => { q = e.target.value.toLowerCase(); active = 0; draw(); } }) : null;
       const pop = h('div', { class: 'dd-pop' }, phoneWidth() ? h('div', { class: 'pop-h' }, h('b', { text: o.label || o.placeholder || 'Choose' })) : null, search, list);
-      const shown = () => all.filter((x) => !q || x.label.toLowerCase().includes(q));
+      const shown = () => all.filter((x) => !q || x.label.toLowerCase().includes(q) || (x.hint || '').toLowerCase().includes(q));
       function draw() {
         const items = shown();
         fill(list, items.length ? items.map((x, i) => h('div', {
@@ -353,8 +353,8 @@
     btn.setValue = (v) => { o.value = v; paint(); };
     return btn;
   }
-  const selectOptions = (f) => (f.options || []).map((v, i) => ({ value: v, label: v, tone: i % 8 }));
-  const peopleOptions = () => S.people.map((p) => ({ value: p.id, label: p.name + (p.id === S.me.id ? ' (you)' : ''), person: true }));
+  const selectOptions = (f) => (f.options || []).map((v, i) => ({ value: v, label: optLabel(f, v), tone: i % 8 }));
+  const peopleOptions = () => S.people.map((p) => ({ value: p.id, label: p.name + (p.id === S.me.id ? ' (you)' : ''), person: true, hint: p.username ? '@' + p.username : undefined }));
 
   /** A month calendar in a popover for picking a date (BS with AD in the corner). */
   function datePicker(o) {
@@ -438,9 +438,9 @@
     };
   }
   function mockApi() {
-    const me = { id: 'u_you', name: 'You', email: 'you@preview', role: 'owner' };
+    const me = { id: 'u_you', name: 'You', username: 'you', email: 'you@preview', role: 'owner' };
     const kv = new Map();
-    const people = [me, { id: 'u_asha', name: 'Asha Tamang', role: 'editor' }, { id: 'u_bikash', name: 'Bikash Rai', role: 'contributor' }];
+    const people = [me, { id: 'u_asha', name: 'Asha Tamang', username: null, role: 'editor' }, { id: 'u_bikash', name: 'Bikash Rai', username: 'bikash', role: 'contributor' }];
     const cols = {}, subs = {}, files = new Map(), fileSubs = [];
     let n = 0;
     const emit = (col, op, record) => { (subs[col] || []).forEach((fn) => setTimeout(() => fn({ op, record, by: { id: me.id, name: me.name } }), 0)); mockLine(col, op, record); };
@@ -563,6 +563,24 @@
   };
   const canDelete = (b, r) => canEdit() || (role() === 'contributor' && r.createdBy === S.me.id);
   const person = (id) => S.peopleById.get(id);
+  /** "Sita Sharma (@sita)": the name, with the username for people who have one. */
+  const nameOf = (id, fallback) => { const p = person(id); if (!p) return fallback || 'Former member'; return p.username ? p.name + ' (@' + p.username + ')' : p.name; };
+  /** Short, for tight spots: "@sita", or the name when there is no username. */
+  const handleOf = (id, fallback) => { const p = person(id); if (!p) return fallback || ''; return p.username ? '@' + p.username : p.name; };
+  /** The name in bold with the @username beside it, quieter. */
+  const nameTag = (id, fallback) => { const p = person(id); return h('b', { class: 'pname' }, p ? p.name : (fallback || 'Former member'), p && p.username ? h('span', { class: 'uname', text: ' @' + p.username }) : null); };
+  /** The owner of the app: the studio or agency side. */
+  const ownerPerson = () => S.people.find((p) => p.role === 'owner');
+  /**
+   * Choices that stand for the two sides ("Us" or "Agency", and "Client") read as the real names, so each
+   * side sees who is meant: the studio's name and the client's. What is saved stays the same.
+   */
+  function optLabel(f, v) {
+    if (!f || !f.options || !v || !f.options.includes('Client') || !(f.options.includes('Us') || f.options.includes('Agency'))) return v;
+    if (v === 'Client') return CFG.client || 'Client';
+    if (v === 'Us' || v === 'Agency') { const o = ownerPerson(); return o ? o.name : v; }
+    return v;
+  }
   const blockById = (id) => (id === 'trash' ? TRASH : BLOCKS.find((b) => b.id === id));
   const fieldOf = (b, key) => (b.fields || []).find((f) => f.key === key);
   const titleOf = (b, r) => {
@@ -722,7 +740,7 @@
         h('button', { class: 'icon', 'aria-label': 'Close menu', onClick: closeMenu }, icon('x'))),
       h('div', { class: 'msheet-l' }, (API.trash ? BLOCKS.concat([TRASH]) : BLOCKS).map((b) => h('button', { 'aria-current': S.current === b.id ? 'page' : null, onClick: () => { closeMenu(); go(b.id); } },
         icon(b.icon), h('span', { class: 't', text: b.title }), h('span', { class: 'c num', text: countFor(b) })))),
-      h('div', { class: 'msheet-me' }, h('span', { class: 'avatar', text: initials(S.me.name) }), h('div', null, h('b', { text: S.me.name }), h('span', { text: roleName }))));
+      h('div', { class: 'msheet-me' }, h('span', { class: 'avatar', text: initials(S.me.name) }), h('div', null, h('b', { text: S.me.name }), h('span', { text: (S.me.username ? '@' + S.me.username + ' · ' : '') + roleName }))));
     document.body.append(scrim, sheet);
     menuEls = { scrim, sheet };
     document.addEventListener('keydown', menuKey);
@@ -752,7 +770,7 @@
     }, icon(b.icon), h('span', { class: 't', text: b.title }), h('span', { class: 'c', text: countFor(b) }))),
     API.trash ? h('button', { class: 'nav-trash', 'aria-current': S.current === 'trash' ? 'page' : null, onClick: () => go('trash') }, icon('trash'), h('span', { class: 't', text: 'Trash' }), h('span', { class: 'c', text: countFor(TRASH) })) : null);
     const roleName = { owner: 'Owner', editor: 'Can edit', contributor: 'Can add', viewer: 'Can view' }[role()] || '';
-    meBox.replaceChildren(h('span', { class: 'avatar', text: initials(S.me.name) }), h('div', null, h('b', { text: S.me.name }), h('span', { text: roleName })));
+    meBox.replaceChildren(h('span', { class: 'avatar', text: initials(S.me.name) }), h('div', null, h('b', { text: S.me.name }), h('span', { text: (S.me.username ? '@' + S.me.username + ' · ' : '') + roleName })));
     renderTabs();
   }
   /** The address of what is on screen: "#section" or "#section/item". Kept in the Jhino address bar too, so it can be shared. */
@@ -853,12 +871,13 @@
   function badge(f, v) {
     if (!v) return '';
     const i = f && f.options ? Math.max(0, f.options.indexOf(v)) : 6;
-    return h('span', { class: 'badge b' + (i % 8), text: v });
+    return h('span', { class: 'badge b' + (i % 8), text: optLabel(f, v) });
   }
   function userChip(id, small) {
     const p = person(id);
     if (!id) return '';
-    return h('span', { class: 'chip' }, h('span', { class: 'avatar' + (small ? ' sm' : ''), text: initials(p ? p.name : '?') }), small ? null : h('span', { text: p ? p.name : 'Former member' }));
+    return h('span', { class: 'chip', title: nameOf(id) }, h('span', { class: 'avatar' + (small ? ' sm' : ''), text: initials(p ? p.name : '?') }),
+      small ? null : h('span', null, p ? p.name : 'Former member', p && p.username ? h('span', { class: 'uname', text: ' @' + p.username }) : null));
   }
   const isImage = (f) => f && /^image\//.test(f.type) && !/heic|photoshop/.test(f.type);
   const isVideo = (f) => f && /^video\/(mp4|webm|quicktime|ogg)/.test(f.type);
@@ -1087,11 +1106,11 @@
     const b = d.block, rec = d.rec;
     const readOnly = rec ? !canChange(b, rec) : !canCreate(b);
     const heading = rec ? titleOf(b, rec) : 'New ' + (b.item || singular(b.title));
-    const sub = rec ? 'Added by ' + ((person(rec.createdBy) || {}).name || 'someone') + ', ' + ago(rec.createdAt) + (rec.updatedAt !== rec.createdAt ? ' · updated ' + ago(rec.updatedAt) : '') : null;
+    const sub = rec ? 'Added by ' + nameOf(rec.createdBy, 'someone') + ', ' + ago(rec.createdAt) + (rec.updatedAt !== rec.createdAt ? ' · updated ' + ago(rec.updatedAt) : '') : null;
     const body = h('div', { class: 'drawer-b' });
     if (d.gone) body.appendChild(h('div', { class: 'notice warn' }, h('span', { class: 'grow', text: 'Someone deleted this item.' })));
     if (d.stale) {
-      const by = (person(d.stale.updatedBy) || {}).name || 'Someone';
+      const by = nameOf(d.stale.updatedBy, 'Someone');
       body.appendChild(h('div', { class: 'notice warn' },
         h('span', { class: 'grow', text: by + ' changed this while you were editing. Your text is kept.' }),
         h('button', { class: 'btn sm', onClick: () => { d.rec = d.stale; d.draft = JSON.parse(JSON.stringify(d.stale.data)); d.stale = null; d.dirty = false; renderDrawer(); } }, 'Load theirs')));
@@ -1274,7 +1293,7 @@
           return h('div', { class: 'cmt' + (mine ? ' mine' : ''), 'data-rec': c.id },
             h('span', { class: 'avatar sm', text: initials(who ? who.name : '?') }),
             h('div', { class: 'cmt-b' },
-              h('div', { class: 'cmt-h' }, h('b', { text: who ? who.name : 'Former member' }), h('span', { class: 'muted', title: new Date(c.createdAt).toLocaleString(), text: ago(c.createdAt) }),
+              h('div', { class: 'cmt-h' }, nameTag(c.createdBy), h('span', { class: 'muted', title: new Date(c.createdAt).toLocaleString(), text: ago(c.createdAt) }),
                 canEdit() || mine ? h('button', { class: 'linkish', onClick: async () => {
                   try { await API.remove(b.id + '_comments', c.id); load(b.id + '_comments').catch(showErr); loadTrash(); toast('Comment moved to Trash', false, API.trash ? { label: 'Undo', fn: () => undoDelete([c.id], { id: b.id + '_comments' }) } : null); } catch (e) { showErr(e); }
                 } }, 'Delete') : null),
@@ -1400,7 +1419,7 @@
     const hero = heroFieldOf(b);
     const statusKey = b.boardField || (b.workflow && b.workflow.field) || (fieldOf(b, 'status') ? 'status' : null);
     const statusF = statusKey ? fieldOf(b, statusKey) : null;
-    const by = (id) => (person(id) || {}).name || 'someone';
+    const by = (id) => nameOf(id, 'someone');
     if (S.solo) API.setTitle(titleOf(b, rec));
     const top = S.solo ? soloBar(b, rec) : h('div', { class: 'ip-top' },
       h('button', { class: 'btn ghost sm', onClick: () => go(b.id) }, icon('chevL', 15), b.title),
@@ -1454,7 +1473,7 @@
     const hist = S.act.items.filter((l) => l.collection === b.id && l.recordId === rec.id).slice(0, 8);
     const history = hist.length ? h('section', { class: 'ip-card' }, h('h4', { text: 'History' }),
       h('ul', { class: 'ip-hist' }, hist.map((l) => h('li', null, h('span', { class: 'avatar sm', text: initials(l.name) }),
-        h('span', { class: 'grow' }, h('b', { text: l.name || 'Someone' }), ' ' + historyVerb(l)), h('span', { class: 'muted', text: ago(l.at) }))))) : null;
+        h('span', { class: 'grow' }, h('b', { text: l.name || 'Someone' }), l.username ? h('span', { class: 'uname', text: ' @' + l.username }) : null, ' ' + historyVerb(l)), h('span', { class: 'muted', text: ago(l.at) }))))) : null;
     if (!mainCol.children.length && details) { mainCol.appendChild(details); }
     return [
       h('div', { class: 'ip' }, top, headEl, approval,
@@ -1519,7 +1538,7 @@
     const b = l.collection ? blockById(l.collection) : null;
     const card = h('div', { class: 'popup', role: 'status' },
       h('span', { class: 'avatar sm', text: initials(l.name) }),
-      h('div', { class: 'grow' }, h('p', null, h('b', { text: l.name || 'Someone' }), ' ' + lineWords(l).action + ' ' + (lineWords(l).detail || '')),
+      h('div', { class: 'grow' }, h('p', null, h('b', { text: l.name || 'Someone' }), l.username ? h('span', { class: 'uname', text: ' @' + l.username }) : null, ' ' + lineWords(l).action + ' ' + (lineWords(l).detail || '')),
         lineWords(l).note ? h('p', { class: 'muted', text: '“' + String(lineWords(l).note).slice(0, 120) + '”' }) : null),
       h('div', { class: 'popup-a' },
         b ? h('button', { class: 'btn sm', onClick: () => { card.remove(); if (l.recordId) openRecord(b, l.recordId); else go(b.id); } }, 'View') : null,
@@ -1552,7 +1571,7 @@
       const b = l.collection ? blockById(l.collection) : null;
       return h('button', { class: 'act-line' + (l.id > seenAtOpen && l.userId !== S.me.id ? ' new' : ''), onClick: () => { p.close(); if (b && l.recordId && l.kind !== 'delete') openRecord(b, l.recordId); else if (b) go(b.id); } },
         h('span', { class: 'avatar sm', text: initials(l.name) }),
-        h('span', { class: 'grow' }, h('span', { class: 'act-t' }, h('b', { text: l.name || 'Someone' }), ' ' + lineWords(l).action + ' ', h('span', { class: 'muted', text: lineWords(l).detail || '' })),
+        h('span', { class: 'grow' }, h('span', { class: 'act-t' }, h('b', { text: l.name || 'Someone' }), l.username ? h('span', { class: 'uname', text: ' @' + l.username }) : null, ' ' + lineWords(l).action + ' ', h('span', { class: 'muted', text: lineWords(l).detail || '' })),
           lineWords(l).note ? h('span', { class: 'act-note', text: '“' + lineWords(l).note + '”' }) : null),
         h('span', { class: 'act-time', title: new Date(l.at).toLocaleString(), text: ago(l.at) }));
     };
@@ -1911,7 +1930,7 @@
     if (!opts.length) return null;
     const label = f ? f.label.toLowerCase() : 'groups';
     return dropdown({ compact: true, label: 'Filter by ' + label, value: S.filter[b.id] || '',
-      options: [{ value: '', label: 'All ' + label }].concat(opts.map((o, i) => ({ value: o, label: o, tone: f && f.options ? i % 8 : undefined }))),
+      options: [{ value: '', label: 'All ' + label }].concat(opts.map((o, i) => ({ value: o, label: optLabel(f, o), tone: f && f.options ? i % 8 : undefined }))),
       onChange: (v) => { S.filter[b.id] = v; renderMain(); } });
   }
   const VIEW_ICON = { table: 'table', cards: 'cards', board: 'board', calendar: 'calendar' };
@@ -1948,7 +1967,7 @@
       const groups = {};
       items.forEach((r) => { const g = r.data[b.groupBy] || 'None'; groups[g] = (groups[g] || 0) + (Number(r.data[money1.key]) || 0); });
       const keys = Object.keys(groups).sort((a, z) => groups[z] - groups[a]).slice(0, 8);
-      if (keys.length > 1) out.push(h('div', { class: 'breakdown' }, keys.map((k) => h('span', null, k + ' ', h('b', { text: money(groups[k]) })))));
+      if (keys.length > 1) out.push(h('div', { class: 'breakdown' }, keys.map((k) => h('span', null, optLabel(fieldOf(b, b.groupBy), k) + ' ', h('b', { text: money(groups[k]) })))));
     }
     return out;
   }
@@ -2430,7 +2449,7 @@
       onClick: () => { if (selecting) { if (set.has(r.id)) set.delete(r.id); else set.add(r.id); renderMain(); } else viewer(b, list, i); } },
       selecting ? h('span', { class: 'tick-ov', 'aria-hidden': 'true' }, icon('check', 14)) : null,
       h('div', { class: 'pv' }, pv, link ? h('span', { class: 'link-tag' }, icon('link', 12), 'Link') : procBadge(f), b.mode === 'proofing' && r.data.pick ? h('span', { class: 'pick-mark pk-' + r.data.pick.toLowerCase(), text: r.data.pick }) : null),
-      gallery && !r.data.title && b.mode !== 'proofing' ? null : h('div', { class: 'fb' }, h('b', null, r.data.title || (f ? f.name : 'File'), n ? h('span', { class: 'ccount' }, icon('claim', 12), String(n)) : null), h('span', { text: link ? hostOf(link) + ' · ' + ((person(r.createdBy) || {}).name || '') + ' · ' + ago(r.createdAt) : f ? bytes(f.size) + ' · ' + ((person(r.createdBy) || {}).name || f.createdByName || '') + ' · ' + ago(r.createdAt) : 'File not available' })));
+      gallery && !r.data.title && b.mode !== 'proofing' ? null : h('div', { class: 'fb' }, h('b', null, r.data.title || (f ? f.name : 'File'), n ? h('span', { class: 'ccount' }, icon('claim', 12), String(n)) : null), h('span', { text: link ? hostOf(link) + ' · ' + handleOf(r.createdBy) + ' · ' + ago(r.createdAt) : f ? bytes(f.size) + ' · ' + (handleOf(r.createdBy) || f.createdByName || '') + ' · ' + ago(r.createdAt) : 'File not available' })));
     if (b.mode !== 'proofing') return tile;
     return h('div', { class: 'proof-tile' + (r.data.pick ? ' is-' + r.data.pick.toLowerCase() : '') }, tile, pickBar(b, r));
   }
@@ -2474,7 +2493,7 @@
           list.length > 1 ? h('button', { class: 'icon nav-r', 'aria-label': 'Next', onClick: () => step(1) }, icon('chevR')) : null),
         h('div', { class: 'lb-foot' },
           b.mode === 'proofing' ? h('div', { class: 'lb-picks' }, pickBar(b, r, true, draw), canChange(b, r) ? h('span', { class: 'lb-keys', text: 'Keys: P pick · M maybe · N no · ← → next' }) : null) : null,
-          h('div', { class: 'lb-f', text: [f ? bytes(f.size) : '', r.data.folder || '', (person(r.createdBy) || {}).name || '', ago(r.createdAt), (i + 1) + ' of ' + list.length].filter(Boolean).join('  ·  ') })));
+          h('div', { class: 'lb-f', text: [f ? bytes(f.size) : '', r.data.folder || '', nameOf(r.createdBy, ''), ago(r.createdAt), (i + 1) + ' of ' + list.length].filter(Boolean).join('  ·  ') })));
     }
     document.addEventListener('keydown', key);
     document.body.appendChild(lb);
@@ -2792,7 +2811,7 @@
         h('button', { class: 'btn sm', onClick: () => { docState = null; renderMain(); } }, 'Load theirs'),
         h('button', { class: 'btn sm primary', onClick: () => { const fresh = col(b.id).byId.get(r.id); st.rev = fresh ? fresh.revision : st.rev; st.conflict = null; st.save(); } }, 'Keep mine')) : null,
       h('input', { class: 'doc-title', value: st.title, disabled: !can, 'aria-label': 'Title', 'data-keep': 'doc-title', onInput: (e) => { st.title = e.target.value; schedule(); const li = main.querySelector('.doc-item[data-rec="' + r.id + '"] .doc-item-t b'); if (li) li.textContent = st.title || 'Untitled'; } }),
-      h('p', { class: 'doc-by muted', text: 'Written by ' + ((person(r.createdBy) || {}).name || 'someone') + ', ' + ago(r.createdAt) + (r.updatedAt !== r.createdAt ? ' · last change by ' + ((person(r.updatedBy) || {}).name || 'someone') + ', ' + ago(r.updatedAt) : '') }),
+      h('p', { class: 'doc-by muted', text: 'Written by ' + nameOf(r.createdBy, 'someone') + ', ' + ago(r.createdAt) + (r.updatedAt !== r.createdAt ? ' · last change by ' + nameOf(r.updatedBy, 'someone') + ', ' + ago(r.updatedAt) : '') }),
       meta.children.length ? meta : null,
       approval,
       body,
@@ -2852,7 +2871,7 @@
         h('div', { class: 'feed' }, all.map((r) => {
           const img = r.data.image ? fileMeta(r.data.image) : null;
           return h('article', { class: 'post' + (r.data.pinned ? ' pinned' : '') },
-            h('div', { class: 'by' }, userChip(r.createdBy, true), h('b', { text: (person(r.createdBy) || {}).name || 'Someone' }), h('span', { text: ago(r.createdAt) }), r.data.pinned ? h('span', { class: 'badge b0', text: 'Pinned' }) : null,
+            h('div', { class: 'by' }, userChip(r.createdBy, true), nameTag(r.createdBy, 'Someone'), h('span', { text: ago(r.createdAt) }), r.data.pinned ? h('span', { class: 'badge b0', text: 'Pinned' }) : null,
               h('span', { style: { flex: 1 } }),
               canChange(b, r) ? h('button', { class: 'btn sm ghost', onClick: () => openDrawer(b, r) }, 'Edit') : null),
             h('h3', { text: r.data.title || '' }),
@@ -2901,9 +2920,13 @@
         title.addEventListener('click', rename);
         title.addEventListener('keydown', (e) => { if (e.key === 'Enter') rename(); });
       }
+      const addedBy = r.createdBy === S.me.id ? 'you' : nameOf(r.createdBy, 'someone');
+      const by = h('small', { class: 't-by', title: 'Added by ' + addedBy + ', ' + new Date(r.createdAt).toLocaleString() }, 'Added by ',
+        r.createdBy === S.me.id ? 'you' : person(r.createdBy) ? [h('span', { class: 't-name', text: person(r.createdBy).name }), person(r.createdBy).username ? h('span', { class: 'uname', text: ' @' + person(r.createdBy).username }) : null] : 'someone',
+        ' · ' + ago(r.createdAt));
       return h('div', { class: 'check-row' + (r.data.done ? ' done' : ''), 'data-rec': r.id },
         h('input', { type: 'checkbox', checked: !!r.data.done, disabled: !can, 'aria-label': 'Done: ' + (r.data.title || ''), onChange: (e) => quickSet(b, r, 'done', e.target.checked, e.target.checked ? 'Done' : 'Opened again') }),
-        title,
+        h('span', { class: 't-wrap' }, title, by),
         hasWho ? (can ? dropdown({ compact: true, label: 'Assigned to', value: r.data.assignee || null, placeholder: 'Anyone', clearLabel: 'Anyone', options: peopleOptions(), onChange: (v) => quickSet(b, r, 'assignee', v) }) : (r.data.assignee ? userChip(r.data.assignee, true) : null)) : null,
         hasDue ? (can ? datePicker({ compact: true, label: 'Due date', value: r.data.due || null, placeholder: 'Due', onChange: (v) => quickSet(b, r, 'due', v) }) : (r.data.due ? dateEl(r.data.due, dueClass(r.data.due, r, b)) : null)) : null,
         canDelete(b, r) ? h('button', { class: 'icon del', 'aria-label': 'Delete ' + (r.data.title || ''), title: 'Delete', onClick: () => removeRec(b, r) }, icon('x', 15)) : null);
@@ -2939,7 +2962,7 @@
       thread.appendChild(h('div', { class: 'msg' + (mine ? ' mine' : '') + (cont ? ' cont' : ''), 'data-rec': m.id },
         !mine && !cont ? h('span', { class: 'avatar sm', text: initials(who ? who.name : '?') }) : h('span', { class: 'msg-pad' }),
         h('div', { class: 'msg-b' },
-          !cont ? h('div', { class: 'msg-h' }, h('b', { text: mine ? 'You' : (who ? who.name : 'Former member') }), h('span', { class: 'muted', title: new Date(m.createdAt).toLocaleString(), text: new Date(m.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) })) : null,
+          !cont ? h('div', { class: 'msg-h' }, mine ? h('b', { text: 'You' }) : nameTag(m.createdBy), h('span', { class: 'muted', title: new Date(m.createdAt).toLocaleString(), text: new Date(m.createdAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) })) : null,
           m.data.body ? h('div', { class: 'bubble' }, linkText(m.data.body)) : null,
           fm ? h('div', { class: 'msg-file' }, isImage(fm) ? h('a', { href: fm.url, target: '_blank', rel: 'noopener' }, h('img', { src: fm.url, alt: fm.name, loading: 'lazy' })) : isVideo(fm) ? h('video', { src: fm.url, controls: true, preload: 'metadata', playsinline: true }) : fileChip(fm.id)) : null,
           canDelete(b, m) ? h('button', { class: 'linkish msg-del', onClick: async () => { try { await API.remove(b.id, m.id); load(b.id).catch(showErr); loadTrash(); toast('Message moved to Trash', false, API.trash ? { label: 'Undo', fn: () => undoDelete([m.id], b) } : null); } catch (e) { showErr(e); } } }, 'Delete') : null)));
@@ -3002,7 +3025,7 @@
               return h('button', { class: 'opt' + (mine && mine.data.choice === i ? ' mine' : ''), disabled: closed || !canAdd(), onClick: () => vote(b, p, i, mine) },
                 h('i', { class: 'fill', style: { transform: 'scaleX(' + pct / 100 + ')' } }), h('span', { text: o }), h('b', { class: 'num', text: counts[i] + ' · ' + pct + '%' }));
             }),
-            h('p', { class: 'hint', text: total + (total === 1 ? ' vote' : ' votes') + (mine ? ' · you voted' : canAdd() && !closed ? ' · tap an option to vote' : '') + ' · asked by ' + ((person(p.createdBy) || {}).name || 'someone') }));
+            h('p', { class: 'hint', text: total + (total === 1 ? ' vote' : ' votes') + (mine ? ' · you voted' : canAdd() && !closed ? ' · tap an option to vote' : '') + ' · asked by ' + nameOf(p.createdBy, 'someone') }));
         })))];
   };
   async function vote(b, p, choice, mine) {
@@ -3112,7 +3135,7 @@
               const x = l.collection ? blockById(l.collection) : null;
               return h('button', { class: 'act-line' + (l.id > S.act.seen && l.userId !== S.me.id ? ' new' : ''), onClick: () => { if (x && l.recordId && l.kind !== 'delete') openRecord(x, l.recordId); else if (x) go(x.id); } },
                 h('span', { class: 'avatar sm', text: initials(l.name) }),
-                h('span', { class: 'grow' }, h('span', { class: 'act-t' }, h('b', { text: l.name || 'Someone' }), ' ' + lineWords(l).action + ' ', h('span', { class: 'muted', text: lineWords(l).detail || '' })), lineWords(l).note ? h('span', { class: 'act-note', text: '“' + lineWords(l).note + '”' }) : null),
+                h('span', { class: 'grow' }, h('span', { class: 'act-t' }, h('b', { text: l.name || 'Someone' }), l.username ? h('span', { class: 'uname', text: ' @' + l.username }) : null, ' ' + lineWords(l).action + ' ', h('span', { class: 'muted', text: lineWords(l).detail || '' })), lineWords(l).note ? h('span', { class: 'act-note', text: '“' + lineWords(l).note + '”' }) : null),
                 h('span', { class: 'act-time', text: ago(l.at) }));
             }))
               : recent.length ? h('div', { class: 'list-lines' }, recent.slice(0, 10).map((u) => line(u.x, u.r, ago(u.r.updatedAt)))) : h('p', { class: 'muted', text: 'Nothing yet. Open a section and add the first item.' })))),

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
-import { ROOT } from './config.js';
+import { ROOT, config } from './config.js';
 import { db, newId, now, logActivity } from './db.js';
 import { HttpError, requireUser, requireCreator, validateName } from './auth.js';
 import { access, loadApp } from './apps.js';
@@ -141,27 +141,52 @@ const safeJson = (v: unknown) => JSON.stringify(v).replace(/</g, '\\u003c');
 export function generateHtml(cfg: BuildConfig, opts: { preview?: boolean } = {}) {
   const manifest = manifestFor(cfg);
   const appCfg = { name: cfg.name, purpose: cfg.purpose, client: cfg.client, design: cfg.design, blocks: expand(cfg), preview: !!opts.preview, builtAt: now() };
+  return page(esc(cfg.name), safeJson(manifest), safeJson(appCfg));
+}
+
+const GENERATOR = '<meta name="generator" content="Jhino app builder">';
+/** The builder's code, read again at most every few seconds in development and once in production. */
+let code: { css: string; js: string; at: number } | null = null;
+function builderCode() {
+  if (!code || (!config.isProd && Date.now() - code.at > 2000)) code = { css: read('app.css'), js: read('app.js'), at: Date.now() };
+  return code;
+}
+function page(title: string, manifestJson: string, configJson: string) {
+  const { css, js } = builderCode();
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>${esc(cfg.name)}</title>
-<meta name="generator" content="Jhino app builder">
-<script type="application/json" id="jhino-manifest">${safeJson(manifest)}</script>
-<script type="application/json" id="jhino-app-config">${safeJson(appCfg)}</script>
+<title>${title}</title>
+${GENERATOR}
+<script type="application/json" id="jhino-manifest">${manifestJson}</script>
+<script type="application/json" id="jhino-app-config">${configJson}</script>
 <style>
-${read('app.css')}
+${css}
 </style>
 </head>
 <body>
 <div id="app" aria-live="polite"></div>
 <script>
-${read('app.js')}
+${js}
 </script>
 </body>
 </html>
 `;
+}
+
+/**
+ * A built app's page with today's builder code, so fixes and improvements reach apps made earlier.
+ * Its own config and manifest (the fields and rules its data was saved under) stay exactly as built.
+ */
+export function withCurrentBuilder(html: string): string {
+  if (!html.includes(GENERATOR)) return html;
+  const m = /<script type="application\/json" id="jhino-manifest">([^<]*)<\/script>/.exec(html);
+  const c = /<script type="application\/json" id="jhino-app-config">([^<]*)<\/script>/.exec(html);
+  const t = /<title>([^<]*)<\/title>/.exec(html);
+  if (!m || !c) return html;
+  return page(t ? t[1] : 'App', m[1], c[1]);
 }
 
 function installBuilt(appId: string, n: number, html: string) {

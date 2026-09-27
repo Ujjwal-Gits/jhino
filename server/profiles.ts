@@ -6,7 +6,7 @@ import { config } from './config.js';
 import { db, newId, now, sha256, type UserRow } from './db.js';
 import { HttpError, requireCreator } from './auth.js';
 import { limit, setSetting, setting } from './security.js';
-import { featuresOf } from './plans.js';
+import { PLANS, featuresOf } from './plans.js';
 import { THEME_TIERS, DEFAULT_THEME } from './themes.js';
 import { nextUsernameChange, USERNAME_EVERY_DAYS } from './usernames.js';
 
@@ -24,7 +24,7 @@ const SOCIALS = ['instagram', 'facebook', 'tiktok', 'youtube', 'x', 'linkedin', 
 type SocialKind = typeof SOCIALS[number];
 const TIER = { free: 0, plus: 1, pro: 2 } as const;
 
-interface ProfileRow { user_id: string; bio: string; location: string; theme: string; layout: string; socials: string; published: number; custom_html: string | null; use_custom: number; updated_at: string }
+interface ProfileRow { user_id: string; bio: string; location: string; theme: string; layout: string; socials: string; published: number; custom_html: string | null; use_custom: number; hide_branding: number; updated_at: string }
 interface ItemRow { id: string; user_id: string; position: number; type: ItemType; title: string; subtitle: string; url: string | null; text: string | null; app_id: string | null; highlight: number; visible: number; created_at: string; updated_at: string }
 
 function profileOf(userId: string): ProfileRow {
@@ -89,6 +89,16 @@ function effectiveTheme(u: UserRow, theme: string) {
   // A plan that ended falls back to a free design; the choice is kept for when they renew.
   return TIER[tier] <= TIER[featuresOf(u).themeTier] ? theme : DEFAULT_THEME;
 }
+/**
+ * Jhino's mark on the page. Plans that may remove it (Pro) show the badge until the person switches it
+ * off; everyone else gets what their plan sets and cannot change it.
+ */
+function brandingOf(u: UserRow, p: ProfileRow): 'popup' | 'badge' | 'none' {
+  const f = featuresOf(u);
+  if (!f.removeBranding) return f.branding;
+  if (p.hide_branding) return 'none';
+  return f.branding === 'none' ? 'badge' : f.branding;
+}
 function publicItems(u: UserRow, rows: ItemRow[], forOwner: boolean) {
   const out: Record<string, unknown>[] = [];
   for (const r of rows) {
@@ -107,7 +117,8 @@ function publicItems(u: UserRow, rows: ItemRow[], forOwner: boolean) {
       // Visitors only see apps they can open (public or password) or that have an address.
       if (a.access === 'private' && !forOwner) continue;
       const href = a.slug ? `/${u.username}/${a.slug}` : a.root_slug ? `/${a.root_slug}` : `/s/${a.share_token}`;
-      out.push({ id: r.id, type: 'app', title: r.title || a.name, subtitle: r.subtitle || (a.access === 'password' ? 'Password protected' : undefined), href, ...hidden, ...(a.access === 'private' ? { privateApp: true } : {}) });
+      // installable: the app page carries its own manifest, so visitors can add it to their home screen.
+      out.push({ id: r.id, type: 'app', title: r.title || a.name, subtitle: r.subtitle || (a.access === 'password' ? 'Password protected' : undefined), href, installable: a.access !== 'private', ...hidden, ...(a.access === 'private' ? { privateApp: true } : {}) });
     }
   }
   return out;
@@ -121,7 +132,7 @@ export function pageData(u: UserRow, forOwner = false) {
   try { socials = JSON.parse(p.socials); } catch { /* reset */ }
   return {
     username: u.username!, name: u.display_name || u.name, bio: p.bio, location: p.location, avatarUrl: avatarUrl(u),
-    theme: effectiveTheme(u, p.theme), layout: p.layout === 'profile' ? 'profile' : 'links', branding: featuresOf(u).branding,
+    theme: effectiveTheme(u, p.theme), layout: p.layout === 'profile' ? 'profile' : 'links', branding: brandingOf(u, p),
     socials, items: publicItems(u, rows, forOwner),
   };
 }
@@ -301,9 +312,9 @@ export function registerProfiles(app: FastifyInstance) {
     return {
       username: u.username, page: pageData(u, true),
       usernameNextChange: nextUsernameChange(u), usernameEveryDays: USERNAME_EVERY_DAYS,
-      settings: { bio: p.bio, location: p.location, theme: p.theme, layout: p.layout, socials, published: !!p.published, customHtml: p.custom_html ?? '', useCustom: !!p.use_custom },
+      settings: { bio: p.bio, location: p.location, theme: p.theme, layout: p.layout, socials, published: !!p.published, customHtml: p.custom_html ?? '', useCustom: !!p.use_custom, hideBranding: !!p.hide_branding },
       items: items.map((r) => ({ id: r.id, type: r.type, title: r.title, subtitle: r.subtitle, url: r.url, text: r.text, appId: r.app_id, highlight: !!r.highlight, visible: !!r.visible, clicks30: clicks[r.id] ?? 0 })),
-      features: { themeTier: f.themeTier, branding: f.branding, customPage: f.customPage, analyticsDays: f.analyticsDays },
+      features: { themeTier: f.themeTier, branding: brandingOf(u, p), removeBranding: f.removeBranding, customPage: f.customPage, analyticsDays: f.analyticsDays },
       apps: db.prepare('SELECT id, name, slug, access FROM apps WHERE owner_id=? AND deleted_at IS NULL ORDER BY updated_at DESC').all(u.id),
       starter: CUSTOM_STARTER, themeTiers: THEME_TIERS,
     };
@@ -342,13 +353,20 @@ export function registerProfiles(app: FastifyInstance) {
       if (html && !f.customPage) throw new HttpError(403, 'PLAN_FEATURE', 'Your own page design is on Pro. Upgrade in Plan & usage.', { feature: 'customPage' });
       next.custom_html = html || null;
     }
+    if (b.hideBranding !== undefined) {
+      if (b.hideBranding && !f.removeBranding) {
+        const on = Object.values(PLANS).filter((x) => x.features.removeBranding).map((x) => x.name).join(' and ') || 'a higher plan';
+        throw new HttpError(403, 'PLAN_FEATURE', `Removing the Jhino badge is on ${on}. Upgrade in Plan & usage.`, { feature: 'removeBranding' });
+      }
+      next.hide_branding = b.hideBranding ? 1 : 0;
+    }
     if (b.useCustom !== undefined) {
       if (b.useCustom && !f.customPage) throw new HttpError(403, 'PLAN_FEATURE', 'Your own page design is on Pro. Upgrade in Plan & usage.', { feature: 'customPage' });
       if (b.useCustom && !next.custom_html) throw new HttpError(400, 'VALIDATION_FAILED', 'Add your HTML first.');
       next.use_custom = b.useCustom ? 1 : 0;
     }
-    db.prepare('UPDATE profiles SET bio=?, location=?, theme=?, layout=?, socials=?, published=?, custom_html=?, use_custom=?, updated_at=? WHERE user_id=?')
-      .run(next.bio, next.location, next.theme, next.layout, next.socials, next.published, next.custom_html, next.use_custom, now(), u.id);
+    db.prepare('UPDATE profiles SET bio=?, location=?, theme=?, layout=?, socials=?, published=?, custom_html=?, use_custom=?, hide_branding=?, updated_at=? WHERE user_id=?')
+      .run(next.bio, next.location, next.theme, next.layout, next.socials, next.published, next.custom_html, next.use_custom, next.hide_branding, now(), u.id);
     return editorView(u);
   });
 

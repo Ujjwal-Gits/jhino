@@ -1031,3 +1031,13 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 .cover.vcover .vhost { font-size: 12.5px; color: var(--muted); }
 .cover.vcover .play { position: absolute; inset: 0; display: grid; place-items: center; }
 .cover.vcover .play span { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,.55); color: #fff; }
+
+/* ---------- who added what: names with their @username ---------- */
+.uname { font-weight: 400; color: var(--ink-3); }
+.pname { font-weight: 560; }
+.check-row .t-wrap { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.check-row .t-wrap .t { flex: none; max-width: 100%; }
+.check-row .t-wrap .t-edit { flex: none; width: 100%; }
+.check-row .t-by { max-width: 100%; font-size: 12px; line-height: 1.3; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.check-row .t-by .t-name { color: var(--ink-2); }
+.check-row.done .t-by { opacity: 0.8; }

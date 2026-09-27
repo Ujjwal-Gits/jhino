@@ -1,3 +1,5 @@
+// First: listens for the browser's install offer before anything else runs.
+import './install';
 import { StrictMode, Suspense, lazy, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
@@ -21,7 +23,7 @@ import { Player } from './pages/Player';
 import { Shell } from './pages/Shell';
 import { Builder } from './pages/Builder';
 import { LinksPage } from './pages/Links';
-import { PersonPage } from './pages/PersonPage';
+import { PagePreview, PersonPage } from './pages/PersonPage';
 import { RouteCtx, SessionCtx, applyTheme, readTheme, useRoute } from './context';
 
 applyTheme(readTheme());
@@ -92,6 +94,8 @@ function App() {
   const seg = path.split('/').filter(Boolean);
   const person = seg.length === 1 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{0,49}$/i.test(seg[0]) ? seg[0] : null;
   const under = seg.length === 2 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) && /^[a-z0-9][a-z0-9-]{1,49}$/i.test(seg[1]) ? `${seg[0]}/${seg[1]}` : null;
+  // jhino.com/<username>/preview: the owner's own page in a tab of its own (anyone else gets whatever is at that address).
+  const previewOf = under && seg[1].toLowerCase() === 'preview' ? seg[0].toLowerCase() : null;
   const shell = (n: ReactNode) => (user ? <Shell>{n}</Shell> : n);
   if (user === undefined) page = null;
   else if (invite) page = <Invite token={invite[1]} user={user} onJoined={refresh} />;
@@ -101,6 +105,8 @@ function App() {
   else if (path === '/help') page = shell(<HelpPage signedIn={!!user} />);
   else if (path === '/terms') page = shell(<TermsPage signedIn={!!user} />);
   else if (path === '/privacy') page = shell(<PrivacyPage signedIn={!!user} />);
+  else if (previewOf && !user) page = <Login onDone={refresh} />;
+  else if (previewOf && user?.username?.toLowerCase() === previewOf) page = <PagePreview />;
   else if (shareMatch || under) page = <PublicApp refId={shareMatch ? shareMatch[1] : under!} signedInUser={user} />;
   else if (person) page = <PersonPage name={person} user={user} />;
   else if (path === '/_themes' && user?.isAdmin) page = <ThemeGallery />;

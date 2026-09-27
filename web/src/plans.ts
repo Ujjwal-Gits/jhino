@@ -32,11 +32,11 @@ export interface PlanCard {
 
 const DEFAULTS: ServerPlan[] = [
   { id: 'free', name: 'Free Forever', price: 0, yearly: 0, creations: 1, blurb: 'One client room, free for as long as you like.',
-    features: { addresses: 1, shortLinks: 5, customCodes: false, passwordLinks: false, hideBar: false, download: false, linkStats: false, prioritySupport: false, maxUploadMB: 20, themeTier: 'free', branding: 'popup', customPage: false, analyticsDays: 7 } },
+    features: { addresses: 1, shortLinks: 5, customCodes: false, passwordLinks: false, hideBar: false, download: false, linkStats: false, prioritySupport: false, maxUploadMB: 20, themeTier: 'free', branding: 'popup', removeBranding: false, customPage: false, analyticsDays: 7 } },
   { id: 'plus', name: 'Plus', price: 500, yearly: 5000, creations: 10, blurb: 'A freelancer or a small studio with a handful of clients.',
-    features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false, maxUploadMB: 50, themeTier: 'plus', branding: 'badge', customPage: false, analyticsDays: 30 } },
+    features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false, maxUploadMB: 50, themeTier: 'plus', branding: 'badge', removeBranding: false, customPage: false, analyticsDays: 30 } },
   { id: 'pro', name: 'Pro', price: 2000, yearly: 20000, creations: 50, blurb: 'A studio or agency with a room for every client.',
-    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50, themeTier: 'pro', branding: 'none', customPage: true, analyticsDays: 365 } },
+    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50, themeTier: 'pro', branding: 'badge', removeBranding: true, customPage: true, analyticsDays: 365 } },
 ];
 
 export const nprAmount = (n: number) => n.toLocaleString('en-IN');
@@ -55,7 +55,7 @@ export function cardOf(p: ServerPlan): PlanCard {
     `${plural(f.shortLinks, 'short link')}${f.customCodes ? ' with your own names' : ''}`,
     ...(f.linkStats ? ['Daily click history for every link'] : []),
     `Page analytics: ${f.analyticsDays >= 365 ? 'a full year' : `${f.analyticsDays} days`}`,
-    f.branding === 'none' ? 'No Jhino branding on your page' : f.branding === 'badge' ? 'A small Jhino badge, no popup' : 'Jhino badge and popup on your page',
+    f.removeBranding ? 'Keep or remove the Jhino badge: your choice' : f.branding === 'none' ? 'No Jhino branding on your page' : f.branding === 'badge' ? 'A small Jhino badge, no popup' : 'Jhino badge and popup on your page',
     `Files up to ${nprAmount(f.maxUploadMB)} MB each (videos as links)`,
     ...(f.prioritySupport ? ['Priority support'] : []),
   ];

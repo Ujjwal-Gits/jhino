@@ -4,6 +4,7 @@ import { SessionCtx } from '../context';
 import { live } from '../live';
 import { Player } from './Player';
 import { Link } from '../context';
+import { Login } from './Login';
 
 /*
  * A shared app opened by link: /s/<token>, an address like /your-studio/client-room, or a top-level one.
@@ -20,7 +21,7 @@ const VISITOR: User = { id: 'visitor', email: '', name: 'Visitor', displayName: 
 
 export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser: User | null }) {
   const [info, setInfo] = useState<PublicInfo | null>(null);
-  const [error, setError] = useState<{ title: string; text: string } | null>(null);
+  const [error, setError] = useState<{ title: string; text: string; signIn?: boolean } | null>(null);
   const [pw, setPw] = useState('');
   const [busy, setBusy] = useState(false);
   const [pwError, setPwError] = useState('');
@@ -32,7 +33,7 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
     }, (e) => {
       const a = e as ApiError;
       setError(a.code === 'NOT_PUBLIC'
-        ? { title: 'This app is private', text: 'Only people its owner added can open it. If that is you, sign in first.' }
+        ? { title: 'This app is private', text: 'Only people its owner added can open it. If that is you, sign in first.', signIn: true }
         : a.status === 404 ? { title: 'Nothing here', text: 'This link does not exist, or the app was removed.' }
           : { title: 'Could not open this', text: a.message || 'Try again in a moment.' });
     });
@@ -56,6 +57,8 @@ export function PublicApp({ refId, signedInUser }: { refId: string; signedInUser
     setBusy(false);
   };
 
+  // A private app, signed out: sign in right here, so the app opens at this same address (and an installed app stays in its window).
+  if (error?.signIn && !signedInUser) return <Login onDone={async () => { location.reload(); }} />;
   if (error) {
     return (
       <main className="state-card">

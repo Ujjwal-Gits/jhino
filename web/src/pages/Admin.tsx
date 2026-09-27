@@ -777,7 +777,7 @@ function AppDetailAdmin({ id }: { id: string }) {
 
 /* ---------------- plans & pricing ---------------- */
 interface PlanEdit { id: string; name: string; price: number; yearly: number; creations: number; blurb: string; features: Record<string, number | boolean | string> }
-const FLAG_FIELDS: [string, string][] = [['customPage', 'Own HTML page design'], ['passwordLinks', 'Password links'], ['hideBar', 'Hide the top bar'], ['download', 'Download as an HTML file'], ['customCodes', 'Short links with their own names'], ['linkStats', 'Daily click history'], ['prioritySupport', 'Priority support']];
+const FLAG_FIELDS: [string, string][] = [['customPage', 'Own HTML page design'], ['removeBranding', 'Can switch off the Jhino badge'],['passwordLinks', 'Password links'], ['hideBar', 'Hide the top bar'], ['download', 'Download as an HTML file'], ['customCodes', 'Short links with their own names'], ['linkStats', 'Daily click history'], ['prioritySupport', 'Priority support']];
 function PlansAdmin() {
   const toast = useToast();
   const [d, setD] = useState<{ plans: PlanEdit[]; serverMaxMB: number; customers: Record<string, number> } | null>(null);

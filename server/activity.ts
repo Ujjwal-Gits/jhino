@@ -12,11 +12,11 @@ import { setActivityFilter } from './realtime.js';
  */
 
 export interface ActivityRow {
-  id: number; action: string; detail: string; at: string; name: string | null; userId: string | null;
+  id: number; action: string; detail: string; at: string; name: string | null; username?: string | null; userId: string | null;
   collection: string | null; recordId: string | null; kind: string | null; note: string | null;
 }
 
-const SELECT = `SELECT a.id, a.action, a.detail, a.at, u.name, a.user_id userId, a.collection, a.record_id recordId, a.kind, a.note
+const SELECT = `SELECT a.id, a.action, a.detail, a.at, u.name, u.username, a.user_id userId, a.collection, a.record_id recordId, a.kind, a.note
   FROM activity a LEFT JOIN users u ON u.id=a.user_id`;
 
 export function activityVisible(appId: string, row: Pick<ActivityRow, 'collection' | 'recordId' | 'kind'>, userId: string, role: Role): boolean {

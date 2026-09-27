@@ -7,7 +7,7 @@ import { ROLE_LABEL } from './Share';
 import { useRoute } from '../context';
 
 type Tab = 'overview' | 'activity' | 'versions' | 'data';
-interface Activity { id: number; action: string; detail: string; at: string; name: string | null }
+interface Activity { id: number; action: string; detail: string; at: string; name: string | null; username?: string | null }
 interface KvRow { ns: string; scope: string; key: string; size: number; preview: string; rev: number; updatedAt: string; updatedBy: string | null; owner: string | null }
 
 export function DetailsPanel({ app, onClose, onChanged, onUpload }: { app: AppDetail; onClose: () => void; onChanged: () => void; onUpload: () => void }) {
@@ -98,7 +98,7 @@ export function DetailsPanel({ app, onClose, onChanged, onUpload }: { app: AppDe
             <div className="lines">
               {activity.map((a) => (
                 <div className="line" key={a.id}>
-                  <div className="grow"><b>{a.name ?? 'Someone'}</b> {a.action}{a.detail ? <span className="muted"> · {a.detail}</span> : null}</div>
+                  <div className="grow"><b>{a.name ?? 'Someone'}</b>{a.username && <span className="muted"> @{a.username}</span>} {a.action}{a.detail ? <span className="muted"> · {a.detail}</span> : null}</div>
                   <span className="mono muted" title={new Date(a.at).toLocaleString()}>{ago(a.at)}</span>
                 </div>
               ))}

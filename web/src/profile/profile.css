@@ -454,3 +454,28 @@
 }
 .pf-thumb .pf-link-text b { display: block; line-height: 1; }
 .pf-thumb .pf-link[data-thumb-short] .pf-thumb-bar { width: 6em; }
+
+/* ---------- an app visitors can add to their home screen ---------- */
+.pf-appcell { display: grid; gap: 2px; min-width: 0; }
+.pf-install {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 6px;
+  margin-right: -6px;
+  border: 0;
+  background: none;
+  font: 500 13px/1 var(--pf-font);
+  color: var(--pf-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms var(--pf-ease), transform 160ms var(--pf-ease);
+}
+.pf-install .pf-ico-install { width: 16px; height: 16px; }
+.pf-install:hover { color: var(--pf-fg); }
+.pf-install:active { transform: scale(0.97); }
+
+/* ---------- the owner's preview: items switched off stay visible, faded ---------- */
+.pf[data-preview] [data-hidden] { opacity: 0.4; }

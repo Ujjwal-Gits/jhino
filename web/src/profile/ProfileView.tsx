@@ -108,14 +108,16 @@ export function ProfileView({ data, preview = false }: { data: ProfileData; prev
 
 function Item({ item, index, no, stop }: { item: ProfileItem; index: number; no: number; stop?: (e: MouseEvent) => void }) {
   const style = { '--i': index, '--n': no } as CSSProperties;
+  // Switched off: only the owner's preview gets these, and shows them faded.
+  const off = item.hidden ? '' : undefined;
   switch (item.type) {
     case 'header':
-      return <h2 className="pf-section" style={style}>{item.title}</h2>;
+      return <h2 className="pf-section" style={style} data-hidden={off}>{item.title}</h2>;
     case 'text':
-      return <p className="pf-text" style={style}>{item.text}</p>;
+      return <p className="pf-text" style={style} data-hidden={off}>{item.text}</p>;
     case 'video':
       return (
-        <div className="pf-video" style={style}>
+        <div className="pf-video" style={style} data-hidden={off}>
           <b>{item.title}</b>
           <div className="pf-video-box">
             <iframe src={item.embed} title={item.title} loading="lazy"
@@ -123,9 +125,9 @@ function Item({ item, index, no, stop }: { item: ProfileItem; index: number; no:
           </div>
         </div>
       );
-    case 'app':
-      return (
-        <a className="pf-link pf-app" href={item.href} target="_blank" rel="noopener" style={style} onClick={stop}>
+    case 'app': {
+      const link = (
+        <a className="pf-link pf-app" href={item.href} target="_blank" rel="noopener" style={item.installable ? undefined : style} onClick={stop} data-hidden={item.installable ? undefined : off}>
           <span className="pf-link-icon" aria-hidden="true"><AppGlyph /></span>
           <span className="pf-link-text">
             <b>{item.title}</b>
@@ -135,11 +137,24 @@ function Item({ item, index, no, stop }: { item: ProfileItem; index: number; no:
           <span className="pf-link-go" aria-hidden="true"><GoGlyph /></span>
         </a>
       );
+      if (!item.installable) return link;
+      // Opens the app with its install sheet: the app's own page is what the phone adds to its home screen.
+      return (
+        <div className="pf-appcell" style={style} data-hidden={off}>
+          {link}
+          {/* A button, not a second link: some designs style links by their order. */}
+          <button type="button" className="pf-install" aria-label={`Add ${item.title} to your home screen`}
+            onClick={(e) => { if (stop) stop(e); else location.assign(`${item.href}?install=1`); }}>
+            <InstallGlyph />Add to home screen
+          </button>
+        </div>
+      );
+    }
     case 'link': {
       const host = hostOf(item.url);
       return (
         <a className="pf-link" href={item.href} target="_blank" rel="noopener" style={style} onClick={stop}
-          data-highlight={item.highlight ? '' : undefined}>
+          data-highlight={item.highlight ? '' : undefined} data-hidden={off}>
           <span className="pf-link-icon" aria-hidden="true">
             {item.thumb ? <img src={item.thumb} alt="" loading="lazy" /> : <span className="pf-letter">{(host[0] || '').toUpperCase() || <LinkGlyph />}</span>}
           </span>
@@ -254,6 +269,11 @@ function GoGlyph() {
 
 function LinkGlyph() {
   return <Svg>{S('M10.2 13.8a3.8 3.8 0 0 0 5.4 0l2.9-2.9a3.8 3.8 0 0 0-5.4-5.4l-1 1 M13.8 10.2a3.8 3.8 0 0 0-5.4 0l-2.9 2.9a3.8 3.8 0 0 0 5.4 5.4l1-1')}</Svg>;
+}
+
+/** A tray with an arrow into it: "put this on my device". */
+function InstallGlyph() {
+  return <Svg className="pf-ico pf-ico-install">{S('M12 4v10 M8 10.5l4 4 4-4 M5 15.5v2.5a1.5 1.5 0 0 0 1.5 1.5h11a1.5 1.5 0 0 0 1.5-1.5v-2.5')}</Svg>;
 }
 
 /** Four tiles: a Jhino app. */

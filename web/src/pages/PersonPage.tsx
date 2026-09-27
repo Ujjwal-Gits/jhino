@@ -47,11 +47,22 @@ function PublicProfile({ d }: { d: PublicResp }) {
   }, [d]);
   if (d.custom) {
     return (
-      <iframe className="pf-custom" title={`${d.profile.name} on Jhino`} src={`/p/${encodeURIComponent(d.profile.username)}/custom`}
-        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-forms" />
+      <>
+        <iframe className="pf-custom" title={`${d.profile.name} on Jhino`} src={`/p/${encodeURIComponent(d.profile.username)}/custom`}
+          sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-forms" />
+        {d.profile.branding !== 'none' && <CustomBadge />}
+      </>
     );
   }
   return <ProfileView data={data} />;
+}
+/** "Made with jhino" over a page made from the person's own HTML (it cannot go inside their sandbox). */
+function CustomBadge({ preview }: { preview?: boolean }) {
+  return (
+    <a className="pf-custom-badge" href="/" target={preview ? '_blank' : undefined} rel="noopener" onClick={preview ? (e) => e.preventDefault() : undefined}>
+      <span>Made with</span><span className="pf-wordmark">jhino<i aria-hidden="true" /></span>
+    </a>
+  );
 }
 
 /* ---------------- the owner's editor ---------------- */
@@ -59,8 +70,8 @@ interface ItemT { id: string; type: 'link' | 'header' | 'text' | 'video' | 'app'
 interface EditorT {
   username: string; page: ProfileData;
   usernameNextChange?: string | null; usernameEveryDays?: number;
-  settings: { bio: string; location: string; theme: string; layout: 'links' | 'profile'; socials: { kind: SocialKind; url: string }[]; published: boolean; customHtml: string; useCustom: boolean };
-  items: ItemT[]; features: { themeTier: Tier; branding: string; customPage: boolean; analyticsDays: number };
+  settings: { bio: string; location: string; theme: string; layout: 'links' | 'profile'; socials: { kind: SocialKind; url: string }[]; published: boolean; customHtml: string; useCustom: boolean; hideBranding?: boolean };
+  items: ItemT[]; features: { themeTier: Tier; branding: string; removeBranding?: boolean; customPage: boolean; analyticsDays: number };
   apps: { id: string; name: string; slug: string | null; access: string }[]; starter: string;
 }
 type Tab = 'links' | 'profile' | 'design' | 'analytics' | 'share';
@@ -70,12 +81,12 @@ function MyPage() {
   const toast = useToast();
   const [d, setD] = useState<EditorT | null>(null);
   const [tab, setTab] = useState<Tab>(() => (new URLSearchParams(location.search).get('tab') as Tab) || 'links');
-  const load = useCallback(() => get<EditorT>('/api/me/page').then(setD, (e) => toast(e instanceof ApiError ? e.message : 'Could not load your page.', true)), [toast]);
+  const load = useCallback(() => get<EditorT>('/api/me/page').then((v) => { setD(v); tellPreview(v); }, (e) => toast(e instanceof ApiError ? e.message : 'Could not load your page.', true)), [toast]);
   useEffect(() => { load(); }, [load]);
   useEffect(() => { document.title = 'My page · Jhino'; }, []);
-  /** Save, then show what the server now has (the preview follows at once). */
+  /** Save, then show what the server now has (the preview here and in the live preview tab follow at once). */
   const run = useCallback(async (p: Promise<EditorT>, ok?: string) => {
-    try { setD(await p); if (ok) toast(ok); return true; } catch (e) { toast(e instanceof ApiError ? e.message : 'Could not save.', true); return false; }
+    try { const v = await p; setD(v); tellPreview(v); if (ok) toast(ok); return true; } catch (e) { toast(e instanceof ApiError ? e.message : 'Could not save.', true); return false; }
   }, [toast]);
   if (!d) return <main className="page"><div className="acc-skel" /></main>;
   const url = `${location.origin}/${d.username}`;
@@ -85,7 +96,7 @@ function MyPage() {
         <div className="mp-title">
           <h1>My page</h1>
           <p className="mp-url">
-            <a href={`/${d.username}`} target="_blank" rel="noopener" className="mono">{location.host}/<b>{d.username}</b></a>
+            <a href={`/${d.username}/preview`} target="_blank" rel="noopener" className="mono" title="Open the live preview in a new tab">{location.host}/<b>{d.username}</b></a>
             <button className="btn sm" onClick={() => copyText(url).then(() => toast('Link copied'))}><Icon name="copy" size={14} />Copy</button>
             {!d.settings.published && <span className="status s-rejected">hidden</span>}
           </p>
@@ -104,12 +115,16 @@ function MyPage() {
         </section>
         {tab !== 'analytics' && (
           <aside className="mp-preview" aria-label="Preview">
-            <div className="mp-phone">
-              {d.settings.useCustom && d.features.customPage && d.settings.customHtml
-                ? <iframe title="Preview of your own HTML" src={`/p/${d.username}/custom?preview=1&v=${d.settings.customHtml.length}`} sandbox="allow-scripts" />
-                : <ProfileView data={d.page} preview />}
+            <div className="mp-prev-bar">
+              <span className="mp-prev-title">Preview</span>
+              <a className="btn sm" href={`/${d.username}/preview`} target="_blank" rel="noopener" title={`Opens ${location.host}/${d.username}/preview in a new tab. It changes as you edit here.`}>
+                <Icon name="external" size={14} />Live preview
+              </a>
             </div>
-            <p className="hint mp-prev-note">Preview. Hidden items show faded here only. <a className="link" href={`/${d.username}`} target="_blank" rel="noopener">Open the live page</a></p>
+            <div className="mp-phone">
+              <PreviewBody d={d} />
+            </div>
+            <p className="hint mp-prev-note">Hidden items show faded here only. Only you see this preview.</p>
           </aside>
         )}
       </div>
@@ -435,8 +450,20 @@ function DesignTab({ d, run }: { d: EditorT; run: Run }) {
         )}
       </section>
       <section className="mp-sec">
-        <h2>Jhino branding</h2>
-        <p className="hint">{d.features.branding === 'none' ? 'Your page shows nothing of Jhino.' : d.features.branding === 'badge' ? 'A small "Made with jhino" at the foot of your page. Pro removes it.' : 'A "Made with jhino" badge and a small popup for visitors. Plus keeps just the badge; Pro removes both.'} {d.features.branding !== 'none' && <Link to="/account/plan" className="link">See plans</Link>}</p>
+        <h2>Jhino branding {!d.features.removeBranding && <PlanTag plan="Pro" />}</h2>
+        <label className="check-row">
+          <input type="checkbox" checked={d.features.removeBranding ? !d.settings.hideBranding : true} disabled={!d.features.removeBranding}
+            onChange={(e) => run(api<EditorT>('PUT', '/api/me/page', { hideBranding: !e.target.checked }), e.target.checked ? '"Made with jhino" is back on your page' : '"Made with jhino" is off')} />
+          <span>Show "Made with jhino" at the foot of my page</span>
+        </label>
+        <p className="hint">
+          {d.features.removeBranding
+            ? 'Your plan lets you choose. It stays until you switch it off, and comes back if you switch it on.'
+            : d.features.branding === 'popup'
+              ? 'Free pages show the badge and a small popup for visitors. Plus keeps just the badge; on Pro you choose.'
+              : 'Plus pages show a small badge. On Pro you can switch it off.'}{' '}
+          {!d.features.removeBranding && <Link to="/account/plan" className="link">See plans</Link>}
+        </p>
       </section>
     </>
   );
@@ -532,5 +559,93 @@ function ShareTab({ d, run }: { d: EditorT; run: Run }) {
         <p className="hint">Hidden, it says "There is no page here" to everyone but you. Your apps and short links keep working either way.</p>
       </section>
     </>
+  );
+}
+
+/* ---------------- the preview, in the editor and in a tab of its own ---------------- */
+/** What visitors see (a design, or the person's own HTML), with switched-off items faded unless `hideOff`. */
+function PreviewBody({ d, layout, hideOff }: { d: EditorT; layout?: 'links' | 'profile'; hideOff?: boolean }) {
+  const custom = d.settings.useCustom && d.features.customPage && !!d.settings.customHtml;
+  const data = useMemo(() => ({ ...d.page, layout: layout ?? d.page.layout, items: hideOff ? d.page.items.filter((i) => !i.hidden) : d.page.items }) as ProfileData, [d, layout, hideOff]);
+  if (!custom) return <ProfileView data={data} preview />;
+  return (
+    <>
+      <iframe title="Preview of your own HTML" src={`/p/${d.username}/custom?preview=1&v=${d.settings.customHtml.length}`} sandbox="allow-scripts" />
+      {d.page.branding !== 'none' && <CustomBadge preview />}
+    </>
+  );
+}
+
+const channelOf = (username: string) => `jhino:page:${username.toLowerCase()}`;
+/** Tell a live preview tab, if one is open, what the page looks like now. */
+function tellPreview(v: EditorT) {
+  try { const c = new BroadcastChannel(channelOf(v.username)); c.postMessage(v); c.close(); } catch { /* no BroadcastChannel: the preview catches up when looked at */ }
+}
+
+/**
+ * jhino.com/<username>/preview: the owner's page in a tab of its own, as visitors will see it. It follows
+ * every change made in My page at once (same browser), and catches up with other devices when looked at.
+ */
+export function PagePreview() {
+  const [d, setD] = useState<EditorT | null>(null);
+  const [error, setError] = useState('');
+  const [layout, setLayout] = useState<'links' | 'profile' | null>(null);
+  const [frame, setFrame] = useState<'phone' | 'full'>(() => (innerWidth >= 760 ? 'phone' : 'full'));
+  const [hideOff, setHideOff] = useState(false);
+  const [beat, setBeat] = useState(0);
+  const load = useCallback(() => get<EditorT>('/api/me/page').then((v) => { setD(v); setError(''); }, (e) => setError(e instanceof ApiError ? e.message : 'Could not load your page.')), []);
+  useEffect(() => { load(); }, [load]);
+  const username = d?.username;
+  useEffect(() => {
+    if (!username) return;
+    let c: BroadcastChannel | null = null;
+    try {
+      c = new BroadcastChannel(channelOf(username));
+      c.onmessage = (e) => { setD(e.data as EditorT); setBeat((n) => n + 1); };
+    } catch { /* older browser: visibility and the timer below keep it current */ }
+    return () => c?.close();
+  }, [username]);
+  useEffect(() => {
+    const onVis = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVis);
+    const t = setInterval(onVis, 20_000);
+    return () => { document.removeEventListener('visibilitychange', onVis); clearInterval(t); };
+  }, [load]);
+  useEffect(() => { document.title = username ? `Preview · @${username} · Jhino` : 'Preview · Jhino'; return () => { document.title = 'Jhino'; }; }, [username]);
+
+  if (error) return <main className="state-card"><h2>Could not open the preview</h2><p>{error}</p><Link to="/apps" className="btn">Back to Jhino</Link></main>;
+  if (!d) return <main className="state-card" aria-busy="true"><span className="spin" /></main>;
+  const custom = d.settings.useCustom && d.features.customPage && !!d.settings.customHtml;
+  const offCount = d.page.items.filter((i) => i.hidden).length;
+  return (
+    <div className="pv" data-frame={frame}>
+      <header className="pv-bar">
+        <div className="pv-id">
+          <span className="pv-live" key={beat}><i aria-hidden="true" />Live preview</span>
+          <span className="mono pv-url">{location.host}/{d.username}</span>
+          {!d.settings.published && <span className="status s-rejected">hidden</span>}
+        </div>
+        <div className="pv-tools">
+          {!custom && (
+            <div className="seg pv-seg" role="group" aria-label="Layout">
+              {(['links', 'profile'] as const).map((k) => <button key={k} aria-pressed={(layout ?? d.settings.layout) === k} onClick={() => setLayout(k)}>{k === 'links' ? 'Links' : 'Profile'}</button>)}
+            </div>
+          )}
+          <div className="seg pv-seg hide-sm" role="group" aria-label="Width">
+            <button aria-pressed={frame === 'phone'} onClick={() => setFrame('phone')}><Icon name="phone" size={15} />Phone</button>
+            <button aria-pressed={frame === 'full'} onClick={() => setFrame('full')}><Icon name="desktop" size={15} />Full width</button>
+          </div>
+          {offCount > 0 && !custom && <button className="btn sm quiet" aria-pressed={hideOff} onClick={() => setHideOff(!hideOff)}>{hideOff ? `Show ${offCount} hidden` : 'As visitors see it'}</button>}
+          <a className="btn sm primary" href={`/${d.username}`}>Edit</a>
+        </div>
+      </header>
+      <main className="pv-stage">
+        <div className="pv-screen"><PreviewBody d={d} layout={layout ?? undefined} hideOff={hideOff} /></div>
+      </main>
+      <p className="hint pv-note">
+        Only you see this address. {offCount > 0 && !hideOff && !custom ? 'Items you switched off are faded; visitors do not see them. ' : ''}
+        {d.settings.published ? 'It updates as you edit in My page.' : 'Your page is hidden, so visitors see "There is no page here".'}
+      </p>
+    </div>
   );
 }

@@ -671,3 +671,58 @@ dialog::backdrop { background: var(--scrim); }
 .share-file > div { display: grid; gap: 2px; min-width: 0; }
 .share-file b { font-size: 14px; }
 @media (max-width: 560px) { .share-file { flex-direction: column; align-items: flex-start; } }
+
+/* ---------- add an app to this device (the install sheet) ---------- */
+.ins { gap: 18px; }
+.ins-app { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ins-app img { width: 56px; height: 56px; flex: none; border-radius: 13px; }
+.ins-name { display: grid; gap: 3px; min-width: 0; }
+.ins-name b { font-size: 16px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.ins-name .mono { color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ins-lede { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.55; }
+.ins-wait { display: flex; align-items: center; gap: 10px; }
+.ins-main { width: 100%; justify-content: center; }
+.ins-alt { justify-self: center; font-size: 13.5px; }
+.ins-alt-text { margin: -6px 0 0; text-align: center; }
+.ins-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: ins; border-top: 1px solid var(--rule); }
+.ins-steps li {
+  counter-increment: ins; display: grid; grid-template-columns: 28px 1fr; align-items: baseline; gap: 10px;
+  padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: 14.5px; line-height: 1.6; color: var(--ink);
+}
+.ins-steps li::before { content: counter(ins); font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+.ins-key {
+  display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding: 0 6px; margin: 0 2px; vertical-align: -5px;
+  border: 1px solid var(--rule-strong); border-radius: var(--r-sm); background: var(--paper-2); font-size: 13px; line-height: 1; color: var(--ink);
+}
+.ins-done { display: flex; gap: 12px; align-items: flex-start; }
+.ins-done p { margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.55; }
+.ins-done b { color: var(--ink); }
+.ins-check { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--ok) 14%, var(--paper)); color: var(--ok); }
+@media (prefers-reduced-motion: no-preference) { .ins-check { animation: ins-pop 320ms cubic-bezier(0.34, 1.4, 0.64, 1) both; } }
+@keyframes ins-pop { from { transform: scale(0.6); opacity: 0; } }
+.player-bar .ins-bar { gap: 6px; }
+
+/* ---------- Share → Existing account: suggestions while typing ---------- */
+.share-existing { display: grid; gap: 8px; }
+.pick { position: relative; flex: 1; min-width: 0; }
+.pick > .input { width: 100%; padding-right: 34px; }
+.pick-spin { position: absolute; right: 11px; top: 50%; margin-top: -7px; width: 14px; height: 14px; }
+.pick-list {
+  position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 6px); margin: 0; padding: 4px; list-style: none;
+  max-height: 320px; overflow-y: auto; background: var(--paper); border: 1px solid var(--rule-strong); border-radius: var(--r-lg); box-shadow: var(--lift);
+}
+@media (prefers-reduced-motion: no-preference) { .pick-list { animation: pop 160ms var(--ease); } }
+.pick-opt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r); cursor: pointer; min-width: 0; }
+.pick-opt.on { background: var(--paper-2); }
+.pick-opt.off { cursor: default; opacity: 0.55; }
+.pick-t { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.pick-t b { font-size: 14px; font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pick-t small { font-size: 12.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pick-t mark { background: none; color: inherit; font-weight: 700; }
+.pick-t small mark { color: var(--ink); }
+.pick-tag { flex: none; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+.pick-none { padding: 12px 10px; font-size: 13px; color: var(--ink-3); }
+@media (max-width: 640px) {
+  .share-existing .linkbox { flex-wrap: wrap; }
+  .share-existing .pick { flex-basis: 100%; }
+}

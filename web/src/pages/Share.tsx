@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { ApiError, api, get, post, type AppDetail, type Role } from '../api';
 import { useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
@@ -33,6 +33,7 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
   const [mode, setMode] = useState<'create' | 'existing' | 'link'>('create');
   const [form, setForm] = useState({ name: '', login: '', password: '', role: 'editor' as Role });
   const [existing, setExisting] = useState({ login: '', role: 'editor' as Role });
+  const [chosen, setChosen] = useState<Suggestion | null>(null);
   const [linkRole, setLinkRole] = useState<Role>('editor');
   const [link, setLink] = useState('');
   const [secret, setSecret] = useState<{ name: string; login: string; password: string } | null>(null);
@@ -66,7 +67,7 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
   };
   const addExisting = async () => {
     setBusy(true); setError('');
-    try { await post(`/api/apps/${app.id}/members`, { email: existing.login.trim(), role: existing.role }); setExisting({ ...existing, login: '' }); toast('Added'); reload(); }
+    try { await post(`/api/apps/${app.id}/members`, { email: existing.login.trim(), role: existing.role }); setExisting({ ...existing, login: '' }); setChosen(null); toast(chosen ? `${chosen.name} added` : 'Added'); reload(); }
     catch (e) { fail(e); }
     setBusy(false);
   };
@@ -143,10 +144,17 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
             )}
 
             {mode === 'existing' && (
-              <form className="linkbox" onSubmit={(e) => { e.preventDefault(); addExisting(); }}>
-                <input className="input" placeholder="Their sign-in ID or email" value={existing.login} onChange={(e) => setExisting({ ...existing, login: e.target.value })} aria-label="Sign-in ID or email" />
-                <RoleSelect value={existing.role} onChange={(role) => setExisting({ ...existing, role })} label="Access" sdk={sdk} />
-                <button className="btn primary" disabled={busy || existing.login.trim().length < 3}>Add</button>
+              <form className="share-existing" onSubmit={(e) => { e.preventDefault(); addExisting(); }}>
+                <div className="linkbox">
+                  <PersonPicker appId={app.id} value={existing.login}
+                    onChange={(login) => { setExisting({ ...existing, login }); if (chosen && login !== chosen.pick) setChosen(null); }}
+                    onPick={(s) => { setExisting({ ...existing, login: s.pick }); setChosen(s); }} />
+                  <RoleSelect value={existing.role} onChange={(role) => setExisting({ ...existing, role })} label="Access" sdk={sdk} />
+                  <button className="btn primary" disabled={busy || existing.login.trim().length < 2}>Add</button>
+                </div>
+                <p className="hint">{chosen
+                  ? <>Adding <b>{chosen.name}</b>{chosen.username ? <> (@{chosen.username})</> : null} with {ROLE_LABEL[existing.role].toLowerCase()} access. They see it in their apps straight away.</>
+                  : 'Type a name, @username, email or sign-in ID. People you already work with come first.'}</p>
               </form>
             )}
 
@@ -206,6 +214,94 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
         </section>
       </div>
     </Modal>
+  );
+}
+
+/* ---------- finding an existing account while typing ---------- */
+interface Suggestion { id: string; name: string; username: string | null; pick: string; login: string | null; avatarUrl: string | null; known: boolean; member: boolean }
+
+/** The first place the typed text appears, marked. */
+function mark(text: string, q: string): ReactNode {
+  const i = q ? text.toLowerCase().indexOf(q.toLowerCase()) : -1;
+  if (i < 0) return text;
+  return <>{text.slice(0, i)}<mark>{text.slice(i, i + q.length)}</mark>{text.slice(i + q.length)}</>;
+}
+
+/**
+ * A search box that suggests accounts as the owner types (a combobox: arrows move, Enter picks, Esc closes).
+ * People who already have access show, but cannot be picked again.
+ */
+function PersonPicker({ appId, value, onChange, onPick }: { appId: string; value: string; onChange: (v: string) => void; onPick: (s: Suggestion) => void }) {
+  const [list, setList] = useState<Suggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const [loading, setLoading] = useState(false);
+  const [asked, setAsked] = useState('');
+  const box = useRef<HTMLDivElement>(null);
+  const id = useId();
+  const q = value.trim();
+  const query = q.replace(/^@/, '');
+
+  useEffect(() => {
+    if (!q) { setList([]); setAsked(''); setLoading(false); return; }
+    let alive = true;
+    setLoading(true);
+    const t = setTimeout(() => {
+      get<{ people: Suggestion[] }>(`/api/apps/${appId}/people/suggest?q=${encodeURIComponent(q)}`).then(
+        (r) => { if (!alive) return; setList(r.people); setAsked(q); setActive(r.people.findIndex((p) => !p.member)); setLoading(false); },
+        () => { if (!alive) return; setList([]); setAsked(q); setLoading(false); },
+      );
+    }, 150);
+    return () => { alive = false; clearTimeout(t); };
+  }, [q, appId]);
+  // Close when a click lands elsewhere.
+  useEffect(() => {
+    if (!open) return;
+    const f = (e: PointerEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('pointerdown', f);
+    return () => document.removeEventListener('pointerdown', f);
+  }, [open]);
+
+  const choose = (s: Suggestion) => { if (s.member) return; onPick(s); setOpen(false); };
+  const move = (dir: 1 | -1) => {
+    if (!list.length) return;
+    let i = active;
+    for (let n = 0; n < list.length; n++) { i = (i + dir + list.length) % list.length; if (!list[i].member) break; }
+    setActive(i);
+  };
+  const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); move(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setOpen(true); move(-1); }
+    else if (e.key === 'Escape' && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); }
+    // Enter picks the highlighted person; once picked (or with the list closed) it adds: the form submits.
+    else if (e.key === 'Enter' && open && list[active] && !list[active].member && list[active].pick !== value) { e.preventDefault(); choose(list[active]); }
+  };
+  const showList = open && !!q && (list.length > 0 || (!loading && asked === q));
+  return (
+    <div className="pick" ref={box}>
+      <input className="input" role="combobox" aria-autocomplete="list" aria-expanded={showList} aria-controls={`${id}-list`}
+        aria-activedescendant={showList && active >= 0 ? `${id}-${active}` : undefined} aria-label="Name, username, email or sign-in ID"
+        placeholder="Name, @username or email" autoComplete="off" spellCheck={false} value={value}
+        onChange={(e) => { onChange(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} onKeyDown={onKey} />
+      {loading && q && <span className="spin pick-spin" aria-hidden="true" />}
+      {showList && (
+        <ul className="pick-list" role="listbox" id={`${id}-list`} aria-label="Matching accounts">
+          {list.map((s, i) => (
+            <li key={s.id} id={`${id}-${i}`} role="option" aria-selected={i === active} aria-disabled={s.member || undefined}
+              className={`pick-opt ${i === active ? 'on' : ''} ${s.member ? 'off' : ''}`}
+              onMouseEnter={() => { if (!s.member) setActive(i); }} onMouseDown={(e) => { e.preventDefault(); choose(s); }}>
+              <Avatar name={s.name} src={s.avatarUrl} />
+              <span className="pick-t">
+                <b>{mark(s.name, query)}</b>
+                <small>{s.username ? <span className="mono">@{mark(s.username, query)}</span> : null}{s.username && s.login ? ' · ' : ''}{s.login ? <span className="mono">{mark(s.login, query)}</span> : null}</small>
+              </span>
+              {s.member ? <span className="pick-tag">Has access</span> : s.known ? <span className="pick-tag">You work together</span> : null}
+            </li>
+          ))}
+          {!list.length && <li className="pick-none" role="presentation">No account matches “{q}”. Make them a sign-in, or send an invite link.</li>}
+        </ul>
+      )}
+    </div>
   );
 }
 
