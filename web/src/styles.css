@@ -301,7 +301,7 @@ dialog::backdrop { background: var(--scrim); }
 .auth-side .small { font-size: 14px; color: var(--ink-3); max-width: 44ch; }
 .auth-form { display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
 .auth-form form { width: min(360px, 100%); display: grid; gap: 16px; }
-.auth-form h2 { font-size: 24px; letter-spacing: -0.02em; }
+.auth-form h1, .auth-form h2 { font-size: 24px; letter-spacing: -0.02em; margin: 0; font-weight: 600; }
 
 /* ---------- people table ---------- */
 .people .row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 110px 140px; }

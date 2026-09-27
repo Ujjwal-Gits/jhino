@@ -4,6 +4,7 @@ import { ApiError, get, post } from '../api';
 import { Link, useRoute } from '../context';
 import { UsernameField, suggestFrom, useUsernameCheck } from './Username';
 import { CodeBoxes, CodeStep, type CodeInfo } from './CodeEntry';
+import { usePageMeta } from './Site';
 
 type SignInResult = { ok?: boolean; verify?: boolean; email?: string; twofa?: boolean; ticket?: string } & CodeInfo;
 
@@ -88,6 +89,10 @@ function Social({ o, verb }: { o: Options; verb: string }) {
 }
 
 export function Login({ onDone }: { onDone: () => Promise<void> }) {
+  usePageMeta(
+    'Sign in to your account | Jhino',
+    'Sign in to Jhino to manage your live HTML apps, client portals, link-in-bio page, and short links. Access your studio dashboard securely.'
+  );
   const o = useAuthOptions();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -127,7 +132,7 @@ export function Login({ onDone }: { onDone: () => Promise<void> }) {
   return (
     <AuthLayout>
       <form onSubmit={submit} noValidate>
-        <h2>Sign in</h2>
+        <h1>Sign in</h1>
         <Social o={o} verb="Continue" />
         <label className="field">
           <span>Email or sign-in ID</span>
@@ -148,6 +153,10 @@ export function Login({ onDone }: { onDone: () => Promise<void> }) {
 }
 
 export function Signup({ onDone }: { onDone: () => Promise<void> }) {
+  usePageMeta(
+    'Create your free account | Jhino',
+    'Start free with one client app, your personal link-in-bio page, and branded short links. No credit card required. Upgrade anytime as your studio grows.'
+  );
   const o = useAuthOptions();
   const { go } = useRoute();
   const [form, setForm] = useState({ name: '', email: '', username: '', password: '', terms: false });
@@ -191,7 +200,7 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
   return (
     <AuthLayout>
       <form onSubmit={submit} noValidate>
-        <h2>Create your account</h2>
+        <h1>Create your free account</h1>
         <p className="muted">Free Forever: one app, no card needed.{plan === 'plus' || plan === 'pro' ? ' You can pay for your plan right after.' : ''}</p>
         <Social o={o} verb="Sign up" />
         <label className="field"><span>Your name</span><input className="input" autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoFocus /></label>
@@ -209,6 +218,7 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
 }
 
 export function Forgot() {
+  usePageMeta('Forgot password | Jhino', 'Reset your password for your Jhino account.');
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [f, setF] = useState({ code: '', a: '', b: '' });
@@ -248,7 +258,7 @@ export function Forgot() {
         </form>
       ) : (
         <form onSubmit={send} noValidate>
-          <h2>Forgot your password?</h2>
+          <h1>Forgot your password?</h1>
           <p className="muted">Enter your email. We send you a 6-digit code to choose a new password.</p>
           <label className="field"><span>Email</span><input className="input" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus /></label>
           {error && <p className="error-text" role="alert">{error}</p>}

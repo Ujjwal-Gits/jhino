@@ -46,8 +46,23 @@ function useViewportWidth() {
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+export function usePageMeta(title: string, description?: string) {
+  useEffect(() => {
+    document.title = title;
+    if (description) {
+      let meta = document.querySelector('meta[name="description"]');
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('name', 'description');
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', description);
+    }
+  }, [title, description]);
+}
+
 /** The site's few links: the rest of the page is one scroll away. */
-const NAV: [string, string][] = [['Product', '/#how'], ['Features', '/#features'], ['My page', '/#mypage'], ['Plans', '/#plans'], ['Help', '/help']];
+const NAV: [string, string][] = [['Product', '/#how'], ['Features', '/#features'], ['My page', '/#mypage'], ['Plans', '/pricing'], ['Help', '/help']];
 
 /** Header, footer and theme shared by every page of the website. */
 function SiteFrame({ signedIn, children }: { signedIn: boolean; children: ReactNode }) {
@@ -132,7 +147,7 @@ function SiteFrame({ signedIn, children }: { signedIn: boolean; children: ReactN
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "24px", flexWrap: "wrap" }}>
       <a href="/" onClick={toTop} aria-label="Jhino, home" className="jh-logo" style={{ display: "flex", alignItems: "center", height: "33px", color: "#f3f5ef" }}><Wordmark /></a>
       <nav style={{ display: "flex", gap: "25px", flexWrap: "wrap", fontSize: "14px" }}>
-        <Link to="/apps">Dashboard</Link><Link to="/links">Short links</Link><Link to="/help">Help</Link><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link>
+        <Link to="/apps">Dashboard</Link><Link to="/links">Short links</Link><Link to="/pricing">Pricing</Link><Link to="/help">Help</Link><Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link><a href="/sitemap">Sitemap</a>
       </nav>
     </div>
     <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", flexWrap: "wrap", marginTop: "24px", fontSize: "12px", color: "#959fb3" }}>
@@ -198,6 +213,14 @@ export const HOME_FAQ: [string, string][] = [
   ['What happens when my plan ends?', 'You are told three days before. An ended plan counts as Free Forever, and your apps keep working.'],
   ['Do dates show in Nepali?', 'Yes. Dates show in Bikram Sambat with the AD date small beside them, or AD only if you pick that when creating the app.'],
 ];
+export const PRICING_FAQ: [string, string][] = [
+  ['How much does Jhino cost?', 'Jhino offers a Free Forever plan for one client app. Plus is NPR 500 a month (NPR 5,000 a year), and Pro is NPR 2,000 a month (NPR 20,000 a year).'],
+  ['How do I pay for Plus or Pro?', 'Pick a plan, scan our QR code to pay in Nepali rupees (NPR), and upload a screenshot of your payment. We verify and activate your plan, usually the same day.'],
+  ['Is there a discount for paying yearly?', 'Yes. Yearly billing costs 10 months instead of 12, giving you 2 full months free on both Plus and Pro.'],
+  ['What happens when my plan ends?', 'You are notified three days before expiration. An ended plan automatically reverts to Free Forever, and all your apps continue working without interruption.'],
+  ['Do my clients need to pay or create accounts?', 'No, your clients never pay. You control client access via direct sign-in credentials, single-use invite links, or password-protected links.'],
+  ['Can my published apps show up on Google search?', 'Yes. Pro plans include up to 10 public pages indexed on Google, each with customizable SEO titles, descriptions, addresses, and keywords.'],
+];
 const SYNC: [string, string][] = [
   ['Never interrupts someone typing.', 'Apps that listen for changes update in place. Others refresh when the person pauses, and Jhino shows “Refresh now” instead of reloading while there is unsent text.'],
   ['New versions keep your data.', 'Upload a new version and everyone gets the new screens. Saved data is kept, and older versions stay under Details → Versions.'],
@@ -244,6 +267,10 @@ function accordion<T>(list: T[], open: number, setOpen: (f: (n: number) => numbe
 }
 
 export function Landing({ signedIn = false, at }: { signedIn?: boolean; at?: string }) {
+  usePageMeta(
+    'Publish your HTML as a live website | Jhino',
+    'Upload an HTML file or ZIP to publish a live website instantly. Share with clients, sync saves live, create a link-in-bio page and short links. Start free.'
+  );
   const vw = useViewportWidth();
   const notMobile = vw >= 640;
   // jhino.com/pricing opens at the plans; jhino.com/#faq at the questions.
@@ -685,11 +712,12 @@ function Bracket({ children }: { children: ReactNode }) {
 }
 
 function PageHead({ eyebrow, title, lede, children }: { eyebrow: string; title: string; lede?: ReactNode; children?: ReactNode }) {
+  const hasPunctuation = /[.!?]$/.test(title);
   return (
     <section className="jh-pagehead">
       <div className="jh-wrap">
         <div className="jh-eyebrow">{eyebrow}</div>
-        <h1>{title}<span className="jh-dot">.</span></h1>
+        <h1>{title}{hasPunctuation ? '' : <span className="jh-dot">.</span>}</h1>
         {lede && <p className="jh-lede">{lede}</p>}
         {children}
       </div>
@@ -724,6 +752,147 @@ function Accordion({ items, first = 0 }: { items: [string, ReactNode][]; first?:
 
 const Arrow = () => <svg viewBox="0 0 24 24" className="jh-arrow" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6" /></svg>;
 
+/* ---------------- pricing ---------------- */
+
+export function PricingPage({ signedIn = false }: { signedIn?: boolean }) {
+  usePageMeta(
+    'Pricing: Free, Plus and Pro Plans in Rupees | Jhino',
+    'Free forever for one client. Plus NPR 500/mo, Pro NPR 2,000/mo. Includes your own page, short links, and client portals. Pay monthly or yearly by QR.'
+  );
+
+  const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
+  const [faq, setFaq] = useState(0);
+  const live = usePlans();
+  const yearly = billing === 'yearly';
+  const on = { bg: 'var(--tog,#262c3a)', c: 'var(--ink,#f7f7fb)' }, off = { bg: 'transparent', c: 'var(--mu,#acb1c0)' };
+  const mBg = yearly ? off.bg : on.bg, mColor = yearly ? off.c : on.c;
+  const yBg = yearly ? on.bg : off.bg, yColor = yearly ? on.c : off.c;
+  const months = freeMonthsText(bestFreeMonths(live));
+  const yearlyLabel = months ? `Yearly · ${months}` : 'Yearly';
+  const plans = live.map((p, i) => planView(p, live[i - 1], yearly, signedIn));
+  const faqs = accordion(PRICING_FAQ.map(([q, a]) => ({ q, a })), faq, setFaq);
+  const start = signedIn ? '/apps' : '/signup';
+
+  return (
+    <SiteFrame signedIn={signedIn}>
+      <PageHead
+        eyebrow="Plans &amp; Pricing"
+        title="Start free. Pay by QR when you grow"
+        lede="Free Forever for one client. Simple, transparent pricing in Nepali rupees for studios, agencies, and creators. Upgrade whenever you need more clients."
+      >
+        <div style={{ marginTop: "28px", display: "inline-flex", padding: "4px", border: "1px solid var(--line,#2b303e)", borderRadius: "100px", background: "var(--panel,#0f1218)" }}>
+          <button onClick={() => setBilling('monthly')} style={{ border: "0", borderRadius: "100px", padding: "10px 20px", fontFamily: "inherit", fontSize: "14px", cursor: "pointer", background: `${mBg}`, color: `${mColor}` }}>Monthly</button>
+          <button onClick={() => setBilling('yearly')} style={{ border: "0", borderRadius: "100px", padding: "10px 20px", fontFamily: "inherit", fontSize: "14px", cursor: "pointer", background: `${yBg}`, color: `${yColor}` }}>{yearlyLabel}</button>
+        </div>
+      </PageHead>
+
+      <section id="plans" style={{ padding: "0 20px clamp(48px,6vw,80px)" }}>
+        <div style={{ maxWidth: "1240px", margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,300px),1fr))", gap: "16px" }}>
+            {plans.map((p, pIndex) => (
+              <Fragment key={pIndex}>
+                <article style={{ padding: "32px", borderRadius: "20px", background: "var(--panel,#0f1218)", border: `1px solid ${p.border}`, display: "flex", flexDirection: "column" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h3 style={{ margin: "0", fontSize: "21px", fontWeight: "500" }}>{p.name}</h3>
+                    {p.featured && <span style={{ fontSize: "12px", padding: "5px 12px", borderRadius: "100px", background: "rgba(224,70,31,0.12)", color: "var(--em,#ff9a80)" }}>Popular</span>}
+                  </div>
+                  <p style={{ margin: "8px 0 0", fontSize: "15px", color: "var(--mu,#acb1c0)" }}>{p.for}</p>
+                  <div style={{ marginTop: "28px", display: "flex", gap: "8px", alignItems: "baseline", flexWrap: "wrap" }}>
+                    <span style={{ fontSize: "14px", color: "var(--mu,#acb1c0)" }}>NPR</span>
+                    <strong style={{ fontSize: "46px", fontWeight: "500", letterSpacing: "-0.035em", lineHeight: "1" }}>{p.price}</strong>
+                    <span style={{ fontSize: "14px", color: "var(--mu,#acb1c0)" }}>{p.per}</span>
+                  </div>
+                  <p style={{ margin: "8px 0 28px", fontSize: "13px", color: "var(--mu,#acb1c0)" }}>{p.note}</p>
+                  <Link to={p.href} style={{ textAlign: "center", padding: "13px 20px", borderRadius: "100px", fontSize: "15px", fontWeight: "600", background: `${p.ctaBg}`, color: `${p.ctaColor}`, border: `1px solid ${p.ctaBorder}` }}>{p.cta}</Link>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "28px", paddingTop: "24px", borderTop: "1px solid var(--line,#2b303e)", fontSize: "15px" }}>
+                    {p.items.map((it, itIndex) => (
+                      <Fragment key={itIndex}>
+                        <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", lineHeight: "1.45" }}>
+                          <svg viewBox="0 0 24 24" style={{ width: "16px", height: "16px", flexShrink: "0", marginTop: "3px", stroke: "url(#jhIconGrad)", fill: "none", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }}><path d="m5 12 4 4L19 6"></path></svg>
+                          <span>{it}</span>
+                        </div>
+                      </Fragment>
+                    ))}
+                  </div>
+                </article>
+              </Fragment>
+            ))}
+          </div>
+          <p style={{ margin: "20px 0 0", fontSize: "14px", color: "var(--mu,#acb1c0)" }}>An ended plan counts as Free Forever, and apps keep working.</p>
+        </div>
+      </section>
+
+      {/* VALUE HIGHLIGHTS */}
+      <section style={{ padding: "clamp(32px,5vw,64px) 20px" }}>
+        <div style={{ maxWidth: "1240px", margin: "0 auto", background: "var(--panel,#0f1218)", border: "1px solid var(--line,#2b303e)", borderRadius: "20px", padding: "clamp(24px,4vw,56px)" }}>
+          <div style={{ display: "flex", gap: "8px", fontSize: "15px", color: "var(--mu,#acb1c0)", paddingBottom: "20px", borderBottom: "1px solid var(--line,#2b303e)", marginBottom: "28px" }}><span>[</span><span>What is included</span><span>]</span></div>
+          <h2 style={{ margin: "0 0 32px", fontSize: "clamp(26px,2.8vw,38px)", letterSpacing: "-0.02em", fontWeight: "500" }}>Everything your studio needs to publish and deliver</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,260px),1fr))", gap: "32px 48px" }}>
+            <div>
+              <h3 style={{ margin: "0 0 10px", fontSize: "19px", fontWeight: "500" }}>Instant live website</h3>
+              <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.6", color: "var(--mu,#acb1c0)" }}>Bring an HTML file or ZIP package made anywhere. It goes live at once at jhino.com/you/app with SSL.</p>
+            </div>
+            <div>
+              <h3 style={{ margin: "0 0 10px", fontSize: "19px", fontWeight: "500" }}>Real-time live sync</h3>
+              <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.6", color: "var(--mu,#acb1c0)" }}>Data in localStorage and IndexedDB automatically syncs across all devices without touching backend code.</p>
+            </div>
+            <div>
+              <h3 style={{ margin: "0 0 10px", fontSize: "19px", fontWeight: "500" }}>Client portal approval</h3>
+              <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.6", color: "var(--mu,#acb1c0)" }}>Video delivery with timestamped comments, photo proofing (Pick/Maybe/No), invoices, and shoot bookings.</p>
+            </div>
+            <div>
+              <h3 style={{ margin: "0 0 10px", fontSize: "19px", fontWeight: "500" }}>Link-in-bio page</h3>
+              <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.6", color: "var(--mu,#acb1c0)" }}>Your own jhino.com/username page with 40 designer themes, socials, apps, and visitor analytics.</p>
+            </div>
+            <div>
+              <h3 style={{ margin: "0 0 10px", fontSize: "19px", fontWeight: "500" }}>Branded short links</h3>
+              <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.6", color: "var(--mu,#acb1c0)" }}>Turn long links into compact addresses. Track clicks, devices, referrers, and locations in real time.</p>
+            </div>
+            <div>
+              <h3 style={{ margin: "0 0 10px", fontSize: "19px", fontWeight: "500" }}>Pay by QR in rupees</h3>
+              <p style={{ margin: "0", fontSize: "15px", lineHeight: "1.6", color: "var(--mu,#acb1c0)" }}>Scan our Fonepay QR code with any Nepali bank or wallet. We activate your plan swiftly.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING FAQ */}
+      <section id="faq" style={{ padding: "clamp(48px,8vw,80px) 20px" }}>
+        <div style={{ maxWidth: "1240px", margin: "0 auto", background: "var(--panel,#0f1218)", border: "1px solid var(--line,#2b303e)", borderRadius: "20px", padding: "clamp(20px,4vw,60px)", display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,360px),1fr))", gap: "48px 72px" }}>
+          <div>
+            <h2 style={{ margin: "0", fontSize: "clamp(32px,3.4vw,46px)", lineHeight: "1.15", letterSpacing: "-0.03em", fontWeight: "500", textWrap: "balance", maxWidth: "660px", marginBottom: "20px" }}>Questions about plans &amp; billing</h2>
+            <p style={{ margin: "0", fontSize: "clamp(16px,1.4vw,19px)", lineHeight: "1.55", color: "var(--mu,#acb1c0)", maxWidth: "520px", textWrap: "pretty" }}>Everything you need to know about pricing, payments, and client access.</p>
+            <Link to="/help" style={{ display: "inline-flex", alignItems: "center", gap: "8px", marginTop: "28px", fontSize: "17px", fontWeight: "500", color: "var(--ink,#f7f7fb)" }}>Visit the help centre <svg viewBox="0 0 24 24" style={{ width: "18px", height: "18px", stroke: "currentColor", fill: "none", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round" }}><path d="M4 12h16M14 6l6 6-6 6"></path></svg></Link>
+          </div>
+          <div>
+            {faqs.map((q, qIndex) => (
+              <Fragment key={qIndex}>
+                <div style={{ borderTop: "1px solid var(--line,#2b303e)" }}>
+                  <button onClick={q.toggle} aria-expanded={q.open} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "20px", padding: "22px 0", background: "transparent", border: "none", color: "var(--ink,#f7f7fb)", fontFamily: "inherit", fontSize: "clamp(17px,1.6vw,20px)", textAlign: "left", cursor: "pointer", letterSpacing: "-0.01em" }}>
+                    <span>{q.q}</span>
+                    <span style={{ width: "26px", height: "26px", borderRadius: "50%", background: "var(--chip,rgba(255,255,255,0.08))", display: "grid", placeItems: "center", flexShrink: "0" }}><svg viewBox="0 0 24 24" style={{ width: "14px", height: "14px", stroke: "currentColor", fill: "none", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", transform: `rotate(${q.rot})`, transition: "transform .25s" }}><path d="m6 9 6 6 6-6"></path></svg></span>
+                  </button>
+                  {q.open && <p style={{ margin: "-6px 0 22px", paddingRight: "40px", fontSize: "16px", lineHeight: "1.6", color: "var(--mu,#acb1c0)" }}>{q.a}</p>}
+                </div>
+              </Fragment>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FINALE */}
+      <section style={{ background: "#e0461f", padding: "clamp(56px,8vw,80px) 20px", textAlign: "center", color: "#1c1d16" }}>
+        <h2 style={{ fontSize: "clamp(38px,5vw,68px)", letterSpacing: "-.04em", lineHeight: "1.05", margin: "0 auto 20px", maxWidth: "850px", fontWeight: "700", color: "#FFFFFF" }}>Ready to publish your HTML?</h2>
+        <p style={{ margin: "0 auto 28px", fontSize: "18px", color: "#4a1606", maxWidth: "520px" }}>Start free today. No card required. Bring your HTML file or ZIP.</p>
+        <Link className="jh-h10" to={start} style={{ display: "inline-flex", justifyContent: "center", alignItems: "center", gap: "12px", minWidth: "200px", padding: "15px 28px", borderRadius: "100px", background: "#1a1b1b", color: "#ffffff", fontSize: "15px", fontWeight: "700" }}>
+          Publish your HTML
+          <svg viewBox="0 0 24 24" style={{ width: "18px", height: "18px", stroke: "currentColor", fill: "none", strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round" }}><path d="M12 17V3M7 8l5-5 5 5M4 16v5h16v-5"></path></svg>
+        </Link>
+      </section>
+    </SiteFrame>
+  );
+}
+
 /* ---------------- help ---------------- */
 
 const GUIDES: [string, ReactNode][] = [
@@ -747,6 +916,10 @@ export const MORE_FAQ: [string, string][] = [
 ];
 
 export function HelpPage({ signedIn }: { signedIn: boolean }) {
+  usePageMeta(
+    'Help & Guides: Tutorials, FAQs and Support | Jhino',
+    'Learn how to publish HTML apps, share client portals, set up your bio page, create short links, and upgrade your plan. Contact our support team anytime.'
+  );
   const [kind, setKind] = useState<'contact' | 'problem' | 'feedback'>(() => { const k = new URLSearchParams(location.search).get('kind'); return k === 'problem' || k === 'feedback' ? k : 'contact'; });
   const [form, setForm] = useState({ email: '', subject: '', message: '' });
   const [state, setState] = useState<'idle' | 'busy' | 'sent'>('idle');
@@ -768,7 +941,7 @@ export function HelpPage({ signedIn }: { signedIn: boolean }) {
 
   return (
     <SiteFrame signedIn={signedIn}>
-      <PageHead eyebrow="Help centre" title="How can we help" lede="Guides for your first week, straight answers, and a way to reach us. We reply by email, usually within a working day.">
+      <PageHead eyebrow="Help centre" title="How can we help you?" lede="Guides for your first week, straight answers, and a way to reach us. We reply by email, usually within a working day.">
         <div className="jh-head-actions">
           <a className="jh-pill jh-pill-accent" href="#contact">Write to us <Arrow /></a>
           <a className="jh-pill" href="#questions">Read the questions</a>
@@ -883,6 +1056,10 @@ function LegalPage({ title, updated, parts, signedIn }: { title: string; updated
 }
 
 export function TermsPage({ signedIn }: { signedIn: boolean }) {
+  usePageMeta(
+    'Terms of Service | Jhino',
+    'Read the Terms of Service for Jhino: account terms, content ownership, HTML app hosting, plans and QR payments, service availability, and usage rules.'
+  );
   return (
     <LegalPage title="Terms of Service" updated="27 September 2026" signedIn={signedIn} parts={[
       ['using', 'Using Jhino', <p>Jhino hosts small web apps (HTML) and the data people save in them, pages at jhino.com/you and short links. By creating an account you agree to these terms. If you use Jhino for a business, you agree for that business.</p>],
@@ -896,6 +1073,10 @@ export function TermsPage({ signedIn }: { signedIn: boolean }) {
 }
 
 export function PrivacyPage({ signedIn }: { signedIn: boolean }) {
+  usePageMeta(
+    'Privacy Policy | Jhino',
+    'Learn how Jhino protects your privacy: data storage, zero-tracking analytics, client portal privacy, backups, and security. We never sell your data.'
+  );
   return (
     <LegalPage title="Privacy Policy" updated="27 September 2026" signedIn={signedIn} parts={[
       ['keep', 'What we keep', <p>Your name, email, the profile details you choose to add, your apps and the data saved in them, payment records (amount, plan, reference and the screenshot you upload), and security records such as sign-in times, device type and IP address.</p>],

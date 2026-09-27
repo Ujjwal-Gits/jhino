@@ -1019,3 +1019,81 @@ test('search engines: page heads, 404s, robots and sitemap; "Show on Google" is 
   expect((await me.call('GET', `/api/apps/${id}/seo`)).json.on).toBe(false);
   expect(await (await anon.get('/sitemap.xml')).text()).not.toContain(`/${username}/${body.slug}</loc>`);
 });
+
+test('seo, aeo, and geo: optimal meta descriptions (<=155 chars), distinct H1s, schemas and client titles', async ({ browser }) => {
+  const anon = await pwRequest.newContext({ baseURL: BASE });
+
+  const pages = [
+    { path: '/', title: 'Publish your HTML as a live website | Jhino', h1: 'Your HTML. Out in the world.' },
+    { path: '/pricing', title: 'Pricing: Free, Plus and Pro Plans in Rupees | Jhino', h1: 'Start free. Pay by QR when you grow.' },
+    { path: '/help', title: 'Help & Guides: Tutorials, FAQs and Support | Jhino', h1: 'How can we help you?' },
+    { path: '/signup', title: 'Create your free account | Jhino', h1: 'Create your free account' },
+    { path: '/login', title: 'Sign in to your account | Jhino', h1: 'Sign in' },
+    { path: '/terms', title: 'Terms of Service | Jhino', h1: 'Terms of Service' },
+    { path: '/privacy', title: 'Privacy Policy | Jhino', h1: 'Privacy Policy' },
+  ];
+
+  for (const p of pages) {
+    const res = await anon.get(p.path);
+    expect(res.status()).toBe(200);
+    const html = await res.text();
+
+    // Check title (HTML escaped)
+    expect(html).toContain(`<title>${p.title.replace(/&/g, '&amp;')}</title>`);
+
+    // Check meta description exists and length <= 155 characters (Google safe)
+    const descMatch = html.match(/<meta name="description" content="([^"]+)">/);
+    expect(descMatch).toBeTruthy();
+    const desc = descMatch![1];
+    expect(desc.length).toBeLessThanOrEqual(155);
+    expect(desc.length).toBeGreaterThan(50);
+
+    // Check canonical link
+    expect(html).toContain(`<link rel="canonical" href="${BASE}${p.path === '/' ? '/' : p.path}">`);
+
+    // Check Open Graph & Twitter Cards
+    expect(html).toContain('<meta property="og:title"');
+    expect(html).toContain('<meta property="og:description"');
+    expect(html).toContain('<meta name="twitter:card"');
+
+    // Check pre-rendered server H1
+    expect(html).toContain(`<h1>${p.h1}</h1>`);
+  }
+
+  // Check Schema.org JSON-LD
+  const homeHtml = await (await anon.get('/')).text();
+  expect(homeHtml).toContain('"@type":"FAQPage"');
+  expect(homeHtml).toContain('"@type":"SoftwareApplication"');
+  expect(homeHtml).toContain('"@type":"Organization"');
+
+  const pricingHtml = await (await anon.get('/pricing')).text();
+  expect(pricingHtml).toContain('"@type":"FAQPage"');
+  expect(pricingHtml).toContain('"@type":"BreadcrumbList"');
+
+  const helpHtml = await (await anon.get('/help')).text();
+  expect(helpHtml).toContain('"@type":"FAQPage"');
+
+  // Client-side rendering and navigation test
+  const page = await (await browser.newContext()).newPage();
+
+  // Test /pricing rendered client-side
+  await page.goto('/pricing');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Start free\.\s*Pay by QR when you grow\./);
+  expect(await page.title()).toBe('Pricing: Free, Plus and Pro Plans in Rupees | Jhino');
+
+  // Test /signup rendered client-side
+  await page.goto('/signup');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Create your free account');
+  expect(await page.title()).toBe('Create your free account | Jhino');
+
+  // Test /login rendered client-side
+  await page.goto('/login');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sign in');
+  expect(await page.title()).toBe('Sign in to your account | Jhino');
+
+  // Test /help rendered client-side
+  await page.goto('/help');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('How can we help you?');
+  expect(await page.title()).toBe('Help & Guides: Tutorials, FAQs and Support | Jhino');
+});
+

@@ -55,7 +55,7 @@ interface Doc {
 }
 
 /* ---------------- the website ---------------- */
-// Keep in step with HOME_FAQ and MORE_FAQ in web/src/pages/Site.tsx (schema must match what the page shows).
+// Keep in step with HOME_FAQ, PRICING_FAQ and MORE_FAQ in web/src/pages/Site.tsx (schema must match what the page shows).
 /** The questions on the home page. */
 const FAQ: [string, string][] = [
   ['What can I upload?', 'A single .html file, or a .zip with an index.html inside, made with Claude or any other tool. It is checked, stored as version 1 and opens straight away, visible only to you.'],
@@ -63,6 +63,15 @@ const FAQ: [string, string][] = [
   ['How do I pay for Plus or Pro?', 'Pick a plan, pay by QR and upload a screenshot of the payment. Once it is reviewed, your plan switches on. A year costs ten months.'],
   ['What happens when my plan ends?', 'You are told three days before. An ended plan counts as Free Forever, and your apps keep working.'],
   ['Do dates show in Nepali?', 'Yes. Dates show in Bikram Sambat with the AD date small beside them, or AD only if you pick that when creating the app.'],
+];
+/** Dedicated questions for the pricing page. */
+const PRICING_FAQ: [string, string][] = [
+  ['How much does Jhino cost?', 'Jhino offers a Free Forever plan for one client app. Plus is NPR 500 a month (NPR 5,000 a year), and Pro is NPR 2,000 a month (NPR 20,000 a year).'],
+  ['How do I pay for Plus or Pro?', 'Pick a plan, scan our QR code to pay in Nepali rupees (NPR), and upload a screenshot of your payment. We verify and activate your plan, usually the same day.'],
+  ['Is there a discount for paying yearly?', 'Yes. Yearly billing costs 10 months instead of 12, giving you 2 full months free on both Plus and Pro.'],
+  ['What happens when my plan ends?', 'You are notified three days before expiration. An ended plan automatically reverts to Free Forever, and all your apps continue working without interruption.'],
+  ['Do my clients need to pay or create accounts?', 'No, your clients never pay. You control client access via direct sign-in credentials, single-use invite links, or password-protected links.'],
+  ['Can my published apps show up on Google search?', 'Yes. Pro plans include up to 10 public pages indexed on Google, each with customizable SEO titles, descriptions, addresses, and keywords.'],
 ];
 /** The help page shows those and these. */
 const HELP_FAQ: [string, string][] = [...FAQ,
@@ -75,10 +84,29 @@ const HELP_FAQ: [string, string][] = [...FAQ,
 ];
 const faqPage = (list: [string, string][]) => ({ '@type': 'FAQPage', mainEntity: list.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) });
 const faqList = (list: [string, string][]) => `<dl>${list.map(([q, a]) => `<dt>${esc(q)}</dt><dd>${esc(a)}</dd>`).join('')}</dl>`;
-const HOME_KEYWORDS = ['publish HTML online', 'host HTML file', 'upload HTML website', 'client portal', 'client portal for agencies', 'client approval app', 'video review and approval', 'photo proofing', 'design proofing', 'host HTML app', 'share HTML with clients', 'link in bio', 'link in bio Nepal', 'short links', 'studio booking', 'Jhino'];
+const HOME_KEYWORDS = ['publish HTML online', 'host HTML file', 'upload HTML website', 'free HTML hosting', 'client portal', 'client portal for agencies', 'client approval app', 'video review and approval', 'photo proofing', 'design proofing', 'host HTML app', 'share HTML with clients', 'link in bio', 'link in bio Nepal', 'short links', 'studio booking', 'Jhino'];
 
-const org = (b: string) => ({ '@type': 'Organization', '@id': `${b}/#org`, name: 'Jhino', url: `${b}/`, logo: { '@type': 'ImageObject', url: `${b}/_jhino/logo-512.png`, width: 512, height: 512 }, email: 'jhinoapp@gmail.com', areaServed: 'NP' });
-const website = (b: string) => ({ '@type': 'WebSite', '@id': `${b}/#website`, url: `${b}/`, name: 'Jhino', alternateName: 'jhino.com', inLanguage: 'en', publisher: { '@id': `${b}/#org` } });
+const org = (b: string) => ({
+  '@type': 'Organization',
+  '@id': `${b}/#org`,
+  name: 'Jhino',
+  url: `${b}/`,
+  logo: { '@type': 'ImageObject', url: `${b}/_jhino/logo-512.png`, width: 512, height: 512 },
+  description: 'Jhino is an instant HTML publishing platform and client portal for creative studios, agencies, and developers.',
+  email: 'jhinoapp@gmail.com',
+  areaServed: 'NP',
+  contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: 'jhinoapp@gmail.com', availableLanguage: ['en', 'ne'] },
+});
+const website = (b: string) => ({
+  '@type': 'WebSite',
+  '@id': `${b}/#website`,
+  url: `${b}/`,
+  name: 'Jhino',
+  alternateName: ['Jhino Nepal', 'jhino.com'],
+  description: 'Publish your HTML as a live website instantly, share with clients, and manage link-in-bio pages.',
+  inLanguage: 'en',
+  publisher: { '@id': `${b}/#org` },
+});
 const crumbs = (b: string, items: [string, string][]) => ({
   '@type': 'BreadcrumbList',
   itemListElement: items.map(([name, p], i) => ({ '@type': 'ListItem', position: i + 1, name, item: `${b}${p}` })),
@@ -88,24 +116,32 @@ const offer = (b: string, p: Plan) => ({
   description: p.blurb, ...(p.price ? { priceSpecification: { '@type': 'UnitPriceSpecification', price: String(p.price), priceCurrency: 'NPR', billingDuration: 'P1M', unitText: 'month' } } : {}),
 });
 const software = (b: string) => ({
-  '@type': 'SoftwareApplication', '@id': `${b}/#app`, name: 'Jhino', url: `${b}/`, applicationCategory: 'BusinessApplication', operatingSystem: 'Web, Android, iOS, Windows, macOS',
+  '@type': 'SoftwareApplication', '@id': `${b}/#app`, name: 'Jhino', url: `${b}/`, applicationCategory: 'BusinessApplication, DeveloperApplication, DesignApplication', operatingSystem: 'Web, Android, iOS, Windows, macOS, Linux',
   description: 'Client apps for studios and agencies: share video cuts, photos, designs, bookings and invoices with clients on one live page, host your own HTML apps, a link-in-bio page and short links.',
   image: `${b}/_jhino/og.png`, publisher: { '@id': `${b}/#org` }, inLanguage: 'en',
+  featureList: [
+    'Publish HTML and ZIP packages instantly',
+    'Real-time data synchronization with localStorage and IndexedDB',
+    'Client portals with video approval, photo proofing, and invoicing',
+    'Link-in-bio pages with 40 curated designs',
+    'Branded short link management with analytics',
+    'Nepali Bikram Sambat calendar date support',
+    'Direct QR payment in NPR',
+  ],
   offers: publicPlans().map((p) => offer(b, p)),
 });
 const planLines = () => publicPlans().map((p) => `<li><b>${esc(p.name)}</b>: ${p.price ? `NPR ${p.price.toLocaleString('en-IN')} a month (NPR ${p.yearly.toLocaleString('en-IN')} a year)` : 'free, for good'}. ${p.creations} app${p.creations === 1 ? '' : 's'}. ${esc(p.blurb)}</li>`).join('');
-const siteNav = '<p><a href="/signup">Start free</a> · <a href="/pricing">Pricing</a> · <a href="/help">Help</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a></p>';
+const siteNav = '<p><a href="/">Home</a> · <a href="/pricing">Pricing</a> · <a href="/signup">Start free</a> · <a href="/login">Sign in</a> · <a href="/help">Help</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/sitemap">Sitemap</a></p>';
 
 function sitePage(p: string, b: string): Doc | null {
   const plans = publicPlans();
   const pro = plans.find((x) => x.id === 'pro'), plus = plans.find((x) => x.id === 'plus');
-  const priceLine = `Free Forever for one client. Plus NPR ${plus?.price.toLocaleString('en-IN')} a month, Pro NPR ${pro?.price.toLocaleString('en-IN')}.`;
   switch (p) {
     case '/':
       return {
         status: 200, index: true, path: '/', verify: true, card: 'summary_large_image', keywords: HOME_KEYWORDS,
         title: 'Publish your HTML as a live website' + SUFFIX,
-        description: 'Upload an HTML file or ZIP and it is a live website at once. Share it with clients, sync every save live, and add a link-in-bio page and short links. Start free.',
+        description: 'Upload an HTML file or ZIP to publish a live website instantly. Share with clients, sync saves live, create a link-in-bio page and short links. Start free.',
         jsonld: [org(b), website(b), software(b), faqPage(FAQ)],
         body: `<h1>Your HTML. Out in the world.</h1>
 <p>Upload your HTML. Publish a live website. Share it with the people who matter. Start free with an .html file or a .zip website package.</p>
@@ -121,28 +157,52 @@ ${siteNav}`,
       };
     case '/pricing':
       return {
-        status: 200, index: true, path: '/pricing', card: 'summary_large_image', keywords: ['Jhino pricing', 'client portal price Nepal', 'link in bio free', ...HOME_KEYWORDS.slice(0, 4)],
-        title: 'Pricing: Free, Plus and Pro plans in rupees' + SUFFIX,
-        description: `${priceLine} Your own page, short links, password links and pages on Google. Pay monthly or yearly by QR.`,
-        jsonld: [org(b), website(b), { ...software(b), '@id': `${b}/pricing#app` }, crumbs(b, [['Jhino', '/'], ['Pricing', '/pricing']])],
-        body: `<h1>Start free. Pay by QR when you grow.</h1><p>Start free with one app. Move up when you have more clients.</p><ul>${planLines()}</ul><p>Scan our QR code, upload a screenshot of the payment, and we switch the plan on, usually the same day. Yearly costs ten months.</p>${siteNav}`,
+        status: 200, index: true, path: '/pricing', card: 'summary_large_image', keywords: ['Jhino pricing', 'client portal price Nepal', 'HTML hosting price', 'link in bio free', 'NPR QR payment', 'freelancer client portal pricing', 'Jhino'],
+        title: 'Pricing: Free, Plus and Pro Plans in Rupees' + SUFFIX,
+        description: 'Free forever for one client. Plus NPR 500/mo, Pro NPR 2,000/mo. Includes your own page, short links, and client portals. Pay monthly or yearly by QR.',
+        jsonld: [org(b), website(b), { ...software(b), '@id': `${b}/pricing#app` }, crumbs(b, [['Jhino', '/'], ['Pricing', '/pricing']]), faqPage(PRICING_FAQ)],
+        body: `<h1>Start free. Pay by QR when you grow.</h1><p>Free Forever for one client. Simple, transparent pricing in Nepali rupees for studios, agencies, and creators. Upgrade whenever you need more clients.</p><ul>${planLines()}</ul><h2>Frequently Asked Questions About Plans &amp; Pricing</h2>${faqList(PRICING_FAQ)}<p>Scan our QR code, upload a screenshot of the payment, and we switch the plan on, usually the same day. Yearly costs ten months.</p>${siteNav}`,
       };
     case '/help':
       return {
-        status: 200, index: true, path: '/help', keywords: ['Jhino help', 'how to share HTML app with client', 'client portal guide'],
-        title: 'Help and guides' + SUFFIX,
-        description: 'How to upload an HTML app, build one without code, share it with a client by sign-in or link, set up your page, make short links and pay for a plan. Or write to us.',
+        status: 200, index: true, path: '/help', keywords: ['Jhino help', 'how to share HTML app with client', 'client portal guide', 'Jhino tutorials', 'Jhino documentation'],
+        title: 'Help & Guides: Tutorials, FAQs and Support' + SUFFIX,
+        description: 'Learn how to publish HTML apps, share client portals, set up your bio page, create short links, and upgrade your plan. Contact our support team anytime.',
         jsonld: [org(b), website(b), crumbs(b, [['Jhino', '/'], ['Help', '/help']]), faqPage(HELP_FAQ)],
-        body: `<h1>How can we help.</h1><p>Guides for your first week, straight answers, and a way to reach us. We reply by email, usually within a working day.</p><h2>Questions</h2>${faqList(HELP_FAQ)}${siteNav}`,
+        body: `<h1>How can we help you?</h1><p>Guides for your first week, straight answers, and a way to reach us. We reply by email, usually within a working day.</p><h2>Frequently Asked Questions</h2>${faqList(HELP_FAQ)}${siteNav}`,
       };
     case '/terms':
-      return { status: 200, index: true, path: '/terms', title: 'Terms of Service' + SUFFIX, description: 'The terms for using Jhino: your account, your content, plans and payment, availability and ending your account.', jsonld: [org(b), crumbs(b, [['Jhino', '/'], ['Terms of Service', '/terms']])], body: `<h1>Terms of Service</h1><p>Using Jhino, your account, your content, plans and payment, availability, and ending.</p>${siteNav}` };
+      return {
+        status: 200, index: true, path: '/terms',
+        title: 'Terms of Service' + SUFFIX,
+        description: 'Read the Terms of Service for Jhino: account terms, content ownership, HTML app hosting, plans and QR payments, service availability, and usage rules.',
+        jsonld: [org(b), crumbs(b, [['Jhino', '/'], ['Terms of Service', '/terms']])],
+        body: `<h1>Terms of Service</h1><p>Using Jhino, your account, your content, plans and payment, availability, and ending.</p>${siteNav}`,
+      };
     case '/privacy':
-      return { status: 200, index: true, path: '/privacy', title: 'Privacy Policy' + SUFFIX, description: 'What Jhino keeps and why, visits and cookies, who sees your data, services we use, backups, emails and your choices. We never sell your data.', jsonld: [org(b), crumbs(b, [['Jhino', '/'], ['Privacy Policy', '/privacy']])], body: `<h1>Privacy Policy</h1><p>What we keep, why, visits and cookies, who sees it, services we use, backups, emails and your choices. Your data is never sold.</p>${siteNav}` };
+      return {
+        status: 200, index: true, path: '/privacy',
+        title: 'Privacy Policy' + SUFFIX,
+        description: 'Learn how Jhino protects your privacy: data storage, zero-tracking analytics, client portal privacy, backups, and security. We never sell your data.',
+        jsonld: [org(b), crumbs(b, [['Jhino', '/'], ['Privacy Policy', '/privacy']])],
+        body: `<h1>Privacy Policy</h1><p>What we keep, why, visits and cookies, who sees it, services we use, backups, emails and your choices. Your data is never sold.</p>${siteNav}`,
+      };
     case '/signup':
-      return { status: 200, index: true, path: '/signup', title: 'Create your free account' + SUFFIX, description: 'Start free: one client app, your own page at jhino.com/you and short links. No card needed. Upgrade to Plus or Pro when you have more clients.', jsonld: [org(b), website(b)], body: `<h1>Create your free account</h1><p>One client app free, for good, with your own page at jhino.com/you. No card.</p>${siteNav}` };
+      return {
+        status: 200, index: true, path: '/signup',
+        title: 'Create your free account' + SUFFIX,
+        description: 'Start free with one client app, your personal link-in-bio page, and branded short links. No credit card required. Upgrade anytime as your studio grows.',
+        jsonld: [org(b), website(b), crumbs(b, [['Jhino', '/'], ['Create account', '/signup']])],
+        body: `<h1>Create your free account</h1><p>Start free with one client app, your personal link-in-bio page at jhino.com/you, and branded short links. No credit card required.</p>${siteNav}`,
+      };
     case '/login':
-      return { status: 200, index: true, path: '/login', title: 'Sign in' + SUFFIX, description: 'Sign in to Jhino to open your client apps, your page and your short links.', jsonld: [org(b), website(b)] };
+      return {
+        status: 200, index: true, path: '/login',
+        title: 'Sign in to your account' + SUFFIX,
+        description: 'Sign in to Jhino to manage your live HTML apps, client portals, link-in-bio page, and short links. Access your studio dashboard securely.',
+        jsonld: [org(b), website(b), crumbs(b, [['Jhino', '/'], ['Sign in', '/login']])],
+        body: `<h1>Sign in</h1><p>Sign in to Jhino to manage your live HTML apps, client portals, link-in-bio page, and short links.</p>${siteNav}`,
+      };
   }
   return null;
 }
@@ -506,22 +566,34 @@ function llms(b: string) {
   const plans = publicPlans();
   return `# Jhino
 
-> Jhino (${b}) gives video, photo and design studios and agencies one live page per client: video cuts for approval, photo proofing, design proofs, bookings, invoices and messages, seen by both sides at once. Studios can upload their own HTML apps or build one without code, share it by sign-in, public link or password link, and give it its own address. Every person gets a link-in-bio page at jhino.com/<username> and short links. Prices in Nepali rupees; dates in Bikram Sambat.
+> Jhino (${b}) is an instant HTML web app publishing platform and client portal built for creative studios, agencies, developers, and freelancers. Upload any HTML file or ZIP package to get an instant live website. Every save automatically syncs in real-time across all connected clients via localStorage and IndexedDB. Includes custom link-in-bio profiles at jhino.com/<username>, branded short links, client approval portals (video reviews, photo proofing, invoices), and Nepali Bikram Sambat date support. Transparent pricing in Nepali rupees (NPR) with direct QR code payments.
 
-## Pages
-- [Home](${b}/): what Jhino does, plans and questions.
-- [Pricing](${b}/pricing): ${plans.map((p) => `${p.name} ${p.price ? `NPR ${p.price} a month` : 'free'} (${p.creations} app${p.creations === 1 ? '' : 's'})`).join('; ')}.
-- [Help](${b}/help): guides and contact.
-- [Create a free account](${b}/signup)
-- [Sitemap](${b}/sitemap): every public page, including people's pages and apps on Google.
-- [Terms](${b}/terms) and [Privacy](${b}/privacy)
+## Core Features & Capabilities
+- **Instant HTML Publishing**: Upload single .html files or .zip website packages made with Claude, ChatGPT, v0, VS Code, or any web framework. Files are instantly live with zero configuration.
+- **Live State Synchronization**: Any HTML app saving to localStorage or IndexedDB is automatically synchronized across all viewers in real time with conflict resolution.
+- **Client Portals & Approval Workflows**: Deliver video cuts for client review and frame-by-frame approval, photo proofing with Pick/Maybe/No sorting, shoot schedules, invoices, and quotes.
+- **Link-in-Bio Profile Pages**: Every user receives a profile at jhino.com/<username> with 40 customizable themes, custom links, videos, socials, and visitor analytics. Pro users can provide their own custom HTML.
+- **Branded Short Links**: Transform long URLs into compact jhino.com/s-xxxxx links or custom codes with click analytics.
+- **Nepal-Tailored Infrastructure**: Native support for Bikram Sambat (BS) calendar dates alongside Gregorian (AD) dates. Transparent pricing in NPR payable via Fonepay / QR code.
 
-## Facts
-- Upload an HTML file or ZIP: it goes live at once; localStorage and IndexedDB data sync between everyone with access.
-- Share an app with a client by sign-in, public link or password link; choose if visitors view, add or edit.
-- Pro can publish up to 10 apps as public pages on Google search, each with its own title, description, address and keyword.
-- People's pages (jhino.com/<username>) have 40 designs, socials, videos, apps and click analytics.
-- Payment by QR code in NPR, monthly or yearly (a year costs ten months).
+## Pricing & Plans
+${plans.map((p) => `- **${p.name} Plan**: ${p.price ? `NPR ${p.price.toLocaleString('en-IN')}/month (NPR ${p.yearly.toLocaleString('en-IN')}/year, 2 months free)` : 'Free Forever'}. Includes ${p.creations} client app${p.creations === 1 ? '' : 's'}. ${p.blurb}`).join('\n')}
+
+## Public Pages
+- [Home](${b}/): Overview of HTML publishing, client portals, and features.
+- [Pricing](${b}/pricing): Transparent Free, Plus, and Pro plans in Nepali rupees.
+- [Help & Documentation](${b}/help): Tutorials, FAQs, and support contact.
+- [Sign Up Free](${b}/signup): Create a free account without a credit card.
+- [Sign In](${b}/login): Access studio dashboard and client apps.
+- [Sitemap](${b}/sitemap): Index of all public pages, creator profiles, and apps on Google.
+- [Terms of Service](${b}/terms) and [Privacy Policy](${b}/privacy)
+
+## Frequently Asked Questions (FAQ)
+- **What files can I upload?** Any single .html file or .zip file containing index.html.
+- **Do clients need an account?** No. Clients can access via private credentials, invite links, or password links.
+- **How is payment handled?** QR code scan in Nepali rupees (NPR). Monthly or yearly (yearly includes 2 months free).
+- **Can apps be indexed by Google?** Yes, Pro subscribers can publish up to 10 apps with custom SEO titles, meta descriptions, and keywords directly to Google search.
+- **Data Privacy & Security**: Hosted securely, backed up daily, zero tracking cookies, and customer data is never sold.
 `;
 }
 function indexNowKey() {

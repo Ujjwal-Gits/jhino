@@ -13,7 +13,7 @@ import { live } from './live';
 import { ToastProvider } from './ui';
 import { Forgot, Login, Reset, Signup, Verify } from './pages/Login';
 import { CopyCodePage } from './pages/CodeEntry';
-import { HelpPage, Landing, PrivacyPage, TermsPage } from './pages/Site';
+import { HelpPage, Landing, PricingPage, PrivacyPage, TermsPage } from './pages/Site';
 import { PublicApp } from './pages/PublicApp';
 import { Invite } from './pages/Invite';
 import { AppsPage } from './pages/Apps';
@@ -107,7 +107,8 @@ function App() {
   else if (person) page = <PersonPage name={person} user={user} />;
   else if (path === '/_themes' && user?.isAdmin) page = <ThemeGallery />;
   // The website is always at the main address; the dashboard lives at /apps.
-  else if (path === '/' || path === '/pricing') page = <Landing signedIn={!!user} at={path === '/pricing' ? 'plans' : undefined} />;
+  else if (path === '/') page = <Landing signedIn={!!user} />;
+  else if (path === '/pricing') page = <PricingPage signedIn={!!user} />;
   // A copied /apps/<id> link, signed out: open it like its share link (a guest name, a password, or sign in).
   else if (!user && appMatch) page = <PublicApp refId={appMatch[1]} signedInUser={null} />;
   else if (!user) {
