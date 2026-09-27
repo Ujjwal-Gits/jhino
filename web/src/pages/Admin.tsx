@@ -827,6 +827,7 @@ function PlansAdmin() {
                 <div className="field"><span>Page designs</span><Select label="Page designs" value={String(p.features.themeTier)} options={[{ value: 'free', label: '5 (free designs)' }, { value: 'plus', label: '15 (free + plus)' }, { value: 'pro', label: 'All 30' }]} onChange={(v) => setF(i, 'themeTier', v as never)} /></div>
                 <div className="field"><span>Jhino branding on the page</span><Select label="Jhino branding" value={String(p.features.branding)} options={[{ value: 'popup', label: 'Badge and popup' }, { value: 'badge', label: 'Small badge' }, { value: 'none', label: 'None' }]} onChange={(v) => setF(i, 'branding', v as never)} /></div>
                 <label className="field"><span>Analytics (days)</span><input className="input mono" inputMode="numeric" value={Number(p.features.analyticsDays)} onChange={(e) => setF(i, 'analyticsDays', num(e.target.value))} /></label>
+                <label className="field"><span>Pages on Google</span><input className="input mono" inputMode="numeric" value={Number(p.features.seoPages ?? 0)} onChange={(e) => setF(i, 'seoPages', num(e.target.value))} /></label>
               </div>
               <div className="plan-flags">
                 {FLAG_FIELDS.map(([k, l]) => (

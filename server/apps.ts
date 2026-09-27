@@ -77,6 +77,8 @@ function appSummary(a: AppRow, userId: string) {
     brand,
     storage: db.prepare('SELECT COUNT(*) files, COALESCE(SUM(size),0) bytes FROM files WHERE app_id=?').get(a.id) as { files: number; bytes: number },
     access: a.access ?? 'private', slug: a.slug ?? null, rootSlug: a.root_slug ?? null, ownerUsername: usernameOf(a.owner_id), showBar: a.show_bar !== 0,
+    // On Google: the page title search results show (the tab shows it too, so both say the same).
+    seoTitle: (a as AppRow & { seo_on?: number; seo_title?: string | null }).seo_on ? (a as AppRow & { seo_title?: string | null }).seo_title ?? null : null,
   };
 }
 
@@ -596,7 +598,7 @@ export function registerApps(app: FastifyInstance) {
     const run = getRun(token);
     // A run opened from a downloaded file is framed by that file (a local page), so it cannot be limited to this site.
     reply.header('Content-Security-Policy', run?.desk ? `sandbox ${SANDBOX}` : `sandbox ${SANDBOX}; frame-ancestors 'self'`)
-      .header('Referrer-Policy', 'no-referrer')
+      .header('Referrer-Policy', 'no-referrer').header('X-Robots-Tag', 'noindex, nofollow')
       .header('X-Content-Type-Options', 'nosniff');
     const deny = (msg: string) => reply.code(410).type('text/html; charset=utf-8').header('Cache-Control', 'no-store')
       .send(`<!doctype html><meta charset="utf-8"><body style="font:15px system-ui;padding:24px;color:#555">${msg}</body>`);

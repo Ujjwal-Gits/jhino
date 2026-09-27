@@ -9,6 +9,7 @@ import { limit, setSetting, setting } from './security.js';
 import { PLANS, featuresOf } from './plans.js';
 import { THEME_TIERS, DEFAULT_THEME } from './themes.js';
 import { nextUsernameChange, USERNAME_EVERY_DAYS } from './usernames.js';
+import { pingSearchEngines } from './seo.js';
 
 /*
  * A person's public page at jhino.com/<username>: a link-in-bio page with their links, socials, a
@@ -24,7 +25,7 @@ const SOCIALS = ['instagram', 'facebook', 'tiktok', 'youtube', 'x', 'linkedin', 
 type SocialKind = typeof SOCIALS[number];
 const TIER = { free: 0, plus: 1, pro: 2 } as const;
 
-interface ProfileRow { user_id: string; bio: string; location: string; theme: string; layout: string; socials: string; published: number; custom_html: string | null; use_custom: number; hide_branding: number; updated_at: string }
+interface ProfileRow { user_id: string; bio: string; location: string; theme: string; layout: string; socials: string; published: number; custom_html: string | null; use_custom: number; hide_branding: number; seo_index: number; seo_description: string | null; updated_at: string }
 interface ItemRow { id: string; user_id: string; position: number; type: ItemType; title: string; subtitle: string; url: string | null; text: string | null; app_id: string | null; highlight: number; visible: number; created_at: string; updated_at: string }
 
 function profileOf(userId: string): ProfileRow {
@@ -290,7 +291,9 @@ export function registerProfiles(app: FastifyInstance) {
     const preview = (req.query as { preview?: string }).preview === '1' && !!req.user && !!u && req.user.id === u.id;
     if (!u || !p?.custom_html || !featuresOf(u).customPage || (!p.use_custom && !preview) || (!p.published && !preview)) return reply.code(404).type('text/plain').send('Not found');
     reply.header('Content-Security-Policy', "sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-forms; frame-ancestors 'self'")
-      .header('X-Content-Type-Options', 'nosniff').header('Cache-Control', 'no-store').header('Referrer-Policy', 'strict-origin-when-cross-origin');
+      .header('X-Content-Type-Options', 'nosniff').header('Cache-Control', 'no-store').header('Referrer-Policy', 'strict-origin-when-cross-origin')
+      // The page itself is jhino.com/<username>; this frame is not a page of its own for search engines.
+      .header('X-Robots-Tag', 'noindex');
     return reply.type('text/html; charset=utf-8').send(renderCustom(u, p.custom_html));
   });
 
@@ -312,7 +315,7 @@ export function registerProfiles(app: FastifyInstance) {
     return {
       username: u.username, page: pageData(u, true),
       usernameNextChange: nextUsernameChange(u), usernameEveryDays: USERNAME_EVERY_DAYS,
-      settings: { bio: p.bio, location: p.location, theme: p.theme, layout: p.layout, socials, published: !!p.published, customHtml: p.custom_html ?? '', useCustom: !!p.use_custom, hideBranding: !!p.hide_branding },
+      settings: { bio: p.bio, location: p.location, theme: p.theme, layout: p.layout, socials, published: !!p.published, customHtml: p.custom_html ?? '', useCustom: !!p.use_custom, hideBranding: !!p.hide_branding, seoIndex: p.seo_index !== 0, seoDescription: p.seo_description ?? '' },
       items: items.map((r) => ({ id: r.id, type: r.type, title: r.title, subtitle: r.subtitle, url: r.url, text: r.text, appId: r.app_id, highlight: !!r.highlight, visible: !!r.visible, clicks30: clicks[r.id] ?? 0 })),
       features: { themeTier: f.themeTier, branding: brandingOf(u, p), removeBranding: f.removeBranding, customPage: f.customPage, analyticsDays: f.analyticsDays },
       apps: db.prepare('SELECT id, name, slug, access FROM apps WHERE owner_id=? AND deleted_at IS NULL ORDER BY updated_at DESC').all(u.id),
@@ -360,13 +363,21 @@ export function registerProfiles(app: FastifyInstance) {
       }
       next.hide_branding = b.hideBranding ? 1 : 0;
     }
+    // Search engines: people's pages are listed unless they opt out; they may write their own description.
+    if (b.seoIndex !== undefined) next.seo_index = b.seoIndex ? 1 : 0;
+    if (b.seoDescription !== undefined) {
+      const s = String(b.seoDescription ?? '').replace(/s+/g, ' ').trim();
+      if (s.length > 160) throw new HttpError(400, 'VALIDATION_FAILED', 'Keep the search description to 160 characters.');
+      next.seo_description = s || null;
+    }
     if (b.useCustom !== undefined) {
       if (b.useCustom && !f.customPage) throw new HttpError(403, 'PLAN_FEATURE', 'Your own page design is on Pro. Upgrade in Plan & usage.', { feature: 'customPage' });
       if (b.useCustom && !next.custom_html) throw new HttpError(400, 'VALIDATION_FAILED', 'Add your HTML first.');
       next.use_custom = b.useCustom ? 1 : 0;
     }
-    db.prepare('UPDATE profiles SET bio=?, location=?, theme=?, layout=?, socials=?, published=?, custom_html=?, use_custom=?, hide_branding=?, updated_at=? WHERE user_id=?')
-      .run(next.bio, next.location, next.theme, next.layout, next.socials, next.published, next.custom_html, next.use_custom, next.hide_branding, now(), u.id);
+    db.prepare('UPDATE profiles SET bio=?, location=?, theme=?, layout=?, socials=?, published=?, custom_html=?, use_custom=?, hide_branding=?, seo_index=?, seo_description=?, updated_at=? WHERE user_id=?')
+      .run(next.bio, next.location, next.theme, next.layout, next.socials, next.published, next.custom_html, next.use_custom, next.hide_branding, next.seo_index, next.seo_description, now(), u.id);
+    if (next.published !== p.published || next.seo_index !== p.seo_index || next.bio !== p.bio || next.seo_description !== p.seo_description) pingSearchEngines([`/${u.username}`]);
     return editorView(u);
   });
 

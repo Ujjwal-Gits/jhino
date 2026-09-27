@@ -14,15 +14,11 @@ import { ToastProvider } from './ui';
 import { Forgot, Login, Reset, Signup, Verify } from './pages/Login';
 import { CopyCodePage } from './pages/CodeEntry';
 import { HelpPage, Landing, PrivacyPage, TermsPage } from './pages/Public';
-import { AccountPage, ReceiptPage } from './pages/Account';
-import { AdminPage } from './pages/Admin';
 import { PublicApp } from './pages/PublicApp';
 import { Invite } from './pages/Invite';
 import { AppsPage } from './pages/Apps';
 import { Player } from './pages/Player';
 import { Shell } from './pages/Shell';
-import { Builder } from './pages/Builder';
-import { LinksPage } from './pages/Links';
 import { PagePreview, PersonPage } from './pages/PersonPage';
 import { RouteCtx, SessionCtx, applyTheme, readTheme, useRoute } from './context';
 
@@ -148,6 +144,12 @@ function GoTo({ to }: { to: string }) {
   return null;
 }
 
+// Screens only signed-in people use load on demand: the website and people's pages stay light and fast.
+const AccountPage = lazy(() => import('./pages/Account').then((m) => ({ default: m.AccountPage })));
+const ReceiptPage = lazy(() => import('./pages/Account').then((m) => ({ default: m.ReceiptPage })));
+const AdminPage = lazy(() => import('./pages/Admin').then((m) => ({ default: m.AdminPage })));
+const Builder = lazy(() => import('./pages/Builder').then((m) => ({ default: m.Builder })));
+const LinksPage = lazy(() => import('./pages/Links').then((m) => ({ default: m.LinksPage })));
 const ThemeGallery = lazy(() => import('./profile/Gallery').then((m) => ({ default: m.ProfileGallery })));
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

@@ -100,6 +100,8 @@ export async function applyAddress(appId: string, r: AddressRequest) {
   db.transaction(() => {
     if (r.slug) assertNameFree(owner, r.slug, { appId });
     db.prepare('UPDATE apps SET slug=? WHERE id=?').run(r.slug, appId);
+    // No address left: it cannot be a page on Google.
+    if (!r.slug) db.prepare('UPDATE apps SET seo_on=0 WHERE id=? AND root_slug IS NULL').run(appId);
   })();
   if (r.access || r.publicRole || r.password) return setSharing(appId, { access: r.access, publicRole: r.publicRole, password: r.password });
   return db.prepare('SELECT * FROM apps WHERE id=?').get(appId) as AppRow;
@@ -177,6 +179,8 @@ export async function setSharing(appId: string, b: { access?: unknown; publicRol
       }
     }
   }
+  // On Google only while anyone can open it to view (seo.ts): anything else takes it off.
+  if (access !== 'public' || role !== 'viewer') db.prepare('UPDATE apps SET seo_on=0 WHERE id=? AND seo_on=1').run(appId);
   ensureShareToken(appId);
   return db.prepare('SELECT * FROM apps WHERE id=?').get(appId) as AppRow;
 }

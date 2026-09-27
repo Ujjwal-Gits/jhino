@@ -22,6 +22,8 @@ services:
       APPLE_PRIVATE_KEY: ${APPLE_PRIVATE_KEY:-}
       AUTO_BACKUP: ${AUTO_BACKUP:-1}
       TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+      GOOGLE_SITE_VERIFICATION: ${GOOGLE_SITE_VERIFICATION:-}
+      BING_SITE_VERIFICATION: ${BING_SITE_VERIFICATION:-}
       # DATA_DIR=/data, BACKUP_DIR=/data/backups and FFMPEG_PATH are set in the image.
     volumes:
       - jhino-data:/data

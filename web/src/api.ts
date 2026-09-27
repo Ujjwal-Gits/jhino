@@ -10,7 +10,7 @@ export interface User {
   /** What the person's plan includes (null for client accounts). The server checks again on every action. */
   features?: PlanFeatures | null;
 }
-export interface PlanFeatures { addresses: number; shortLinks: number; customCodes: boolean; passwordLinks: boolean; hideBar: boolean; download: boolean; linkStats: boolean; prioritySupport: boolean; maxUploadMB: number; themeTier: 'free' | 'plus' | 'pro'; branding: 'popup' | 'badge' | 'none'; removeBranding?: boolean; customPage: boolean; analyticsDays: number }
+export interface PlanFeatures { addresses: number; shortLinks: number; customCodes: boolean; passwordLinks: boolean; hideBar: boolean; download: boolean; linkStats: boolean; prioritySupport: boolean; maxUploadMB: number; themeTier: 'free' | 'plus' | 'pro'; branding: 'popup' | 'badge' | 'none'; removeBranding?: boolean; customPage: boolean; analyticsDays: number; seoPages?: number }
 /** A person's photo, when they have one. `v` busts the cache after a change. */
 export const avatarUrl = (u: { id: string; hasAvatar?: boolean } | null | undefined, v: string | number = '') => (u && u.hasAvatar ? `/api/users/${u.id}/avatar${v ? `?v=${v}` : ''}` : null);
 export type Role = 'owner' | 'editor' | 'contributor' | 'viewer';
@@ -25,6 +25,8 @@ export interface AppSummary {
   brand?: { client: string; field: string; accent: string; logo: boolean; sections: number } | null;
   storage?: { files: number; bytes: number };
   access?: 'private' | 'public' | 'password'; slug?: string | null; rootSlug?: string | null; ownerUsername?: string | null; showBar?: boolean;
+  /** Set when the app is on Google: the page title search results show. */
+  seoTitle?: string | null;
 }
 export interface Version { n: number; fileCount: number; size: number; sourceName: string; createdAt: string; uploadedBy: string; features: Features }
 export interface AppDetail extends AppSummary { versions: Version[] }

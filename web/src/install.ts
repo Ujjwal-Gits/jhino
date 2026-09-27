@@ -78,6 +78,9 @@ export function standalone() {
  */
 export function makeInstallable(path: string, info: { name: string; shortName: string; appleIcon: string }) {
   const added: HTMLElement[] = [];
+  // The site's own home-screen icon steps aside while this app's is on the page.
+  const siteIcons = [...document.head.querySelectorAll<HTMLLinkElement>('link[rel=apple-touch-icon]')];
+  siteIcons.forEach((l) => { l.rel = 'x-apple-touch-icon'; });
   const head = document.head;
   const put = (tag: 'link' | 'meta', attrs: Record<string, string>) => {
     const el = document.createElement(tag);
@@ -95,7 +98,7 @@ export function makeInstallable(path: string, info: { name: string; shortName: s
   if ('serviceWorker' in navigator && isSecureContext) {
     navigator.serviceWorker.register('/_jhino/app-sw.js', { scope: path }).catch(() => { /* installing still works without it */ });
   }
-  return () => added.forEach((el) => el.remove());
+  return () => { added.forEach((el) => el.remove()); siteIcons.forEach((l) => { l.rel = 'apple-touch-icon'; }); };
 }
 
 /* ---------- a shortcut file, for computers whose browser cannot install ---------- */

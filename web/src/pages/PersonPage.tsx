@@ -6,6 +6,7 @@ import { AvatarViewerModal, AvatarPositionModal, validatePhotoFile, ACCEPT_PHOTO
 import { Shell } from './Shell';
 import { PublicApp } from './PublicApp';
 import { PlanTag } from './Address';
+import { SerpPreview } from './Share';
 import { ProfileView } from '../profile/ProfileView';
 import { ThemeThumb } from '../profile/ThemeThumb';
 import { THEMES, canUseTheme } from '../profile/themes';
@@ -40,7 +41,7 @@ function PublicProfile({ d }: { d: PublicResp }) {
   const view = new URLSearchParams(location.search).get('view');
   const data = useMemo(() => ({ ...d.profile, layout: view === 'profile' || view === 'links' ? view : d.profile.layout } as ProfileData), [d, view]);
   useEffect(() => {
-    document.title = `${d.profile.name} (@${d.profile.username}) · Jhino`;
+    document.title = `${d.profile.name} (@${d.profile.username}) | Jhino`;
     // One view, sent by the page (the owner's own visits are not counted by the server).
     post(`/api/profile/${encodeURIComponent(d.profile.username)}/hit`, { ref: document.referrer || '' }).catch(() => {});
     return () => { document.title = 'Jhino'; };
@@ -70,7 +71,7 @@ interface ItemT { id: string; type: 'link' | 'header' | 'text' | 'video' | 'app'
 interface EditorT {
   username: string; page: ProfileData;
   usernameNextChange?: string | null; usernameEveryDays?: number;
-  settings: { bio: string; location: string; theme: string; layout: 'links' | 'profile'; socials: { kind: SocialKind; url: string }[]; published: boolean; customHtml: string; useCustom: boolean; hideBranding?: boolean };
+  settings: { bio: string; location: string; theme: string; layout: 'links' | 'profile'; socials: { kind: SocialKind; url: string }[]; published: boolean; customHtml: string; useCustom: boolean; hideBranding?: boolean; seoIndex?: boolean; seoDescription?: string };
   items: ItemT[]; features: { themeTier: Tier; branding: string; removeBranding?: boolean; customPage: boolean; analyticsDays: number };
   apps: { id: string; name: string; slug: string | null; access: string }[]; starter: string;
 }
@@ -529,6 +530,36 @@ function AnalyticsTab({ d }: { d: EditorT }) {
   );
 }
 
+/* ---------- search engines ---------- */
+function SearchSection({ d, run }: { d: EditorT; run: Run }) {
+  const [desc, setDesc] = useState(d.settings.seoDescription ?? '');
+  const on = d.settings.seoIndex !== false;
+  // Empty pages are not listed (the server says noindex until there is something to find).
+  const thin = !d.settings.bio && !d.settings.socials.length && !d.items.some((i) => i.visible && (i.type === 'link' || i.type === 'app' || i.type === 'video'));
+  const shown = desc.trim() || d.settings.bio || `${d.page.name}'s links.`;
+  return (
+    <section className="mp-sec">
+      <h2>Google and other search engines</h2>
+      <label className="check-row">
+        <input type="checkbox" checked={on && d.settings.published} disabled={!d.settings.published}
+          onChange={(e) => run(api<EditorT>('PUT', '/api/me/page', { seoIndex: e.target.checked }), e.target.checked ? 'Search engines may list your page' : 'Search engines are asked not to list it')} />
+        <span>Let people find my page on Google</span>
+      </label>
+      <p className="hint">
+        {!d.settings.published ? 'Your page is hidden, so search engines cannot see it.'
+          : !on ? 'Search engines are asked not to list your page. People with the link still open it.'
+            : thin ? 'Add a bio or a link first: empty pages are not listed.'
+              : "It is in Jhino's sitemap, with your name, photo and links marked up for Google. New pages usually appear within days to a few weeks."}
+      </p>
+      <label className="field"><span>Description in search results <em>{desc.length}/160</em></span>
+        <textarea className="textarea" rows={2} maxLength={160} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder={d.settings.bio || 'What you do and where, in one sentence. Empty: your bio is used.'} />
+      </label>
+      <SerpPreview path={`/${d.username}`} title={`${d.page.name} (@${d.username}) | Jhino`} description={shown} />
+      <div><button className="btn sm primary" disabled={desc.trim() === (d.settings.seoDescription ?? '').trim()} onClick={() => run(api<EditorT>('PUT', '/api/me/page', { seoDescription: desc }), 'Saved')}>Save description</button></div>
+    </section>
+  );
+}
+
 /* ---------- share ---------- */
 function ShareTab({ d, run }: { d: EditorT; run: Run }) {
   const toast = useToast();
@@ -558,6 +589,7 @@ function ShareTab({ d, run }: { d: EditorT; run: Run }) {
         <label className="check-row"><input type="checkbox" checked={d.settings.published} onChange={(e) => run(api<EditorT>('PUT', '/api/me/page', { published: e.target.checked }), e.target.checked ? 'Your page is public' : 'Your page is hidden')} /><span>Anyone can see my page at jhino.com/{d.username}</span></label>
         <p className="hint">Hidden, it says "There is no page here" to everyone but you. Your apps and short links keep working either way.</p>
       </section>
+      <SearchSection d={d} run={run} />
     </>
   );
 }

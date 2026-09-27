@@ -254,6 +254,8 @@ export function Player({ id, solo, visitor, noFallback }: { id: string; solo?: b
           if (!solo) history.replaceState(history.state, '', `${location.pathname}${hash === '#' ? '' : hash}`);
         }
         else if (type === 'title') {
+          // A page on Google keeps the title search results show.
+          if (app?.seoTitle) return;
           const t = typeof data?.title === 'string' ? data.title.slice(0, 120) : '';
           document.title = t ? `${t} · ${app?.name ?? 'Jhino'}` : (app?.name ?? 'Jhino');
         }
@@ -349,7 +351,7 @@ export function Player({ id, solo, visitor, noFallback }: { id: string; solo?: b
     return () => removeEventListener('beforeunload', f);
   }, [sync]);
 
-  useEffect(() => { document.title = app ? `${app.name} · Jhino` : 'Jhino'; return () => { document.title = 'Jhino'; }; }, [app]);
+  useEffect(() => { document.title = app ? `${app.seoTitle || app.name} | Jhino` : 'Jhino'; return () => { document.title = 'Jhino'; }; }, [app]);
 
   // The app's own address is what gets installed: visitors keep the one they opened, members the app's address.
   const installPath = solo || !app ? null : visitor ? location.pathname : app.rootSlug ? `/${app.rootSlug}` : app.slug && app.ownerUsername ? `/${app.ownerUsername}/${app.slug}` : `/apps/${id}`;

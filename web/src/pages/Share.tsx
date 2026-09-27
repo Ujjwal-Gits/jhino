@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { ApiError, api, get, post, type AppDetail, type Role } from '../api';
-import { useSession } from '../context';
+import { Link, useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 import { ShareOut } from './ShareOut';
 import { downloadHtml } from './Player';
@@ -534,6 +534,105 @@ function LinkSharing({ appId, appName }: { appId: string; appName: string }) {
       )}
       <label className="check-row"><input type="checkbox" checked={s.showBar} disabled={s.showBar && !f?.hideBar} onChange={(e) => save({ showBar: e.target.checked })} /><span>Show the Jhino top bar (hide it to open like a standalone app){s.showBar && !f?.hideBar && <PlanTag />}</span></label>
       {error && <p className="error-text" role="alert">{error}</p>}
+      <SeoSection appId={appId} appName={appName} onShared={() => { get<SharingT>(`/api/apps/${appId}/sharing`).then(setS, () => {}); }} />
     </section>
+  );
+}
+
+/* ---------- Show on Google: the app as a public page search engines can list ---------- */
+interface SeoT {
+  on: boolean; live: boolean; title: string; description: string; keyword: string; slug: string | null; rootSlug: string | null;
+  username: string | null; path: string | null; url: string | null; allowed: boolean; limit: number | null; used: number; access: string; suffix: string;
+}
+/** How a page looks in Google's results: the address, the title, the description. */
+export function SerpPreview({ path, title, description }: { path: string; title: string; description: string }) {
+  const crumbs = path.split('/').filter(Boolean);
+  const cut = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, '') + ' …' : s);
+  return (
+    <div className="serp" aria-label="How it may look on Google">
+      <span className="serp-site"><span className="serp-fav" aria-hidden="true" /><span><b>Jhino</b><small>{location.host}{crumbs.length ? ` › ${crumbs.join(' › ')}` : ''}</small></span></span>
+      <span className="serp-title">{cut(title, 62)}</span>
+      <span className="serp-desc">{description ? cut(description, 160) : 'Write a description: it shows here.'}</span>
+    </div>
+  );
+}
+function SeoSection({ appId, appName, onShared }: { appId: string; appName: string; onShared: () => void }) {
+  const toast = useToast();
+  const [s, setS] = useState<SeoT | null>(null);
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ title: '', description: '', keyword: '', slug: '' });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    get<SeoT>(`/api/apps/${appId}/seo`).then((r) => {
+      setS(r); setOpen(r.on);
+      setF({ title: r.title || appName, description: r.description, keyword: r.keyword, slug: r.slug || slugify(appName) });
+    }, () => {});
+  }, [appId, appName]);
+  if (!s) return null;
+  const save = async (on: boolean) => {
+    setBusy(true); setError('');
+    try {
+      const r = await api<SeoT>('PUT', `/api/apps/${appId}/seo`, on ? { on, ...f, slug: s.rootSlug ? undefined : f.slug } : { on });
+      setS(r); onShared();
+      toast(on ? (s.on ? 'Saved. Search engines are told about the change.' : 'It is public and ready for Google.') : 'Taken off Google. It still opens by its link.');
+    } catch (e) { setError(e instanceof ApiError ? e.message : 'Could not save.'); }
+    setBusy(false);
+  };
+  const path = s.rootSlug ? `/${s.rootSlug}` : `/${s.username ?? ''}/${f.slug}`;
+  const kw = f.keyword.trim().toLowerCase();
+  const titleLen = f.title.trim().length + s.suffix.length;
+  const checks: [boolean, string][] = [
+    [titleLen >= 30 && titleLen <= 60, `Title: ${titleLen} of 30 to 60 characters, "| Jhino" included`],
+    [f.description.trim().length >= 120 && f.description.trim().length <= 160, `Description: ${f.description.trim().length} of 120 to 160 characters`],
+    [!!kw && f.title.toLowerCase().includes(kw), 'The keyword is in the title'],
+    [!!kw && f.description.toLowerCase().includes(kw), 'The keyword is in the description'],
+    [!!kw && path.includes(slugify(kw)), 'The keyword is in the address'],
+  ];
+  return (
+    <div className="seo-sec">
+      <p className="section-title">Show on Google {!s.allowed && <PlanTag plan="Pro" />}</p>
+      <label className="check-row">
+        <input type="checkbox" checked={open} disabled={!s.allowed || busy}
+          onChange={(e) => { if (e.target.checked) setOpen(true); else { setOpen(false); if (s.on) save(false); } }} />
+        <span>Make it a public page people can find on Google</span>
+      </label>
+      <p className="hint">
+        {!s.allowed ? 'On Pro, up to 5 apps can be public pages that search engines list. '
+          : open ? 'Anyone can open it without signing in, to view. Its title ends in "| Jhino". '
+            : 'It stays as it is shared now. '}
+        {s.allowed && s.limit !== null && `${s.used} of ${s.limit} used.`}
+        {!s.allowed && <Link to="/account/plan" className="link">See plans</Link>}
+      </p>
+      {open && s.allowed && (
+        <form className="seo-form" onSubmit={(e) => { e.preventDefault(); save(true); }}>
+          <div className="field">
+            <span>Address</span>
+            {s.rootSlug
+              ? <span className="mono seo-fixed">{location.host}/{s.rootSlug}</span>
+              : <div className="linkbox"><span className="addr-host mono">{location.host}/{s.username}/</span><input className="input mono" required value={f.slug} onChange={(e) => setF({ ...f, slug: slugify(e.target.value) })} aria-label="Address" /></div>}
+          </div>
+          <label className="field"><span>Page title <em>{titleLen}/60</em></span>
+            <span className="seo-title-in"><input className="input" required minLength={3} maxLength={70} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Wedding photographer in Kathmandu" /><span className="mono">{s.suffix.trim()}</span></span>
+          </label>
+          <label className="field"><span>Meta description <em>{f.description.trim().length}/160</em></span>
+            <textarea className="textarea" rows={3} required minLength={50} maxLength={200} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} placeholder="What the page offers, for whom and where, in one or two sentences. Search results show about 160 characters." />
+          </label>
+          <label className="field"><span>Primary keyword</span>
+            <input className="input" required minLength={2} maxLength={60} value={f.keyword} onChange={(e) => setF({ ...f, keyword: e.target.value })} placeholder="The words people type into Google to find this" />
+          </label>
+          <ul className="seo-checks" aria-label="Checks">
+            {checks.map(([ok, t]) => <li key={t} className={ok ? 'ok' : ''}><Icon name={ok ? 'check' : 'info'} size={13} />{t}</li>)}
+          </ul>
+          <SerpPreview path={path} title={`${f.title.trim() || appName}${s.suffix}`} description={f.description.trim()} />
+          <div className="actions-row">
+            <button className="btn sm primary" disabled={busy}>{busy && <span className="spin" />}{s.on ? 'Save changes' : 'Publish on Google'}</button>
+            {s.live && s.url && <a className="btn sm" href={s.path ?? '#'} target="_blank" rel="noopener"><Icon name="external" size={14} />Open page</a>}
+          </div>
+          <p className="hint">{s.on ? (s.live ? 'Listed in the sitemap. New pages usually appear on Google within days to a few weeks.' : 'Not live: it must stay public, view only, with an address.') : 'Publishing makes the app public to view and lists it for search engines.'}</p>
+        </form>
+      )}
+      {error && <p className="error-text" role="alert">{error}</p>}
+    </div>
   );
 }

@@ -23,6 +23,7 @@ import { registerLinks } from './links.js';
 import { registerUsernames, ensureUsernames } from './usernames.js';
 import { registerProfiles } from './profiles.js';
 import { registerPwa } from './pwa.js';
+import { registerSeo, renderDocument } from './seo.js';
 import { startPlanNotices } from './plans.js';
 import { startBookingReminders } from './booking.js';
 import { limit } from './security.js';
@@ -91,20 +92,8 @@ registerPwa(app);
 registerSiteAnalytics(app);
 registerCreations(app);
 
-// Search engines: the website is public; dashboards, apps, links and the API are not for indexing.
-app.get('/robots.txt', async (req, reply) => {
-  const base = config.publicUrl || `${req.protocol}://${req.headers.host}`;
-  reply.type('text/plain; charset=utf-8').header('Cache-Control', 'public, max-age=86400');
-  return ['User-agent: *', 'Allow: /$', 'Allow: /pricing', 'Allow: /help', 'Allow: /terms', 'Allow: /privacy', 'Allow: /signup',
-    'Disallow: /api/', 'Disallow: /run/', 'Disallow: /s/', 'Disallow: /apps', 'Disallow: /account', 'Disallow: /admin', 'Disallow: /invite/', 'Disallow: /go/', 'Disallow: /p/',
-    '', `Sitemap: ${base}/sitemap.xml`, ''].join('\n');
-});
-app.get('/sitemap.xml', async (req, reply) => {
-  const base = config.publicUrl || `${req.protocol}://${req.headers.host}`;
-  const urls = ['/', '/pricing', '/help', '/signup', '/terms', '/privacy'];
-  reply.type('application/xml; charset=utf-8').header('Cache-Control', 'public, max-age=86400');
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${base}${u}</loc></url>`).join('\n')}\n</urlset>\n`;
-});
+// Search engines: robots.txt, sitemap.xml, llms.txt, favicons and each page's head (seo.ts).
+registerSeo(app);
 startAutoBackups();
 // A ceiling on changes from one address (sign-in, payments and links have their own, tighter limits).
 app.addHook('onRequest', async (req) => {
@@ -143,15 +132,25 @@ const webDir = path.join(ROOT, 'dist', 'web');
 if (fs.existsSync(path.join(webDir, 'index.html'))) {
   // wildcard: serve whatever is in dist/web now, so a rebuild does not need a restart.
   await app.register(fstatic, {
-    root: webDir, index: 'index.html', wildcard: true, prefix: '/', cacheControl: false,
+    // index: false, so the home page too goes through the page writer below (its title, description and schema).
+    root: webDir, index: false, wildcard: true, prefix: '/', cacheControl: false,
     // Fingerprinted assets never change; the page itself is always fetched fresh.
     setHeaders: (res, file) => { res.header('Cache-Control', /[\\/]assets[\\/]/.test(file) ? 'public, max-age=31536000, immutable' : 'no-store'); },
   });
+  // The home page: before the static files (a folder there answers 403), through the page writer.
+  app.addHook('onRequest', async (req, reply) => {
+    if ((req.method !== 'GET' && req.method !== 'HEAD') || !/^\/(\?|$)/.test(req.url)) return;
+    const page = renderDocument(req, fs.readFileSync(path.join(webDir, 'index.html'), 'utf8'));
+    return reply.code(page.status).header('Cache-Control', 'no-store').type('text/html; charset=utf-8').send(page.html);
+  });
   app.setNotFoundHandler((req, reply) => {
-    if (req.method !== 'GET' || req.url.startsWith('/api/') || req.url.startsWith('/run/')) {
+    if ((req.method !== 'GET' && req.method !== 'HEAD') || req.url.startsWith('/api/') || req.url.startsWith('/run/')) {
       return reply.code(404).send({ error: 'NOT_FOUND', message: 'Not found.' });
     }
-    reply.header('Cache-Control', 'no-store').type('text/html; charset=utf-8').send(fs.readFileSync(path.join(webDir, 'index.html'), 'utf8'));
+    // Every page of the app: its own head for search engines and previews, its words for crawlers, and the
+    // right status (404 for addresses that do not exist, so they never show up as empty pages).
+    const page = renderDocument(req, fs.readFileSync(path.join(webDir, 'index.html'), 'utf8'));
+    reply.code(page.status).header('Cache-Control', 'no-store').type('text/html; charset=utf-8').send(page.html);
   });
 }
 

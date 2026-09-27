@@ -599,6 +599,15 @@ function ensureSchema() {
     // guest for that one app (publicshare.ts). Removed again when the link is turned off or its password changes.
     add('memberships', 'via_link', 'INTEGER NOT NULL DEFAULT 0');
     add('pub_sessions', 'user_id', 'TEXT');
+    // "Show on Google" (seo.ts): an app published as a public page search engines may list, with its own
+    // title, description and primary keyword. People's own pages can opt out of search engines.
+    add('apps', 'seo_on', 'INTEGER NOT NULL DEFAULT 0');
+    add('apps', 'seo_title', 'TEXT');
+    add('apps', 'seo_description', 'TEXT');
+    add('apps', 'seo_keyword', 'TEXT');
+    add('apps', 'seo_updated_at', 'TEXT');
+    add('profiles', 'seo_index', 'INTEGER NOT NULL DEFAULT 1');
+    add('profiles', 'seo_description', 'TEXT');
     db.exec('CREATE TABLE IF NOT EXISTS code_usage(user_id TEXT NOT NULL, day TEXT NOT NULL, issued INTEGER NOT NULL DEFAULT 0, wrong INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(user_id, day))');
   })();
 }

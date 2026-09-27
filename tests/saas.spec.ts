@@ -972,3 +972,44 @@ test('super admin usernames: any free name (general words, jhino, short), never 
   const system = /export const SYSTEM_PATHS = new Set\(\[([\s\S]+?)\]\)/.exec(fs.readFileSync('server/publicshare.ts', 'utf8'))![1].match(/'([^']+)'/g)!.map((x) => x.slice(1, -1));
   expect(known.filter((k) => !system.includes(k))).toEqual([]);
 });
+
+test('search engines: page heads, 404s, robots and sitemap; "Show on Google" is on Pro, public to view, listed', async () => {
+  const anon = await pwRequest.newContext({ baseURL: BASE });
+  const home = await anon.get('/');
+  expect(home.status()).toBe(200);
+  const html = await home.text();
+  expect(html).toMatch(/<title>[^<]+\| Jhino<\/title>/);
+  expect(html).toContain('<meta name="description"');
+  expect(html).toContain('"@type":"SoftwareApplication"');
+  expect(html).toContain('<link rel="canonical"');
+  expect((await anon.get('/no-such-page-' + uniq())).status()).toBe(404);
+  expect(await (await anon.get('/apps')).text()).toContain('noindex');
+  const robots = await (await anon.get('/robots.txt')).text();
+  expect(robots).toContain('Disallow: /run/');
+  expect(robots).toContain('Disallow: /apps$');
+  expect(robots).toMatch(/Sitemap: .+\/sitemap\.xml/);
+  expect((await anon.get('/llms.txt')).status()).toBe(200);
+
+  // Show on Google: refused on Free, then a public, indexable page with its own head on Pro.
+  const admin = await session(OWNER);
+  const who = await signup('Seo');
+  const me = await session(who);
+  const uid = (await me.call('GET', '/api/account')).json.account.id;
+  const username = (await me.call('GET', '/api/me')).json.user.username;
+  const id = (await me.call('POST', '/api/apps/build', { config: { name: 'Films ' + uniq(), client: 'Sur', field: 'video', design: { accent: '#1f6f5c', style: 'modern', currency: 'NPR', theme: 'light' }, blocks: [{ id: 'todos_s1', preset: 'todos', title: 'Notes' }] } })).json.app.id;
+  const body = { on: true, title: 'Wedding films in Kathmandu', description: 'Wedding films in Kathmandu: cinematic highlights, full ceremonies and same-day edits, for every couple.', keyword: 'wedding films', slug: 'films-' + uniq() };
+  expect((await me.call('PUT', `/api/apps/${id}/seo`, body)).json.error).toBe('PLAN_FEATURE');
+  await admin.call('PATCH', `/api/admin/users/${uid}`, { plan: 'pro' });
+  const on = await me.call('PUT', `/api/apps/${id}/seo`, body);
+  expect(on.status, JSON.stringify(on.json)).toBe(200);
+  expect(on.json).toMatchObject({ on: true, live: true, access: 'public' });
+  const page = await (await anon.get(`/${username}/${body.slug}`)).text();
+  expect(page).toContain('<title>Wedding films in Kathmandu | Jhino</title>');
+  expect(page).toContain('index, follow');
+  expect(page).toContain(`/${username}/${body.slug}"`);
+  expect(await (await anon.get('/sitemap.xml')).text()).toContain(`/${username}/${body.slug}</loc>`);
+  // Made private: off Google at once.
+  await me.call('PATCH', `/api/apps/${id}/sharing`, { access: 'private' });
+  expect((await me.call('GET', `/api/apps/${id}/seo`)).json.on).toBe(false);
+  expect(await (await anon.get('/sitemap.xml')).text()).not.toContain(`/${username}/${body.slug}</loc>`);
+});

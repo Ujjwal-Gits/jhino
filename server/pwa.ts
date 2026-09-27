@@ -131,6 +131,10 @@ const GLYPHS: Record<string, Pt[][]> = {
   7: [[[0, 0], [7, 0], [2.6, 10]]],
   8: [arc(3.5, 2.6, 2.9, 2.6, 0, 360), arc(3.5, 7.4, 3.4, 2.6, 0, 360)],
   9: [arc(3.5, 3.4, 3.4, 3.4, 0, 360), curve([6.9, 3.4], [[6.9, 7], [4.5, 9.7], [1.4, 9.7]])],
+  // Marks for set text (the share image): a point, a middle dot, a dash.
+  '.': [[[0, 10], [0, 10]]],
+  '·': [[[0, 5.4], [0, 5.4]]],
+  '-': [[[0, 5.6], [4.4, 5.6]]],
 };
 
 function luminance(hex: string) {
@@ -216,11 +220,12 @@ function chunk(type: string, data: Buffer) {
   return Buffer.concat([len, td, crc]);
 }
 /** RGBA pixels → PNG file. */
-function png(size: number, rgba: Buffer) {
-  const raw = Buffer.alloc(size * (size * 4 + 1));
-  for (let y = 0; y < size; y++) { raw[y * (size * 4 + 1)] = 0; rgba.copy(raw, y * (size * 4 + 1) + 1, y * size * 4, (y + 1) * size * 4); }
+function png(size: number, rgba: Buffer, height = size) {
+  const w = size, h = height;
+  const raw = Buffer.alloc(h * (w * 4 + 1));
+  for (let y = 0; y < h; y++) { raw[y * (w * 4 + 1)] = 0; rgba.copy(raw, y * (w * 4 + 1) + 1, y * w * 4, (y + 1) * w * 4); }
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0); ihdr.writeUInt32BE(size, 4); ihdr[8] = 8; ihdr[9] = 6; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
+  ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 6; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0))]);
 }
 const icons = new Map<string, Buffer>();
@@ -231,6 +236,129 @@ export function iconPng(color: string, letter: string, size: number, full: boole
     b = png(size, drawIcon(size, color, letter, full));
     if (icons.size > 400) icons.delete(icons.keys().next().value!);
     icons.set(key, b);
+  }
+  return b;
+}
+
+/* ---------------- Jhino's own marks: the logo, favicon.ico and the share image ---------------- */
+/** Paints strokes (capsules) into a coverage mask, visiting only the pixels near each one. */
+function stamp(mask: Float32Array, w: number, h: number, segs: number[], half: number) {
+  for (let i = 0; i < segs.length; i += 4) {
+    const [ax, ay, bx, by] = [segs[i], segs[i + 1], segs[i + 2], segs[i + 3]];
+    const x0 = Math.max(0, Math.floor(Math.min(ax, bx) - half - 1)), x1 = Math.min(w - 1, Math.ceil(Math.max(ax, bx) + half + 1));
+    const y0 = Math.max(0, Math.floor(Math.min(ay, by) - half - 1)), y1 = Math.min(h - 1, Math.ceil(Math.max(ay, by) + half + 1));
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const c = clamp01(half - segDist(x + 0.5, y + 0.5, ax, ay, bx, by) + 0.5);
+      if (c > mask[y * w + x]) mask[y * w + x] = c;
+    }
+  }
+}
+/** A filled circle into a coverage mask. */
+function disc(mask: Float32Array, w: number, h: number, cx: number, cy: number, r: number) {
+  for (let y = Math.max(0, Math.floor(cy - r - 1)); y <= Math.min(h - 1, Math.ceil(cy + r + 1)); y++) {
+    for (let x = Math.max(0, Math.floor(cx - r - 1)); x <= Math.min(w - 1, Math.ceil(cx + r + 1)); x++) {
+      const c = clamp01(r - Math.hypot(x + 0.5 - cx, y + 0.5 - cy) + 0.5);
+      if (c > mask[y * w + x]) mask[y * w + x] = c;
+    }
+  }
+}
+/** Lays a coverage mask over RGBA pixels in one colour. */
+function paint(px: Buffer, mask: Float32Array, rgb: number[]) {
+  for (let i = 0; i < mask.length; i++) {
+    const a = mask[i];
+    if (!a) continue;
+    const o = i * 4;
+    for (let k = 0; k < 3; k++) px[o + k] = Math.round(px[o + k] + (rgb[k] - px[o + k]) * a);
+  }
+}
+const hex = (c: string) => [0, 2, 4].map((i) => parseInt(c.slice(i, i + 2), 16));
+const polyline = (pts: Pt[], sx: number, sy: number, k: number) => {
+  const out: number[] = [];
+  for (let i = 1; i < pts.length; i++) out.push(sx + pts[i - 1][0] * k, sy + pts[i - 1][1] * k, sx + pts[i][0] * k, sy + pts[i][1] * k);
+  return out;
+};
+/** The favicon's "j" with its red point, on a 32-unit grid: a stem, a hook to the left, a dot up and right. */
+const J_STEM: Pt[] = [[13, 9], [13, 20.5], ...arc(9.002, 20.378, 4, 4, 1.75, 128.7)];
+function drawMark(px: Buffer, w: number, h: number, x: number, y: number, size: number, withTile: boolean) {
+  const k = size / 32;
+  if (withTile) {
+    const tile = new Float32Array(w * h);
+    for (let yy = Math.max(0, Math.floor(y)); yy < Math.min(h, Math.ceil(y + size)); yy++) {
+      for (let xx = Math.max(0, Math.floor(x)); xx < Math.min(w, Math.ceil(x + size)); xx++) {
+        tile[yy * w + xx] = clamp01(0.5 - roundRect(xx + 0.5, yy + 0.5, x + size / 2, y + size / 2, size / 2, size / 2, 6 * k));
+      }
+    }
+    paint(px, tile, hex(INK));
+  }
+  const j = new Float32Array(w * h);
+  stamp(j, w, h, polyline(J_STEM, x, y, k), 1.5 * k);
+  paint(px, j, [255, 255, 255]);
+  const dot = new Float32Array(w * h);
+  disc(dot, w, h, x + 22 * k, y + 10 * k, 3.5 * k);
+  paint(px, dot, hex('e0461f'));
+}
+/** Jhino's logo as a square PNG (a rounded tile; `full` fills the square, for iPhone and Android masks). */
+export function logoPng(size: number, full = false) {
+  const key = `logo-${size}-${full ? 1 : 0}`;
+  let b = icons.get(key);
+  if (!b) {
+    const px = Buffer.alloc(size * size * 4);
+    if (full) { for (let i = 0; i < px.length; i += 4) { px[i] = 0x14; px[i + 1] = 0x14; px[i + 2] = 0x14; px[i + 3] = 255; } drawMark(px, size, size, size * 0.1, size * 0.1, size * 0.8, false); }
+    else {
+      drawMark(px, size, size, 0, 0, size, true);
+      // Only the tile is opaque: its coverage becomes the alpha.
+      for (let yy = 0; yy < size; yy++) for (let xx = 0; xx < size; xx++) px[(yy * size + xx) * 4 + 3] = Math.round(255 * clamp01(0.5 - roundRect(xx + 0.5, yy + 0.5, size / 2, size / 2, size / 2, size / 2, (6 / 32) * size)));
+    }
+    b = png(size, px);
+    icons.set(key, b);
+  }
+  return b;
+}
+/** favicon.ico: one 48×48 PNG inside an ICO wrapper (what browsers and search engines ask for). */
+export function faviconIco() {
+  let b = icons.get('ico');
+  if (!b) {
+    const pngData = logoPng(48);
+    const head = Buffer.alloc(22);
+    head.writeUInt16LE(0, 0); head.writeUInt16LE(1, 2); head.writeUInt16LE(1, 4);
+    head[6] = 48; head[7] = 48; head[8] = 0; head[9] = 0; head.writeUInt16LE(1, 10); head.writeUInt16LE(32, 12);
+    head.writeUInt32LE(pngData.length, 14); head.writeUInt32LE(22, 18);
+    b = Buffer.concat([head, pngData]);
+    icons.set('ico', b);
+  }
+  return b;
+}
+/** Set text in the monoline alphabet (capitals, figures, a few marks). Returns where the text ends. */
+function text(px: Buffer, w: number, h: number, s: string, x: number, top: number, cap: number, rgb: number[], weight = 0.86) {
+  const u = cap / 10, mask = new Float32Array(w * h);
+  let pen = x;
+  for (const ch of s.toUpperCase()) {
+    if (ch === ' ') { pen += 4.4 * u; continue; }
+    const g = GLYPHS[ch];
+    if (!g) continue;
+    const all = g.flat();
+    const minX = Math.min(...all.map((p) => p[0])), maxX = Math.max(...all.map((p) => p[0]));
+    for (const stroke of g) stamp(mask, w, h, polyline(stroke.length > 1 ? stroke : [stroke[0], stroke[0]], pen - minX * u, top, u), u * weight);
+    pen += (maxX - minX) * u + 2.9 * u;
+  }
+  paint(px, mask, rgb);
+  return pen;
+}
+/** The picture shown when a Jhino page is shared (1200 × 630): the mark and the promise, on ink. */
+export function ogPng() {
+  let b = icons.get('og');
+  if (!b) {
+    const W = 1200, H = 630, px = Buffer.alloc(W * H * 4);
+    for (let i = 0; i < px.length; i += 4) { px[i] = 0x14; px[i + 1] = 0x14; px[i + 2] = 0x14; px[i + 3] = 255; }
+    drawMark(px, W, H, 88, 84, 104, false);
+    text(px, W, H, 'Send the work.', 92, 256, 78, [244, 242, 236]);
+    const end = text(px, W, H, 'Get the ', 92, 368, 78, [244, 242, 236]);
+    text(px, W, H, 'yes.', end, 368, 78, hex('e0461f'));
+    text(px, W, H, 'Client apps · link in bio · short links', 94, 522, 20, [150, 147, 139], 0.95);
+    const url = 'jhino.com';
+    text(px, W, H, url, W - 94 - url.length * 17.2, 522, 20, [244, 242, 236], 0.95);
+    b = png(W, px, H);
+    icons.set('og', b);
   }
   return b;
 }
