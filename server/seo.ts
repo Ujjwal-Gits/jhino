@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { config } from './config.js';
+import { ROOT, config } from './config.js';
 import { db, now, roleOf, logActivity, type AppRow, type UserRow } from './db.js';
 import { HttpError, requireUser } from './auth.js';
 import { limit, setting, setSetting } from './security.js';
@@ -34,7 +34,7 @@ const withSuffix = (t: string) => (/\|\s*jhino\s*$/i.test(t) ? t.replace(/\s*\|\
 const base = (req: FastifyRequest) => baseFor(req).replace(/\/$/, '');
 
 /** Which parts of the site are pages of Jhino itself (keep in step with KNOWN in web/src/main.tsx). */
-const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing']);
+const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'sitemap']);
 
 interface Doc {
   status: number;
@@ -322,7 +322,7 @@ function resolveDoc(pathname: string, b: string): Doc {
 
 /* ---------------- writing the head ---------------- */
 const INDEX_ROBOTS = 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
-const SNAPSHOT_STYLE = '<style id="seo-snap-style">.seo-snap{max-width:760px;margin:0 auto;padding:56px 20px 64px;font:16px/1.6 "Schibsted Grotesk Variable","Helvetica Neue",Arial,sans-serif;color:#141414;background:#fff}.seo-snap h1{font-size:34px;line-height:1.15;letter-spacing:-.02em;margin:0 0 14px}.seo-snap h2{font-size:19px;margin:28px 0 8px}.seo-snap p,.seo-snap li,.seo-snap dd{color:#4b4a47}.seo-snap dt{font-weight:600;margin-top:12px}.seo-snap dd{margin:2px 0 0}.seo-snap a{color:#141414}</style>';
+const SNAPSHOT_STYLE = '<style id="seo-snap-style">@keyframes seo-in{from{opacity:0}}.seo-snap{animation:seo-in .3s ease 1.5s both;max-width:760px;margin:0 auto;padding:56px 20px 64px;font:16px/1.6 "Schibsted Grotesk Variable","Helvetica Neue",Arial,sans-serif;color:#141414;background:#fff}.seo-snap h1{font-size:34px;line-height:1.15;letter-spacing:-.02em;margin:0 0 14px}.seo-snap h2{font-size:19px;margin:28px 0 8px}.seo-snap p,.seo-snap li,.seo-snap dd{color:#4b4a47}.seo-snap dt{font-weight:600;margin-top:12px}.seo-snap dd{margin:2px 0 0}.seo-snap a{color:#141414}</style>';
 function head(d: Doc, b: string) {
   const url = `${b}${d.path === '/' ? '/' : d.path}`;
   const image = d.image ?? `${b}/_jhino/og.png`;
@@ -368,32 +368,123 @@ export function renderDocument(req: FastifyRequest, html: string): { status: num
 }
 
 /* ---------------- sitemap, robots, llms.txt, IndexNow ---------------- */
-const SITE_PAGES: [string, string, number][] = [['/', 'weekly', 1.0], ['/pricing', 'weekly', 0.9], ['/signup', 'monthly', 0.7], ['/help', 'monthly', 0.6], ['/terms', 'yearly', 0.3], ['/privacy', 'yearly', 0.3]];
-function sitemap(b: string) {
-  const day = (iso?: string | null) => (iso ? iso.slice(0, 10) : new Date().toISOString().slice(0, 10));
-  const urls: string[] = SITE_PAGES.map(([p, f, pr]) => `<url><loc>${b}${p}</loc><changefreq>${f}</changefreq><priority>${pr.toFixed(1)}</priority></url>`);
-  const people = db.prepare(`SELECT u.*, p.updated_at p_updated FROM users u JOIN profiles p ON p.user_id=u.id
+/*
+ * The sitemap is made on every request from the database, so a new page, a person who opts out or an
+ * app taken off Google shows at once. "lastmod" is when the page's content last changed: for people,
+ * their page settings, links or photo; for apps on Google, their settings, a new version, or their data.
+ */
+const SITE_PAGES: [string, string, string, number][] = [
+  ['/', 'Home: client portal and link in bio', 'weekly', 1.0], ['/pricing', 'Pricing', 'weekly', 0.9], ['/signup', 'Create a free account', 'monthly', 0.7],
+  ['/help', 'Help and guides', 'monthly', 0.6], ['/sitemap', 'Sitemap', 'weekly', 0.4], ['/terms', 'Terms of Service', 'yearly', 0.3], ['/privacy', 'Privacy Policy', 'yearly', 0.3],
+];
+/** When the website itself last changed: the deployed build's date. */
+function siteDate() {
+  try { return fs.statSync(path.join(ROOT, 'dist', 'web', 'index.html')).mtime.toISOString(); } catch { return new Date().toISOString(); }
+}
+interface Entry { path: string; title: string; lastmod: string; changefreq: string; priority: number; image?: string; sub?: string }
+function entries(b: string): { site: Entry[]; people: Entry[]; apps: Entry[] } {
+  const built = siteDate();
+  const site = SITE_PAGES.map(([p, title, changefreq, priority]) => ({ path: p, title, lastmod: built, changefreq, priority }));
+  const rows = db.prepare(`SELECT u.username, u.name, u.display_name, u.avatar, p.bio, p.location,
+      MAX(p.updated_at, COALESCE((SELECT MAX(i.updated_at) FROM profile_items i WHERE i.user_id=u.id), '')) changed
+    FROM users u JOIN profiles p ON p.user_id=u.id
     WHERE u.kind='person' AND u.disabled=0 AND u.username IS NOT NULL AND p.published=1 AND p.seo_index=1
       AND (p.bio<>'' OR p.socials<>'[]' OR EXISTS(SELECT 1 FROM profile_items i WHERE i.user_id=u.id AND i.visible=1))
-    ORDER BY p.updated_at DESC LIMIT 45000`).all() as (UserRow & { p_updated: string })[];
-  for (const u of people) {
-    const img = u.avatar ? `<image:image><image:loc>${esc(`${b}/api/profile/${u.username}/avatar`)}</image:loc></image:image>` : '';
-    urls.push(`<url><loc>${esc(`${b}/${u.username}`)}</loc><lastmod>${day(u.p_updated)}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority>${img}</url>`);
-  }
-  const apps = db.prepare("SELECT * FROM apps WHERE seo_on=1 AND deleted_at IS NULL AND access='public'").all() as SeoApp[];
-  for (const a of apps) {
+    ORDER BY changed DESC LIMIT 45000`).all() as { username: string; name: string; display_name: string | null; avatar: string | null; bio: string; location: string; changed: string }[];
+  const people = rows.map((u) => ({
+    path: `/${u.username}`, title: `${u.display_name || u.name} (@${u.username})`, sub: [u.location, clip(u.bio ?? '', 90)].filter(Boolean).join(' · '),
+    lastmod: u.changed, changefreq: 'weekly', priority: 0.6, image: u.avatar ? `/api/profile/${u.username}/avatar` : undefined,
+  }));
+  const appRows = db.prepare(`SELECT a.*, MAX(COALESCE(a.seo_updated_at,''), a.updated_at,
+      COALESCE((SELECT MAX(updated_at) FROM records r WHERE r.app_id=a.id), ''),
+      COALESCE((SELECT MAX(updated_at) FROM kv k WHERE k.app_id=a.id AND k.scope=''), '')) changed
+    FROM apps a WHERE a.seo_on=1 AND a.deleted_at IS NULL AND a.access='public'`).all() as (SeoApp & { changed: string })[];
+  const apps: Entry[] = [];
+  for (const a of appRows) {
     if (!seoLive(a)) continue;
     const p = appPath(a)!;
-    const icon = installInfo(a, p).icon.replace('-192.png', '-512.png');
-    urls.push(`<url><loc>${esc(b + p)}</loc><lastmod>${day(a.seo_updated_at && a.seo_updated_at > a.updated_at ? a.seo_updated_at : a.updated_at)}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority><image:image><image:loc>${esc(b + icon)}</image:loc></image:image></url>`);
+    const owner = usernameOf(a.owner_id);
+    apps.push({ path: p, title: a.seo_title || a.name, sub: owner ? `by @${owner}` : undefined, lastmod: a.changed, changefreq: 'weekly', priority: 0.7, image: installInfo(a, p).icon.replace('-192.png', '-512.png') });
   }
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${urls.join('\n')}\n</urlset>\n`;
+  apps.sort((x, y) => (x.lastmod < y.lastmod ? 1 : -1));
+  return { site, people, apps };
+}
+function sitemap(b: string) {
+  const e = entries(b);
+  const url = (x: Entry) => `<url><loc>${esc(b + x.path)}</loc><lastmod>${x.lastmod.slice(0, 10)}</lastmod><changefreq>${x.changefreq}</changefreq><priority>${x.priority.toFixed(1)}</priority>${x.image ? `<image:image><image:loc>${esc(b + x.image)}</image:loc></image:image>` : ''}</url>`;
+  // The stylesheet only changes how a browser shows it; search engines read the XML as it is.
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${[...e.site, ...e.apps, ...e.people].map(url).join('\n')}\n</urlset>\n`;
+}
+/** The look shared by sitemap.xml (in a browser) and the /sitemap page: white paper, black ink, hairlines. */
+const PAGE_STYLE = `*{box-sizing:border-box}html{background:#fff;color:#141414;font:15px/1.55 "Schibsted Grotesk Variable","Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{margin:0}.sm{max-width:1040px;margin:0 auto;padding:40px 20px 72px}a{color:#141414;text-underline-offset:3px}
+.sm-mark{display:inline-flex;align-items:baseline;font-weight:700;font-size:22px;letter-spacing:-.04em;text-decoration:none}.sm-mark i{width:6px;height:6px;margin-left:2px;border-radius:50%;background:#e0461f;display:inline-block}
+h1{font-size:34px;line-height:1.1;letter-spacing:-.03em;margin:28px 0 10px}h2{font-size:18px;letter-spacing:-.01em;margin:40px 0 4px;display:flex;align-items:baseline;gap:10px}h2 small{font:500 12.5px/1 "IBM Plex Mono",ui-monospace,Menlo,monospace;color:#75736e}
+.sm-lede{max-width:66ch;color:#4b4a47;margin:0 0 28px}
+.sm-table{overflow-x:auto;border-top:1px solid #141414}table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-weight:600;font-size:12px;color:#75736e;padding:10px 12px 10px 0;border-bottom:1px solid #e6e4df;white-space:nowrap}
+td{padding:9px 12px 9px 0;border-bottom:1px solid #e6e4df;vertical-align:top}td.u{word-break:break-all}td.u a{text-decoration:none}td.u a:hover{text-decoration:underline}
+td.d,td.n,th.n{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:12.5px;color:#4b4a47;white-space:nowrap}.n{text-align:right}
+.sm-list{list-style:none;margin:10px 0 0;padding:0;border-top:1px solid #141414;columns:2 300px;column-gap:40px}.sm-list li{break-inside:avoid;padding:9px 0;border-bottom:1px solid #e6e4df}
+.sm-list a{font-weight:550;text-decoration:none}.sm-list a:hover{text-decoration:underline}.sm-list small{display:block;color:#75736e;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sm-foot{margin-top:48px;color:#75736e;font-size:13px}
+@media (max-width:640px){.hide{display:none}h1{font-size:28px}}
+@media (prefers-color-scheme:dark){html{background:#121211;color:#f2f1ed}a,.sm-mark{color:#f2f1ed}.sm-table,.sm-list{border-top-color:#f2f1ed}th,td,.sm-list li{border-bottom-color:#2c2b29}.sm-lede,td.d,td.n{color:#c4c2bc}}`;
+/** How sitemap.xml looks in a browser: a Jhino page with a table (browsers apply it; crawlers do not). */
+const SITEMAP_XSL = `<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:s="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" exclude-result-prefixes="s image">
+<xsl:output method="html" encoding="UTF-8" indent="yes" doctype-system="about:legacy-compat"/>
+<xsl:template match="/">
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="robots" content="noindex"/>
+<title>sitemap.xml | Jhino</title>
+<style>${PAGE_STYLE}</style>
+</head>
+<body><main class="sm">
+<a class="sm-mark" href="/">jhino<i></i></a>
+<h1>sitemap.xml</h1>
+<p class="sm-lede">The pages of Jhino that search engines read: the website, apps shown on Google and people's pages. It updates by itself. <b><xsl:value-of select="count(s:urlset/s:url)"/></b> pages. <a href="/sitemap">Browse them as a page</a></p>
+<div class="sm-table"><table>
+<thead><tr><th>Address</th><th class="n">Images</th><th>Updated</th><th class="hide">Changes</th><th class="n hide">Priority</th></tr></thead>
+<tbody>
+<xsl:for-each select="s:urlset/s:url">
+<tr><td class="u"><a href="{s:loc}"><xsl:value-of select="s:loc"/></a></td><td class="n"><xsl:value-of select="count(image:image)"/></td><td class="d"><xsl:value-of select="s:lastmod"/></td><td class="hide"><xsl:value-of select="s:changefreq"/></td><td class="n hide"><xsl:value-of select="s:priority"/></td></tr>
+</xsl:for-each>
+</tbody></table></div>
+</main></body></html>
+</xsl:template>
+</xsl:stylesheet>
+`;
+/** jhino.com/sitemap: the same pages for people, linked from every page's footer. */
+function sitemapPage(b: string) {
+  const e = entries(b);
+  const list = (items: Entry[]) => `<ul class="sm-list">${items.map((x) => `<li><a href="${esc(x.path)}">${esc(x.title)}</a>${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</li>`).join('')}</ul>`;
+  const d: Doc = {
+    status: 200, index: true, path: '/sitemap', title: 'Sitemap' + SUFFIX, card: 'summary_large_image',
+    description: `Every public page on Jhino: the website, ${e.apps.length ? `${e.apps.length} page${e.apps.length === 1 ? '' : 's'} on Google, ` : ''}and ${e.people.length} people's pages with their links and work.`,
+    jsonld: [website(b), org(b), crumbs(b, [['Jhino', '/'], ['Sitemap', '/sitemap']])],
+  };
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+${head(d, b)}
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/_jhino/logo-180-m.png">
+<style>${PAGE_STYLE}</style></head>
+<body><main class="sm">
+<a class="sm-mark" href="/">jhino<i></i></a>
+<h1>Sitemap</h1>
+<p class="sm-lede">Every public page on Jhino. It updates by itself when someone adds a page or takes one off. For search engines: <a href="/sitemap.xml">sitemap.xml</a>.</p>
+<h2>Jhino <small>${e.site.length - 1}</small></h2>${list(e.site.filter((x) => x.path !== '/sitemap'))}
+${e.apps.length ? `<h2>Pages on Google <small>${e.apps.length}</small></h2>${list(e.apps)}` : ''}
+${e.people.length ? `<h2>People <small>${e.people.length}</small></h2>${list(e.people)}` : ''}
+<p class="sm-foot"><a href="/">Jhino</a> · <a href="/pricing">Pricing</a> · <a href="/signup">Start free</a> · <a href="/help">Help</a></p>
+</main></body></html>`;
 }
 /** Paths of Jhino's own screens, blocked for crawlers. "$" and "/" forms, so usernames like "appsmith" stay open. */
 const PRIVATE = ['apps', 'account', 'admin', 'build', 'shared', 'trash', 'links', 'people', 'verify', 'reset', 'forgot', 'invite', '_themes'];
 function robots(b: string) {
   return ['User-agent: *', 'Allow: /',
-    'Disallow: /api/', 'Disallow: /run/', 'Disallow: /go/', 'Disallow: /p/', 'Disallow: /s/', 'Disallow: /preview/',
+    // Profile photos are listed in the sitemap: they must stay reachable under /api/.
+    'Disallow: /api/', 'Allow: /api/profile/*/avatar', 'Disallow: /run/', 'Disallow: /go/', 'Disallow: /p/', 'Disallow: /s/', 'Disallow: /preview/',
     ...PRIVATE.flatMap((x) => [`Disallow: /${x}$`, `Disallow: /${x}/`]),
     'Disallow: /*/preview$', 'Disallow: /*?install=',
     'Disallow: /_jhino/', 'Allow: /_jhino/icon/', 'Allow: /_jhino/logo-', 'Allow: /_jhino/og.png',
@@ -410,6 +501,7 @@ function llms(b: string) {
 - [Pricing](${b}/pricing): ${plans.map((p) => `${p.name} ${p.price ? `NPR ${p.price} a month` : 'free'} (${p.creations} app${p.creations === 1 ? '' : 's'})`).join('; ')}.
 - [Help](${b}/help): guides and contact.
 - [Create a free account](${b}/signup)
+- [Sitemap](${b}/sitemap): every public page, including people's pages and apps on Google.
 - [Terms](${b}/terms) and [Privacy](${b}/privacy)
 
 ## Facts
@@ -475,6 +567,12 @@ export function registerSeo(app: FastifyInstance) {
     limit(req, 'sitemap', 60, 60_000);
     reply.type('application/xml; charset=utf-8').header('Cache-Control', 'public, max-age=900');
     return sitemap(base(req));
+  });
+  app.get('/sitemap.xsl', async (_req, reply) => reply.type('text/xsl; charset=utf-8').header('Cache-Control', 'public, max-age=3600').send(SITEMAP_XSL));
+  app.get('/sitemap', async (req, reply) => {
+    limit(req, 'sitemap', 60, 60_000);
+    reply.type('text/html; charset=utf-8').header('Cache-Control', 'public, max-age=300');
+    return sitemapPage(base(req));
   });
   app.get('/llms.txt', async (req, reply) => {
     reply.type('text/plain; charset=utf-8').header('Cache-Control', 'public, max-age=3600');

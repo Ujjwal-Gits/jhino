@@ -45,6 +45,7 @@ export function SiteFooter({ signedIn = false }: { signedIn?: boolean }) {
             <Link to="/help">Help</Link>
             <Link to="/terms">Terms</Link>
             <Link to="/privacy">Privacy</Link>
+            <a href="/sitemap">Sitemap</a>
             {signedIn ? <Link to="/apps">Dashboard</Link> : <Link to="/login">Sign in</Link>}
           </nav>
         </div>

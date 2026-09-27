@@ -24,7 +24,7 @@ import { RouteCtx, SessionCtx, applyTheme, readTheme, useRoute } from './context
 
 applyTheme(readTheme());
 
-const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing']);
+const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'sitemap']);
 
 function App() {
   const [path, setPath] = useState(location.pathname);

@@ -26,7 +26,7 @@ import { revoke, publish } from './realtime.js';
 export const RESERVED = new Set(['api', 'run', 'apps', 'app', 'build', 'shared', 'trash', 'people', 'invite', 's', 'admin', 'account', 'login', 'signin',
   'signup', 'register', 'forgot', 'reset', 'verify', 'help', 'support', 'terms', 'privacy', 'pricing', 'billing', 'plans', '_jhino', 'preview', 'health',
   'assets', 'static', 'logout', 'settings', 'dashboard', 'home', 'about', 'contact', 'blog', 'docs', 'status', 'www', 'mail', 'jhino', 'favicon.ico',
-  'robots.txt', 'sitemap.xml', 'manifest.json', 'new', 'create', 'upload', 'download', 'files', 'public', 'p', 'u', 'user', 'users', 'auth', 'oauth',
+  'robots.txt', 'sitemap.xml', 'sitemap', 'sitemap.xsl', 'llms.txt', 'manifest.json', 'new', 'create', 'upload', 'download', 'files', 'public', 'p', 'u', 'user', 'users', 'auth', 'oauth',
   'links', 'link', 'go', 'l', 'admin-links', 'addresses', 'receipt', 'receipts', 'payments', 'checkout', 'plan', 'features', 'index.html', 'img', 'images', 'fonts']);
 /**
  * The first part of every address Jhino itself answers at: its pages (web/src/main.tsx KNOWN), its API and
@@ -39,7 +39,7 @@ export const SYSTEM_PATHS = new Set([
   '_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash',
   'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing',
   // server routes and files
-  '_jhino', 'preview', 'health', 'robots.txt', 'sitemap.xml', 'assets', 'img', 'favicon.ico', 'index.html', 'manifest.json',
+  '_jhino', 'preview', 'health', 'robots.txt', 'sitemap.xml', 'sitemap', 'sitemap.xsl', 'llms.txt', 'favicon.svg', 'assets', 'img', 'favicon.ico', 'index.html', 'manifest.json',
   // Cloudflare answers these itself
   'cdn-cgi',
 ]);

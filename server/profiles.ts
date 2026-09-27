@@ -403,6 +403,8 @@ export function registerProfiles(app: FastifyInstance) {
     if (out.highlight && featuresOf(u).themeTier === 'free') throw new HttpError(403, 'PLAN_FEATURE', 'Highlighting a link is on Plus and Pro. Upgrade in Plan & usage.', { feature: 'highlight' });
     return out;
   }
+  /** Links added, changed, removed or reordered: the page changed (the sitemap's lastmod follows). */
+  const touchPage = (userId: string) => db.prepare('UPDATE profiles SET updated_at=? WHERE user_id=?').run(now(), userId);
   app.post('/api/me/page/items', async (req) => {
     const u = me(req);
     limit(req, 'page-items', 240, 60_000, u.id);
@@ -414,6 +416,7 @@ export function registerProfiles(app: FastifyInstance) {
     const position = first ? pos : (db.prepare('SELECT COALESCE(MAX(position),0)+1 n FROM profile_items WHERE user_id=?').get(u.id) as { n: number }).n;
     db.prepare('INSERT INTO profile_items(id,user_id,position,type,title,subtitle,url,text,app_id,highlight,visible,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)')
       .run(newId('pi'), u.id, position, v.type, v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, t, t);
+    touchPage(u.id);
     return editorView(u);
   });
   app.patch('/api/me/page/items/:id', async (req) => {
@@ -423,11 +426,13 @@ export function registerProfiles(app: FastifyInstance) {
     const v = readItem(u, (req.body ?? {}) as Record<string, unknown>, cur);
     db.prepare('UPDATE profile_items SET title=?, subtitle=?, url=?, text=?, app_id=?, highlight=?, visible=?, updated_at=? WHERE id=?')
       .run(v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, now(), cur.id);
+    touchPage(u.id);
     return editorView(u);
   });
   app.delete('/api/me/page/items/:id', async (req) => {
     const u = me(req);
     db.prepare('DELETE FROM profile_items WHERE id=? AND user_id=?').run((req.params as { id: string }).id, u.id);
+    touchPage(u.id);
     return editorView(u);
   });
   app.put('/api/me/page/order', async (req) => {
@@ -436,6 +441,7 @@ export function registerProfiles(app: FastifyInstance) {
     if (!Array.isArray(ids)) throw new HttpError(400, 'VALIDATION_FAILED', 'Send the new order.');
     const set = db.prepare('UPDATE profile_items SET position=? WHERE id=? AND user_id=?');
     db.transaction(() => ids.forEach((id, i) => set.run(i, String(id), u.id)))();
+    touchPage(u.id);
     return editorView(u);
   });
 

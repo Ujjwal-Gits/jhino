@@ -277,12 +277,14 @@ export function registerAccount(app: FastifyInstance) {
     fs.writeFileSync(path.join(avatarDir(), name), buf, { flag: 'wx' });
     removeAvatar(u);
     db.prepare('UPDATE users SET avatar=? WHERE id=?').run(name, u.id);
+    db.prepare('UPDATE profiles SET updated_at=? WHERE user_id=?').run(now(), u.id); // the page's photo changed
     return { ok: true };
   });
   app.delete('/api/account/avatar', async (req) => {
     const u = requireUser(req);
     removeAvatar(u);
     db.prepare('UPDATE users SET avatar=NULL WHERE id=?').run(u.id);
+    db.prepare('UPDATE profiles SET updated_at=? WHERE user_id=?').run(now(), u.id);
     return { ok: true };
   });
   /** A person's photo: for themselves, super admins, and people who share an app with them. */
