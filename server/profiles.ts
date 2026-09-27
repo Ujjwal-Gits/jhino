@@ -232,6 +232,9 @@ const CUSTOM_STARTER = `<!doctype html>
 
 /* ---------------- routes ---------------- */
 export function registerProfiles(app: FastifyInstance) {
+  // Every person with a username has a live page from the start (public, listed), even before they open My page.
+  const made = db.prepare("INSERT OR IGNORE INTO profiles(user_id, updated_at) SELECT id, created_at FROM users WHERE kind='person' AND username IS NOT NULL").run().changes;
+  if (made) console.log(`  Made ${made} people's pages live.`);
   /** The public page's data. The owner also gets hidden items (marked), for the editor's preview. */
   app.get('/api/profile/:name', async (req) => {
     limit(req, 'profile-read', 240, 60_000);

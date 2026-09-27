@@ -598,7 +598,7 @@ function SeoSection({ appId, appName, onShared }: { appId: string; appName: stri
         <span>Make it a public page people can find on Google</span>
       </label>
       <p className="hint">
-        {!s.allowed ? 'On Pro, up to 5 apps can be public pages that search engines list. '
+        {!s.allowed ? 'On Pro, up to 10 apps can be public pages that search engines list. '
           : open ? 'Anyone can open it without signing in, to view. Its title ends in "| Jhino". '
             : 'It stays as it is shared now. '}
         {s.allowed && s.limit !== null && `${s.used} of ${s.limit} used.`}

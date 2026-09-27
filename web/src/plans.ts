@@ -36,7 +36,7 @@ const DEFAULTS: ServerPlan[] = [
   { id: 'plus', name: 'Plus', price: 500, yearly: 5000, creations: 10, blurb: 'A freelancer or a small studio with a handful of clients.',
     features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false, maxUploadMB: 50, themeTier: 'plus', branding: 'badge', removeBranding: false, customPage: false, analyticsDays: 30, seoPages: 0 } },
   { id: 'pro', name: 'Pro', price: 2000, yearly: 20000, creations: 50, blurb: 'A studio or agency with a room for every client.',
-    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50, themeTier: 'pro', branding: 'badge', removeBranding: true, customPage: true, analyticsDays: 365, seoPages: 5 } },
+    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50, themeTier: 'pro', branding: 'badge', removeBranding: true, customPage: true, analyticsDays: 365, seoPages: 10 } },
 ];
 
 export const nprAmount = (n: number) => n.toLocaleString('en-IN');

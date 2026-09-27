@@ -20,7 +20,7 @@ import { faviconIco, installInfo, logoPng, ogPng } from './pwa.js';
  * private apps) say noindex; addresses that do not exist answer 404.
  *
  * What gets indexed: the website, people's pages (unless they opt out, or the page is still empty), and
- * apps whose owner ticked "Show on Google" (Pro: up to 5; super admins: any). Every title ends "| Jhino".
+ * apps whose owner ticked "Show on Google" (Pro: up to 10; super admins: any). Every title ends "| Jhino".
  */
 
 const SUFFIX = ' | Jhino';
@@ -62,7 +62,7 @@ const FAQ: [string, string][] = [
   ['Will any HTML file work?', 'Yes. Plain HTML, CSS and JavaScript that saves with localStorage or IndexedDB syncs between everyone with no changes. Its own design stays exactly as it is.'],
   ['Can I use my own address?', 'Yes. Pick jhino.com/your-name when you create an app, or later in Share. Each address is unique. The page opens at that exact address, with no redirect.'],
   ['What is jhino.com/your-name?', 'Your own page, like a link in bio: your links, socials, videos and apps in one of 40 designs, as a list or a full profile. It can show up on Google. Share it anywhere and see who clicks what.'],
-  ['Can my app show up on Google?', 'On Pro, yes: tick "Show on Google" in Share, then give it a title, a description, an address and a keyword. It becomes a public page anyone can open without signing in, and search engines can list it. Up to 5 pages on Pro.'],
+  ['Can my app show up on Google?', 'On Pro, yes: tick "Show on Google" in Share, then give it a title, a description, an address and a keyword. It becomes a public page anyone can open without signing in, and search engines can list it. Up to 10 pages on Pro.'],
   ['What are short links?', 'A short address like jhino.com/abc that opens any web link you choose: a Drive folder, a YouTube cut, a form. You see how many times each one was opened.'],
   ['Monthly or yearly?', 'Either. Pay month by month, or pay for a whole year at a lower price. Both are paid the same way, and paying again adds to your end date.'],
   ['How big can a file be?', 'Each plan shows its largest file size. For bigger videos, paste a Google Drive, Dropbox or YouTube link: it shows as a proper preview.'],
@@ -149,15 +149,17 @@ function profileDoc(u: UserRow, p: string, b: string): Doc {
   const title = `${name} (@${u.username})` + SUFFIX;
   if (pr && !pr.published) return { status: 404, index: false, path: p, title: 'There is no page here' + SUFFIX, description: 'This page is not public.' };
   const links = d.items.filter((i) => i.type === 'link' || i.type === 'app' || i.type === 'video');
-  // An empty page (no bio, no links, no socials) is not worth a search result yet.
-  const thin = !d.bio && !links.length && !d.socials.length;
-  const described = pr?.seo_description?.trim() || d.bio || `${name}'s links${links.length ? ': ' + links.slice(0, 4).map((l) => l.title).filter(Boolean).join(', ') : ''}${d.location ? `, ${d.location}` : ''}.`;
+  // Every person's page is listed. One with nothing on it yet still says who it is and where.
+  const described = pr?.seo_description?.trim() || d.bio || (links.length
+    ? `${name}'s links: ${links.slice(0, 4).map((l) => l.title).filter(Boolean).join(', ')}${d.location ? `, ${d.location}` : ''}.`
+    : `${name} (@${u.username}) on Jhino: links, work and apps${d.location ? ` from ${d.location}` : ''}.`);
   const description = clip(`${described}${pr?.seo_description ? '' : d.location && d.bio ? ` · ${d.location}` : ''}`, 158);
   const url = `${b}/${u.username}`;
   const sameAs = d.socials.map((s) => s.url).filter((x) => /^https?:\/\//.test(x));
   const image = d.avatarUrl ? `${b}${d.avatarUrl}` : undefined;
   return {
-    status: 200, index: !thin && pr?.seo_index !== 0, path: `/${u.username}`, type: 'profile', card: image ? 'summary' : 'summary_large_image',
+    // Accounts that never confirmed their email stay out of search results until they do.
+    status: 200, index: pr?.seo_index !== 0 && !u.verify_required, path: `/${u.username}`, type: 'profile', card: image ? 'summary' : 'summary_large_image',
     title, description, image, imageAlt: image ? `Photo of ${name}` : undefined,
     keywords: [name, `@${u.username}`, ...(d.location ? [d.location] : []), 'Jhino'],
     jsonld: [
@@ -297,6 +299,8 @@ const NOINDEX_DOC = (p: string): Doc => ({ status: 200, index: false, path: p, t
 const NOT_FOUND = (p: string): Doc => ({ status: 404, index: false, path: p, title: 'Nothing here' + SUFFIX, description: 'This address does not exist on Jhino, or it was removed.' });
 function resolveDoc(pathname: string, b: string): Doc {
   const p = pathname.replace(/\/+$/, '') || '/';
+  // Pages of the site that used this domain before Jhino (…/abc.html): gone for good, so search engines drop them fast.
+  if (/\.(s?html?|php|aspx?|jsp)$/i.test(p)) return { status: 410, index: false, path: p, title: 'This page is gone' + SUFFIX, description: 'This address is not part of Jhino.' };
   const site = sitePage(p, b);
   if (site) return site;
   const seg = p.split('/').filter(Boolean).map((x) => { try { return decodeURIComponent(x); } catch { return x; } });
@@ -385,11 +389,11 @@ interface Entry { path: string; title: string; lastmod: string; changefreq: stri
 function entries(b: string): { site: Entry[]; people: Entry[]; apps: Entry[] } {
   const built = siteDate();
   const site = SITE_PAGES.map(([p, title, changefreq, priority]) => ({ path: p, title, lastmod: built, changefreq, priority }));
-  const rows = db.prepare(`SELECT u.username, u.name, u.display_name, u.avatar, p.bio, p.location,
-      MAX(p.updated_at, COALESCE((SELECT MAX(i.updated_at) FROM profile_items i WHERE i.user_id=u.id), '')) changed
-    FROM users u JOIN profiles p ON p.user_id=u.id
-    WHERE u.kind='person' AND u.disabled=0 AND u.username IS NOT NULL AND p.published=1 AND p.seo_index=1
-      AND (p.bio<>'' OR p.socials<>'[]' OR EXISTS(SELECT 1 FROM profile_items i WHERE i.user_id=u.id AND i.visible=1))
+  // Every person with a username has a page (a new account's page exists before they open My page).
+  const rows = db.prepare(`SELECT u.username, u.name, u.display_name, u.avatar, COALESCE(p.bio, '') bio, COALESCE(p.location, '') location,
+      MAX(COALESCE(p.updated_at, u.created_at), COALESCE((SELECT MAX(i.updated_at) FROM profile_items i WHERE i.user_id=u.id), '')) changed
+    FROM users u LEFT JOIN profiles p ON p.user_id=u.id
+    WHERE u.kind='person' AND u.disabled=0 AND u.username IS NOT NULL AND COALESCE(u.verify_required, 0)=0 AND COALESCE(p.published, 1)=1 AND COALESCE(p.seo_index, 1)=1
     ORDER BY changed DESC LIMIT 45000`).all() as { username: string; name: string; display_name: string | null; avatar: string | null; bio: string; location: string; changed: string }[];
   const people = rows.map((u) => ({
     path: `/${u.username}`, title: `${u.display_name || u.name} (@${u.username})`, sub: [u.location, clip(u.bio ?? '', 90)].filter(Boolean).join(' · '),
@@ -507,7 +511,7 @@ function llms(b: string) {
 ## Facts
 - Upload an HTML file or ZIP: it goes live at once; localStorage and IndexedDB data sync between everyone with access.
 - Share an app with a client by sign-in, public link or password link; choose if visitors view, add or edit.
-- Pro can publish up to 5 apps as public pages on Google search, each with its own title, description, address and keyword.
+- Pro can publish up to 10 apps as public pages on Google search, each with its own title, description, address and keyword.
 - People's pages (jhino.com/<username>) have 40 designs, socials, videos, apps and click analytics.
 - Payment by QR code in NPR, monthly or yearly (a year costs ten months).
 `;

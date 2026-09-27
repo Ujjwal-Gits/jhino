@@ -534,7 +534,7 @@ function AnalyticsTab({ d }: { d: EditorT }) {
 function SearchSection({ d, run }: { d: EditorT; run: Run }) {
   const [desc, setDesc] = useState(d.settings.seoDescription ?? '');
   const on = d.settings.seoIndex !== false;
-  // Empty pages are not listed (the server says noindex until there is something to find).
+  // Listed even when empty, but a bio and links are what make it show up for searches.
   const thin = !d.settings.bio && !d.settings.socials.length && !d.items.some((i) => i.visible && (i.type === 'link' || i.type === 'app' || i.type === 'video'));
   const shown = desc.trim() || d.settings.bio || `${d.page.name}'s links.`;
   return (
@@ -548,7 +548,7 @@ function SearchSection({ d, run }: { d: EditorT; run: Run }) {
       <p className="hint">
         {!d.settings.published ? 'Your page is hidden, so search engines cannot see it.'
           : !on ? 'Search engines are asked not to list your page. People with the link still open it.'
-            : thin ? 'Add a bio or a link first: empty pages are not listed.'
+            : thin ? 'It is listed. Add a bio and a few links: they are what people search for.'
               : "It is in Jhino's sitemap, with your name, photo and links marked up for Google. New pages usually appear within days to a few weeks."}
       </p>
       <label className="field"><span>Description in search results <em>{desc.length}/160</em></span>

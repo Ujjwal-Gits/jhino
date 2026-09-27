@@ -43,7 +43,7 @@ const DEFAULT_PLANS: Record<PlanId, Plan> = {
   plus: { id: 'plus', name: 'Plus', price: 500, yearly: 5000, creations: 10, blurb: 'A freelancer or a small studio with a handful of clients.',
     features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false, maxUploadMB: 50, themeTier: 'plus', branding: 'badge', removeBranding: false, customPage: false, analyticsDays: 30, seoPages: 0 } },
   pro: { id: 'pro', name: 'Pro', price: 2000, yearly: 20000, creations: 50, blurb: 'A studio or agency with a room for every client.',
-    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50, themeTier: 'pro', branding: 'badge', removeBranding: true, customPage: true, analyticsDays: 365, seoPages: 5 } },
+    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50, themeTier: 'pro', branding: 'badge', removeBranding: true, customPage: true, analyticsDays: 365, seoPages: 10 } },
 };
 /** The plans in force. Everything reads them at call time, so a saved change applies at once. */
 export const PLANS: Record<PlanId, Plan> = JSON.parse(JSON.stringify(DEFAULT_PLANS));
@@ -60,6 +60,14 @@ function applyPlans(saved: Partial<Record<PlanId, Partial<Plan> & { features?: P
 }
 function loadPlans() {
   try { applyPlans(JSON.parse(setting('plans') || '{}')); } catch { applyPlans({}); }
+  // Pro went from 5 to 10 pages on Google (2026-09-27): plans saved with the old 5 move up once.
+  if (!setting('plans_seo10')) {
+    setSetting('plans_seo10', '1');
+    if (PLANS.pro.features.seoPages === 5) {
+      PLANS.pro.features.seoPages = 10;
+      if (setting('plans')) try { const saved = JSON.parse(setting('plans')!); if (saved.pro?.features) { saved.pro.features.seoPages = 10; setSetting('plans', JSON.stringify(saved)); } } catch { /* keep */ }
+    }
+  }
 }
 loadPlans();
 
