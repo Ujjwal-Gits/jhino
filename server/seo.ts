@@ -565,13 +565,14 @@ export function registerSeo(app: FastifyInstance) {
   });
   app.get('/sitemap.xml', async (req, reply) => {
     limit(req, 'sitemap', 60, 60_000);
-    reply.type('application/xml; charset=utf-8').header('Cache-Control', 'public, max-age=900');
+    // Always fresh: it is made from the database on each request, so a new page shows at once.
+    reply.type('application/xml; charset=utf-8').header('Cache-Control', 'no-cache');
     return sitemap(base(req));
   });
   app.get('/sitemap.xsl', async (_req, reply) => reply.type('text/xsl; charset=utf-8').header('Cache-Control', 'public, max-age=3600').send(SITEMAP_XSL));
   app.get('/sitemap', async (req, reply) => {
     limit(req, 'sitemap', 60, 60_000);
-    reply.type('text/html; charset=utf-8').header('Cache-Control', 'public, max-age=300');
+    reply.type('text/html; charset=utf-8').header('Cache-Control', 'no-cache');
     return sitemapPage(base(req));
   });
   app.get('/llms.txt', async (req, reply) => {
