@@ -52,8 +52,6 @@ body:has(.jh-site[data-site-theme='light']) { background: #ffffff; }
 /* ---------- the design's hover states ---------- */
 .jh-h1:hover { background: var(--hov, #1d2230) !important; }
 .jh-h2:hover { background: #c93b16 !important; color: #ffffff !important; transform: translateY(-2px) !important; }
-.jh-h3:hover { background: #c93b16 !important; color: #ffffff !important; transform: translateY(-3px) !important; }
-.jh-h4:hover { background: var(--hov, #242b39) !important; color: var(--ink, #f7f7fb) !important; transform: translateY(-3px) !important; }
 .jh-h5:hover { background: #ececec !important; }
 .jh-h6:hover { background: #c93b16 !important; color: #ffffff !important; transform: translateY(-2px) !important; }
 .jh-h7:hover { background: var(--hov, #1d2230) !important; }
@@ -67,6 +65,62 @@ body:has(.jh-site[data-site-theme='light']) { background: #ffffff; }
 .jh-watermark .logo { display: block; height: .66em; width: auto; margin: 0 auto; }
 .jh-watermark .logo path { fill: currentColor; }
 .jh-row::-webkit-scrollbar { display: none; }
+
+/* ---------- home hero ----------
+   Swiss: flush-left type on a 12-column grid, hairline rules, one signal colour.
+   The orange full stops are the logo's dot. The one moving part is the readout:
+   a line draws from the file to its address, then the address goes live. */
+.jh-hero { padding: clamp(48px, 7vw, 104px) 0 clamp(48px, 6vw, 80px); }
+.jh-hero-title { margin: 0; font-size: clamp(58px, 11.4vw, 168px); font-weight: 700; line-height: .9; letter-spacing: -.065em; }
+.jh-hero-row {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 36px 24px; align-items: start;
+  margin-top: clamp(40px, 5.5vw, 72px); padding-top: 24px; border-top: 1px solid var(--line, #2b303e);
+}
+.jh-hero-lede { grid-column: 1 / span 4; margin: 0; max-width: 32ch; font-size: 18px; line-height: 1.55; color: var(--mu, #acb1c0); text-wrap: pretty; }
+
+.jh-pub { grid-column: 5 / span 5; display: grid; gap: 24px; }
+.jh-pub-step { display: grid; grid-template-columns: 11px minmax(0, 1fr); grid-template-rows: 18px 24px; gap: 6px 16px; align-items: center; }
+.jh-pub-k { grid-column: 2; grid-row: 1; font-size: 12.5px; line-height: 18px; color: var(--mu, #acb1c0); }
+.jh-pub-v { grid-column: 2; grid-row: 2; overflow: hidden; font-family: 'Geist Mono', monospace; font-size: 15px; line-height: 24px; white-space: nowrap; text-overflow: ellipsis; }
+.jh-pub-dot { grid-column: 1; grid-row: 2; position: relative; width: 11px; height: 11px; border-radius: 50%; }
+.jh-pub-from { box-shadow: inset 0 0 0 1.5px var(--mu, #acb1c0); }
+/* The rail from this dot to the next: 48px step + 24px gap, less the dot. */
+.jh-pub-from::before, .jh-pub-from::after { content: ''; position: absolute; left: 5px; top: 11px; width: 1px; height: 61px; background: var(--line, #2b303e); }
+.jh-pub-from::after { background: #e0461f; transform-origin: top; animation: jhDraw .6s cubic-bezier(.65, 0, .35, 1) .35s both; }
+.jh-pub-to { background: #e0461f; animation: jhDotIn .3s cubic-bezier(.2, .75, .2, 1) .9s both; }
+.jh-pub-live .jh-pub-k, .jh-pub-live .jh-pub-v { animation: jhArrive .4s cubic-bezier(.2, .75, .2, 1) .95s both; }
+@keyframes jhDraw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes jhDotIn { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: none; } }
+@keyframes jhArrive { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.jh-hero-act { grid-column: 10 / span 3; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.jh-site .jh-hero-cta {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 26px; border-radius: 100px;
+  background: #e0461f; color: #ffffff; font-size: 15px; font-weight: 600; white-space: nowrap;
+  transition: background .2s, transform .25s cubic-bezier(.2, .75, .2, 1);
+}
+.jh-site .jh-hero-cta:hover { background: #c93b16; color: #ffffff; transform: translateY(-1px); }
+.jh-site .jh-hero-cta:active { background: #b53413; transform: none; }
+.jh-site .jh-hero-link {
+  font-size: 15px; font-weight: 500; color: var(--ink, #f7f7fb);
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; text-decoration-color: var(--outl, #394050);
+  transition: color .2s, text-decoration-color .2s;
+}
+.jh-site .jh-hero-link:hover { color: #e0461f; text-decoration-color: currentColor; }
+.jh-hero-act small { font-size: 13px; line-height: 1.4; color: var(--mu, #acb1c0); }
+
+@media (max-width: 1023px) {
+  .jh-hero-lede { grid-column: 1 / span 7; }
+  .jh-hero-act { grid-column: 8 / span 5; }
+  .jh-pub { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (max-width: 639px) {
+  .jh-hero-row { row-gap: 28px; }
+  .jh-hero-lede, .jh-hero-act, .jh-pub { grid-column: 1 / -1; grid-row: auto; }
+  /* On a phone the action comes before the readout. */
+  .jh-hero-act { order: 2; }
+  .jh-pub { order: 3; }
+}
 
 /* ---------- inner pages: shared pieces ---------- */
 .jh-wrap { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
