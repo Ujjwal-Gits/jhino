@@ -407,7 +407,7 @@ export function registerApps(app: FastifyInstance) {
     // Everyone else: by public username (or name, from 2 letters), or by the exact email / sign-in typed in full.
     // People who hid their page are found only by their exact username.
     const others = q.length < 2 ? [] : db.prepare(`SELECT u.id, u.name, u.email, u.username, u.avatar FROM users u
-      WHERE u.kind='person' AND u.disabled=0 AND u.id<>@me AND COALESCE(u.verify_required,0)=0 AND (
+      WHERE u.kind='person' AND u.disabled=0 AND u.id<>@me AND NOT (COALESCE(u.verify_required,0)=1 AND u.email_verified_at IS NULL) AND (
         lower(u.email)=@q OR lower(COALESCE(u.username,''))=@q
         OR (u.username IS NOT NULL AND NOT EXISTS(SELECT 1 FROM profiles p WHERE p.user_id=u.id AND p.published=0)
           AND (lower(u.username) LIKE @like ESCAPE '!' OR lower(COALESCE(u.display_name,u.name)) LIKE @like ESCAPE '!' OR lower(COALESCE(u.display_name,u.name)) LIKE @word ESCAPE '!')))

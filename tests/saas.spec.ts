@@ -998,6 +998,10 @@ test('search engines: page heads, 404s, robots and sitemap; "Show on Google" is 
   const me = await session(who);
   const uid = (await me.call('GET', '/api/account')).json.account.id;
   const username = (await me.call('GET', '/api/me')).json.user.username;
+  // Signed up and confirmed: their page is live and listed at once, with nothing on it yet.
+  const listed = await (await anon.get('/sitemap.xml')).text();
+  expect(listed).toContain(`/${username}</loc>`);
+  expect(await (await anon.get(`/${username}`)).text()).toContain('index, follow');
   const id = (await me.call('POST', '/api/apps/build', { config: { name: 'Films ' + uniq(), client: 'Sur', field: 'video', design: { accent: '#1f6f5c', style: 'modern', currency: 'NPR', theme: 'light' }, blocks: [{ id: 'todos_s1', preset: 'todos', title: 'Notes' }] } })).json.app.id;
   const body = { on: true, title: 'Wedding films in Kathmandu', description: 'Wedding films in Kathmandu: cinematic highlights, full ceremonies and same-day edits, for every couple.', keyword: 'wedding films', slug: 'films-' + uniq() };
   expect((await me.call('PUT', `/api/apps/${id}/seo`, body)).json.error).toBe('PLAN_FEATURE');

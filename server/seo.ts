@@ -158,8 +158,9 @@ function profileDoc(u: UserRow, p: string, b: string): Doc {
   const sameAs = d.socials.map((s) => s.url).filter((x) => /^https?:\/\//.test(x));
   const image = d.avatarUrl ? `${b}${d.avatarUrl}` : undefined;
   return {
-    // Accounts that never confirmed their email stay out of search results until they do.
-    status: 200, index: pr?.seo_index !== 0 && !u.verify_required, path: `/${u.username}`, type: 'profile', card: image ? 'summary' : 'summary_large_image',
+    // Accounts that never confirmed their email stay out of search results until they do (the flag stays set
+    // after sign-up; the confirmation is email_verified_at).
+    status: 200, index: pr?.seo_index !== 0 && !(u.verify_required && !u.email_verified_at && !u.is_admin), path: `/${u.username}`, type: 'profile', card: image ? 'summary' : 'summary_large_image',
     title, description, image, imageAlt: image ? `Photo of ${name}` : undefined,
     keywords: [name, `@${u.username}`, ...(d.location ? [d.location] : []), 'Jhino'],
     jsonld: [
@@ -393,7 +394,7 @@ function entries(b: string): { site: Entry[]; people: Entry[]; apps: Entry[] } {
   const rows = db.prepare(`SELECT u.username, u.name, u.display_name, u.avatar, COALESCE(p.bio, '') bio, COALESCE(p.location, '') location,
       MAX(COALESCE(p.updated_at, u.created_at), COALESCE((SELECT MAX(i.updated_at) FROM profile_items i WHERE i.user_id=u.id), '')) changed
     FROM users u LEFT JOIN profiles p ON p.user_id=u.id
-    WHERE u.kind='person' AND u.disabled=0 AND u.username IS NOT NULL AND COALESCE(u.verify_required, 0)=0 AND COALESCE(p.published, 1)=1 AND COALESCE(p.seo_index, 1)=1
+    WHERE u.kind='person' AND u.disabled=0 AND u.username IS NOT NULL AND NOT (COALESCE(u.verify_required, 0)=1 AND u.email_verified_at IS NULL AND u.is_admin=0) AND COALESCE(p.published, 1)=1 AND COALESCE(p.seo_index, 1)=1
     ORDER BY changed DESC LIMIT 45000`).all() as { username: string; name: string; display_name: string | null; avatar: string | null; bio: string; location: string; changed: string }[];
   const people = rows.map((u) => ({
     path: `/${u.username}`, title: `${u.display_name || u.name} (@${u.username})`, sub: [u.location, clip(u.bio ?? '', 90)].filter(Boolean).join(' · '),
