@@ -4,6 +4,7 @@ import { ApiError, api, avatarUrl, get, post } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 import { refreshPlans } from '../plans';
+import { QuickTools, YourDay } from '../QuickTools';
 
 /*
  * Super Admin: the platform owners' own workspace. A full-height sidebar on the left edge, a working
@@ -46,7 +47,7 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
   const cur: NavKey = NAV.some((g) => g.items.some((n) => n[0] === section)) ? section as NavKey : 'overview';
   const badge = (k: NavKey) => (k === 'payments' ? counts?.pendingPayments : k === 'support' ? counts?.openTickets : 0) || 0;
   return (
-    <div className="adm">
+    <div className="adm has-qt">
       <aside className={`adm-side ${drawer ? 'open' : ''}`} aria-label="Super Admin">
         <div className="adm-brand">
           <Link to="/admin" className="wordmark" aria-label="Jhino Admin"><Wordmark /></Link>
@@ -100,6 +101,15 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
           {cur === 'settings' && <Settings />}
         </main>
       </div>
+      <QuickTools actions={[
+        { label: 'New user', onClick: () => setNewUser(true) },
+        { label: 'Review plan requests', to: '/admin/payments' },
+        { label: 'Support and feature requests', to: '/admin/support' },
+        { label: 'Give an address', to: '/admin/hosting' },
+        { label: 'Short links', to: '/admin/links' },
+        { label: 'Send an announcement', to: '/admin/settings' },
+        { label: 'Plans & pricing', to: '/admin/plans' },
+      ]} />
       {newUser && <CreateUser onClose={(made) => { setNewUser(false); if (made) go(`/admin/users/${made}`); }} />}
     </div>
   );
@@ -121,6 +131,7 @@ interface OverviewT {
   recent: { actor: string; action: string; detail: string; at: string }[];
   storage: { database: number; apps: number; files: number; disk: { total: number; free: number } | null; maxFileMB: number };
 }
+const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 const monthLabel = (m: string) => new Date(m + '-01T00:00:00Z').toLocaleDateString('en-GB', { month: 'short', timeZone: 'UTC' }).slice(0, 3);
 function Delta({ now, before, money }: { now: number; before: number; money?: boolean }) {
   if (!before && !now) return <span className="kd flat">no change</span>;
@@ -177,13 +188,14 @@ function Lines({ a, b, labelA, labelB }: { a: { day: string; n: number }[]; b: {
 
 function Overview() {
   const [o, setO] = useState<OverviewT | null>(null);
+  const { user } = useSession();
   useEffect(() => { get<OverviewT>('/api/admin/overview').then(setO, () => {}); }, []);
   if (!o) return <div className="dash-skel"><div className="acc-skel sm" /><div className="acc-skel" /></div>;
   const mixTotal = o.planMix.free + o.planMix.plus + o.planMix.pro || 1;
   const queue = o.pendingList.length + o.ticketsList.length + o.expiring.length;
   return (
     <div className="dash">
-      <Head title="Overview" lede={`Today, ${new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`} />
+      <Head title={`${greeting()}, ${(user.displayName || user.name).split(' ')[0]}`} lede={new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} />
 
       <section className="kpi-strip" aria-label="Key numbers">
         <div className="kpi2">
@@ -241,6 +253,7 @@ function Overview() {
             </ul>
           )}
         </section>
+        <YourDay />
 
         <section className="dpanel span2" aria-labelledby="gr-h">
           <div className="panel-h"><h2 id="gr-h">Growth, last 30 days</h2></div>
@@ -501,7 +514,7 @@ function UserDetail({ id }: { id: string }) {
   const { user: me } = useSession();
   const [d, setD] = useState<Record<string, any> | null>(null);
   const [secret, setSecret] = useState<{ email: string; password: string } | null>(null);
-  const [edit, setEdit] = useState<{ plan: string; expires: string; extra: string } | null>(null);
+  const [edit, setEdit] = useState<{ plan: string; expires: string; extra: string; why?: string } | null>(null);
   const [changing, setChanging] = useState(false);
   const load = useCallback(() => get(`/api/admin/users/${id}`).then((r) => { setD(r); setEdit({ plan: r.user.usage?.plan ?? 'free', expires: r.user.planExpiresAt ? r.user.planExpiresAt.slice(0, 10) : '', extra: String(r.user.extraCreations ?? 0) }); }, (e) => toast(err(e, 'Not found.'), true)), [id, toast]);
   useEffect(() => { load(); }, [load]);
@@ -550,11 +563,12 @@ function UserDetail({ id }: { id: string }) {
             <div className="adm-plan">
               <div className="field"><span>Plan</span><Select label="Plan" value={edit.plan} options={PLAN_OPTS} onChange={(v) => setEdit({ ...edit, plan: v })} /></div>
               <label className="field"><span>Ends <em>optional</em></span><input className="input" type="date" value={edit.expires} onChange={(e) => setEdit({ ...edit, expires: e.target.value })} /></label>
+              {edit.plan !== u.usage.plan && edit.plan !== 'free' && <label className="field"><span>Why it is free <em>kept in the audit log</em></span><input className="input" maxLength={200} placeholder="e.g. Partner studio, 3-month trial" value={edit.why ?? ''} onChange={(e) => setEdit({ ...edit, why: e.target.value })} /></label>}
               <label className="field"><span>Extra apps</span><input className="input mono" inputMode="numeric" value={edit.extra} onChange={(e) => setEdit({ ...edit, extra: e.target.value.replace(/[^\d-]/g, '') })} /></label>
             </div>
             <button className="btn sm" onClick={() => {
               const body: Record<string, unknown> = {};
-              if (edit.plan !== u.usage.plan) body.plan = edit.plan;
+              if (edit.plan !== u.usage.plan) { body.plan = edit.plan; if (edit.why?.trim()) body.grantReason = edit.why.trim(); }
               if ((edit.expires || null) !== (u.planExpiresAt ? u.planExpiresAt.slice(0, 10) : null)) body.planExpiresAt = edit.expires || null;
               if (Number(edit.extra || 0) !== u.extraCreations) body.extraCreations = Number(edit.extra || 0);
               if (!Object.keys(body).length) { toast('Nothing changed'); return; }

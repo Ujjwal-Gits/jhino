@@ -598,6 +598,8 @@ function ensureSchema() {
     // People who came in by a public or password link: signed-in people as themselves, others as a named
     // guest for that one app (publicshare.ts). Removed again when the link is turned off or its password changes.
     add('memberships', 'via_link', 'INTEGER NOT NULL DEFAULT 0');
+    // Why an admin gave a plan for free (superadmin.ts grant); who and when are granted_by and created_at.
+    add('subscriptions', 'note', 'TEXT');
     add('pub_sessions', 'user_id', 'TEXT');
     // "Show on Google" (seo.ts): an app published as a public page search engines may list, with its own
     // title, description and primary keyword. People's own pages can opt out of search engines.

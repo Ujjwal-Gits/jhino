@@ -41,10 +41,11 @@ const getUser = (id: string) => {
   if (!u) throw new HttpError(404, 'NOT_FOUND', 'That person does not exist.');
   return u;
 };
-function grant(userId: string, plan: string, adminId: string, source: string) {
+/** A plan given by an admin: amount 0, so it never counts as income (revenue is summed from approved payments). */
+function grant(userId: string, plan: string, adminId: string, source: string, note: string | null = null) {
   const t = now();
-  db.prepare('INSERT INTO subscriptions(id,user_id,plan,creations,amount,payment_id,source,granted_by,starts_at,created_at) VALUES(?,?,?,?,?,NULL,?,?,?,?)')
-    .run(newId('sub'), userId, plan, PLANS[plan as keyof typeof PLANS]?.creations ?? 0, 0, source, adminId, t, t);
+  db.prepare('INSERT INTO subscriptions(id,user_id,plan,creations,amount,payment_id,source,granted_by,starts_at,created_at,note) VALUES(?,?,?,?,?,NULL,?,?,?,?,?)')
+    .run(newId('sub'), userId, plan, PLANS[plan as keyof typeof PLANS]?.creations ?? 0, 0, source, adminId, t, t, note);
 }
 
 /** What is stored where: the database file, app files and uploads (from their recorded sizes), and the disk. */
@@ -173,7 +174,7 @@ export function registerSuperAdmin(app: FastifyInstance) {
   app.patch('/api/admin/users/:id', async (req) => {
     const admin = requireAdmin(req);
     const u = getUser((req.params as { id: string }).id);
-    const b = (req.body ?? {}) as { name?: string; email?: string; username?: string; plan?: string; period?: string; planExpiresAt?: string | null; extraCreations?: number; suspended?: boolean; reason?: string; superAdmin?: boolean; emailVerified?: boolean };
+    const b = (req.body ?? {}) as { name?: string; email?: string; username?: string; plan?: string; period?: string; planExpiresAt?: string | null; extraCreations?: number; suspended?: boolean; reason?: string; grantReason?: string; superAdmin?: boolean; emailVerified?: boolean };
     const self = u.id === admin.id;
     if (b.name !== undefined) { db.prepare('UPDATE users SET name=? WHERE id=?').run(validateName(b.name), u.id); audit(req, 'user.rename', 'user', u.id, `${u.name} → ${b.name}`); }
     // A super admin can set anyone's username, any time.
@@ -204,8 +205,9 @@ export function registerSuperAdmin(app: FastifyInstance) {
       } else {
         db.prepare('UPDATE users SET plan=?, plan_started_at=CASE WHEN plan=? THEN plan_started_at ELSE ? END WHERE id=?').run(b.plan, b.plan, now(), u.id);
       }
-      grant(u.id, b.plan, admin.id, 'admin');
-      audit(req, 'user.plan', 'user', u.id, `${u.email}: ${from} → ${PLANS[b.plan].name}${isPeriod(b.period) && b.plan !== 'free' ? ` (${b.period})` : ''}`);
+      const why = String(b.grantReason ?? '').trim().slice(0, 200) || null;
+      grant(u.id, b.plan, admin.id, 'admin', why);
+      audit(req, 'user.plan', 'user', u.id, `${u.email}: ${from} → ${PLANS[b.plan].name}${isPeriod(b.period) && b.plan !== 'free' ? ` (${b.period})` : ''}${why ? ` · free access: ${why}` : ''}`);
       const after = db.prepare('SELECT plan_expires_at FROM users WHERE id=?').get(u.id) as { plan_expires_at: string | null };
       const until = after.plan_expires_at ? ` until ${new Date(after.plan_expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}` : '';
       notify(u.id, 'billing', b.plan === 'free' ? 'Your plan is now Free Forever.' : `Your plan is now ${PLANS[b.plan].name}${until}.`, `Changed by Jhino from ${from}.`, '/account/plan');
