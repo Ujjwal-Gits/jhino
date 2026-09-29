@@ -175,7 +175,7 @@ export function Player({ id, solo, visitor, noFallback }: { id: string; solo?: b
   const [notify, setNotify] = useState(notifyOn);
   const notifyDesktop = useCallback((d: any) => {
     if (!notifyOn() || !document.hidden || !d || d.userId === user?.id) return;
-    const text = [d.name || 'Someone', d.action, d.detail].filter(Boolean).join(' ');
+    const text = [d.name || 'A guest', d.action, d.detail].filter(Boolean).join(' ');
     try {
       const n = new Notification(app?.name || 'Jhino', { body: d.note ? `${text}
 “${String(d.note).slice(0, 120)}”` : text, tag: `jhino-${id}-${d.id}` });

@@ -35,7 +35,7 @@ export function LastLine({ line }: { line: Line | null }) {
   return (
     <p className="ap-last">
       <Avatar name={line.name ?? '?'} size="sm" />
-      <span><b>{line.name ?? 'Someone'}</b> {line.action} <span className="muted">{line.detail}</span>
+      <span><b>{line.name ?? 'A guest'}</b> {line.action} <span className="muted">{line.detail}</span>
         {line.note && <span className="ap-note">“{line.note}”</span>}</span>
     </p>
   );
@@ -50,11 +50,14 @@ function People({ a, meId }: { a: AppSummary; meId: string }) {
     </span>
   );
 }
-function Brand({ a, large }: { a: AppSummary; large?: boolean }) {
+export function Brand({ a, large }: { a: AppSummary; large?: boolean }) {
   const [failed, setFailed] = useState(false);
   if (a.brand?.logo && !failed) return <span className={`ap-logo ${large ? 'lg' : ''}`}><img src={`/api/apps/${a.id}/logo`} alt="" onError={() => setFailed(true)} /></span>;
   return <Mark name={a.brand?.client || a.name} large={large} />;
 }
+
+/** Where an app opens: its own address when it has one. */
+export const appPathOf = (a: AppSummary) => a.rootSlug ? `/${a.rootSlug}` : (a.slug && a.ownerUsername ? `/${a.ownerUsername}/${a.slug}` : `/apps/${a.id}`);
 
 export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
   const { user } = useSession();
@@ -154,7 +157,7 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
         <div className="ix-name">
           <p className="ix-title"><b>{a.name}</b>{client && <span className="ix-client">{client}</span>}</p>
           <p className="ix-last">
-            {line ? <><b>{line.name ?? 'Someone'}</b> {line.action} <span className="ix-where">{line.detail}</span></>
+            {line ? <><b>{line.name ?? 'A guest'}</b> {line.name ? line.action : line.action.replace(/ as a guest$/, '')} <span className="ix-where">{line.detail}</span></>
               : <span className="ix-where">Nothing has happened here yet.</span>}
           </p>
         </div>

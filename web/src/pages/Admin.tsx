@@ -760,7 +760,7 @@ function AppDetailAdmin({ id }: { id: string }) {
           <ul className="acc-list compact">{d.members.map((m: any) => <li key={m.id}><Link to={`/admin/users/${m.id}`} className="cell-main"><b>{m.name}</b><small>{m.email} · {m.role === 'owner' ? 'owner' : m.role === 'editor' ? 'can edit' : m.role === 'contributor' ? 'can add' : 'can view'}</small></Link><span className="muted small">{m.lastLoginAt ? ago(m.lastLoginAt) : 'never signed in'}</span></li>)}</ul>
         </section>
         <section className="adm-block"><h3 className="adm-sub">Recent activity</h3>
-          {!d.activity.length ? <p className="muted">Nothing yet.</p> : <ul className="acc-list compact">{d.activity.map((x: any, i: number) => <li key={i}><span><b>{x.name ?? 'Someone'} {x.action}</b>{x.detail && <small>{x.detail}</small>}</span><span className="muted small">{ago(x.at)}</span></li>)}</ul>}
+          {!d.activity.length ? <p className="muted">Nothing yet.</p> : <ul className="acc-list compact">{d.activity.map((x: any, i: number) => <li key={i}><span><b>{x.name ?? 'A guest'} {x.action}</b>{x.detail && <small>{x.detail}</small>}</span><span className="muted small">{ago(x.at)}</span></li>)}</ul>}
         </section>
       </div>
       <section className="adm-block"><h3 className="adm-sub">Saved data in the database</h3>

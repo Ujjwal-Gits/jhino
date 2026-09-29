@@ -98,7 +98,7 @@ export function DetailsPanel({ app, onClose, onChanged, onUpload }: { app: AppDe
             <div className="lines">
               {activity.map((a) => (
                 <div className="line" key={a.id}>
-                  <div className="grow"><b>{a.name ?? 'Someone'}</b>{a.username && <span className="muted"> @{a.username}</span>} {a.action}{a.detail ? <span className="muted"> · {a.detail}</span> : null}</div>
+                  <div className="grow"><b>{a.name ?? 'A guest'}</b>{a.username && <span className="muted"> @{a.username}</span>} {a.action}{a.detail ? <span className="muted"> · {a.detail}</span> : null}</div>
                   <span className="mono muted" title={new Date(a.at).toLocaleString()}>{ago(a.at)}</span>
                 </div>
               ))}
@@ -138,7 +138,7 @@ export function DetailsPanel({ app, onClose, onChanged, onUpload }: { app: AppDe
                 <div className="lines">
                   {files.slice(0, 200).map((f) => (
                     <div className="line" key={f.id}>
-                      <div className="grow"><b>{f.name}</b><div className="sub">{f.createdByName ?? 'Someone'} · {ago(f.createdAt)}</div></div>
+                      <div className="grow"><b>{f.name}</b><div className="sub">{f.createdByName ?? 'A guest'} · {ago(f.createdAt)}</div></div>
                       <span className="mono muted">{f.status === 'processing' ? 'making smaller…' : f.originalSize ? `${bytes(f.size)} (was ${bytes(f.originalSize)})` : bytes(f.size)}</span>
                       <a className="btn sm" href={`/api/apps/${app.id}/files/${f.id}?download=1`} download>Download</a>
                     </div>

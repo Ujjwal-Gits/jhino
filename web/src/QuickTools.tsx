@@ -4,6 +4,7 @@ import { ApiError, api, get, post } from './api';
 import { Link } from './context';
 import { Icon, ago, copyText, useToast } from './ui';
 import './quicktools.css';
+import { PanelLoader } from './Loader';
 
 /*
  * Quick tools: a rail on the right edge (like Google Workspace's side panel) with a focus timer and lo-fi
@@ -56,31 +57,36 @@ const Empty = ({ children }: { children: ReactNode }) => <p className="qt-empty"
 /* ---------------- the rail ---------------- */
 export function QuickTools({ actions }: { actions?: { label: string; to?: string; onClick?: () => void }[] }) {
   const [open, setOpen] = useState<ToolKey | null>(() => { try { return (sessionStorage.getItem('jhino-qt') as ToolKey) || null; } catch { return null; } });
-  const [plus, setPlus] = useState(false);
+  const [plus, setPlus] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
+  // The menu opens beside the + button, fixed to the window so the scrolling rail cannot clip it.
+  const openPlus = (el: HTMLElement) => { const b = el.getBoundingClientRect(); setPlus(innerWidth <= 760 ? { bottom: innerHeight - b.top + 8, right: 10 } : { top: Math.min(b.top, innerHeight - 380), right: innerWidth - b.left + 10 }); };
   const timer = useTimer();
   useEffect(() => { try { if (open) sessionStorage.setItem('jhino-qt', open); else sessionStorage.removeItem('jhino-qt'); } catch { /* private mode */ } }, [open]);
-  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(null); setPlus(false); } }; addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, []);
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(null); setPlus(null); } }; addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, []);
   const tool = TOOLS.find((t) => t.key === open);
   return (
     <>
       <nav className="qt-rail" aria-label="Quick tools">
         {TOOLS.map((t) => (
-          <button key={t.key} className={`qt-btn tint-${t.tint}`} aria-pressed={open === t.key} aria-label={t.label} title={t.label} onClick={() => { setPlus(false); setOpen(open === t.key ? null : t.key); }}>
+          <button key={t.key} className={`qt-btn tint-${t.tint}`} aria-pressed={open === t.key} aria-label={t.label} title={t.label} onClick={() => { setPlus(null); setOpen(open === t.key ? null : t.key); }}>
             <Svg d={P[t.key]} />{t.key === 'focus' && timer.running && <span className="qt-dot mono">{Math.ceil(timer.left / 60)}</span>}
           </button>
         ))}
         <span className="qt-sep" aria-hidden="true" />
         <div className="qt-plus-wrap">
-          <button className="qt-btn qt-plus" aria-label="Quick actions" title="Quick actions" aria-expanded={plus} onClick={() => setPlus(!plus)}><Icon name="plus" /></button>
-          {plus && (
-            <div className="qt-menu" role="menu">
-              {(actions ?? []).map((a) => a.to
-                ? <Link key={a.label} role="menuitem" to={a.to} onClick={() => setPlus(false)}>{a.label}</Link>
-                : <button key={a.label} role="menuitem" onClick={() => { setPlus(false); a.onClick?.(); }}>{a.label}</button>)}
-            </div>
-          )}
+          <button className="qt-btn qt-plus" aria-label="Quick actions" title="Quick actions" aria-haspopup="menu" aria-expanded={!!plus} onClick={(e) => (plus ? setPlus(null) : openPlus(e.currentTarget))}><Icon name="plus" /></button>
         </div>
       </nav>
+      {plus && (
+        <>
+          <div className="qt-menu-scrim" onClick={() => setPlus(null)} aria-hidden="true" />
+          <div className="qt-menu" role="menu" aria-label="Quick actions" style={plus}>
+            {(actions ?? []).map((a) => a.to
+              ? <Link key={a.label} role="menuitem" to={a.to} onClick={() => setPlus(null)}>{a.label}</Link>
+              : <button key={a.label} role="menuitem" onClick={() => { setPlus(null); a.onClick?.(); }}>{a.label}</button>)}
+          </div>
+        </>
+      )}
       {tool && (
         <aside className={`qt-panel ${tool.key === 'focus' ? 'wide' : ''}`} aria-label={tool.label}>
           <header className="qt-head"><h2>{tool.label}</h2><button className="icon-btn" onClick={() => setOpen(null)} aria-label="Close"><Icon name="close" /></button></header>
@@ -168,7 +174,7 @@ function Tasks() {
   const [title, setTitle] = useState(''), [due, setDue] = useState('');
   const [edit, setEdit] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
-  if (!items) return <div className="acc-skel sm" />;
+  if (!items) return <PanelLoader />;
   const open = items.filter((i) => !i.done), done = items.filter((i) => i.done);
   const nameOf = (list: Item[] | null, id: string) => list?.find((x) => x.id === id);
   const row = (i: Item) => (
@@ -230,7 +236,7 @@ function Notes() {
   const [edit, setEdit] = useState<Item | 'new' | null>(null);
   const [f, setF] = useState({ title: '', body: '' });
   useEffect(() => { setF(edit && edit !== 'new' ? { title: edit.title ?? '', body: edit.body ?? '' } : { title: '', body: '' }); }, [edit]);
-  if (!items) return <div className="acc-skel sm" />;
+  if (!items) return <PanelLoader />;
   if (edit) return (
     <div className="qt-edit flat">
       <input className="input" placeholder="Title" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
@@ -271,7 +277,7 @@ function Contacts() {
   const [edit, setEdit] = useState<Item | 'new' | null>(null);
   const [f, setF] = useState(CONTACT);
   useEffect(() => { setF(edit && edit !== 'new' ? { ...CONTACT, ...Object.fromEntries(Object.keys(CONTACT).map((k) => [k, edit[k] ?? ''])) } : CONTACT); }, [edit]);
-  if (!items) return <div className="acc-skel sm" />;
+  if (!items) return <PanelLoader />;
   if (edit) return (
     <div className="qt-edit flat">
       {([['name', 'Name', 'text'], ['phone', 'Phone', 'tel'], ['email', 'Email', 'email'], ['company', 'Company', 'text'], ['link', 'Website or profile link', 'url']] as const).map(([k, l, t]) => (
@@ -315,7 +321,7 @@ function Calendar() {
   const [month, setMonth] = useState(() => { const d = new Date(); d.setDate(1); return d; });
   const [sel, setSel] = useState(() => dayKey(new Date()));
   const [f, setF] = useState({ title: '', time: '09:00', remind: '10' });
-  if (!items) return <div className="acc-skel sm" />;
+  if (!items) return <PanelLoader />;
   const byDay = new Map<string, Item[]>();
   for (const i of [...items, ...(tasks ?? []).filter((t) => t.dueAt && !t.done).map((t) => ({ ...t, isTask: true }))]) if (i.dueAt) { const k = dayKey(new Date(i.dueAt)); byDay.set(k, [...(byDay.get(k) ?? []), i]); }
   const first = new Date(month); const start = new Date(first); start.setDate(1 - first.getDay());
@@ -367,7 +373,7 @@ function Subs() {
   const [edit, setEdit] = useState<Item | 'new' | null>(null);
   const [f, setF] = useState(SUB);
   useEffect(() => { setF(edit && edit !== 'new' ? { ...SUB, service: edit.service ?? '', price: edit.price ?? '', cycle: edit.cycle ?? 'monthly', date: edit.dueAt ? edit.dueAt.slice(0, 10) : '', remind: String(edit.remindDays ?? '3'), cancelUrl: edit.cancelUrl ?? '', notes: edit.notes ?? '' } : SUB); }, [edit]);
-  if (!items) return <div className="acc-skel sm" />;
+  if (!items) return <PanelLoader />;
   const body = () => { const due = f.date ? new Date(`${f.date}T09:00`).toISOString() : null; return { service: f.service.trim(), price: f.price, cycle: f.cycle, remindDays: Number(f.remind), cancelUrl: f.cancelUrl.trim(), notes: f.notes, dueAt: due, remindAt: due ? new Date(new Date(due).getTime() - Number(f.remind) * 864e5).toISOString() : null }; };
   if (edit) return (
     <div className="qt-edit flat">
@@ -500,7 +506,7 @@ export function YourDay() {
   return (
     <section className="dpanel" aria-labelledby="day-h">
       <div className="panel-h"><h2 id="day-h">Your day</h2><span className="muted small">{d.openTasks} open {d.openTasks === 1 ? 'task' : 'tasks'}</span></div>
-      {!all.length ? <p className="q-clear"><Icon name="check" size={16} />Nothing due today or tomorrow. Add tasks and events from the tools on the right.</p> : (
+      {!all.length ? <p className="q-clear"><Icon name="check" size={16} />Nothing due today or tomorrow. Add tasks and events from the quick tools bar.</p> : (
         <ul className="q-list">{all.slice(0, 8).map(({ i, k, late }) => (
           <li key={i.id}><span className="q-row"><span className="q-k">{k}</span><span className="q-t"><b>{i.title || i.service}</b><small className={late ? 'warn-text' : ''}>{late ? 'Overdue · ' : ''}{when(i.dueAt)}</small></span></span></li>
         ))}</ul>

@@ -1,4 +1,5 @@
 import { Wordmark } from '../Logo';
+import { QuickTools } from '../QuickTools';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
 import { Link, useRoute, useSession } from '../context';
@@ -140,6 +141,9 @@ export function Shell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Room for the quick-tools rail on the right (a bottom bar on phones).
+  useEffect(() => { if (!user.canCreate) return; document.body.classList.add('has-qt'); return () => document.body.classList.remove('has-qt'); }, [user.canCreate]);
+
   const tab = (to: string, label: string, cls = '') => (
     <Link to={to} className={`tab ${cls}`} aria-current={path === to ? 'page' : undefined}>{label}</Link>
   );
@@ -149,9 +153,10 @@ export function Shell({ children }: { children: ReactNode }) {
       {user.mustVerify && <VerifyGate user={user} onDone={refresh} />}
       <header className="topbar">
         <div className="topbar-inner">
-          <Link to={user.username ? `/${user.username}` : '/apps'} className="wordmark" aria-label="Your Jhino home"><Wordmark /></Link>
+          <Link to={user.canCreate ? '/home' : '/apps'} className="wordmark" aria-label="Your Jhino home"><Wordmark /></Link>
           {user.canCreate ? (
             <nav className="tabs" aria-label="Apps">
+              {tab('/home', 'Home')}
               {user.username && tab(`/${user.username}`, 'My page')}
               {tab('/apps', 'My apps')}
               {tab('/shared', 'Shared with me')}
@@ -196,6 +201,13 @@ export function Shell({ children }: { children: ReactNode }) {
         </Menu>
       )}
       {children}
+      {user.canCreate && <QuickTools actions={[
+        { label: 'Create an app', to: '/build' },
+        { label: 'Upload HTML or ZIP', onClick: () => { setDropped(null); setDialog('upload'); } },
+        { label: 'Make a short link', to: '/links' },
+        { label: 'Edit my page', to: user.username ? `/${user.username}` : '/account/profile' },
+        { label: 'Request a feature', to: '/help?kind=feedback' },
+      ]} />}
       {dialog === 'upload' && <UploadDialog file={dropped} onClose={() => setDialog(null)} />}
       {dragging && <div className="dropping-overlay">Drop to upload your app</div>}
     </>

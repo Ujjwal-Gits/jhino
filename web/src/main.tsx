@@ -20,11 +20,13 @@ import { AppsPage } from './pages/Apps';
 import { Player } from './pages/Player';
 import { Shell } from './pages/Shell';
 import { PagePreview, PersonPage } from './pages/PersonPage';
+import { PageLoader } from './Loader';
+import './quicktools.css';
 import { RouteCtx, SessionCtx, applyTheme, readTheme, useRoute } from './context';
 
 applyTheme(readTheme());
 
-const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'sitemap']);
+const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'sitemap', 'home']);
 
 function App() {
   const [path, setPath] = useState(location.pathname);
@@ -60,7 +62,7 @@ function App() {
   // Signed in: the sign-in pages lead home.
   useEffect(() => {
     // Home is their own page (jhino.com/<username>); client accounts go to the apps shared with them.
-    if (user && ['/login', '/signup', '/forgot'].includes(path)) go(user.username ? `/${user.username}` : '/apps', true);
+    if (user && ['/login', '/signup', '/forgot'].includes(path)) go(user.canCreate ? '/home' : '/apps', true);
     if (user && path === '/people') go('/admin/users', true);
   }, [user, path, go]);
 
@@ -92,7 +94,7 @@ function App() {
   const under = seg.length === 2 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) && /^[a-z0-9][a-z0-9-]{1,49}$/i.test(seg[1]) ? `${seg[0]}/${seg[1]}` : null;
   // jhino.com/<username>/preview: the owner's own page in a tab of its own (anyone else gets whatever is at that address).
   const previewOf = under && seg[1].toLowerCase() === 'preview' ? seg[0].toLowerCase() : null;
-  if (user === undefined) page = null;
+  if (user === undefined) page = <PageLoader />;
   else if (invite) page = <Invite token={invite[1]} user={user} onJoined={refresh} />;
   else if (path === '/verify') page = <Verify signedIn={!!user} onDone={refresh} />;
   else if (path === '/verify/code') page = <CopyCodePage />;
@@ -120,6 +122,7 @@ function App() {
   else if (receiptMatch) page = <Shell><ReceiptPage id={receiptMatch[1]} /></Shell>;
   else if (accountMatch) page = <Shell><AccountPage section={accountMatch[1] ?? 'profile'} /></Shell>;
   else if (adminMatch && user.isAdmin) page = <AdminPage section={adminMatch[1] ?? 'overview'} sub={adminMatch[2]} />;
+  else if (path === '/home') page = user.canCreate ? <Shell><HomePage /></Shell> : <GoTo to="/apps" />;
   else if (path === '/links' && user.canCreate) page = <Shell><LinksPage /></Shell>;
   else if (path === '/build') page = <Builder />;
   else if (blocksMatch) page = <Builder appId={blocksMatch[1]} />;
@@ -133,7 +136,7 @@ function App() {
   return (
     <RouteCtx.Provider value={{ path, go }}>
       <ToastProvider>
-        <Suspense fallback={null}>{user ? <SessionCtx.Provider value={{ user, refresh }}>{page}</SessionCtx.Provider> : page}</Suspense>
+        <Suspense fallback={<PageLoader />}>{user ? <SessionCtx.Provider value={{ user, refresh }}>{page}</SessionCtx.Provider> : page}</Suspense>
       </ToastProvider>
     </RouteCtx.Provider>
   );
@@ -151,6 +154,7 @@ const ReceiptPage = lazy(() => import('./pages/Account').then((m) => ({ default:
 const AdminPage = lazy(() => import('./pages/Admin').then((m) => ({ default: m.AdminPage })));
 const Builder = lazy(() => import('./pages/Builder').then((m) => ({ default: m.Builder })));
 const LinksPage = lazy(() => import('./pages/Links').then((m) => ({ default: m.LinksPage })));
+const HomePage = lazy(() => import('./pages/Home').then((m) => ({ default: m.HomePage })));
 const ThemeGallery = lazy(() => import('./profile/Gallery').then((m) => ({ default: m.ProfileGallery })));
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

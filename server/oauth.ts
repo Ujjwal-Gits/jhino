@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { config, makePassword } from './config.js';
 import { db, now, sha256, type UserRow } from './db.js';
-import { afterLogin, createSession, createUser, revokeSessions } from './auth.js';
+import { afterLogin, createSession, createUser, revokeSessions, canCreateApps } from './auth.js';
 import { baseUrl, sendMail, mails } from './mail.js';
 import { limit, securityEvent, setting } from './security.js';
 import { assignUsername } from './usernames.js';
@@ -148,9 +148,8 @@ async function finish(req: FastifyRequest, reply: FastifyReply, p: Provider, par
   if (twoFactorOn(user)) return landHome(reply, `/login?twofa=${encodeURIComponent(startTicket(user.id, p))}`);
   createSession(reply, user.id, req);
   afterLogin(req, user, p);
-  // Home is their page (jhino.com/<username>); client accounts without one go to their apps.
-  const uname = (db.prepare('SELECT username FROM users WHERE id=?').get(user.id) as { username: string | null }).username;
-  return landHome(reply, uname ? `/${uname}` : '/apps');
+  // Creators land on Home (their dashboard); client accounts go to the apps shared with them.
+  return landHome(reply, canCreateApps(user) ? '/home' : '/apps');
 }
 
 /**

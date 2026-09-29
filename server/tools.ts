@@ -21,7 +21,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS tool_items (
   created_at TEXT NOT NULL, updated_at TEXT NOT NULL, created_by TEXT NOT NULL, updated_by TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS tool_items_user ON tool_items(user_id, kind);
-CREATE INDEX IF NOT EXISTS tool_items_remind ON tool_items(remind_at) WHERE reminded_at IS NULL;`);
+CREATE INDEX IF NOT EXISTS tool_items_remind ON tool_items(remind_at) WHERE reminded_at IS NULL;
+CREATE TABLE IF NOT EXISTS user_pins (user_id TEXT PRIMARY KEY, ids TEXT NOT NULL, updated_at TEXT NOT NULL);`);
 
 interface Row { id: string; kind: Kind; data: string; done: number; pinned: number; archived: number; due_at: string | null; remind_at: string | null; created_at: string; updated_at: string; created_by: string; updated_by: string }
 const names = db.prepare('SELECT COALESCE(NULLIF(display_name,\'\'), name) n FROM users WHERE id=?');
@@ -108,6 +109,23 @@ export function registerTools(app: FastifyInstance) {
       .all(...[u.id, kind, until, ...(from ? [from] : [])]) as Row[]).map(out);
     const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
     return { tasks: q('task', end(1)), events: q('event', end(1), startToday.toISOString()), subs: q('sub', end(7)), openTasks: (db.prepare("SELECT COUNT(*) n FROM tool_items WHERE user_id=? AND kind='task' AND done=0 AND archived=0").get(u.id) as { n: number }).n };
+  });
+
+  /** Pinned apps on the Home dashboard, in the person's own order. Only apps they can open are kept. */
+  app.get('/api/home/pins', async (req) => {
+    const u = requireUser(req);
+    const r = db.prepare('SELECT ids FROM user_pins WHERE user_id=?').get(u.id) as { ids: string } | undefined;
+    return { ids: r ? (JSON.parse(r.ids) as string[]) : [] };
+  });
+  app.put('/api/home/pins', async (req) => {
+    const u = requireUser(req);
+    limit(req, 'tools-write', 600, 3600_000, u.id);
+    const raw = (req.body as { ids?: unknown })?.ids;
+    const ids = [...new Set(Array.isArray(raw) ? raw.filter((x): x is string => typeof x === 'string' && /^[\w-]{1,64}$/.test(x)) : [])].slice(0, 24);
+    const mine = new Set((db.prepare('SELECT id FROM apps WHERE owner_id=? UNION SELECT app_id FROM memberships WHERE user_id=?').all(u.id, u.id) as { id: string }[]).map((x) => x.id));
+    const keep = ids.filter((id) => mine.has(id));
+    db.prepare('INSERT INTO user_pins(user_id, ids, updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET ids=excluded.ids, updated_at=excluded.updated_at').run(u.id, JSON.stringify(keep), now());
+    return { ids: keep };
   });
 
   // Reminders: one notification (in the bell, and by email if they allow account emails) when remind_at passes.

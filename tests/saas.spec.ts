@@ -359,9 +359,9 @@ test('screens: website, sign up, account menu, booking day and hidden top bar', 
   // The account opens after the code from the email.
   await expect(page.locator('.otp')).toBeVisible();
   await page.locator('.otp-input').fill(await mailCode(await session(OWNER), email, 'verify'));
-  // Home is their own page, at jhino.com/<username>.
-  await expect(page.getByRole('heading', { name: 'My page' })).toBeVisible();
-  await expect(page).toHaveURL(new RegExp(`/${uname}$`));
+  // Creators land on Home: a greeting, their day and their apps.
+  await expect(page.getByRole('heading', { level: 1, name: /^Good (morning|afternoon|evening), Ui$/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/home$/);
   await page.goto('/apps');
   await expect(page.getByRole('heading', { name: 'My apps' })).toBeVisible();
   // Signed in, the main address is still the website; the dashboard is at /apps.
