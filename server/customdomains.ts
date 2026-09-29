@@ -17,6 +17,7 @@ import { inject, openTag, TYPES, versionRow } from './apps.js';
 import { snapshotFor } from './data.js';
 import { canReadFile, loadFile, sendFile } from './files.js';
 import { withCurrentBuilder } from './builder.js';
+import { CNAME_TARGET as CF_TARGET, ORIGIN as CF_ORIGIN, cfCreds, onCloudflareChange } from './cloudflare.js';
 import { trackRun } from './analytics.js';
 import { installInfo } from './pwa.js';
 
@@ -38,17 +39,20 @@ import { installInfo } from './pwa.js';
 /* ---------------- settings ---------------- */
 const env = process.env;
 const cleanHost = (s: unknown) => String(s ?? '').trim().toLowerCase().replace(/^[a-z][a-z0-9+.-]*:\/\//, '').split(/[/?#:]/)[0].replace(/\.$/, '');
+// Cloudflare comes from the environment or from Super Admin → Custom domains → Connect Cloudflare (server/cloudflare.ts).
 const CF = {
-  token: env.CF_API_TOKEN || '',
-  zone: env.CF_ZONE_ID || '',
-  fallback: cleanHost(env.CF_FALLBACK_ORIGIN),
+  get token() { return cfCreds().token; },
+  get zone() { return cfCreds().zone; },
+  get fallback() { return cleanHost(env.CF_FALLBACK_ORIGIN) || (cfCreds().token ? CF_ORIGIN : ''); },
   sslMethod: (env.CF_SSL_METHOD === 'txt' ? 'txt' : 'http') as 'txt' | 'http',
 };
 export const cfMode = () => !!(CF.token && CF.zone);
 const publicHost = (() => { try { return config.publicUrl ? new URL(config.publicUrl).hostname.toLowerCase() : ''; } catch { return ''; } })();
 const platformBase = publicHost.replace(/^www\./, '');
 /** What customers point their CNAME at. */
-const TARGET = [cleanHost(env.CUSTOM_DOMAIN_CNAME_TARGET), CF.fallback, publicHost].find((h) => h && !isIP(h) && h.includes('.')) ?? '';
+const target = () => [cleanHost(env.CUSTOM_DOMAIN_CNAME_TARGET), cfCreds().token ? CF_TARGET : '', CF.fallback, publicHost].find((h) => h && !isIP(h) && h.includes('.')) ?? '';
+let TARGET = target();
+onCloudflareChange(() => { TARGET = target(); forgetHosts(); });
 /** An IPv4 address for domains that cannot use a CNAME at the root (self-managed, or Cloudflare apex proxying). */
 const A_RECORD = isIP(String(env.CUSTOM_DOMAIN_A_RECORD ?? '').trim()) === 4 ? String(env.CUSTOM_DOMAIN_A_RECORD).trim() : '';
 /** Other names this server answers as Jhino itself (a Coolify sslip.io name, a staging host), comma-separated. */

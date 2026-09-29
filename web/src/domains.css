@@ -88,3 +88,24 @@
 .cd-root-h { display: flex; align-items: center; gap: 8px; color: var(--ink); }
 .cd-root ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 .cd-root .mono { font-size: 12.5px; overflow-wrap: anywhere; }
+
+/* Super Admin: connect Cloudflare */
+.cf-card { border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); padding: 18px 20px; display: grid; gap: 14px; margin-bottom: 18px; }
+.cf-card.ready { border-color: color-mix(in srgb, var(--ok) 40%, var(--rule)); }
+.cf-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.cf-head h2 { font-size: 16px; }
+.cf-pill { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--paper-2); color: var(--ink-2); white-space: nowrap; }
+.cf-pill.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.cf-pill.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.cf-how { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 14px; color: var(--ink-2); }
+.cf-perms { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.cf-perms span { font-family: var(--mono); font-size: 12px; padding: 3px 8px; border: 1px solid var(--rule); border-radius: var(--r-sm); background: var(--paper-2); color: var(--ink); }
+.cf-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cf-steps li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.cf-steps li > svg { flex: none; margin-top: 2px; }
+.cf-steps li.ok > svg { color: var(--ok); }
+.cf-steps li.no > svg { color: var(--warn); }
+.cf-steps span { display: grid; gap: 2px; }
+.cf-steps small { color: var(--ink-3); font-size: 12.5px; }
+.cf-form { display: flex; gap: 8px; flex-wrap: wrap; }
+.cf-form .input { flex: 1 1 280px; min-width: 0; }

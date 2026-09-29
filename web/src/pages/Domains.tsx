@@ -308,6 +308,60 @@ function RecordRow({ r }: { r: DnsRecord }) {
   );
 }
 
+/* ---------------- Super Admin → Custom domains → Connect Cloudflare ---------------- */
+interface CfStep { key: string; label: string; ok: boolean; note: string }
+interface CfState { connected: boolean; from: 'env' | 'admin' | null; zone: string | null; base: string; origin: string; target: string; last: { at: string; steps: CfStep[]; ready: boolean } | null }
+function CloudflareCard({ onChange }: { onChange: () => void }) {
+  const toast = useToast();
+  const [s, setS] = useState<CfState | null>(null);
+  const [token, setToken] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const load = useCallback(() => get<CfState>('/api/admin/cloudflare').then(setS, () => {}), []);
+  useEffect(() => { load(); }, [load]);
+  if (!s) return null;
+  const run = async (e?: FormEvent) => {
+    e?.preventDefault(); setBusy(true); setErr('');
+    try { const r = await post<{ ready: boolean }>('/api/admin/cloudflare', token ? { token } : {}); setToken(''); await load(); onChange(); toast(r.ready ? 'Cloudflare is set up. Custom domains are ready.' : 'Some steps need attention.'); }
+    catch (x) { setErr(x instanceof ApiError ? x.message : 'Could not reach Cloudflare.'); }
+    setBusy(false);
+  };
+  const disconnect = async () => { if (!confirm('Disconnect Cloudflare? Domains already live keep working; new ones cannot be added until you connect again.')) return; await api('DELETE', '/api/admin/cloudflare'); setS({ ...s, connected: false, last: null }); onChange(); };
+  const ready = s.connected && s.last?.ready;
+  return (
+    <section className={`cf-card ${ready ? 'ready' : ''}`} aria-labelledby="cf-h">
+      <header className="cf-head">
+        <div><h2 id="cf-h">Cloudflare</h2><p className="hint">{ready ? <>Connected{s.from === 'env' ? ' (from the server settings)' : ''}. Customers point their domains at <span className="mono">{s.target}</span>.</> : s.connected ? 'Connected, but some steps need attention.' : 'Connect once and Jhino sets up everything custom domains need.'}</p></div>
+        <span className={`cf-pill ${ready ? 'ok' : s.connected ? 'warn' : ''}`}>{ready ? 'Ready' : s.connected ? 'Needs attention' : 'Not connected'}</span>
+      </header>
+      {!s.connected && (
+        <ol className="cf-how">
+          <li>In Cloudflare, open <b>{s.base}</b> → <b>SSL/TLS</b> → <b>Custom Hostnames</b> and press <b>Enable</b> (100 domains free, then USD 0.10 each a month).</li>
+          <li>Go to <b>My Profile → API Tokens → Create Token → Custom token</b>. Add these permissions for the zone <b>{s.base}</b>:
+            <span className="cf-perms"><span>Zone · DNS · Edit</span><span>Zone · SSL and Certificates · Edit</span><span>Zone · Config Rules · Edit</span><span>Zone · Zone · Read</span></span>
+            If <b>Custom Hostnames</b> is in the list, add <span className="mono">Zone · Custom Hostnames · Edit</span> too.</li>
+          <li>Paste the token below. Jhino adds <span className="mono">{s.origin}</span> and <span className="mono">{s.target}</span>, sets the fallback origin, and adds the SSL rule for customer domains.</li>
+        </ol>
+      )}
+      {s.last && (
+        <ul className="cf-steps">{s.last.steps.map((st) => (
+          <li key={st.key} className={st.ok ? 'ok' : 'no'}><Icon name={st.ok ? 'check' : 'info'} size={15} /><span><b>{st.label}</b>{st.note && <small>{st.note}</small>}</span></li>
+        ))}</ul>
+      )}
+      {s.from !== 'env' && (
+        <form className="cf-form" onSubmit={run}>
+          {!s.connected && <input className="input mono" type="password" autoComplete="off" spellCheck={false} value={token} onChange={(e) => setToken(e.target.value)} placeholder="Paste the Cloudflare API token" aria-label="Cloudflare API token" />}
+          <button className="btn primary" disabled={busy || (!s.connected && !token.trim())}>{busy && <span className="spin" />}{s.connected ? 'Check and fix again' : 'Connect and set up'}</button>
+          {s.connected && <button type="button" className="btn quiet danger" onClick={disconnect}>Disconnect</button>}
+        </form>
+      )}
+      {s.from === 'env' && <div className="actions-row"><button className="btn" onClick={() => run()} disabled={busy}>{busy && <span className="spin" />}Check and fix again</button></div>}
+      {err && <p className="error-text" role="alert">{err}</p>}
+      <p className="hint">The token is stored encrypted on the server and never shown again.</p>
+    </section>
+  );
+}
+
 /* ---------------- Super Admin → Custom domains ---------------- */
 interface AdminDomainT extends DomainT { ownerId: string; ownerName: string | null; ownerEmail: string | null; appName: string | null }
 export function DomainsAdmin() {
@@ -332,6 +386,7 @@ export function DomainsAdmin() {
           <p className="acc-lede">Customer domains Jhino hosts, with their status, owner and app. {d && (d.mode === 'cloudflare' ? <>Certificates by Cloudflare for SaaS; customers point a CNAME at <span className="mono">{d.target}</span>.</> : <>Self-managed: ownership by TXT record, certificates on demand by the proxy (it asks <span className="mono">/api/domains/tls-ask</span>).</>)}</p>
         </div>
       </div>
+      <CloudflareCard onChange={load} />
       {d && (
         <dl className="store-row">
           <div><dt>Live</dt><dd className="mono">{c.active ?? 0}</dd></div>
