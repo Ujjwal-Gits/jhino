@@ -1,5 +1,5 @@
 import { Wordmark } from '../Logo';
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, api, avatarUrl, get, post, type PlanFeatures } from '../api';
 import { Link, applyTheme, readTheme, useRoute, useSession, type Theme } from '../context';
 import { Avatar, Icon, Select, ago, copyText, useToast } from '../ui';
@@ -7,6 +7,7 @@ import { Qr } from '../Qr';
 import { CodeBoxes } from './CodeEntry';
 import { bestFreeMonths, freeMonthsText, nprAmount, priceFor, usePlans, type Period, type PlanCard } from '../plans';
 import { AvatarViewerModal, AvatarPositionModal, validatePhotoFile, ACCEPT_PHOTO_TYPES } from '../AvatarModal';
+import { ACCOUNT_SECTIONS } from './Shell';
 
 /*
  * The Account Center: one quiet page per concern. The server decides everything that matters
@@ -33,21 +34,14 @@ const fmtDate = (iso: string | null | undefined) => (iso ? new Date(iso).toLocal
 const fmtDateTime = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '');
 const err = (e: unknown, fallback: string) => (e instanceof ApiError ? e.message : fallback);
 
-const SECTIONS: { key: string; label: string; icon: string; creators?: boolean }[] = [
-  { key: 'profile', label: 'Profile', icon: 'user' },
-  { key: 'account', label: 'Account', icon: 'settings' },
-  { key: 'security', label: 'Security', icon: 'shield' },
-  { key: 'plan', label: 'Plan & usage', icon: 'chart', creators: true },
-  { key: 'billing', label: 'Billing', icon: 'card', creators: true },
-  { key: 'notifications', label: 'Notifications', icon: 'bell' },
-  { key: 'privacy', label: 'Privacy & data', icon: 'lock' },
-  { key: 'help', label: 'Help & support', icon: 'help' },
-];
+/** The page heading already names the section: a block with the same title does not repeat it. */
+const PageTitle = createContext('');
 
 function Section({ title, lede, children, id }: { title: string; lede?: ReactNode; children: ReactNode; id?: string }) {
+  const isPage = title === useContext(PageTitle);
   return (
-    <section className="acc-sec" aria-labelledby={id ?? title}>
-      <h2 id={id ?? title}>{title}</h2>
+    <section className="acc-sec" aria-labelledby={isPage ? 'acc-title' : id ?? title}>
+      {!isPage && <h2 id={id ?? title}>{title}</h2>}
       {lede && <p className="acc-lede">{lede}</p>}
       {children}
     </section>
@@ -60,19 +54,16 @@ export function AccountPage({ section }: { section: string }) {
   const [error, setError] = useState('');
   const load = useCallback(() => get<AccountData>('/api/account').then((d) => { setData(d); setError(''); }, (e) => setError(err(e, 'Could not load your account.'))), []);
   useEffect(() => { load(); }, [load]);
-  const sections = SECTIONS.filter((s) => !s.creators || user.canCreate);
-  const cur = sections.find((s) => s.key === section) ? section : 'profile';
+  // The sections are listed in the dashboard's sidebar (Shell); this page shows the chosen one.
+  const sections = ACCOUNT_SECTIONS.filter((s) => !s.creators || user.canCreate);
+  const here = sections.find((s) => s.key === section) ?? sections[0];
+  const cur = here.key;
   return (
     <main className="page acc">
       <header className="acc-head">
-        <h1>Account</h1>
+        <h1 id="acc-title">{here.label}</h1>
       </header>
-      <div className="acc-body">
-        <nav className="acc-nav" aria-label="Account sections">
-          {sections.map((s) => (
-            <Link key={s.key} to={`/account/${s.key}`} aria-current={cur === s.key ? 'page' : undefined}><Icon name={s.icon} size={17} />{s.label}</Link>
-          ))}
-        </nav>
+      <PageTitle.Provider value={here.label}>
         <div className="acc-main">
           {error && <p className="error-text" role="alert">{error} <button className="btn sm" onClick={load}>Try again</button></p>}
           {!data ? <div className="acc-skel" aria-busy="true" /> : (
@@ -88,7 +79,7 @@ export function AccountPage({ section }: { section: string }) {
             </>
           )}
         </div>
-      </div>
+      </PageTitle.Provider>
     </main>
   );
 }

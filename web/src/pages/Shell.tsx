@@ -113,6 +113,18 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
   );
 }
 
+/** The account sections, in menu order. The sidebar is the one menu for them; the Account page shows the chosen one. */
+export const ACCOUNT_SECTIONS: { key: string; label: string; icon: string; creators?: boolean }[] = [
+  { key: 'profile', label: 'Profile', icon: 'user' },
+  { key: 'account', label: 'Settings', icon: 'settings' },
+  { key: 'security', label: 'Security', icon: 'shield' },
+  { key: 'plan', label: 'Plan & usage', icon: 'chart', creators: true },
+  { key: 'billing', label: 'Billing', icon: 'card', creators: true },
+  { key: 'notifications', label: 'Notifications', icon: 'bell' },
+  { key: 'privacy', label: 'Privacy & data', icon: 'lock' },
+  { key: 'help', label: 'Help & support', icon: 'help' },
+];
+
 /* ---------- shell ---------- */
 export function Shell({ children }: { children: ReactNode }) {
   const { user, refresh } = useSession();
@@ -164,12 +176,16 @@ export function Shell({ children }: { children: ReactNode }) {
   const nav = (to: string, label: string, icon: ReactNode, badge?: number) => (
     <Link to={to} aria-current={path === to ? 'page' : undefined}>{icon}<span>{label}</span>{!!badge && <span className="dsh-count mono">{badge}</span>}</Link>
   );
+  // On /account/<section>: which one is showing (the Account page falls back to Profile; a receipt belongs to Billing).
+  const accountSections = ACCOUNT_SECTIONS.filter((s) => !s.creators || user.canCreate);
+  const accountMatch = path.match(/^\/account(?:\/([\w-]+))?(?:\/|$)/);
+  const accountKey = !accountMatch ? null : accountMatch[1] === 'receipt' ? 'billing' : accountSections.some((s) => s.key === accountMatch[1]) ? accountMatch[1] : 'profile';
   const I = (d: string) => <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
   const now = new Date();
   const today = `${now.toLocaleDateString(undefined, { weekday: 'long' })}, ${bsToday(now) || now.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}`;
   const pages: Hit[] = [
     ...(user.canCreate ? [['Home', '/home'], ['My apps', '/apps'], ['Shared with me', '/shared'], ['Links', '/links'], ...(user.username ? [['My page', `/${user.username}`]] : []), ['Trash', '/trash'], ['Create an app', '/build']] : [['Your apps', '/apps']]),
-    ['Profile', '/account/profile'], ...(user.canCreate ? [['Plan & usage', '/account/plan'], ['Billing', '/account/billing']] : []), ['Notifications', '/account/notifications'], ['Security', '/account/security'], ['Help & support', '/help'],
+    ...accountSections.map((s) => [s.label, `/account/${s.key}`]),
     ...(user.isAdmin ? [['Super Admin', '/admin']] : []),
   ].map(([label, to]) => ({ group: 'Pages', label, to }));
 
@@ -193,12 +209,9 @@ export function Shell({ children }: { children: ReactNode }) {
               {nav('/trash', 'Trash', <Icon name="trash" size={18} />)}
             </> : nav('/apps', 'Your apps', <Icon name="grid" size={18} />)}
             <p className="dsh-group">Account</p>
-            {nav('/account/profile', 'Profile', <Icon name="user" size={18} />)}
-            {user.canCreate && nav('/account/plan', 'Plan & usage', <Icon name="chart" size={18} />)}
-            {user.canCreate && nav('/account/billing', 'Billing', <Icon name="card" size={18} />)}
-            {nav('/account/notifications', 'Notifications', <Icon name="bell" size={18} />)}
-            {nav('/account/security', 'Security', <Icon name="shield" size={18} />)}
-            {nav('/help', 'Help & support', <Icon name="help" size={18} />)}
+            {accountSections.map((s) => (
+              <Link key={s.key} to={`/account/${s.key}`} aria-current={accountKey === s.key ? 'page' : undefined}><Icon name={s.icon} size={18} /><span>{s.label}</span></Link>
+            ))}
             {user.isAdmin && <><p className="dsh-group">Admin</p>{nav('/admin', 'Super Admin', <Icon name="lock" size={18} />)}</>}
           </nav>
         </aside>
