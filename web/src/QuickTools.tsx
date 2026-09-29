@@ -25,10 +25,10 @@ const P: Record<string, string> = {
   qr: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2',
   text: 'M4 19l5-14 5 14M6 14h6M15 19v-6a3 3 0 0 1 6 0v6M15 16h6',
 };
-const TOOLS: { key: ToolKey; label: string; tint: string }[] = [
-  { key: 'focus', label: 'Focus timer', tint: 'g' }, { key: 'calendar', label: 'Calendar', tint: 'b' }, { key: 'tasks', label: 'Tasks', tint: 't' },
-  { key: 'notes', label: 'Notes', tint: 'y' }, { key: 'contacts', label: 'Contacts', tint: 'g' }, { key: 'subs', label: 'Subscriptions & trials', tint: 'r' },
-  { key: 'links', label: 'Short links', tint: 'n' }, { key: 'qr', label: 'QR code maker', tint: 'b' }, { key: 'text', label: 'Text tools', tint: 'p' },
+const TOOLS: { key: ToolKey; label: string }[] = [
+  { key: 'focus', label: 'Focus timer' }, { key: 'calendar', label: 'Calendar' }, { key: 'tasks', label: 'Tasks' },
+  { key: 'notes', label: 'Notes' }, { key: 'contacts', label: 'Contacts' }, { key: 'subs', label: 'Subscriptions & trials' },
+  { key: 'links', label: 'Short links' }, { key: 'qr', label: 'QR code maker' }, { key: 'text', label: 'Text tools' },
 ];
 const Svg = ({ d, size = 20 }: { d: string; size?: number }) => <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 const msg = (e: unknown, f: string) => (e instanceof ApiError ? e.message : f);
@@ -71,13 +71,13 @@ export function QuickTools({ actions }: { actions?: { label: string; to?: string
     <>
       <nav className="qt-rail" aria-label="Quick tools">
         {TOOLS.map((t) => (
-          <button key={t.key} className={`qt-btn tint-${t.tint}`} aria-pressed={open === t.key} aria-label={t.label} title={t.label} onClick={() => { setPlus(null); setOpen(open === t.key ? null : t.key); }}>
+          <button key={t.key} className="qt-btn" aria-pressed={open === t.key} aria-label={t.label} onClick={() => { setPlus(null); setOpen(open === t.key ? null : t.key); }}>
             <Svg d={P[t.key]} />{t.key === 'focus' && timer.running && <span className="qt-dot mono">{Math.ceil(timer.left / 60)}</span>}
           </button>
         ))}
         <span className="qt-sep" aria-hidden="true" />
         <div className="qt-plus-wrap">
-          <button className="qt-btn qt-plus" aria-label="Quick actions" title="Quick actions" aria-haspopup="menu" aria-expanded={!!plus} onClick={(e) => (plus ? setPlus(null) : openPlus(e.currentTarget))}><Icon name="plus" /></button>
+          <button className="qt-btn qt-plus" aria-label="Quick actions" aria-haspopup="menu" aria-expanded={!!plus} onClick={(e) => (plus ? setPlus(null) : openPlus(e.currentTarget))}><Icon name="plus" /></button>
         </div>
       </nav>
       {plus && (
@@ -336,7 +336,7 @@ function Calendar() {
       <div className="qt-cal-h">
         <button className="icon-btn" aria-label="Previous month" onClick={() => { const d = new Date(month); d.setMonth(d.getMonth() - 1); setMonth(d); }}><Icon name="back" size={16} /></button>
         <b>{month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</b>
-        <button className="icon-btn" aria-label="Next month" onClick={() => { const d = new Date(month); d.setMonth(d.getMonth() + 1); setMonth(d); }}><Icon name="more" size={16} /></button>
+        <button className="icon-btn" aria-label="Next month" onClick={() => { const d = new Date(month); d.setMonth(d.getMonth() + 1); setMonth(d); }}><Icon name="back" size={16} /></button>
       </div>
       <div className="qt-cal" role="grid">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, n) => <span key={n} className="qt-dow">{d}</span>)}
