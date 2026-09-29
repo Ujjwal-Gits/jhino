@@ -1,294 +1,1089 @@
 {
-  "id": "realestate",
-  "name": "Bagmati Homes and Land",
-  "category": "Real estate",
-  "description": "A property dealer site: listings with prices in lakhs and crores, how a purchase works, and a viewing request form.",
-  "site": {
-    "name": "Bagmati Homes and Land",
-    "theme": {
-      "preset": "counsel",
-      "display": "newsreader",
-      "body": "hanken",
-      "colors": {
-        "bg": "#f5f2ec",
-        "surface": "#e9e4d8",
-        "text": "#13233a",
-        "muted": "#4f5b6d",
-        "accent": "#13233a",
-        "onAccent": "#f5f2ec",
-        "line": "#d3ccbb"
-      },
-      "radius": 2,
-      "button": "solid",
-      "rhythm": "even"
+ "id": "realestate",
+ "name": "Nilkantha Homes",
+ "category": "Real estate",
+ "description": "A property agent with checked listings: houses, flats and land in crore and lakh, what is checked before listing, fees, buying and selling steps and a viewing request.",
+ "site": {
+  "name": "Nilkantha Homes",
+  "theme": {
+   "preset": "salt"
+  },
+  "settings": {
+   "tagline": "Homes and land in the north of the valley, papers checked first",
+   "lang": "en",
+   "phone": "01-4375810",
+   "email": "office@nilkanthahomes.com.np",
+   "address": "Narayanthan Chowk, Budhanilkantha, Kathmandu 44600",
+   "social": [
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/nilkanthahomes"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
-        {
-          "network": "facebook",
-          "url": "https://www.facebook.com/bagmatihomes"
-        },
-        {
-          "network": "whatsapp",
-          "url": "https://wa.me/9779851055412"
-        }
-      ],
-      "tagline": "Houses, flats and land in Lalitpur and Bhaktapur",
-      "phone": "01-5541126",
-      "email": "deals@bagmatihomes.com.np",
-      "address": "Kupondole Height, Lalitpur 44700, opposite the Himalayan Bank branch"
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/nilkanthahomes"
     },
-    "header": {
-      "type": "header",
-      "variant": "bar",
+    {
+     "network": "viber",
+     "url": "https://invite.viber.com/?g=nilkantha-homes"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Ask for a viewing",
+     "href": "page:contact"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Papers first. Then the viewing.",
+    "cta": {
+     "label": "Ask for a viewing",
+     "href": "page:contact"
+    },
+    "about": "A property agent in Budhanilkantha since 2072, run by Suman Khadka. Houses, flats and land in the Kathmandu valley.",
+    "hours": "Sunday to Friday, 9:30 to 18:00\nSaturday, viewings by appointment",
+    "note": "Listing prices are the owners’ asking prices and can change.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Nilkantha Homes: houses, flats and land in Budhanilkantha and Tokha",
+    "seoDescription": "Houses, flats and land for sale in Budhanilkantha, Tokha, Dhapasi and Bhaisepati, with lalpurja, road and naksha checked before listing. Free for buyers.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
       "props": {
-        "cta": {
-          "label": "Ask for a viewing",
-          "href": "page:viewing"
-        },
-        "sticky": true
+       "title": "Houses, flats and land in the north of the valley, with the papers checked first",
+       "text": "We sell homes in Budhanilkantha, Tokha, Dhapasi and Bhaisepati. Before anything is listed here, we have read the lalpurja, walked the road and seen the approved naksha.",
+       "primary": {
+        "label": "See homes for sale",
+        "href": "page:listings"
+       },
+       "secondary": {
+        "label": "Sell with us",
+        "href": "page:selling"
+       },
+       "image": {
+        "src": "lib:estate-modern",
+        "alt": "A white modern house with deep window boxes under a blue sky",
+        "focal": [
+         50,
+         40
+        ]
+       },
+       "eyebrow": "Office open Sunday to Friday, 9:30 to 18:00 · Narayanthan, Budhanilkantha",
+       "video": ""
       }
-    },
-    "footer": {
-      "type": "footer",
+     },
+     {
+      "type": "marquee",
+      "variant": "small",
+      "props": {
+       "items": [
+        {
+         "text": "Lalpurja read before listing"
+        },
+        {
+         "text": "Road width measured"
+        },
+        {
+         "text": "Naksha pass seen"
+        },
+        {
+         "text": "Two per cent, paid at transfer"
+        },
+        {
+         "text": "Free for buyers"
+        }
+       ]
+      },
+      "style": {
+       "bg": "accent"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "feature",
+      "props": {
+       "heading": "For sale now",
+       "intro": "Prices are what the owner is asking. Every listing has been visited by us in the last month.",
+       "items": [
+        {
+         "image": {
+          "src": "lib:estate-house",
+          "alt": "A single-storey white house with a stone path, lawn and two planters",
+          "focal": [
+           50,
+           60
+          ]
+         },
+         "title": "Single-storey house, Narayanthan",
+         "tag": "House · Rs 3.25 crore",
+         "text": "6 aana, 3 bedrooms, garden on two sides. 20 ft road, 400 m from the Narayanthan bus stop.",
+         "link": {
+          "label": "Details",
+          "href": "page:listings"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:estate-townhouse",
+          "alt": "A three-storey white house with balconies at dusk",
+          "focal": [
+           50,
+           45
+          ]
+         },
+         "title": "Three-storey house, Bhaisepati",
+         "tag": "House · Rs 2.10 crore",
+         "text": "3.5 aana, 4 bedrooms, roof terrace. Completion certificate issued 2078.",
+         "link": {
+          "label": "Details",
+          "href": "page:listings"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:estate-bungalow",
+          "alt": "A white housing-colony building with red roofs",
+          "focal": [
+           40,
+           40
+          ]
+         },
+         "title": "Three-bedroom flat, Dhapasi",
+         "tag": "Flat · Rs 1.65 crore",
+         "text": "1,450 sq ft on the fourth floor of a gated colony, lift and backup power, one covered parking.",
+         "link": {
+          "label": "Details",
+          "href": "page:listings"
+         }
+        }
+       ],
+       "link": {
+        "label": "All listings",
+        "href": "page:listings"
+       }
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "Half the calls we get are from people who bought land with no road. We would rather lose a sale than list one of those.",
+       "name": "Suman Khadka",
+       "detail": "Founder",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "What we check before we list",
+       "intro": "The same six things on every property. If one fails, we tell the owner why and do not list it.",
+       "items": [
+        {
+         "title": "Lalpurja and trace map",
+         "text": "The ownership certificate matches the owner, the plot number and the area on the ground.",
+         "detail": ""
+        },
+        {
+         "title": "Road access",
+         "text": "We measure the road ourselves. Most new houses in the valley need at least 20 ft to get a building permit.",
+         "detail": ""
+        },
+        {
+         "title": "Naksha pass",
+         "text": "An approved building plan, and a completion certificate for finished houses.",
+         "detail": ""
+        },
+        {
+         "title": "Land tax receipts",
+         "text": "Paid up to this year at the ward and the malpot office.",
+         "detail": ""
+        },
+        {
+         "title": "No bank loan on it",
+         "text": "A letter from the bank if the property was ever mortgaged.",
+         "detail": ""
+        },
+        {
+         "title": "Guthi and tenancy",
+         "text": "No guthi claim, no mohi tenant, no court case against the plot.",
+         "detail": ""
+        }
+       ]
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "right",
+      "props": {
+       "heading": "From a viewing to the malpot office",
+       "intro": "A typical house sale in the valley takes four to eight weeks. This is how it goes with us.",
+       "image": {
+        "src": "lib:estate-keys",
+        "alt": "A hand holding up house keys in an open doorway",
+        "focal": [
+         40,
+         40
+        ]
+       },
+       "items": [
+        {
+         "label": "Week 1",
+         "title": "Viewing",
+         "text": "We meet you at the gate, walk the plot and the road, and hand you copies of the papers to take away."
+        },
+        {
+         "label": "Week 2",
+         "title": "Your own checks",
+         "text": "Show the papers to your lawyer or engineer. We arrange a second visit with them at no charge."
+        },
+        {
+         "label": "Weeks 3 to 4",
+         "title": "Agreement and advance",
+         "text": "A written agreement with the price, the advance and the date of transfer, signed in front of witnesses."
+        },
+        {
+         "label": "Weeks 4 to 8",
+         "title": "Transfer at malpot",
+         "text": "We book the date, go with both sides, and hand over the keys the day the new lalpurja is issued."
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "bento",
+      "props": {
+       "heading": "Inside the Narayanthan house",
+       "intro": "Bright rooms, wood floors and a south-facing garden. Viewings on Saturday by appointment.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:estate-living",
+          "alt": "A bright living room with a vaulted ceiling and wood floor"
+         },
+         "caption": "Living room, 18 by 16 ft"
+        },
+        {
+         "image": {
+          "src": "lib:estate-kitchen",
+          "alt": "A white kitchen with an island and bar stools"
+         },
+         "caption": "Kitchen with an island"
+        },
+        {
+         "image": {
+          "src": "lib:estate-bedroom",
+          "alt": "A calm bedroom with a large bed and a tall window"
+         },
+         "caption": "Main bedroom"
+        },
+        {
+         "image": {
+          "src": "lib:estate-sunroom",
+          "alt": "A sunny living room with a balcony door",
+          "focal": [
+           40,
+           50
+          ]
+         },
+         "caption": "Sitting room onto the balcony"
+        },
+        {
+         "image": {
+          "src": "lib:estate-dining",
+          "alt": "A dining area by an open staircase"
+         },
+         "caption": "Dining by the stairs"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "What we charge",
+       "intro": "Written into the agreement before anything else. No fee is ever asked of a buyer.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Buying a home",
+         "price": "Free",
+         "period": "",
+         "note": "Viewings, papers and help at the malpot office cost the buyer nothing.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Selling a home or land",
+         "price": "2%",
+         "period": "of the sale price",
+         "note": "Paid by the seller on the day of transfer, and only if it sells.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": true
+        },
+        {
+         "name": "Finding a tenant",
+         "price": "One month’s rent",
+         "period": "",
+         "note": "Paid by the owner when the tenant signs.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Written valuation",
+         "price": "15000",
+         "period": "report",
+         "note": "For a bank, a family division or your own decision. Ready in a week.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "imagetext",
+      "variant": "left",
+      "props": {
+       "image": {
+        "src": "lib:estate-plans",
+        "alt": "Two people marking up house plans with a ruler and a calculator",
+        "focal": [
+         55,
+         40
+        ]
+       },
+       "eyebrow": "",
+       "heading": "Selling? We come and look first",
+       "body": "<p>Suman visits, reads your papers and walks the road with you. If there is a problem, we tell you what fixing it takes, whether you list with us or not.</p><p>We photograph the house on a clear morning, write a plain listing and show it only to buyers who have told us their budget.</p>",
+       "link": {
+        "label": "How selling works",
+        "href": "page:selling"
+       }
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "Questions buyers ask",
+       "intro": "",
+       "items": [
+        {
+         "q": "Can I get a bank loan on these homes?",
+         "a": "Most of them, yes. Every listing has the papers banks ask for. We can introduce you to the loan desks we work with, but the choice of bank is yours."
+        },
+        {
+         "q": "Do you sell land outside the valley?",
+         "a": "No. We only list in the north and south of the valley, where we can visit every plot ourselves."
+        },
+        {
+         "q": "Who pays the registration fee?",
+         "a": "The buyer pays the government registration fee at the malpot office. Rates change with the budget; we give you the current figure before you sign."
+        },
+        {
+         "q": "Can I see the papers before a viewing?",
+         "a": "Yes. Ask and we send copies of the lalpurja, the trace map and the naksha on Viber or email."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "See a house this Saturday",
+       "text": "Tell us your budget and the area. We send what fits and book the viewings in one morning.",
+       "primary": {
+        "label": "Ask for a viewing",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "Call 01-4375810",
+        "href": "tel:014375810"
+       },
+       "image": {
+        "src": "lib:estate-lane",
+        "alt": "A quiet residential lane of Kathmandu houses",
+        "focal": [
+         50,
+         55
+        ]
+       }
+      }
+     }
+    ]
+   },
+   {
+    "id": "listings",
+    "slug": "listings",
+    "title": "For sale",
+    "nav": true,
+    "seoTitle": "Homes and land for sale in north Kathmandu · Nilkantha Homes",
+    "seoDescription": "Houses from Rs 2.10 crore, flats from Rs 1.65 crore and land from Rs 32 lakh per aana, each visited and checked in the last month.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Homes and land for sale",
+       "text": "Every listing here was visited by us in the last month, and its papers read. Prices are what the owner is asking.",
+       "primary": {
+        "label": "Ask for a viewing",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "Call 01-4375810",
+        "href": "tel:014375810"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "Updated every Sunday",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "grid",
+      "props": {
+       "heading": "Houses and flats",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:estate-house",
+          "alt": "A single-storey white house with a stone path and lawn",
+          "focal": [
+           50,
+           60
+          ]
+         },
+         "title": "Single-storey house, Narayanthan",
+         "tag": "House · Rs 3.25 crore",
+         "text": "6 aana, 3 bedrooms, 2 bathrooms, garden on two sides. 20 ft road. Built 2074, completion certificate issued.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:estate-townhouse",
+          "alt": "A three-storey white house with balconies",
+          "focal": [
+           50,
+           45
+          ]
+         },
+         "title": "Three-storey house, Bhaisepati",
+         "tag": "House · Rs 2.10 crore",
+         "text": "3.5 aana, 4 bedrooms, roof terrace, two-car parking. 20 ft road. Completion certificate 2078.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:estate-modern",
+          "alt": "A white modern house under a blue sky",
+          "focal": [
+           50,
+           40
+          ]
+         },
+         "title": "Modern house, Tokha",
+         "tag": "House · Rs 2.85 crore",
+         "text": "4 aana, 4 bedrooms, open kitchen, solar water. 25 ft road, ten minutes from the ring road.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:estate-bungalow",
+          "alt": "A housing-colony building with red roofs",
+          "focal": [
+           40,
+           40
+          ]
+         },
+         "title": "Three-bedroom flat, Dhapasi",
+         "tag": "Flat · Rs 1.65 crore",
+         "text": "1,450 sq ft, fourth floor, gated colony with a lift, backup power and one covered parking.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "Land",
+       "intro": "All with lalpurja, trace map and measured road access. Prices per aana unless written.",
+       "items": [
+        {
+         "title": "Budhanilkantha, near Narayanthan",
+         "text": "8 aana, flat, 20 ft road, electricity pole at the corner.",
+         "detail": "Rs 38 lakh per aana"
+        },
+        {
+         "title": "Tokha, Dhapasi side",
+         "text": "5 aana, south-facing, 20 ft road.",
+         "detail": "Rs 32 lakh per aana"
+        },
+        {
+         "title": "Bhaisepati, near the ring of colonies",
+         "text": "4 aana, rectangular, 25 ft road.",
+         "detail": "Rs 45 lakh per aana"
+        },
+        {
+         "title": "Chapali",
+         "text": "1 ropani, terraced, 13 ft road (widening approved to 20 ft).",
+         "detail": "Rs 4.2 crore, whole plot"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "image",
+      "variant": "full",
+      "props": {
+       "image": {
+        "src": "lib:estate-valley",
+        "alt": "Houses climbing a green hillside on the edge of Kathmandu",
+        "focal": [
+         50,
+         55
+        ]
+       },
+       "caption": "Looking north from Tokha towards Shivapuri. Most of our listings sit between here and the forest line."
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "About these listings",
+       "intro": "",
+       "items": [
+        {
+         "q": "Is the price negotiable?",
+         "a": "Usually a little. We pass every offer to the owner in writing and tell you their answer the same day."
+        },
+        {
+         "q": "What is an aana?",
+         "a": "A unit of land area used in the valley: about 342 square feet, or 31.8 square metres. Sixteen aana make one ropani."
+        },
+        {
+         "q": "Why is the Chapali road only 13 ft?",
+         "a": "The municipality has approved widening it to 20 ft, and the plot already leaves room for it. We show you the ward letter at the viewing."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Not here yet?",
+       "text": "Tell us the area, the size and the budget. We call when something fits, before it is listed.",
+       "primary": {
+        "label": "Tell us what you want",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "buying",
+    "slug": "buying",
+    "title": "Buying",
+    "nav": true,
+    "seoTitle": "Buying a home in Kathmandu, step by step · Nilkantha Homes",
+    "seoDescription": "How buying a house or land works, the papers you should see, and how we help at the malpot office. Free for buyers.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Buying a home with us",
+       "text": "Free for buyers. We show you the papers first, go with you to every visit, and stand beside you at the malpot office.",
+       "primary": {
+        "label": "Ask for a viewing",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:estate-keys",
+        "alt": "A hand holding up house keys in an open doorway",
+        "focal": [
+         40,
+         45
+        ]
+       },
+       "eyebrow": "No fee is ever asked of a buyer",
+       "video": ""
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "The steps",
+       "intro": "",
+       "items": [
+        {
+         "title": "Tell us what you want",
+         "text": "Area, size, road, budget, and whether you need a bank loan.",
+         "detail": "Day 1"
+        },
+        {
+         "title": "See the papers",
+         "text": "Copies of the lalpurja, trace map and naksha for every home you like, before you visit.",
+         "detail": "Days 2 to 5"
+        },
+        {
+         "title": "Visit",
+         "text": "We book viewings together, usually on a Saturday morning.",
+         "detail": "Week 1 or 2"
+        },
+        {
+         "title": "Agree and pay the advance",
+         "text": "A written agreement with the price, advance and transfer date.",
+         "detail": "Week 3"
+        },
+        {
+         "title": "Transfer",
+         "text": "At the malpot office, with both sides and their witnesses. The keys change hands the same day.",
+         "detail": "Weeks 4 to 8"
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "Papers you will see",
+       "intro": "Ask for any of these at any time.",
+       "items": [
+        {
+         "title": "Lalpurja",
+         "text": "The land ownership certificate, in the seller’s name.",
+         "detail": ""
+        },
+        {
+         "title": "Trace map",
+         "text": "The plot on the cadastral map, with its number and neighbours.",
+         "detail": ""
+        },
+        {
+         "title": "Naksha pass and completion",
+         "text": "The approved plan and the certificate that the house matches it.",
+         "detail": ""
+        },
+        {
+         "title": "Tax receipts",
+         "text": "Land and house tax, paid to this fiscal year.",
+         "detail": ""
+        },
+        {
+         "title": "Char killa",
+         "text": "A ward letter confirming the four boundaries and the road.",
+         "detail": ""
+        },
+        {
+         "title": "Bank clearance",
+         "text": "If the property was ever mortgaged, the letter that it is free.",
+         "detail": ""
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Buyer questions",
+       "intro": "",
+       "items": [
+        {
+         "q": "I live abroad. Can I still buy?",
+         "a": "Yes, through a family member with a power of attorney (akhtiyarnama) registered in Nepal. We walk them through each step and send you photos and papers at every stage."
+        },
+        {
+         "q": "How much advance is usual?",
+         "a": "Ten to twenty per cent at the agreement, the rest at transfer. It is written into the agreement, with what happens to it if either side pulls out."
+        },
+        {
+         "q": "Do you help with the loan?",
+         "a": "We give the bank the papers it needs and introduce you to loan officers, but we take no commission from banks."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Start with a list",
+       "text": "Tell us the area and the budget. We send what fits this week.",
+       "primary": {
+        "label": "Ask for a viewing",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "Call 01-4375810",
+        "href": "tel:014375810"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "selling",
+    "slug": "selling",
+    "title": "Selling",
+    "nav": true,
+    "seoTitle": "Sell your home or land · Nilkantha Homes, Budhanilkantha",
+    "seoDescription": "Two per cent, paid only when it sells. Papers checked, good photographs and buyers with real budgets. Written valuations Rs 15,000.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "Selling your home or land",
+       "text": "Two per cent, paid only when it sells. We check your papers first, photograph it well and show it only to buyers with a real budget.",
+       "primary": {
+        "label": "Ask for a visit",
+        "href": "#contact"
+       },
+       "secondary": {
+        "label": "What we charge",
+        "href": "#pricing"
+       },
+       "image": {
+        "src": "lib:estate-sunroom",
+        "alt": "A sunny living room with a sofa and a balcony door onto the city",
+        "focal": [
+         45,
+         50
+        ]
+       },
+       "eyebrow": "We visit within three days",
+       "video": ""
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "What we do for a seller",
+       "body": "<p>Suman visits, reads your papers and walks the road. If something is missing, a tax receipt or a completion certificate, we tell you how to get it and how long it takes.</p><p>Then we photograph the house on a clear morning, write a plain listing with the real size and road width, and send it to buyers already on our list before it goes on the website.</p><ul><li>No photos or listing until the papers are checked</li><li>Every offer passed to you in writing</li><li>We go with you to the malpot office</li></ul>"
+      }
+     },
+     {
+      "type": "pricing",
       "variant": "columns",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "A three-person dealership registered with the Land Revenue Office, Lalitpur. We tell you what is wrong with a plot before we tell you what is right with it."
-      }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Bagmati Homes and Land, Kupondole: houses, flats and land in Lalitpur",
-        "seoDescription": "Property dealers in Kupondole, Lalitpur. Houses and flats for sale, plots in Bhaisepati and Harisiddhi, and honest paperwork help.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "image",
-            "props": {
-              "eyebrow": "Kupondole, Lalitpur · Registered dealer",
-              "title": "A home you can walk to school from",
-              "text": "Flats in Jawalakhel and Kupondole, houses in Bhaisepati, and plots in Harisiddhi and Godawari. Every listing has been visited by one of us.",
-              "primary": {
-                "label": "See current listings",
-                "href": "page:listings"
-              },
-              "secondary": {
-                "label": "Ask for a viewing",
-                "href": "page:viewing"
-              },
-              "image": {
-                "src": "lib:home-modern",
-                "alt": "A modern house with tall glass doors and a garden",
-                "focal": [
-                  50,
-                  50
-                ]
-              }
-            }
-          },
-          {
-            "type": "richtext",
-            "variant": "split",
-            "props": {
-              "heading": "What we check before we list",
-              "body": "<ul><li>Lalpurja in the seller's name, and no loan pledged against it</li><li>Road width on the ground, not only on the map</li><li>Whether the plot sits on the mapped fault or river buffer</li><li>Completion certificate, for any house built after 2072</li></ul><p>If a property fails, we do not list it.</p>"
-            }
-          },
-          {
-            "type": "features",
-            "variant": "rows",
-            "props": {
-              "heading": "How we can help",
-              "items": [
-                {
-                  "title": "Buying a house or flat",
-                  "text": "We take you to at most three properties that fit your budget, then negotiate.",
-                  "detail": "1% commission"
-                },
-                {
-                  "title": "Buying land",
-                  "text": "Site visit with an amin, boundary check, and the Malpot office paperwork.",
-                  "detail": "1% commission"
-                },
-                {
-                  "title": "Renting out",
-                  "text": "Tenants found, agreement drawn up, and rent collected if you live abroad.",
-                  "detail": "One month's rent"
-                },
-                {
-                  "title": "Valuation",
-                  "text": "A written note on what a property will fetch, for a loan or for a family settlement.",
-                  "detail": "Rs 5,000"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "imagetext",
-            "variant": "right",
-            "props": {
-              "image": {
-                "src": "lib:home-living",
-                "alt": "A bright living room with a sofa, coffee table and large windows"
-              },
-              "eyebrow": "Our rule",
-              "heading": "You will never hear \"the owner is abroad, decide today\"",
-              "body": "<p>Registration in Nepal is not a fast decision. We give you the seller's documents to read at home, and we are happy for your lawyer to see them first.</p>",
-              "link": {
-                "label": "",
-                "href": ""
-              }
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "band",
-            "props": {
-              "title": "Tell us your budget and the ward you like",
-              "text": "We will send three listings on Viber within two days.",
-              "primary": {
-                "label": "Ask for a viewing",
-                "href": "page:viewing"
-              },
-              "secondary": {
-                "label": "Call 01-5541126",
-                "href": "tel:015541126"
-              }
-            },
-            "style": {
-              "bg": "ink"
-            }
-          }
-        ]
+       "heading": "What it costs",
+       "intro": "Written into the agreement before we list.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Sale",
+         "price": "2%",
+         "period": "of the sale price",
+         "note": "Paid on the day of transfer. Nothing if it does not sell.",
+         "features": "Papers checked\nPhotographs and listing\nViewings and offers\nHelp at the malpot office",
+         "cta": {
+          "label": "Ask for a visit",
+          "href": "#contact"
+         },
+         "featured": true
+        },
+        {
+         "name": "Valuation only",
+         "price": "15000",
+         "period": "report",
+         "note": "A written valuation for a bank or a family division.",
+         "features": "Site visit\nComparable sales nearby\nReport in a week",
+         "cta": {
+          "label": "Ask for a visit",
+          "href": "#contact"
+         },
+         "featured": false
+        }
+       ]
       },
-      {
-        "id": "listings",
-        "title": "Listings",
-        "nav": true,
-        "seoTitle": "Properties for sale in Lalitpur and Bhaisepati, Bagmati Homes and Land",
-        "seoDescription": "Current listings: 3-storey house in Bhaisepati Rs 4.2 crore, flat in Jawalakhel Rs 1.65 crore, 6 aana plot in Harisiddhi Rs 2.4 crore.",
-        "blocks": [
-          {
-            "type": "features",
-            "variant": "rows",
-            "props": {
-              "heading": "Current listings",
-              "intro": "Prices are asking prices. Ask for the seller's documents before you visit.",
-              "items": [
-                {
-                  "title": "Three-storey house, Bhaisepati",
-                  "text": "5 aana plot, 2,100 sq ft built up, 4 bedrooms, parking for two cars, 16 ft road. Built 2076.",
-                  "detail": "Rs 4.2 crore"
-                },
-                {
-                  "title": "Third-floor flat, Jawalakhel",
-                  "text": "3 bedrooms, 1,320 sq ft, lift, backup power, 10 minutes to Patan Dhoka on foot.",
-                  "detail": "Rs 1.65 crore"
-                },
-                {
-                  "title": "Plot with road on two sides, Harisiddhi",
-                  "text": "6 aana, corner, 20 ft road, drinking water line already at the gate.",
-                  "detail": "Rs 2.4 crore"
-                },
-                {
-                  "title": "Small house on 3 aana, Nakhipot",
-                  "text": "Old two-storey, sound structure, ideal for rebuild. Clear lalpurja, no loan.",
-                  "detail": "Rs 1.9 crore"
-                },
-                {
-                  "title": "Ground floor to rent, Kupondole",
-                  "text": "2 bedrooms, kitchen, separate meter and water. Suits a small family or an office.",
-                  "detail": "Rs 42,000 a month"
-                }
-              ]
-            }
-          },
-          {
-            "type": "gallery",
-            "variant": "grid",
-            "props": {
-              "heading": "From the current listings",
-              "intro": "",
-              "images": [
-                {
-                  "image": {
-                    "src": "lib:home-garden",
-                    "alt": "A two-storey house with a timber and stone facade and a lawn"
-                  },
-                  "caption": "Bhaisepati, three storeys"
-                },
-                {
-                  "image": {
-                    "src": "lib:home-living",
-                    "alt": "A furnished living room in a flat"
-                  },
-                  "caption": "Jawalakhel, third floor"
-                },
-                {
-                  "image": {
-                    "src": "lib:home-modern",
-                    "alt": "A modern house with a glass entrance"
-                  },
-                  "caption": "Harisiddhi, plot with new build"
-                }
-              ]
-            }
-          },
-          {
-            "type": "richtext",
-            "variant": "narrow",
-            "props": {
-              "heading": "How a purchase works",
-              "body": "<p>We visit together, you choose, and we agree the price in writing. Both sides then sign an <em>ekhin</em>, an advance agreement, with a token of about 5 percent. The seller clears tax at the Malpot office, and you register the sale and pay the transfer tax on the same day.</p><p>Most purchases finish in three to five weeks.</p>"
-            },
-            "style": {
-              "bg": "surface"
-            }
-          }
-        ]
-      },
-      {
-        "id": "viewing",
-        "title": "Viewing",
-        "nav": true,
-        "seoTitle": "Ask for a viewing with Bagmati Homes and Land, Kupondole",
-        "seoDescription": "Request a viewing of a house, flat or plot in Lalitpur. We call you the same day.",
-        "blocks": [
-          {
-            "type": "booking",
-            "variant": "split",
-            "props": {
-              "heading": "Ask for a viewing",
-              "text": "Tell us which listing, or what you are looking for. We reply the same day and fix a time that suits you, including weekends.",
-              "services": "Three-storey house, Bhaisepati\nFlat, Jawalakhel\nPlot, Harisiddhi\nHouse, Nakhipot\nGround floor to rent, Kupondole\nI am looking for something else",
-              "askTime": true,
-              "button": "Ask for a viewing",
-              "success": "Thank you. One of us will call you today or tomorrow morning."
-            }
-          },
-          {
-            "type": "map",
-            "variant": "split",
-            "props": {
-              "heading": "Our office",
-              "address": "Kupondole Height, Lalitpur, opposite the Himalayan Bank branch",
-              "query": "Kupondole Height, Lalitpur",
-              "link": ""
-            }
-          }
-        ]
+      "style": {
+       "bg": "surface"
       }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "Selling in four steps",
+       "intro": "",
+       "items": [
+        {
+         "title": "Visit",
+         "text": "We see the property and the papers.",
+         "detail": "Within 3 days"
+        },
+        {
+         "title": "List",
+         "text": "Photos, a plain listing and a price we agree on.",
+         "detail": "Week 1"
+        },
+        {
+         "title": "Viewings",
+         "text": "We show it; you do not need to be there.",
+         "detail": "Weeks 2 to 6"
+        },
+        {
+         "title": "Transfer",
+         "text": "Agreement, advance, and the malpot office.",
+         "detail": "When it sells"
+        }
+       ]
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "split",
+      "props": {
+       "heading": "Ask for a visit",
+       "text": "Tell us where the property is and what it is. Suman will call to fix a time.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Ask for a visit",
+       "success": "Thank you. Suman will call you within a day."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "contact",
+    "slug": "contact",
+    "title": "Viewings",
+    "nav": true,
+    "seoTitle": "Ask for a viewing · Nilkantha Homes, Budhanilkantha",
+    "seoDescription": "Book viewings of houses, flats and land in north Kathmandu. Office at Narayanthan Chowk, open Sunday to Friday 9:30 to 18:00.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Ask for a viewing",
+       "text": "Pick the homes you want to see and a day. We confirm by phone and meet you at the gate.",
+       "primary": {
+        "label": "Call 01-4375810",
+        "href": "tel:014375810"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "Viewings most days, and Saturday mornings",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Your viewing",
+       "text": "We usually group two or three viewings in one morning. Tell us which you want to see.",
+       "services": "Single-storey house, Narayanthan\nThree-storey house, Bhaisepati\nModern house, Tokha\nThree-bedroom flat, Dhapasi\nLand\nSomething not listed yet",
+       "askTime": true,
+       "button": "Ask for the viewing",
+       "success": "Thank you. We will call you today to confirm."
+      }
+     },
+     {
+      "type": "map",
+      "variant": "location",
+      "props": {
+       "heading": "The office in Narayanthan",
+       "address": "Ground floor, Narayanthan Chowk, Budhanilkantha, Kathmandu 44600",
+       "hours": "Sunday to Friday, 9:30 to 18:00\nSaturday, viewings only, by appointment",
+       "phone": "",
+       "note": "Beside the Narayanthan temple gate. Park in front of the office.",
+       "query": "Narayanthan, Budhanilkantha, Kathmandu",
+       "link": ""
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "split",
+      "props": {
+       "heading": "When to find us",
+       "note": "Saturday is for viewings. Call ahead and we will meet you at the property.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "09:30 – 18:00"
+        },
+        {
+         "day": "Monday",
+         "hours": "09:30 – 18:00"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "09:30 – 18:00"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "09:30 – 18:00"
+        },
+        {
+         "day": "Thursday",
+         "hours": "09:30 – 18:00"
+        },
+        {
+         "day": "Friday",
+         "hours": "09:30 – 18:00"
+        },
+        {
+         "day": "Saturday",
+         "hours": "Viewings by appointment"
+        }
+       ]
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "stacked",
+      "props": {
+       "heading": "Or write to us",
+       "text": "A question about a listing, a plot or your papers.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send message",
+       "success": "Thank you. We will reply today."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

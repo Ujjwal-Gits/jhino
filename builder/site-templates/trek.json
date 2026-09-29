@@ -1,349 +1,1126 @@
 {
-  "id": "trek",
-  "name": "Sherpa Trail Nepal",
-  "category": "Travel and trekking",
-  "description": "A trekking agency site: three treks with days, cost and season, how a trip is arranged, and an enquiry form.",
-  "site": {
-    "name": "Sherpa Trail Nepal",
-    "theme": {
-      "preset": "meridian",
-      "display": "gloock",
-      "body": "bricolage",
-      "colors": {
-        "bg": "#eef2f2",
-        "surface": "#dde6e7",
-        "text": "#0d2a36",
-        "muted": "#4a6068",
-        "accent": "#b8400f",
-        "onAccent": "#ffffff",
-        "line": "#c5d3d5"
-      },
-      "radius": 6,
-      "button": "solid",
-      "rhythm": "even"
+ "id": "trek",
+ "name": "Lekh Trails",
+ "category": "Travel and trekking",
+ "description": "A bold, photo-heavy site for a trekking company: treks with days and prices, a day-by-day itinerary, guides and safety, departures and a booking form.",
+ "site": {
+  "name": "Lekh Trails",
+  "theme": {
+   "preset": "summit"
+  },
+  "settings": {
+   "tagline": "Small-group treks to Everest, Gokyo and Langtang, from Thamel",
+   "lang": "en",
+   "phone": "01-4701386",
+   "email": "trek@lekhtrails.com.np",
+   "address": "Chaksibari Marg, Thamel, Kathmandu 44600",
+   "social": [
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/lekhtrails"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
-        {
-          "network": "instagram",
-          "url": "https://www.instagram.com/sherpatrailnepal"
-        },
-        {
-          "network": "facebook",
-          "url": "https://www.facebook.com/sherpatrailnepal"
-        },
-        {
-          "network": "whatsapp",
-          "url": "https://wa.me/9779801889900"
-        }
-      ],
-      "tagline": "Small-group treks in Langtang, Annapurna and Mustang",
-      "phone": "980-1889900",
-      "email": "trips@sherpatrail.com.np",
-      "address": "Thamel Marg, Kathmandu 44600, above Himalayan Java"
+    {
+     "network": "whatsapp",
+     "url": "https://wa.me/9779851047720"
     },
-    "header": {
-      "type": "header",
-      "variant": "bar",
+    {
+     "network": "youtube",
+     "url": "https://www.youtube.com/@lekhtrails"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Plan a trek",
+     "href": "page:plan"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Walk slowly. Drink water. Look up.",
+    "cta": {
+     "label": "Plan a trek",
+     "href": "page:plan"
+    },
+    "about": "A trekking company owned by Sherpa and Tamang guides, registered with the Department of Tourism. In Thamel since 2071.",
+    "hours": "Office, Sunday to Friday\n9:30 to 18:00\nWhatsApp answered daily",
+    "note": "Prices in US dollars. Nepali and SAARC citizens, ask for local rates.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Lekh Trails: small-group treks to Everest, Gokyo and Langtang",
+    "seoDescription": "Everest Base Camp, Gokyo Lakes, Three Passes and Langtang, with licensed Sherpa and Tamang guides. Groups of up to eight, from US$ 790. Office in Thamel.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "image",
       "props": {
-        "cta": {
-          "label": "Plan a trek",
-          "href": "page:plan"
-        },
-        "sticky": true
+       "title": "Walk to Everest with guides who grew up below it",
+       "text": "Small groups, slow days and teahouses we have stayed in for twenty years. Our guides are from Khumjung, Phortse and Langtang, and they will still be guiding when you come back.",
+       "primary": {
+        "label": "See the treks",
+        "href": "page:treks"
+       },
+       "secondary": {
+        "label": "Plan a trek",
+        "href": "page:plan"
+       },
+       "image": {
+        "src": "lib:trek-amadablam",
+        "alt": "Trekkers on the valley trail below Ama Dablam",
+        "focal": [
+         50,
+         45
+        ]
+       },
+       "eyebrow": "Groups of up to eight · Autumn and spring departures · Office in Thamel",
+       "video": ""
       }
-    },
-    "footer": {
-      "type": "footer",
+     },
+     {
+      "type": "marquee",
+      "variant": "large",
+      "props": {
+       "items": [
+        {
+         "text": "Everest Base Camp"
+        },
+        {
+         "text": "Gokyo Lakes"
+        },
+        {
+         "text": "Three Passes"
+        },
+        {
+         "text": "Langtang Valley"
+        }
+       ]
+      },
+      "style": {
+       "bg": "accent",
+       "space": "s"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "grid",
+      "props": {
+       "heading": "Four treks we know step by step",
+       "intro": "We only run routes our guides have walked more than fifty times. Prices include flights to Lukla where needed, permits, guide, porter, rooms and all meals on the trail.",
+       "items": [
+        {
+         "image": {
+          "src": "lib:trek-ebc",
+          "alt": "The Everest Base Camp rock with prayer flags and the Khumbu icefall behind"
+         },
+         "title": "Everest Base Camp",
+         "tag": "14 days · from US$ 1,590",
+         "text": "Lukla, Namche, Tengboche and Kala Patthar at dawn. Two acclimatisation days, never rushed.",
+         "link": {
+          "label": "Day by day",
+          "href": "page:ebc"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:trek-gokyo",
+          "alt": "The turquoise Gokyo lakes beside the Ngozumpa glacier"
+         },
+         "title": "Gokyo Lakes",
+         "tag": "13 days · from US$ 1,490",
+         "text": "Quieter than Base Camp, with five turquoise lakes and a view of four 8,000-metre peaks from Gokyo Ri.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:trek-glacier",
+          "alt": "A group of trekkers crossing glacier moraine"
+         },
+         "title": "Three Passes",
+         "tag": "19 days · from US$ 2,150",
+         "text": "Kongma La, Cho La and Renjo La in one loop. For fit walkers with a trek or two behind them.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:trek-langtang",
+          "alt": "Kyanjin Gompa’s lodges in the Langtang valley under snow peaks"
+         },
+         "title": "Langtang Valley",
+         "tag": "9 days · from US$ 790",
+         "text": "A jeep ride from Kathmandu, then yak pastures, cheese factories and Kyanjin Ri. No flights to cancel.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "Compare all treks",
+        "href": "page:treks"
+       }
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "image",
+      "props": {
+       "quote": "My father carried loads to Base Camp for thirty years and never once was asked his name. Every porter who walks with us is paid first, insured, and introduced on day one.",
+       "name": "Pasang Nuru Sherpa",
+       "detail": "Founder and guide, from Khumjung",
+       "image": {
+        "src": "lib:trek-porter",
+        "alt": "A porter carrying a load over rocks below a snow face",
+        "focal": [
+         35,
+         55
+        ]
+       }
+      },
+      "style": {
+       "bg": "ink"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "In every trek",
+       "intro": "One price, agreed before you fly. No surprise fees in Namche.",
+       "items": [
+        {
+         "title": "A licensed guide",
+         "text": "Trained in first aid and altitude sickness, with at least eight seasons on the route.",
+         "detail": "One per group"
+        },
+        {
+         "title": "Porters, paid properly",
+         "text": "One porter for every two trekkers, carrying no more than 20 kilos, with boots, a jacket and insurance.",
+         "detail": "One per two guests"
+        },
+        {
+         "title": "Rooms and three meals",
+         "text": "Teahouse rooms with two beds, and whatever you want from the menu at breakfast, lunch and dinner.",
+         "detail": "Every night"
+        },
+        {
+         "title": "Flights and permits",
+         "text": "Kathmandu to Lukla and back, the national park fee and the local area permit.",
+         "detail": "Booked for you"
+        },
+        {
+         "title": "Twice-daily checks",
+         "text": "Pulse and blood oxygen every morning and evening above 3,500 metres, written in a log.",
+         "detail": "Above Namche"
+        },
+        {
+         "title": "A plan for bad days",
+         "text": "Spare days built in, and a helicopter evacuation arranged through your travel insurance.",
+         "detail": "Always"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "left",
+      "props": {
+       "heading": "A day on the trail",
+       "intro": "Most days are five to six hours of walking, with long stops.",
+       "image": {
+        "src": "lib:trek-rest",
+        "alt": "Trekkers resting on rocks facing Ama Dablam"
+       },
+       "items": [
+        {
+         "label": "6:30",
+         "title": "Tea at your door",
+         "text": "Your guide knocks with a cup of tea and asks how you slept. Porters are already packing."
+        },
+        {
+         "label": "7:30",
+         "title": "Walk in the cold, clear morning",
+         "text": "The best light and the best views are before ten. We walk at the pace of the slowest person, and nobody minds."
+        },
+        {
+         "label": "12:00",
+         "title": "Lunch at a teahouse",
+         "text": "Dal bhat, Sherpa stew or noodle soup. An hour to eat, sit in the sun and refill bottles."
+        },
+        {
+         "label": "15:00",
+         "title": "Arrive, rest, walk high",
+         "text": "On acclimatisation days we climb 300 metres after lunch and sleep low. Dinner by the yak-dung stove at six."
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "masonry",
+      "props": {
+       "heading": "Last season, from the trail",
+       "intro": "Photographs from our guides’ phones and our guests’ cameras.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:trek-bridge",
+          "alt": "A suspension bridge hung with prayer flags over a forested gorge"
+         },
+         "caption": "Hillary bridge, day 2"
+        },
+        {
+         "image": {
+          "src": "lib:trek-namche",
+          "alt": "Namche Bazaar’s houses on a hillside under snow peaks"
+         },
+         "caption": "Namche Bazaar"
+        },
+        {
+         "image": {
+          "src": "lib:trek-porter-bridge",
+          "alt": "A porter crossing a steel suspension bridge with a heavy load"
+         },
+         "caption": "Below Phakding"
+        },
+        {
+         "image": {
+          "src": "lib:trek-tengboche",
+          "alt": "The painted gate of Tengboche monastery with peaks behind"
+         },
+         "caption": "Tengboche"
+        },
+        {
+         "image": {
+          "src": "lib:trek-yak",
+          "alt": "A yak grazing beside a frozen lake below the peaks"
+         },
+         "caption": "Gokyo, Mangsir"
+        },
+        {
+         "image": {
+          "src": "lib:trek-maniwall",
+          "alt": "A trekker walking beside a mani wall in a green valley"
+         },
+         "caption": "Langtang, walking the mani wall"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "horizontal",
+      "props": {
+       "heading": "Autumn 2026 group departures",
+       "items": [
+        {
+         "date": "11 October",
+         "title": "Langtang Valley",
+         "text": "9 days. Four places left."
+        },
+        {
+         "date": "18 October",
+         "title": "Everest Base Camp",
+         "text": "14 days. Two places left."
+        },
+        {
+         "date": "25 October",
+         "title": "Gokyo Lakes",
+         "text": "13 days. Open."
+        },
+        {
+         "date": "1 November",
+         "title": "Three Passes",
+         "text": "19 days. Open."
+        },
+        {
+         "date": "15 November",
+         "title": "Everest Base Camp",
+         "text": "14 days. Open."
+        }
+       ]
+      }
+     },
+     {
+      "type": "steps",
       "variant": "columns",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "Registered with the Nepal Tourism Board and TAAN. Our guides are licensed, first-aid trained, and are paid and insured whatever the weather does."
-      }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Sherpa Trail Nepal, Thamel: small-group treks in Langtang, Annapurna, Mustang",
-        "seoDescription": "Licensed trekking agency in Thamel. Langtang 8 days from USD 780, Annapurna Base Camp 11 days, Upper Mustang. Groups of six or fewer.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "image",
-            "props": {
-              "eyebrow": "Thamel, Kathmandu · Licensed and insured",
-              "title": "Six people, one guide, one porter for every two",
-              "text": "Trips run by guides who grew up on the trails they lead. We keep groups to six so the teahouse is not full before you get there.",
-              "primary": {
-                "label": "See the treks",
-                "href": "page:treks"
-              },
-              "secondary": {
-                "label": "Plan a trek",
-                "href": "page:plan"
-              },
-              "image": {
-                "src": "lib:himal-trek",
-                "alt": "A trekker looking at snow peaks",
-                "focal": [
-                  50,
-                  35
-                ]
-              }
-            }
-          },
-          {
-            "type": "features",
-            "variant": "rows",
-            "props": {
-              "heading": "Three treks we run most",
-              "items": [
-                {
-                  "title": "Langtang Valley",
-                  "text": "Syabrubesi to Kyanjin Gompa and back, through rebuilt villages and rhododendron forest.",
-                  "detail": "8 days · USD 780"
-                },
-                {
-                  "title": "Annapurna Base Camp",
-                  "text": "From Pokhara via Ghandruk and Chomrong, with a sunrise at the sanctuary.",
-                  "detail": "11 days · USD 1,050"
-                },
-                {
-                  "title": "Upper Mustang",
-                  "text": "Kagbeni to Lo Manthang. A restricted-area permit is arranged for you.",
-                  "detail": "14 days · USD 2,950"
-                }
-              ]
-            }
-          },
-          {
-            "type": "imagetext",
-            "variant": "right",
-            "props": {
-              "image": {
-                "src": "lib:ridge-photographer",
-                "alt": "A person on a rocky ridge above the clouds"
-              },
-              "eyebrow": "On the trail",
-              "heading": "You will always know how high you are and how you are doing",
-              "body": "<p>Guides check oxygen saturation every evening above 3,000 metres, and every group carries a Gamow bag and a satellite phone. Turning back is always the guide's call, and never costs you extra.</p>",
-              "link": {
-                "label": "",
-                "href": ""
-              }
-            }
-          },
-          {
-            "type": "gallery",
-            "variant": "carousel",
-            "props": {
-              "heading": "From recent trips",
-              "intro": "",
-              "images": [
-                {
-                  "image": {
-                    "src": "lib:night-peaks",
-                    "alt": "Snow peaks under a starry sky"
-                  },
-                  "caption": "Kyanjin Ri, before dawn"
-                },
-                {
-                  "image": {
-                    "src": "lib:swayambhu",
-                    "alt": "Swayambhu stupa with prayer flags"
-                  },
-                  "caption": "Day one, Kathmandu"
-                },
-                {
-                  "image": {
-                    "src": "lib:boudha",
-                    "alt": "Boudhanath stupa from above"
-                  },
-                  "caption": "The evening before the flight"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "band",
-            "props": {
-              "title": "Best months are Kartik, Mangsir and Chaitra",
-              "text": "Groups fill six weeks ahead in October and November.",
-              "primary": {
-                "label": "Plan a trek",
-                "href": "page:plan"
-              },
-              "secondary": {
-                "label": "WhatsApp us",
-                "href": "https://wa.me/9779801889900"
-              }
-            },
-            "style": {
-              "bg": "ink"
-            }
-          }
-        ]
+       "heading": "From first message to Lukla",
+       "intro": "",
+       "items": [
+        {
+         "title": "Tell us your dates",
+         "text": "And how much walking you have done. We reply within a day with an honest suggestion.",
+         "detail": "Day 1"
+        },
+        {
+         "title": "Hold your place",
+         "text": "A 20% deposit by card or bank transfer. We book flights and permits.",
+         "detail": "Within a week"
+        },
+        {
+         "title": "Meet in Thamel",
+         "text": "A briefing and a gear check at our office, the afternoon before you fly.",
+         "detail": "Day before"
+        },
+        {
+         "title": "Fly to Lukla",
+         "text": "Your guide meets you at the hotel at 5:30 with your boarding passes.",
+         "detail": "Day 1 of the trek"
+        }
+       ]
       },
-      {
-        "id": "treks",
-        "title": "Treks",
-        "nav": true,
-        "seoTitle": "Trek itineraries and prices: Langtang, Annapurna, Mustang with Sherpa Trail",
-        "seoDescription": "Langtang 8 days USD 780, Annapurna Base Camp 11 days USD 1,050, Upper Mustang 14 days USD 2,950. What is included and when to go.",
-        "blocks": [
-          {
-            "type": "pricing",
-            "variant": "table",
-            "props": {
-              "heading": "Treks and prices",
-              "intro": "Per person, sharing a room, in a group of four to six. Prices include permits, guide, porter, teahouse rooms and three meals a day. International flights and insurance are not included.",
-              "currency": "USD",
-              "plans": [
-                {
-                  "name": "Langtang Valley",
-                  "price": "780",
-                  "period": "8 days",
-                  "note": "Best: Kartik, Mangsir, Chaitra",
-                  "features": "Bus from Kathmandu to Syabrubesi\nTIMS and national park permit\nLicensed guide and porter",
-                  "cta": {
-                    "label": "Plan this trek",
-                    "href": "page:plan"
-                  },
-                  "featured": false
-                },
-                {
-                  "name": "Annapurna Base Camp",
-                  "price": "1050",
-                  "period": "11 days",
-                  "note": "Best: Kartik, Chaitra, Baisakh",
-                  "features": "Tourist bus to Pokhara\nACAP and TIMS permits\nLicensed guide and porter",
-                  "cta": {
-                    "label": "Plan this trek",
-                    "href": "page:plan"
-                  },
-                  "featured": true
-                },
-                {
-                  "name": "Upper Mustang",
-                  "price": "2950",
-                  "period": "14 days",
-                  "note": "Best: Jestha to Bhadau, in the rain shadow",
-                  "features": "Restricted-area permit (USD 500 for 10 days)\nFlight Pokhara to Jomsom\nLicensed guide and porter",
-                  "cta": {
-                    "label": "Plan this trek",
-                    "href": "page:plan"
-                  },
-                  "featured": false
-                }
-              ]
-            }
-          },
-          {
-            "type": "timeline",
-            "variant": "vertical",
-            "props": {
-              "heading": "Langtang Valley, day by day",
-              "items": [
-                {
-                  "date": "Day 1",
-                  "title": "Kathmandu to Syabrubesi",
-                  "text": "Seven-hour bus ride. Night in a teahouse."
-                },
-                {
-                  "date": "Day 2",
-                  "title": "To Lama Hotel",
-                  "text": "Six hours through oak and rhododendron forest."
-                },
-                {
-                  "date": "Day 3",
-                  "title": "To Langtang village",
-                  "text": "Rebuilt after the 2015 earthquake. Yak cheese for lunch."
-                },
-                {
-                  "date": "Day 4",
-                  "title": "Kyanjin Gompa",
-                  "text": "A short day to help you acclimatise."
-                },
-                {
-                  "date": "Day 5",
-                  "title": "Kyanjin Ri or rest",
-                  "text": "The 4,773 metre viewpoint, if you feel well."
-                },
-                {
-                  "date": "Day 6 to 8",
-                  "title": "Back to Syabrubesi, then Kathmandu",
-                  "text": "Downhill in two days and a bus on the third."
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "faq",
-            "variant": "split",
-            "props": {
-              "heading": "What people ask",
-              "items": [
-                {
-                  "q": "Do I need to be very fit?",
-                  "a": "For Langtang, no. If you can walk six hours on hilly ground with a small pack, you are ready."
-                },
-                {
-                  "q": "What about altitude sickness?",
-                  "a": "We build in rest days, and your guide watches every person. If you are unwell, we descend."
-                },
-                {
-                  "q": "How do I pay?",
-                  "a": "A 30 percent deposit by bank transfer or card, the rest in Kathmandu before you leave."
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        "id": "plan",
-        "title": "Plan a trek",
-        "nav": true,
-        "seoTitle": "Plan a trek with Sherpa Trail Nepal, Thamel",
-        "seoDescription": "Tell us the trek, dates and group size. We reply within a day with the exact price and a suggested itinerary.",
-        "blocks": [
-          {
-            "type": "booking",
-            "variant": "split",
-            "props": {
-              "heading": "Plan a trek",
-              "text": "Tell us which trek, roughly when, and how many of you. Any dietary needs or health conditions, mention them in the notes.",
-              "services": "Langtang Valley, 8 days\nAnnapurna Base Camp, 11 days\nUpper Mustang, 14 days\nSomething shorter\nI would like your advice",
-              "askTime": false,
-              "button": "Send trek request",
-              "success": "Thank you. We will reply within a day with a price and itinerary."
-            }
-          },
-          {
-            "type": "map",
-            "variant": "card",
-            "props": {
-              "heading": "Come and see us",
-              "address": "Thamel Marg, above Himalayan Java, Kathmandu",
-              "query": "Himalayan Java, Thamel, Kathmandu",
-              "link": ""
-            }
-          }
-        ]
+      "style": {
+       "bg": "surface"
       }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Questions we get every week",
+       "intro": "",
+       "items": [
+        {
+         "q": "How fit do I need to be?",
+         "a": "If you can walk six hours with a light pack on two days in a row, you can do Base Camp or Langtang. Three Passes needs more: steep, icy ground and long days."
+        },
+        {
+         "q": "What if the Lukla flight is cancelled?",
+         "a": "It happens in cloud. Every Everest trek has one spare day. If we lose more, we move you by helicopter, shared with others, at cost, or rearrange the trek."
+        },
+        {
+         "q": "Do I need travel insurance?",
+         "a": "Yes, one that covers trekking to 5,600 metres and helicopter evacuation. We check it at the briefing."
+        },
+        {
+         "q": "Can we go privately, just the two of us?",
+         "a": "Yes, on any date. A private trek costs about 15% more than a group place."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "Everest in October, or Langtang in April?",
+       "text": "Tell us when you can travel and how much walking you have done. Pasang answers every first message himself.",
+       "primary": {
+        "label": "Plan a trek",
+        "href": "page:plan"
+       },
+       "secondary": {
+        "label": "WhatsApp us",
+        "href": "https://wa.me/9779851047720",
+        "newTab": true
+       },
+       "image": {
+        "src": "lib:trek-everest",
+        "alt": "A stupa and prayer flags on a ridge below Everest and Lhotse",
+        "focal": [
+         60,
+         40
+        ]
+       }
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "treks",
+    "slug": "treks",
+    "title": "Treks",
+    "nav": true,
+    "seoTitle": "Treks and prices: Everest Base Camp, Gokyo, Three Passes, Langtang",
+    "seoDescription": "Compare our four treks by days, highest point, difficulty and price. Group and private departures in autumn and spring, all prices in US dollars.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Four treks, priced to the dollar",
+       "text": "Every price includes flights to Lukla where needed, permits, a licensed guide, porters, teahouse rooms and three meals a day on the trail.",
+       "primary": {
+        "label": "Plan a trek",
+        "href": "page:plan"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "list",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:trek-ebc",
+          "alt": "The Everest Base Camp rock"
+         },
+         "title": "Everest Base Camp",
+         "tag": "14 days",
+         "text": "Moderate, up to 5,545 m. The classic, done slowly, with Kala Patthar at sunrise.",
+         "link": {
+          "label": "Day by day",
+          "href": "page:ebc"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:trek-gokyo",
+          "alt": "Gokyo lakes from above"
+         },
+         "title": "Gokyo Lakes",
+         "tag": "13 days",
+         "text": "Moderate, up to 5,357 m. Turquoise lakes, the Ngozumpa glacier and Gokyo Ri.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:trek-glacier",
+          "alt": "Trekkers on glacier moraine"
+         },
+         "title": "Three Passes",
+         "tag": "19 days",
+         "text": "Hard, up to 5,535 m. Kongma La, Cho La and Renjo La in one big loop.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:trek-langtang",
+          "alt": "Kyanjin Gompa in the Langtang valley"
+         },
+         "title": "Langtang Valley",
+         "tag": "9 days",
+         "text": "Easy to moderate, up to 4,773 m. By jeep from Kathmandu to Kyanjin Gompa and Kyanjin Ri.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Prices per person, 2026 and 2027",
+       "intro": "Group price is for a shared departure of three to eight people. Private is for two.",
+       "currency": "USD",
+       "plans": [
+        {
+         "name": "Everest Base Camp",
+         "price": "1590",
+         "period": "person",
+         "note": "Private: US$ 1,830 each.",
+         "features": "Lukla flights both ways\nSagarmatha National Park and local permits\nGuide, porter, rooms and meals\nTwo nights in Kathmandu",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:plan"
+         },
+         "featured": true
+        },
+        {
+         "name": "Gokyo Lakes",
+         "price": "1490",
+         "period": "person",
+         "note": "Private: US$ 1,720 each.",
+         "features": "Lukla flights both ways\nPermits, guide, porter\nRooms and meals",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:plan"
+         },
+         "featured": false
+        },
+        {
+         "name": "Three Passes",
+         "price": "2150",
+         "period": "person",
+         "note": "Private: US$ 2,470 each.",
+         "features": "Lukla flights both ways\nPermits, guide, porter\nMicrospikes on loan",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:plan"
+         },
+         "featured": false
+        },
+        {
+         "name": "Langtang Valley",
+         "price": "790",
+         "period": "person",
+         "note": "Private: US$ 910 each.",
+         "features": "Reserved jeep both ways\nLangtang National Park permit\nGuide, porter, rooms and meals",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:plan"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "Not included",
+       "intro": "So you can budget for the rest.",
+       "items": [
+        {
+         "title": "International flights and Nepal visa",
+         "text": "A 30-day tourist visa on arrival costs US$ 50.",
+         "detail": ""
+        },
+        {
+         "title": "Travel insurance",
+         "text": "Must cover trekking to 5,600 metres and helicopter rescue.",
+         "detail": ""
+        },
+        {
+         "title": "Hot showers, charging and wifi on the trail",
+         "text": "Teahouses charge for these, more the higher you go.",
+         "detail": "US$ 3 to 6 each"
+        },
+        {
+         "title": "Tips for guide and porters",
+         "text": "Entirely up to you. Most groups give about 10% of the trek price, shared.",
+         "detail": ""
+        }
+       ]
+      }
+     },
+     {
+      "type": "image",
+      "variant": "full",
+      "props": {
+       "image": {
+        "src": "lib:trek-gorakshep",
+        "alt": "Blue-roofed lodges at Gorak Shep on the edge of the moraine below snow peaks",
+        "focal": [
+         50,
+         55
+        ]
+       },
+       "caption": "Gorak Shep, 5,164 metres: the last night before Base Camp."
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Not sure which trek suits you?",
+       "text": "Tell us what you have walked before. We will say honestly if a route is too much.",
+       "primary": {
+        "label": "Ask Pasang",
+        "href": "page:plan"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "ebc",
+    "slug": "everest-base-camp",
+    "title": "Everest Base Camp",
+    "nav": true,
+    "seoTitle": "Everest Base Camp trek, 14 days, day by day, from US$ 1,590",
+    "seoDescription": "Our 14-day Everest Base Camp itinerary with two acclimatisation days, Kala Patthar at sunrise, teahouses we trust and a spare day for Lukla weather.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "Everest Base Camp in fourteen unhurried days",
+       "text": "Two nights in Namche, one in Dingboche, sunrise from Kala Patthar and a spare day for the Lukla weather.",
+       "primary": {
+        "label": "Ask for dates",
+        "href": "#booking"
+       },
+       "secondary": {
+        "label": "All treks",
+        "href": "page:treks"
+       },
+       "image": {
+        "src": "lib:trek-ebc",
+        "alt": "The Everest Base Camp rock with prayer flags and the Khumbu icefall",
+        "focal": [
+         50,
+         45
+        ]
+       },
+       "eyebrow": "Highest point 5,545 m · Moderate · From US$ 1,590",
+       "video": ""
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "Why fourteen days, not twelve",
+       "body": "<p>Most people who turn back on the way to Base Camp do so because they climbed too fast, not because they were unfit. Above 3,000 metres we never sleep more than 500 metres higher than the night before, and we add a rest day at Namche and at Dingboche.</p><p>The extra two days cost less than one night in a Kathmandu hotel waiting for a flight home after altitude sickness.</p>"
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "vertical",
+      "props": {
+       "heading": "Day by day",
+       "items": [
+        {
+         "date": "Day 1",
+         "title": "Fly to Lukla, walk to Phakding",
+         "text": "A 35-minute flight at dawn, then three hours downhill along the Dudh Koshi. 2,610 m."
+        },
+        {
+         "date": "Day 2",
+         "title": "To Namche Bazaar",
+         "text": "Across the Hillary bridge and a long climb to the Sherpa capital. 3,440 m."
+        },
+        {
+         "date": "Day 3",
+         "title": "Rest in Namche",
+         "text": "Walk up to the Everest View hotel ridge for the first sight of Everest, then back down to sleep."
+        },
+        {
+         "date": "Day 4",
+         "title": "To Tengboche",
+         "text": "The monastery, and evening prayers if you are quiet. 3,860 m."
+        },
+        {
+         "date": "Day 5",
+         "title": "To Dingboche",
+         "text": "Through Pangboche, past the tree line. 4,410 m."
+        },
+        {
+         "date": "Day 6",
+         "title": "Rest in Dingboche",
+         "text": "Climb Nangkartshang for views of Makalu, and sleep low."
+        },
+        {
+         "date": "Days 7 and 8",
+         "title": "Lobuche, then Gorak Shep and Base Camp",
+         "text": "Past the climbers’ memorials, then out along the glacier to Base Camp in the afternoon. 5,364 m."
+        },
+        {
+         "date": "Day 9",
+         "title": "Kala Patthar at sunrise",
+         "text": "Two hours up in the dark for the best view of Everest there is. 5,545 m. Then down to Pheriche."
+        },
+        {
+         "date": "Days 10 to 12",
+         "title": "Back to Lukla",
+         "text": "Downhill through Namche, with a night in each teahouse you liked on the way up."
+        },
+        {
+         "date": "Days 13 and 14",
+         "title": "Fly to Kathmandu, and a spare day",
+         "text": "For the weather. If we do not need it, it is yours in the city."
+        }
+       ]
+      }
+     },
+     {
+      "type": "image",
+      "variant": "contained",
+      "props": {
+       "image": {
+        "src": "lib:trek-tengboche",
+        "alt": "The painted gate of Tengboche monastery with snow peaks behind"
+       },
+       "caption": "Tengboche, day 4. Evening puja starts at three; guides will take you in."
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "About this trek",
+       "intro": "",
+       "items": [
+        {
+         "q": "When is the best time?",
+         "a": "Early October to late November for clear skies, and March to May for rhododendrons and warmer nights. Winter is possible and very quiet, but cold."
+        },
+        {
+         "q": "How cold does it get?",
+         "a": "At Gorak Shep in November, about minus 12 at night. We lend four-season sleeping bags and down jackets at no charge."
+        },
+        {
+         "q": "Can I charge my phone?",
+         "a": "In every teahouse, for a fee. Bring a power bank for the cold nights; batteries drain fast."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Ask for an Everest date",
+       "text": "Choose a group departure or tell us your own dates. We confirm within a day and hold the place for a week while you decide.",
+       "services": "18 October group departure\n15 November group departure\nPrivate trek on my own dates",
+       "askTime": false,
+       "button": "Send my request",
+       "success": "Thank you. Pasang will write back within a day."
+      }
+     }
+    ]
+   },
+   {
+    "id": "guides",
+    "slug": "guides-and-safety",
+    "title": "Guides and safety",
+    "nav": true,
+    "seoTitle": "Our guides, porters and how we keep you safe at altitude",
+    "seoDescription": "Licensed Sherpa and Tamang guides with first-aid training, porters paid and insured, daily oxygen checks and a clear plan for altitude sickness.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "The people who walk with you",
+       "text": "Six guides and fourteen porters, most of them from the valleys we trek in. They work for us every season, not just when we are busy.",
+       "primary": {
+        "label": "Plan a trek",
+        "href": "page:plan"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:trek-porter-bridge",
+        "alt": "A porter crossing a steel suspension bridge with a load",
+        "focal": [
+         50,
+         40
+        ]
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "team",
+      "variant": "monogram",
+      "props": {
+       "heading": "Our guides",
+       "intro": "Every guide holds a Nepal trekking guide licence and a wilderness first-aid certificate.",
+       "people": [
+        {
+         "name": "Pasang Nuru Sherpa",
+         "role": "Founder, Everest routes",
+         "bio": "From Khumjung. Twenty-two seasons, eight of them on expeditions.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Mingma Dorje Sherpa",
+         "role": "Everest and Gokyo",
+         "bio": "From Phortse. Knows every teahouse owner by name, and their children.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Tashi Tamang",
+         "role": "Langtang",
+         "bio": "Grew up in Langtang village and helped rebuild it after 2072.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Sunita Rai",
+         "role": "Everest and Langtang",
+         "bio": "Our first woman guide, and the one most asked for by name.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "If someone feels the altitude",
+       "intro": "The same four steps on every trek, written in each guide’s notebook.",
+       "items": [
+        {
+         "title": "Stop and check",
+         "text": "Pulse, oxygen level, and the Lake Louise questions. Written in the log.",
+         "detail": "At once"
+        },
+        {
+         "title": "Rest a day, no higher",
+         "text": "Mild headache and nausea usually pass with a day at the same height, water and rest.",
+         "detail": "Day 1"
+        },
+        {
+         "title": "Go down",
+         "text": "If it gets worse, we walk down at least 500 metres, day or night, with the guide.",
+         "detail": "Same day"
+        },
+        {
+         "title": "Evacuate",
+         "text": "If walking down is not enough, we call a helicopter through your insurer. We have done this four times in twelve years.",
+         "detail": "If needed"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "How we treat porters",
+       "body": "<p>Porters carry at most 20 kilos, including their own things. They get the same insurance as our guides, a proper jacket, boots and sunglasses, and a bed indoors every night.</p><p>They are paid in Kathmandu before the trek starts, not at the end. If a porter falls ill, the trek waits or we send someone down with him.</p>"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "What we carry on every trek",
+       "intro": "",
+       "items": [
+        {
+         "title": "Pulse oximeter and log book",
+         "text": "Checked morning and evening above 3,500 metres.",
+         "detail": ""
+        },
+        {
+         "title": "First-aid kit",
+         "text": "Including acetazolamide, dexamethasone and blister care.",
+         "detail": ""
+        },
+        {
+         "title": "Satellite messenger",
+         "text": "For places with no phone signal, on Three Passes and in upper Langtang.",
+         "detail": ""
+        },
+        {
+         "title": "Spare down jacket and bag",
+         "text": "Because somebody always underpacks.",
+         "detail": ""
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Want to talk to your guide before you book?",
+       "text": "We will set up a call with the guide leading your dates.",
+       "primary": {
+        "label": "Plan a trek",
+        "href": "page:plan"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "plan",
+    "slug": "plan",
+    "title": "Contact",
+    "nav": true,
+    "seoTitle": "Plan a trek with Lekh Trails, Thamel",
+    "seoDescription": "Send your dates and experience and we reply within a day. Visit our office in Thamel, Sunday to Friday, or WhatsApp us any day.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Tell us when, and we will tell you where",
+       "text": "A few lines about your dates and the walking you have done. We reply within a day, with a suggestion and a price.",
+       "primary": {
+        "label": "",
+        "href": ""
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Ask for a trek",
+       "text": "Pick a trek and your first day on the trail. If you are flexible, say so in the notes.",
+       "services": "Everest Base Camp\nGokyo Lakes\nThree Passes\nLangtang Valley\nNot sure yet",
+       "askTime": false,
+       "button": "Send my request",
+       "success": "Thank you. We will write back within a day, usually much sooner."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "What happens next",
+       "intro": "",
+       "items": [
+        {
+         "title": "We reply",
+         "text": "With a suggested trek, dates and the full price.",
+         "detail": "Within a day"
+        },
+        {
+         "title": "You hold a place",
+         "text": "With a 20% deposit, refundable until 45 days before.",
+         "detail": "When ready"
+        },
+        {
+         "title": "We book everything",
+         "text": "Flights, permits, rooms and your guide.",
+         "detail": "Same week"
+        }
+       ]
+      }
+     },
+     {
+      "type": "map",
+      "variant": "split",
+      "props": {
+       "heading": "Come to the office",
+       "address": "First floor, Chaksibari Marg, Thamel, Kathmandu 44600",
+       "hours": "Sunday to Friday, 9:30 to 18:00",
+       "phone": "",
+       "note": "Above the gear shop opposite the bakery, two minutes from Thamel Chowk. Come in for tea and a look at the maps.",
+       "query": "Chaksibari Marg, Thamel, Kathmandu",
+       "link": ""
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "stacked",
+      "props": {
+       "heading": "Something else?",
+       "text": "Gear hire, a school group, a trek for charity, or just a question.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send",
+       "success": "Thank you. We will reply within a day."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

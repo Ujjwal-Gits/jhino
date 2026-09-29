@@ -1,291 +1,950 @@
 {
-  "id": "ngo",
-  "name": "Pahal Nepal Foundation",
-  "category": "NGO and nonprofit",
-  "description": "A nonprofit site that reads like a report: the work, where money goes, a timeline, and a form for volunteers and donors.",
-  "site": {
-    "name": "Pahal Nepal Foundation",
-    "theme": {
-      "preset": "counsel"
+ "id": "ngo",
+ "name": "Bhansa Nepal",
+ "category": "NGO and nonprofit",
+ "description": "A warm, photo-led site for a school lunch charity: what a gift pays for, a day in the school kitchen, open accounts, and forms to pledge or volunteer.",
+ "site": {
+  "name": "Bhansa Nepal",
+  "theme": {
+   "preset": "bloom",
+   "display": "fraunces",
+   "body": "figtree",
+   "colors": {
+    "bg": "#ffffff",
+    "surface": "#eef3ef",
+    "text": "#14201b",
+    "muted": "#4d5a53",
+    "accent": "#146b5b",
+    "onAccent": "#ffffff",
+    "line": "#d9e3dc"
+   },
+   "radius": 14,
+   "button": "pill",
+   "rhythm": "even",
+   "scale": 1.04
+  },
+  "settings": {
+   "tagline": "Hot school lunches for children in Sindhupalchok",
+   "lang": "en",
+   "phone": "01-5438120",
+   "email": "namaste@bhansanepal.org.np",
+   "address": "Kupondole Height, Lalitpur 44600",
+   "social": [
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/bhansanepal"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
-        {
-          "network": "facebook",
-          "url": "https://www.facebook.com/pahalnepal"
-        },
-        {
-          "network": "youtube",
-          "url": "https://www.youtube.com/@pahalnepal"
-        }
-      ],
-      "tagline": "School meals and libraries in Sindhupalchok and Dolakha",
-      "phone": "01-4358821",
-      "email": "info@pahalnepal.org.np",
-      "address": "Baluwatar, Kathmandu 44600"
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/bhansanepal"
     },
-    "header": {
-      "type": "header",
-      "variant": "bar",
+    {
+     "network": "youtube",
+     "url": "https://www.youtube.com/@bhansanepal"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Give lunch",
+     "href": "page:give"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Rs 45 is one plate of dal bhat at school. It is also a full afternoon of class.",
+    "cta": {
+     "label": "Give a month of lunches",
+     "href": "page:give"
+    },
+    "about": "A registered non-profit (Social Welfare Council affiliated) cooking school lunches in Melamchi, Sindhupalchok, since 2076. Accounts audited every year and published each Poush.",
+    "hours": "Office in Kupondole\nSunday to Friday, 10:00 to 17:00",
+    "note": "Photographs are taken with the permission of the schools and parents.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Bhansa Nepal: hot school lunches for children in Sindhupalchok",
+    "seoDescription": "We cook dal bhat and a seasonal vegetable in four school kitchens in Melamchi, every school day. Rs 45 pays for one child’s lunch. See where the money goes.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
       "props": {
-        "cta": {
-          "label": "Give or volunteer",
-          "href": "page:involved"
-        },
-        "sticky": true
+       "title": "A hot lunch at school, every school day",
+       "text": "In four hill schools in Melamchi, Sindhupalchok, village cooks serve rice, dal and a seasonal vegetable at half past eleven. Children stay for afternoon class, and more of them come back the next morning.",
+       "primary": {
+        "label": "Give a month of lunches",
+        "href": "page:give"
+       },
+       "secondary": {
+        "label": "How it works",
+        "href": "page:programme"
+       },
+       "image": {
+        "src": "lib:ngo-classroom",
+        "alt": "Children in blue school uniforms at their desks, one of them smiling at the camera",
+        "focal": [
+         50,
+         40
+        ]
+       },
+       "eyebrow": "Rs 45 pays for one child’s lunch · Four schools, about 600 children",
+       "video": ""
       }
-    },
-    "footer": {
-      "type": "footer",
+     },
+     {
+      "type": "marquee",
+      "variant": "small",
+      "props": {
+       "items": [
+        {
+         "text": "Rice, dal and tarkari"
+        },
+        {
+         "text": "An egg on Fridays"
+        },
+        {
+         "text": "Cooked by mothers from the village"
+        },
+        {
+         "text": "Vegetables from farms within walking distance"
+        },
+        {
+         "text": "Served at 11:30 sharp"
+        }
+       ]
+      },
+      "style": {
+       "bg": "accent"
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "The head teacher in Talamarang asked us why his afternoon class was always half empty. The answer was lunch. We started with one pot and his school kitchen in Shrawan 2076.",
+       "name": "Sabina Tamang",
+       "detail": "Founder, Bhansa Nepal",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "What one plate of dal bhat does",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:ngo-kitchen",
+          "alt": "Two women sifting rice and cooking over a wood fire in a school kitchen",
+          "focal": [
+           45,
+           55
+          ]
+         },
+         "title": "It pays two village mothers a fair wage",
+         "text": "Each school kitchen is run by two cooks chosen by the parents’ committee. They are paid the national minimum wage, on time, into their own bank account, and they know every child by name.",
+         "link": {
+          "label": "How the kitchens work",
+          "href": "page:programme"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:ngo-market",
+          "alt": "Women selling vegetables and marigolds from baskets at a village market"
+         },
+         "title": "It buys from farms the children walk past",
+         "text": "Rice and dal come from the Melamchi bazaar; greens, pumpkin, radish and potatoes come from farmers within an hour’s walk. Most of the money stays in the ward.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:ngo-girls",
+          "alt": "Two schoolgirls in blue uniforms smiling in their classroom",
+          "focal": [
+           50,
+           35
+          ]
+         },
+         "title": "It keeps children in class after noon",
+         "text": "Before lunch started, head teachers told us that many older children left at the break to eat at home, often an hour’s climb away. Most now stay until four.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "left",
+      "props": {
+       "heading": "A school day, from the kitchen",
+       "intro": "The same rhythm in all four schools, six days a week.",
+       "image": {
+        "src": "lib:ngo-pot",
+        "alt": "A cook stirring a big pot of vegetable curry over a wood fire"
+       },
+       "items": [
+        {
+         "label": "6:30",
+         "title": "The vegetables arrive",
+         "text": "A farmer or the cooks themselves bring what is ready that week. The cooks weigh it and write it in the kitchen book."
+        },
+        {
+         "label": "8:30",
+         "title": "Rice washed, fire lit",
+         "text": "Forty kilos of rice for the biggest school. Dal soaks from the night before. The fire is lit from wood the school collects."
+        },
+        {
+         "label": "11:30",
+         "title": "Lunch, class by class",
+         "text": "The youngest eat first. Children wash their hands at the tap, bring their own plate, and sit in rows on the veranda."
+        },
+        {
+         "label": "12:15",
+         "title": "Pots washed, register signed",
+         "text": "A teacher counts the plates served and signs the book. We check the count against attendance every month."
+        }
+       ]
+      }
+     },
+     {
+      "type": "pricing",
       "variant": "columns",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "Registered with the Social Welfare Council and the District Administration Office, Kathmandu. Audited accounts are published every Ashwin."
-      }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Pahal Nepal Foundation: school meals and libraries in Sindhupalchok",
-        "seoDescription": "A Kathmandu nonprofit serving daily school meals and running libraries in Sindhupalchok and Dolakha since 2073. Audited accounts published every year.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "split",
-            "props": {
-              "eyebrow": "Sindhupalchok and Dolakha · Since 2073",
-              "title": "A hot meal at ten, so the afternoon class is not lost",
-              "text": "We pay local cooks to serve dal-bhat at eleven government schools in the hills above Melamchi, and we run a library room in each one.",
-              "primary": {
-                "label": "Give or volunteer",
-                "href": "page:involved"
-              },
-              "secondary": {
-                "label": "Where the money goes",
-                "href": "page:accounts"
-              },
-              "image": {
-                "src": "lib:himal-trek",
-                "alt": "A person looking towards snow peaks",
-                "focal": [
-                  50,
-                  40
-                ]
-              }
-            }
-          },
-          {
-            "type": "richtext",
-            "variant": "wide",
-            "props": {
-              "heading": "Why meals, why there",
-              "body": "<p>In the schools we work with, children walk one to two hours each way. Many arrive without eating and leave by two to reach home before dark. A meal at ten keeps them in the classroom until the last bell.</p><p>We buy rice, lentils and vegetables from farmers within the same ward, so the meal also pays a neighbour.</p>"
-            }
-          },
-          {
-            "type": "features",
-            "variant": "rows",
-            "props": {
-              "heading": "What we do",
-              "items": [
-                {
-                  "title": "Daily school meals",
-                  "text": "A cook hired from the ward, a menu that changes with the season, and parents on a rota to help.",
-                  "detail": "Rs 28 per child per day"
-                },
-                {
-                  "title": "Library rooms",
-                  "text": "A shelf of Nepali storybooks, low tables and a trained volunteer teacher, in each school.",
-                  "detail": "Rs 90,000 to set up"
-                },
-                {
-                  "title": "Teacher training",
-                  "text": "Two-day sessions in Melamchi Bazaar on reading in the early grades.",
-                  "detail": "Twice a year"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "timeline",
-            "variant": "list",
-            "props": {
-              "heading": "How the work grew",
-              "items": [
-                {
-                  "date": "2073",
-                  "title": "Started with one school in Helambu",
-                  "text": "Two cooks and 41 children, after the 2072 earthquake."
-                },
-                {
-                  "date": "2076",
-                  "title": "First library room",
-                  "text": "Opened in Melamchi, with books donated by a Patan school."
-                },
-                {
-                  "date": "2079",
-                  "title": "Dolakha added",
-                  "text": "Three schools near Charikot."
-                },
-                {
-                  "date": "2081",
-                  "title": "Eleven schools",
-                  "text": "Meals in all, libraries in nine."
-                }
-              ]
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "band",
-            "props": {
-              "title": "Rs 28 feeds one child for one school day",
-              "text": "Rs 5,000 feeds a class of thirty for six days.",
-              "primary": {
-                "label": "Give or volunteer",
-                "href": "page:involved"
-              },
-              "secondary": {
-                "label": "",
-                "href": ""
-              }
-            },
-            "style": {
-              "bg": "accent"
-            }
-          }
-        ]
+       "heading": "What your gift pays for",
+       "intro": "Every rupee below is spent in the schools. Office costs are covered separately by two family foundations.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "One month of lunches",
+         "price": "1080",
+         "period": "child",
+         "note": "24 school days at Rs 45.",
+         "features": "Rice, dal and a seasonal vegetable\nAn egg every Friday\nA photo from the school each term",
+         "cta": {
+          "label": "Give a month",
+          "href": "page:give"
+         },
+         "featured": false
+        },
+        {
+         "name": "A whole school year",
+         "price": "9000",
+         "period": "child",
+         "note": "About 200 school days.",
+         "features": "Every school lunch from Baisakh to Chaitra\nThe child’s first name and class, if the parents agree\nA letter from the school at the end of the year",
+         "cta": {
+          "label": "Give a year",
+          "href": "page:give"
+         },
+         "featured": true
+        },
+        {
+         "name": "A cook’s monthly wage",
+         "price": "17300",
+         "period": "month",
+         "note": "The national minimum wage.",
+         "features": "Paid into the cook’s own account\nOne of eight cooks across the four schools",
+         "cta": {
+          "label": "Pay a wage",
+          "href": "page:give"
+         },
+         "featured": false
+        }
+       ]
       },
-      {
-        "id": "accounts",
-        "title": "Where the money goes",
-        "nav": true,
-        "seoTitle": "Where the money goes: Pahal Nepal Foundation accounts",
-        "seoDescription": "How Pahal Nepal Foundation spends donations: food, cooks, books and office costs. Audited accounts published every Ashwin.",
-        "blocks": [
-          {
-            "type": "richtext",
-            "variant": "narrow",
-            "props": {
-              "heading": "Where each rupee goes",
-              "body": "<p>Last year, of every Rs 100 donated: Rs 71 went to food and cooks' pay, Rs 14 to library books and teacher training, Rs 9 to transport to the schools, and Rs 6 to the Kathmandu office.</p><p>These numbers come from our audited accounts, which are signed by an auditor registered with the Institute of Chartered Accountants of Nepal.</p>"
-            }
-          },
-          {
-            "type": "downloads",
-            "variant": "list",
-            "props": {
-              "heading": "Reports",
-              "items": [
-                {
-                  "label": "Audited accounts, 2080/81",
-                  "url": "",
-                  "note": "PDF, 14 pages"
-                },
-                {
-                  "label": "Annual report, 2080/81",
-                  "url": "",
-                  "note": "PDF, 28 pages"
-                },
-                {
-                  "label": "Registration certificate, Social Welfare Council",
-                  "url": "",
-                  "note": "PDF, 1 page"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "team",
-            "variant": "list",
-            "props": {
-              "heading": "Board and staff",
-              "people": [
-                {
-                  "name": "Sabina Pradhan",
-                  "role": "Founder and executive director",
-                  "bio": "Taught in Sindhupalchok for six years before starting Pahal.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                },
-                {
-                  "name": "Dr. Hari Neupane",
-                  "role": "Chair of the board",
-                  "bio": "Paediatrician at Kanti Children's Hospital.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                },
-                {
-                  "name": "Nirmala Tamang",
-                  "role": "Field coordinator, Melamchi",
-                  "bio": "Visits every school every week.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        "id": "involved",
-        "title": "Give or volunteer",
-        "nav": true,
-        "seoTitle": "Give, volunteer or partner with Pahal Nepal Foundation",
-        "seoDescription": "Donate to school meals in Sindhupalchok, volunteer as a library teacher, or ask us to visit your school or company.",
-        "blocks": [
-          {
-            "type": "richtext",
-            "variant": "split",
-            "props": {
-              "heading": "Ways to help",
-              "body": "<h3>Give</h3><p>eSewa and Fonepay to the Pahal QR, or a bank transfer to Pahal Nepal Foundation, Nabil Bank, Baluwatar branch. You get a receipt, and it is tax-deductible in Nepal.</p><h3>Volunteer</h3><p>Library teachers spend two weeks in a school in Helambu. Food and a bed at the school are provided.</p><h3>Bring us to your company</h3><p>We visit offices in Kathmandu to talk about workplace giving.</p>"
-            }
-          },
-          {
-            "type": "contact",
-            "variant": "split",
-            "props": {
-              "heading": "Write to us",
-              "text": "Tell us if you would like to give, volunteer, or invite us to talk. Anyone on the team can answer you.",
-              "askPhone": true,
-              "button": "Send message",
-              "success": "Thank you. Someone from the team will reply within three working days."
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "newsletter",
-            "variant": "inline",
-            "props": {
-              "heading": "One letter after each term",
-              "text": "What we served, what we read, and what it cost. Nothing else.",
-              "button": "Sign up",
-              "success": "Thank you. You are on the list."
-            }
-          }
-        ]
+      "style": {
+       "bg": "surface"
       }
+     },
+     {
+      "type": "gallery",
+      "variant": "bento",
+      "props": {
+       "heading": "This term in Melamchi",
+       "intro": "Taken by teachers and our field officer, with parents’ permission.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:ngo-boys",
+          "alt": "Three schoolboys sitting close together in a classroom corner",
+          "focal": [
+           50,
+           35
+          ]
+         },
+         "caption": "Grade 4, after lunch"
+        },
+        {
+         "image": {
+          "src": "lib:ngo-dalbhat",
+          "alt": "Rice, dal and sautéed greens in brass bowls"
+         },
+         "caption": "Tuesday: dal, rice and rayo saag"
+        },
+        {
+         "image": {
+          "src": "lib:ngo-line",
+          "alt": "Children sitting in a long row outdoors in morning light"
+         },
+         "caption": "Assembly, Talamarang"
+        },
+        {
+         "image": {
+          "src": "lib:ngo-desk",
+          "alt": "Boys at a school desk in a blue-painted classroom"
+         },
+         "caption": "The new water bottles"
+        },
+        {
+         "image": {
+          "src": "lib:ngo-nutrition",
+          "alt": "Children looking at a nutrition corner display with Nepali signs"
+         },
+         "caption": "The nutrition corner"
+        },
+        {
+         "image": {
+          "src": "lib:ngo-desks",
+          "alt": "Young children sitting at green desks in a classroom"
+         },
+         "caption": "Grade 1, Bhotang"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "features",
+      "variant": "rows",
+      "props": {
+       "heading": "The four schools",
+       "intro": "All in Melamchi Municipality, between 45 minutes and two hours’ walk from the road.",
+       "items": [
+        {
+         "title": "Talamarang",
+         "text": "Our first kitchen, since Shrawan 2076. Grades 1 to 8, and a new tin roof over the veranda where children eat.",
+         "detail": "212 children"
+        },
+        {
+         "title": "Bhotang",
+         "text": "The highest school, at 1,900 metres. Lunch here includes a glass of hot milk tea in Poush and Magh.",
+         "detail": "98 children"
+        },
+        {
+         "title": "Chanaute",
+         "text": "Joined in 2079 after the parents’ committee raised half the cost of a new kitchen.",
+         "detail": "164 children"
+        },
+        {
+         "title": "Sipa Ghat",
+         "text": "Next to the river. The school garden grows most of the greens from Kartik to Falgun.",
+         "detail": "131 children"
+        }
+       ]
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "How a school joins",
+       "intro": "We add one school a year, when the money for three years of lunches is already in the bank.",
+       "items": [
+        {
+         "title": "The school asks",
+         "text": "A head teacher or parents’ committee writes to us. We never approach a school first.",
+         "detail": ""
+        },
+        {
+         "title": "We visit and count",
+         "text": "Two days at the school: attendance, the kitchen, the water, the road for deliveries.",
+         "detail": ""
+        },
+        {
+         "title": "Parents choose the cooks",
+         "text": "At an open meeting, with the ward chair present.",
+         "detail": ""
+        },
+        {
+         "title": "The first lunch",
+         "text": "Usually at the start of a new term, with everyone’s families invited.",
+         "detail": ""
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Before you give",
+       "intro": "",
+       "items": [
+        {
+         "q": "Does the government not already give school meals?",
+         "a": "The government’s day-meal programme covers the youngest grades in public schools. We work alongside it: we top up its budget so the plate includes vegetables and an egg, and we cover the older grades it does not reach."
+        },
+        {
+         "q": "Can I give from abroad?",
+         "a": "Yes, by bank transfer to our account in Nepal. We send a receipt in Nepali and English within a week."
+        },
+        {
+         "q": "Will I know which child I am feeding?",
+         "a": "If the parents agree, we send the first name and class of one child and a photo from the school each term. We never share surnames or where a family lives."
+        },
+        {
+         "q": "How do I know the money arrives?",
+         "a": "Our accounts are audited every year by a chartered accountant and published on this site. Every school kitchen keeps a book of plates served, signed daily by a teacher."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "Rs 1,080 feeds one child for a month",
+       "text": "Give once, or every month. You will hear from the school at the end of each term.",
+       "primary": {
+        "label": "Give a month of lunches",
+        "href": "page:give"
+       },
+       "secondary": {
+        "label": "Where the money goes",
+        "href": "page:money"
+       },
+       "image": {
+        "src": "lib:ngo-walk",
+        "alt": "Children in grey school uniforms standing on the road to school",
+        "focal": [
+         55,
+         40
+        ]
+       }
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "programme",
+    "slug": "how-it-works",
+    "title": "How it works",
+    "nav": true,
+    "seoTitle": "How our school lunches work: kitchens, cooks and the weekly menu",
+    "seoDescription": "Two cooks per school, vegetables from nearby farms, a menu that changes with the season and a register signed every day. How Bhansa Nepal runs four school kitchens.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "Four kitchens, eight cooks and one register signed every day",
+       "text": "Everything we do happens in the school, run by people from the village. Our field officer visits each kitchen every week.",
+       "primary": {
+        "label": "Give lunch",
+        "href": "page:give"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:ngo-school",
+        "alt": "A hill school’s buildings and dirt courtyard in low evening sun",
+        "focal": [
+         50,
+         55
+        ]
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "Why a cooked lunch, not a biscuit packet",
+       "body": "<p>Packaged snacks are easier to hand out, but they fill a child for an hour and leave the wrapper in the stream. A plate of rice, dal and vegetables keeps a ten-year-old going until four, costs about the same, and puts wages and vegetable money into the village.</p><p>It is also what children eat at home. Nobody has to learn to like it.</p>"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "rows",
+      "props": {
+       "heading": "This month’s menu",
+       "intro": "Mangsir. Greens change with what the farmers bring; the cooks decide on the day.",
+       "items": [
+        {
+         "title": "Sunday",
+         "text": "Rice, masoor dal, potato and cauliflower tarkari.",
+         "detail": ""
+        },
+        {
+         "title": "Monday",
+         "text": "Rice, black dal, rayo saag, radish achar.",
+         "detail": ""
+        },
+        {
+         "title": "Tuesday",
+         "text": "Rice, mixed dal, pumpkin and chickpea tarkari.",
+         "detail": ""
+        },
+        {
+         "title": "Wednesday",
+         "text": "Beaten rice with soybeans and a bowl of seasonal vegetable soup.",
+         "detail": ""
+        },
+        {
+         "title": "Thursday",
+         "text": "Rice, mung dal, mustard greens and potato.",
+         "detail": ""
+        },
+        {
+         "title": "Friday",
+         "text": "Rice, dal, egg curry, and tomato achar. A banana for anyone who does not eat eggs.",
+         "detail": ""
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "imagetext",
+      "variant": "right",
+      "props": {
+       "image": {
+        "src": "lib:ngo-nutrition",
+        "alt": "Schoolchildren looking at a nutrition corner display with signs in Nepali"
+       },
+       "eyebrow": "",
+       "heading": "The nutrition corner",
+       "body": "<p>Each school has a wall where children weigh and measure themselves at the start of every term, with the school nurse or a health volunteer. It is how we know whether lunch is working.</p><p>Grade 7 draws the posters. This year’s theme was eggs.</p>",
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "vertical",
+      "props": {
+       "heading": "Seven years in Melamchi",
+       "items": [
+        {
+         "date": "Shrawan 2076",
+         "title": "One pot in Talamarang",
+         "text": "Lunch for 140 children, cooked on a borrowed stove."
+        },
+        {
+         "date": "2077",
+         "title": "Kept open through the lockdown",
+         "text": "When schools closed, the cooks packed dry rations for families to collect every fortnight."
+        },
+        {
+         "date": "2078",
+         "title": "Bhotang joins",
+         "text": "The highest school, and the first with a new smokeless stove."
+        },
+        {
+         "date": "2079",
+         "title": "Chanaute joins",
+         "text": "Parents raised half the cost of the kitchen themselves."
+        },
+        {
+         "date": "2081",
+         "title": "Sipa Ghat joins",
+         "text": "The fourth school, and our first school garden."
+        },
+        {
+         "date": "2082",
+         "title": "Eggs every Friday",
+         "text": "Paid for by a monthly giving group of 48 people."
+        }
+       ]
+      }
+     },
+     {
+      "type": "map",
+      "variant": "split",
+      "props": {
+       "heading": "Where the schools are",
+       "address": "Melamchi Municipality, Sindhupalchok",
+       "hours": "",
+       "phone": "",
+       "note": "About three hours by road from Kathmandu. Visits are arranged through our office and always with the head teacher’s agreement.",
+       "query": "Melamchi, Sindhupalchok, Nepal",
+       "link": ""
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Help us open a fifth kitchen in 2084",
+       "text": "A school in Helambu has asked. We need three years of lunches in the bank before we say yes.",
+       "primary": {
+        "label": "Give lunch",
+        "href": "page:give"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "money",
+    "slug": "where-the-money-goes",
+    "title": "Where the money goes",
+    "nav": true,
+    "seoTitle": "Where the money goes: Bhansa Nepal budget and audited accounts",
+    "seoDescription": "Of every Rs 100 given, Rs 72 buys food. Our budget for 2083/84, how the money moves, the board, and audited accounts published every Poush.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Where every Rs 100 goes",
+       "text": "Our budget for fiscal year 2083/84, and how you can check it. Accounts are audited by an independent chartered accountant and published each Poush.",
+       "primary": {
+        "label": "Ask for the audit report",
+        "href": "page:give"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "rows",
+      "props": {
+       "heading": "Of every Rs 100 you give",
+       "intro": "Planned spending for 2083/84, rounded to the nearest rupee.",
+       "items": [
+        {
+         "title": "Food",
+         "text": "Rice, dal, vegetables, eggs, oil and spices, bought in Melamchi and from nearby farms.",
+         "detail": "Rs 72"
+        },
+        {
+         "title": "Cooks’ wages",
+         "text": "Eight cooks at the national minimum wage, for the ten school months.",
+         "detail": "Rs 17"
+        },
+        {
+         "title": "Kitchens and fuel",
+         "text": "Firewood, gas for the monsoon months, pots, stoves and small repairs.",
+         "detail": "Rs 6"
+        },
+        {
+         "title": "Field officer and travel",
+         "text": "One field officer living in Melamchi, and the bus fares to reach four schools.",
+         "detail": "Rs 5"
+        }
+       ]
+      }
+     },
+     {
+      "type": "image",
+      "variant": "contained",
+      "props": {
+       "image": {
+        "src": "lib:ngo-dalbhat",
+        "alt": "Rice, dal and sautéed greens in brass bowls"
+       },
+       "caption": "What Rs 45 buys in Melamchi this year: about 150 grams of rice, dal, a helping of greens or tarkari, oil, salt and spices, and the fire to cook them."
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "narrow",
+      "props": {
+       "heading": "How you can check",
+       "body": "<p>We are registered with the District Administration Office, Lalitpur, and affiliated with the Social Welfare Council. Our office rent, the founder’s salary and the audit are paid by two family foundations, so they do not come out of your gift.</p><ul><li>Every kitchen keeps a daily book of plates served, signed by a teacher.</li><li>Vegetable purchases are recorded with the farmer’s name and the weight.</li><li>The full audited accounts and the auditor’s letter are sent to anyone who asks, within a week.</li></ul><p>If anything in our accounts looks wrong to you, write to the board chair directly at <a href=\"mailto:board@bhansanepal.org.np\">board@bhansanepal.org.np</a>.</p>"
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "team",
+      "variant": "list",
+      "props": {
+       "heading": "The people responsible",
+       "intro": "The board meets every two months. Board members are not paid.",
+       "people": [
+        {
+         "name": "Sabina Tamang",
+         "role": "Founder and director",
+         "bio": "Grew up in Helambu. Taught primary school for nine years.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Ram Prasad Dahal",
+         "role": "Board chair",
+         "bio": "Retired head teacher, Melamchi.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Nirmala Shrestha",
+         "role": "Treasurer",
+         "bio": "Accountant. Checks every month’s spending against the kitchen books.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Kamal Lama",
+         "role": "Field officer",
+         "bio": "Lives in Melamchi and visits each school every week.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "About the money",
+       "intro": "",
+       "items": [
+        {
+         "q": "Why not say how many meals you have served?",
+         "a": "We do, in the annual report, counted from the kitchen books. We would rather send you the book totals than put a round number on the home page."
+        },
+        {
+         "q": "Do you take money from companies?",
+         "a": "Yes, for lunches only, and never in exchange for logos in schools or on children’s plates."
+        },
+        {
+         "q": "What happens to money given for a school that closes?",
+         "a": "It goes to the other kitchens, and we tell you."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Want the full accounts?",
+       "text": "Ask and we will email the audited report and the auditor’s letter within a week.",
+       "primary": {
+        "label": "Ask for the report",
+        "href": "page:give"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "give",
+    "slug": "give",
+    "title": "Give or volunteer",
+    "nav": true,
+    "seoTitle": "Give school lunches or volunteer a kitchen day in Melamchi",
+    "seoDescription": "Give by bank transfer, mobile wallet or at our Kupondole office. Pledge a month of lunches, ask for the accounts, or join a kitchen day in Sindhupalchok.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Give lunch, once or every month",
+       "text": "Rs 1,080 feeds one child for a month. Tell us below how you would like to give and we will send the details, or come to the office for a cup of tea.",
+       "primary": {
+        "label": "Pledge below",
+        "href": "#contact"
+       },
+       "secondary": {
+        "label": "Volunteer a kitchen day",
+        "href": "#booking"
+       },
+       "image": {
+        "src": "lib:ngo-meal",
+        "alt": "Children in blue uniforms eating their midday meal sitting on the floor",
+        "focal": [
+         50,
+         45
+        ]
+       },
+       "eyebrow": "Receipts in Nepali and English within a week",
+       "video": ""
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "Three ways to give",
+       "intro": "",
+       "items": [
+        {
+         "title": "Bank transfer",
+         "text": "To our account at a commercial bank in Kupondole. We send the account details by email when you pledge, so you can check them with us first.",
+         "detail": "From Nepal or abroad"
+        },
+        {
+         "title": "Mobile wallet",
+         "text": "Scan the QR code at our office or on the letter we send you. Good for monthly giving from Rs 1,080.",
+         "detail": "Monthly or once"
+        },
+        {
+         "title": "At the office",
+         "text": "Cash or cheque at Kupondole Height, Sunday to Friday. You get a receipt on the spot.",
+         "detail": "10:00 to 17:00"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "split",
+      "props": {
+       "heading": "Pledge, or ask us anything",
+       "text": "Say how much and how often, or ask for the audited accounts. Sabina or Nirmala will reply within two working days.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send",
+       "success": "Thank you. We will reply within two working days with the details."
+      }
+     },
+     {
+      "type": "imagetext",
+      "variant": "left",
+      "props": {
+       "image": {
+        "src": "lib:ngo-washing",
+        "alt": "A woman washing large cooking pots in a school yard",
+        "focal": [
+         50,
+         45
+        ]
+       },
+       "eyebrow": "",
+       "heading": "Spend a day in a school kitchen",
+       "body": "<p>Twice a term we take up to six visitors to Melamchi for a kitchen day: vegetables at seven, serving at half past eleven, washing up, and tea with the cooks.</p><p>The visit costs Rs 3,500 for the jeep and a meal. It is not a photo trip; we ask visitors to leave cameras in the bag while children eat.</p>",
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Join a kitchen day",
+       "text": "Pick a school and a date that suits you. We confirm by phone once the head teacher agrees.",
+       "services": "Talamarang (easy road)\nChanaute (45 minute walk)\nSipa Ghat (by the river)\nWhichever school needs hands",
+       "askTime": false,
+       "button": "Ask for a place",
+       "success": "Thank you. We will call you within a week to confirm the date."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "newsletter",
+      "variant": "band",
+      "props": {
+       "heading": "A letter from the schools each term",
+       "text": "Three emails a year, with the kitchen book totals and a photo from each school.",
+       "button": "Sign up",
+       "success": "Thank you. The next letter goes out at the end of term."
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

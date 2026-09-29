@@ -1,313 +1,1086 @@
 {
-  "id": "homestay",
-  "name": "Nagarkot Sunrise Homestay",
-  "category": "Hotel and homestay",
-  "description": "A hill homestay site: rooms with prices, food, things to do around Nagarkot, and a booking request that asks for dates.",
-  "site": {
-    "name": "Nagarkot Sunrise Homestay",
-    "theme": {
-      "preset": "kora"
+ "id": "homestay",
+ "name": "Aangan Homestay",
+ "category": "Hotel and homestay",
+ "description": "A calm, photo-led site for a family homestay in the hills: rooms and rates, a day at the house, food, walks, how to get there and a booking form.",
+ "site": {
+  "name": "Aangan Homestay",
+  "theme": {
+   "preset": "kora"
+  },
+  "settings": {
+   "tagline": "A Gurung family home in Ghandruk, facing Annapurna South",
+   "lang": "en",
+   "phone": "9846-218405",
+   "email": "stay@aanganghandruk.com.np",
+   "address": "Ward 11, Ghandruk, Annapurna Rural Municipality, Kaski",
+   "social": [
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/aanganghandruk"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/aanganghandruk"
+    },
+    {
+     "network": "whatsapp",
+     "url": "https://wa.me/9779846218405"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "centered",
+   "props": {
+    "cta": {
+     "label": "Ask for dates",
+     "href": "page:book"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "The kettle is on the fire from half past five.",
+    "cta": {
+     "label": "Ask for dates",
+     "href": "page:book"
+    },
+    "about": "Four rooms in a stone house in upper Ghandruk, run by the Gurung family who built it. Guests since 2069.",
+    "hours": "Arrivals any time before dark\nDinner at 19:00\nCall or WhatsApp 7:00 to 21:00",
+    "note": "Registered with the Annapurna Rural Municipality homestay committee.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Aangan Homestay, Ghandruk: a Gurung home facing Annapurna South",
+    "seoDescription": "Four rooms in a stone house in upper Ghandruk, with dinner and breakfast cooked by the family. From Rs 4,400 a night for two. Mountain views from every window.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "image",
+      "props": {
+       "title": "A stone house in Ghandruk, with Annapurna South at the window",
+       "text": "Four rooms in our family home at the top of the village. Dal bhat at seven, milk tea at dawn, and the mountain turning pink while you drink it.",
+       "primary": {
+        "label": "See the rooms",
+        "href": "page:rooms"
+       },
+       "secondary": {
+        "label": "Ask for dates",
+        "href": "page:book"
+       },
+       "image": {
+        "src": "lib:stay-house",
+        "alt": "Our stone house at dusk, with Annapurna South lit pink behind it",
+        "focal": [
+         55,
+         45
+        ]
+       },
+       "eyebrow": "Four rooms · Dinner and breakfast included · 1,940 metres",
+       "video": ""
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "My husband’s father carried these roof slates up from the river on his back. We kept the roof, the walls and the fire. We added hot water and good beds.",
+       "name": "Dil Maya Gurung",
+       "detail": "Host, and cook of the dal",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      }
+     },
+     {
+      "type": "imagetext",
+      "variant": "right",
+      "props": {
+       "image": {
+        "src": "lib:stay-room",
+        "alt": "A small timber-lined room with a window framing the mountains",
+        "focal": [
+         50,
+         45
+        ]
+       },
+       "eyebrow": "",
+       "heading": "Every room faces the mountain",
+       "body": "<p>Pine-lined walls, thick cotton quilts and a window that looks straight up the Modi Khola to Annapurna South and Hiunchuli. Two rooms share a bathroom; two have their own.</p><p>The hot water is from the solar panel on the roof, and from the kitchen fire on cloudy days.</p>",
+       "link": {
+        "label": "Rooms and rates",
+        "href": "page:rooms"
+       }
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "bento",
+      "props": {
+       "heading": "Ghandruk, from our roof",
+       "intro": "The village is a stone staircase of Gurung houses. We are near the top, five minutes above the museum.",
+       "images": [
         {
-          "network": "facebook",
-          "url": "https://www.facebook.com/nagarkotsunrisehomestay"
+         "image": {
+          "src": "lib:stay-village",
+          "alt": "Slate-roofed houses of Ghandruk on the hillside"
+         },
+         "caption": "The village in Kartik"
         },
         {
-          "network": "whatsapp",
-          "url": "https://wa.me/9779801667788"
+         "image": {
+          "src": "lib:stay-alpenglow",
+          "alt": "Last light on Annapurna South and Machhapuchhre"
+         },
+         "caption": "Six o’clock, from the terrace"
         },
         {
-          "network": "instagram",
-          "url": "https://www.instagram.com/nagarkotsunrise"
+         "image": {
+          "src": "lib:stay-cloud",
+          "alt": "Cloud rolling over the village rooftops"
+         },
+         "caption": "Monsoon afternoons"
+        },
+        {
+         "image": {
+          "src": "lib:stay-night",
+          "alt": "The village roofs and lit windows at night"
+         },
+         "caption": "After dinner"
+        },
+        {
+         "image": {
+          "src": "lib:stay-stone",
+          "alt": "Two stone houses with slate roofs beside a field"
+         },
+         "caption": "Our neighbours’ houses"
         }
-      ],
-      "tagline": "Four rooms and a family kitchen above Nagarkot",
-      "phone": "980-1667788",
-      "email": "stay@nagarkotsunrise.com.np",
-      "address": "Ward 5, Nagarkot, Bhaktapur 44800"
-    },
-    "header": {
-      "type": "header",
-      "variant": "centered",
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "right",
       "props": {
-        "cta": {
-          "label": "Ask for dates",
-          "href": "page:stay"
+       "heading": "A day at Aangan",
+       "intro": "Nothing is scheduled except dinner. This is what most guests end up doing.",
+       "image": {
+        "src": "lib:stay-chiya",
+        "alt": "Milk tea being poured into a glass"
+       },
+       "items": [
+        {
+         "label": "5:45",
+         "title": "Tea on the terrace",
+         "text": "Aama puts a glass of milk tea in your hand and points at the mountain. On clear mornings the sun reaches the summit about twenty minutes before it reaches us."
         },
-        "sticky": true
+        {
+         "label": "7:30",
+         "title": "Breakfast",
+         "text": "Gurung bread with honey from the hives below the school, eggs, and more tea."
+        },
+        {
+         "label": "Daytime",
+         "title": "Walk, or don’t",
+         "text": "Up to Komrong Danda, across to Landruk, round the museum, or a book in the sun on the roof."
+        },
+        {
+         "label": "19:00",
+         "title": "Dal bhat by the fire",
+         "text": "Everyone eats together in the kitchen. Seconds arrive whether you ask or not."
+        }
+       ]
       }
-    },
-    "footer": {
-      "type": "footer",
-      "variant": "columns",
+     },
+     {
+      "type": "pricing",
+      "variant": "list",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "A family-run homestay ten minutes' walk below the Nagarkot viewing tower. Prices include breakfast and a hot-water bucket."
-      }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Nagarkot Sunrise Homestay: four rooms above Nagarkot, Bhaktapur",
-        "seoDescription": "A family homestay in Nagarkot with four rooms from Rs 3,200 a night, home-cooked meals and a terrace facing the Himalaya.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "image",
-            "props": {
-              "eyebrow": "Nagarkot, Bhaktapur · 2,000 metres",
-              "title": "Wake up on the ridge, breakfast is already cooking",
-              "text": "Four rooms, a terrace facing Ganesh Himal and Langtang, and Shanti didi's kitchen. Rooms from Rs 3,200 a night with breakfast.",
-              "primary": {
-                "label": "Ask for dates",
-                "href": "page:stay"
-              },
-              "secondary": {
-                "label": "The rooms",
-                "href": "page:rooms"
-              },
-              "image": {
-                "src": "lib:night-peaks",
-                "alt": "Snow peaks under a starry sky",
-                "focal": [
-                  50,
-                  40
-                ]
-              }
-            }
-          },
-          {
-            "type": "imagetext",
-            "variant": "left",
-            "props": {
-              "image": {
-                "src": "lib:long-table",
-                "alt": "A long table set with glasses and flowers"
-              },
-              "eyebrow": "Food",
-              "heading": "Dal-bhat from the family kitchen, and Newari samay baji on Saturdays",
-              "body": "<p>Vegetables come from the terrace beds below the house, and the milk tea from the neighbours' buffalo. Dinner is at seven and we ask you in the morning what you would like.</p>",
-              "link": {
-                "label": "",
-                "href": ""
-              }
-            }
-          },
-          {
-            "type": "features",
-            "variant": "grid",
-            "props": {
-              "heading": "What is around",
-              "items": [
-                {
-                  "title": "Sunrise at the tower",
-                  "text": "A ten-minute walk up in the dark. We wake you with tea at 5:15.",
-                  "detail": "Free"
-                },
-                {
-                  "title": "Nagarkot to Changu Narayan walk",
-                  "text": "Four hours downhill through pine and terrace fields, ending at the temple.",
-                  "detail": "Guide Rs 2,500"
-                },
-                {
-                  "title": "Bhaktapur day trip",
-                  "text": "Taxi to Durbar Square and back with lunch in between.",
-                  "detail": "Taxi Rs 4,500"
-                },
-                {
-                  "title": "Village cooking class",
-                  "text": "Make momo and achar with Shanti didi in her kitchen.",
-                  "detail": "Rs 1,200 each"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "split",
-            "props": {
-              "title": "Weekends in Kartik and Mangsir book out a month early",
-              "text": "Send us your dates and we will tell you which rooms are free.",
-              "primary": {
-                "label": "Ask for dates",
-                "href": "page:stay"
-              },
-              "secondary": {
-                "label": "WhatsApp us",
-                "href": "https://wa.me/9779801667788"
-              }
-            },
-            "style": {
-              "bg": "accent"
-            }
-          }
-        ]
+       "heading": "Rooms and rates",
+       "intro": "Per night, for the room, with dinner and breakfast for everyone in it. Children under six stay free.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Twin room",
+         "price": "4400",
+         "period": "night",
+         "note": "Two single beds, shared bathroom with a hot shower.",
+         "features": "",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Double room with bathroom",
+         "price": "5600",
+         "period": "night",
+         "note": "The corner room, with the widest window.",
+         "features": "",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         },
+         "featured": true
+        },
+        {
+         "name": "Family attic",
+         "price": "8800",
+         "period": "night",
+         "note": "Sleeps four under the roof beams, with its own bathroom.",
+         "features": "",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         },
+         "featured": false
+        }
+       ]
       },
-      {
-        "id": "rooms",
-        "title": "Rooms",
-        "nav": true,
-        "seoTitle": "Rooms at Nagarkot Sunrise Homestay from Rs 3,200 a night",
-        "seoDescription": "Double room Rs 3,200, Himalaya-view double Rs 4,000, family room Rs 5,500 a night, all with breakfast and hot water.",
-        "blocks": [
-          {
-            "type": "pricing",
-            "variant": "list",
-            "props": {
-              "heading": "Four rooms",
-              "intro": "All rooms include breakfast, hot water in a bucket or the shared solar bathroom, and free wifi on the terrace.",
-              "currency": "NPR",
-              "plans": [
-                {
-                  "name": "Garden double",
-                  "price": "3200",
-                  "period": "a night",
-                  "note": "Double bed, shared bathroom, faces the terrace garden.",
-                  "features": "",
-                  "cta": {
-                    "label": "Ask for dates",
-                    "href": "page:stay"
-                  },
-                  "featured": false
-                },
-                {
-                  "name": "Himalaya-view double",
-                  "price": "4000",
-                  "period": "a night",
-                  "note": "Double bed, attached bathroom, window facing Ganesh Himal.",
-                  "features": "",
-                  "cta": {
-                    "label": "Ask for dates",
-                    "href": "page:stay"
-                  },
-                  "featured": true
-                },
-                {
-                  "name": "Family room",
-                  "price": "5500",
-                  "period": "a night",
-                  "note": "One double and two single beds, attached bathroom. Sleeps four.",
-                  "features": "",
-                  "cta": {
-                    "label": "Ask for dates",
-                    "href": "page:stay"
-                  },
-                  "featured": false
-                },
-                {
-                  "name": "Attic twin",
-                  "price": "3500",
-                  "period": "a night",
-                  "note": "Two single beds under the roof, shared bathroom, coldest and quietest.",
-                  "features": "",
-                  "cta": {
-                    "label": "Ask for dates",
-                    "href": "page:stay"
-                  },
-                  "featured": false
-                }
-              ]
-            }
-          },
-          {
-            "type": "gallery",
-            "variant": "masonry",
-            "props": {
-              "heading": "",
-              "intro": "",
-              "images": [
-                {
-                  "image": {
-                    "src": "lib:cafe-hall",
-                    "alt": "A bright room with long tables and hanging lamps"
-                  },
-                  "caption": "The dining room"
-                },
-                {
-                  "image": {
-                    "src": "lib:dining-room",
-                    "alt": "A dark room with wooden chairs"
-                  },
-                  "caption": "Winter evening by the stove"
-                },
-                {
-                  "image": {
-                    "src": "lib:boudha",
-                    "alt": "Boudhanath stupa from above"
-                  },
-                  "caption": "Boudha, on your way back"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "faq",
-            "variant": "plain",
-            "props": {
-              "heading": "Good to know",
-              "items": [
-                {
-                  "q": "How do we get there?",
-                  "a": "A taxi from Bhaktapur bus park to Nagarkot takes about 50 minutes and costs around Rs 2,500. The local bus runs from Ratnapark, morning and afternoon."
-                },
-                {
-                  "q": "Is it cold?",
-                  "a": "From Mangsir to Falgun, yes. We give you hot-water bottles and thick blankets."
-                },
-                {
-                  "q": "Do you take cards?",
-                  "a": "Cash, eSewa and Fonepay. There is no card machine."
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        "id": "stay",
-        "title": "Ask for dates",
-        "nav": true,
-        "seoTitle": "Ask for dates at Nagarkot Sunrise Homestay",
-        "seoDescription": "Send your dates and the room you would like. We reply the same day and hold the room for two days.",
-        "blocks": [
-          {
-            "type": "booking",
-            "variant": "split",
-            "props": {
-              "heading": "Ask for dates",
-              "text": "Tell us the day you would arrive and how many nights. We reply the same day, and hold the room for two days without an advance.",
-              "services": "Garden double\nHimalaya-view double\nFamily room\nAttic twin\nNot sure yet",
-              "askTime": false,
-              "button": "Ask for these dates",
-              "success": "Thank you. We will reply the same day on phone or WhatsApp."
-            }
-          },
-          {
-            "type": "map",
-            "variant": "split",
-            "props": {
-              "heading": "Finding us",
-              "address": "Ward 5, Nagarkot, Bhaktapur. Ten minutes' walk below the viewing tower.",
-              "query": "Nagarkot Tower, Bhaktapur",
-              "link": ""
-            }
-          }
-        ]
+      "style": {
+       "bg": "surface"
       }
+     },
+     {
+      "type": "imagetext",
+      "variant": "left",
+      "props": {
+       "image": {
+        "src": "lib:stay-thali",
+        "alt": "A brass plate of rice, dal and vegetable curries on a woven dhaka cloth"
+       },
+       "eyebrow": "",
+       "heading": "Dinner is dal bhat, and there is always more",
+       "body": "<p>Rice, black dal, whatever is green in the garden, potatoes with timur, and a pickle that changes with the month. Chicken on request, a day ahead.</p><p>We cook on a clay stove with wood from the community forest. If you want to learn, pull up a stool; Aama teaches while she cooks.</p>",
+       "link": {
+        "label": "Food and the village",
+        "href": "page:village"
+       }
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "Walks from the door",
+       "intro": "Times are at an easy pace, there and back.",
+       "items": [
+        {
+         "title": "Komrong Danda at sunrise",
+         "text": "A steep path through rhododendron to the ridge above the village. Take a torch and a jacket.",
+         "detail": "1 hour 30 minutes"
+        },
+        {
+         "title": "The Gurung Museum",
+         "text": "Old tools, clothes and a real kitchen, in a house like ours. Open from ten.",
+         "detail": "10 minutes"
+        },
+        {
+         "title": "Across to Landruk",
+         "text": "Down to the Modi Khola bridge and up the other side. Lunch in Landruk, jeep back if your knees ask.",
+         "detail": "5 hours"
+        },
+        {
+         "title": "Tadapani forest",
+         "text": "Moss, stone steps and langur monkeys, on the trail towards Ghorepani.",
+         "detail": "7 hours"
+        }
+       ]
+      }
+     },
+     {
+      "type": "map",
+      "variant": "location",
+      "props": {
+       "heading": "Getting to Ghandruk",
+       "address": "Upper Ghandruk, ward 11, five minutes above the Gurung Museum",
+       "hours": "Pokhara to Kimche by jeep, about 2 hours 30 minutes\nKimche to our door on foot, about 1 hour",
+       "phone": "",
+       "note": "Ask anyone for Dil Maya’s house. From the museum, climb the stone steps and turn left at the prayer wheel. We send someone down to Kimche to carry bags if you tell us your jeep time.",
+       "query": "Ghandruk, Kaski, Nepal",
+       "link": ""
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "plain",
+      "props": {
+       "heading": "Good to know",
+       "intro": "",
+       "items": [
+        {
+         "q": "When are the mountains clearest?",
+         "a": "Kartik to Magh, most mornings. In spring the rhododendrons are out but haze comes up by ten. In the monsoon you may see nothing for days, and then everything at once."
+        },
+        {
+         "q": "Do I need a permit?",
+         "a": "Ghandruk is inside the Annapurna Conservation Area. Foreign visitors need an entry permit from the Tourism Board office in Pokhara or Kathmandu; it is checked at Kimche. Nepali visitors pay a small fee at the checkpoint."
+        },
+        {
+         "q": "Is there wifi and power?",
+         "a": "Yes to both, most of the time. The wifi is slow in the evening when the whole village is on it."
+        },
+        {
+         "q": "Can you cook vegetarian or vegan?",
+         "a": "Dal bhat already is. Tell us about allergies when you book."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "Come in Kartik, when the mountain is out every morning",
+       "text": "Tell us your dates and how many of you. We reply the same day, and hold the room without a deposit.",
+       "primary": {
+        "label": "Ask for dates",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "WhatsApp 9846-218405",
+        "href": "https://wa.me/9779846218405",
+        "newTab": true
+       },
+       "image": {
+        "src": "lib:stay-alpenglow",
+        "alt": "Annapurna South and Machhapuchhre in the last light of the day",
+        "focal": [
+         50,
+         40
+        ]
+       }
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "rooms",
+    "slug": "rooms",
+    "title": "Rooms",
+    "nav": true,
+    "seoTitle": "Rooms and rates at Aangan Homestay, Ghandruk",
+    "seoDescription": "A twin room, a double with its own bathroom and a family attic for four, all facing Annapurna South. Dinner and breakfast included, from Rs 4,400 a night.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Four rooms, one view",
+       "text": "Every room is on the south side of the house. Quilts are washed every week and dried in the sun on the roof.",
+       "primary": {
+        "label": "Ask for dates",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "large",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:stay-room",
+          "alt": "The corner double room, its window framing the mountains"
+         },
+         "title": "The corner double",
+         "text": "A double bed under the widest window in the house, a bathroom with a hot shower, and a low table for tea. The first room to see the sun.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:stay-bed",
+          "alt": "A wood-panelled twin room with a made bed"
+         },
+         "title": "Twin rooms",
+         "text": "Two of them, each with two single beds, hooks for wet jackets and a shelf of paperbacks left by earlier guests. They share a bathroom across the landing.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Rates for 2083/84",
+       "intro": "Per room, per night, including dinner and breakfast for everyone in it. No service charge.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Twin room",
+         "price": "4400",
+         "period": "night",
+         "note": "Two guests. Shared bathroom.",
+         "features": "Two single beds\nHot shower across the landing\nDinner and breakfast for two",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Double with bathroom",
+         "price": "5600",
+         "period": "night",
+         "note": "Two guests.",
+         "features": "Double bed\nOwn bathroom\nThe widest window\nDinner and breakfast for two",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         },
+         "featured": true
+        },
+        {
+         "name": "Family attic",
+         "price": "8800",
+         "period": "night",
+         "note": "Up to four guests.",
+         "features": "One double and two single beds\nOwn bathroom\nDinner and breakfast for four",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Single traveller",
+         "price": "2800",
+         "period": "night",
+         "note": "In a twin room, when we are not full.",
+         "features": "Dinner and breakfast",
+         "cta": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "Extras, if you want them",
+       "intro": "Paid when you leave, in cash or by mobile wallet.",
+       "items": [
+        {
+         "title": "Lunch at the house",
+         "text": "Dal bhat, or noodle soup and Gurung bread.",
+         "detail": "Rs 550"
+        },
+        {
+         "title": "Packed lunch for a walk",
+         "text": "Boiled eggs, bread, potatoes and an apple in season.",
+         "detail": "Rs 450"
+        },
+        {
+         "title": "Laundry",
+         "text": "Washed by hand and dried on the roof, back by evening if it is sunny.",
+         "detail": "Rs 300 a bag"
+        },
+        {
+         "title": "Cooking lesson",
+         "text": "Two hours in the kitchen with Aama, then you eat what you made.",
+         "detail": "Rs 1,200"
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "grid",
+      "props": {
+       "heading": "Around the house",
+       "intro": "",
+       "images": [
+        {
+         "image": {
+          "src": "lib:stay-bed",
+          "alt": "A twin room with a made bed and wooden walls"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:stay-stove",
+          "alt": "A kettle on the wood-fired clay stove"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:stay-house",
+          "alt": "The house at dusk with the mountain behind"
+         },
+         "caption": ""
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Coming in Kartik or Dashain?",
+       "text": "Those weeks fill three months ahead. Ask early and we will hold the room.",
+       "primary": {
+        "label": "Ask for dates",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "village",
+    "slug": "food-and-village",
+    "title": "Food and village",
+    "nav": true,
+    "seoTitle": "Food, family and Ghandruk village at Aangan Homestay",
+    "seoDescription": "Dal bhat on a clay stove, Gurung bread at breakfast, and the stone lanes, fields and forests of Ghandruk. Meet the family who run the house.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "A Gurung village that still farms, feeds and argues together",
+       "text": "Ghandruk has a school, a museum, three hundred houses and more stone steps than anyone has counted. Stay two nights and people will know your name.",
+       "primary": {
+        "label": "Ask for dates",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:stay-village",
+        "alt": "The slate roofs of Ghandruk climbing the hillside",
+        "focal": [
+         50,
+         55
+        ]
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "The family",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:stay-aama",
+          "alt": "Dil Maya Gurung sitting on the porch in a red vest",
+          "focal": [
+           50,
+           35
+          ]
+         },
+         "title": "Dil Maya, who everyone calls Aama",
+         "text": "She has cooked for guests since 2069 and for the village for longer. Ask her about the year the landslide took the lower fields, or how to make gundruk.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:stay-family",
+          "alt": "The family sitting together in the doorway of the house",
+          "focal": [
+           50,
+           55
+          ]
+         },
+         "title": "Bikram, Sunita and the children",
+         "text": "Bikram worked six years in Qatar and came home to rebuild the house. Sunita keeps the bookings and the bees. The children will teach you a card game called kitty and then beat you at it.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:stay-fields",
+          "alt": "People working a green field below a snow peak"
+         },
+         "title": "The fields below the house",
+         "text": "Millet, maize and potatoes, and mustard greens in winter. Guests are welcome to help at planting in Jestha and harvest in Kartik.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "rows",
+      "props": {
+       "heading": "What we cook",
+       "intro": "Everything is included with your room except where a price is given.",
+       "items": [
+        {
+         "title": "Dal bhat",
+         "text": "Every dinner. Rice, black dal, seasonal greens, potato with timur, pickle.",
+         "detail": "Included"
+        },
+        {
+         "title": "Gurung bread and honey",
+         "text": "Fried flatbread at breakfast, with honey from the village hives.",
+         "detail": "Included"
+        },
+        {
+         "title": "Dhido",
+         "text": "Buckwheat or millet, stirred thick and eaten with gundruk soup. Ask a day ahead.",
+         "detail": "Included"
+        },
+        {
+         "title": "Chicken curry",
+         "text": "A village chicken, cooked slowly. Order the evening before.",
+         "detail": "Rs 900"
+        },
+        {
+         "title": "Local raksi",
+         "text": "Millet spirit from the neighbour’s still, warmed in the kettle.",
+         "detail": "Rs 150 a glass"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "masonry",
+      "props": {
+       "heading": "Kitchen and lanes",
+       "intro": "",
+       "images": [
+        {
+         "image": {
+          "src": "lib:stay-stove",
+          "alt": "A kettle on a wood-fired clay stove"
+         },
+         "caption": "The morning kettle"
+        },
+        {
+         "image": {
+          "src": "lib:stay-thali",
+          "alt": "A brass plate of dal bhat with vegetable curries"
+         },
+         "caption": "Tuesday dinner"
+        },
+        {
+         "image": {
+          "src": "lib:stay-steps",
+          "alt": "Stone steps climbing through a mossy forest"
+         },
+         "caption": "The path to Tadapani"
+        },
+        {
+         "image": {
+          "src": "lib:stay-chiya",
+          "alt": "Milk tea poured into a glass"
+         },
+         "caption": "Chiya, all day"
+        },
+        {
+         "image": {
+          "src": "lib:stay-stone",
+          "alt": "Stone houses and a field"
+         },
+         "caption": "The lane behind us"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Stay two nights, at least",
+       "text": "One night is mostly arriving. The second morning is when the mountain usually shows itself.",
+       "primary": {
+        "label": "Ask for dates",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "getting-here",
+    "slug": "getting-here",
+    "title": "Getting here",
+    "nav": true,
+    "seoTitle": "How to get to Ghandruk from Pokhara and Kathmandu",
+    "seoDescription": "Bus or flight to Pokhara, jeep to Kimche, then an hour on stone steps to our door. Times, fares, permits and what to pack for Ghandruk.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Pokhara, a jeep, then an hour of stone steps",
+       "text": "Most guests leave Pokhara after breakfast and are drinking tea on our terrace by early afternoon.",
+       "primary": {
+        "label": "Ask for dates",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:stay-steps",
+        "alt": "Stone steps climbing through a mossy forest",
+        "focal": [
+         50,
+         60
+        ]
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "The journey, step by step",
+       "intro": "Fares are what we paid in Bhadra 2083.",
+       "items": [
+        {
+         "title": "Kathmandu to Pokhara",
+         "text": "Tourist bus from Kathmandu, about seven hours with lunch on the way, or a 25-minute flight.",
+         "detail": "Bus from Rs 1,200"
+        },
+        {
+         "title": "Pokhara to Kimche",
+         "text": "Shared jeep from Baglung bus park, leaving when full, usually by 9:00. A reserved jeep can pick you up from Lakeside.",
+         "detail": "Rs 700 shared"
+        },
+        {
+         "title": "Show your permit",
+         "text": "At the Annapurna Conservation Area checkpoint before Kimche, if you are a foreign visitor.",
+         "detail": "5 minutes"
+        },
+        {
+         "title": "Walk up to Ghandruk",
+         "text": "Stone steps through fields and the lower village. Tell us your jeep time and Bikram meets you at Kimche to carry a bag.",
+         "detail": "About 1 hour"
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "What to pack",
+       "intro": "It is warmer than people expect in the day and colder than they expect at night.",
+       "items": [
+        {
+         "title": "A warm jacket",
+         "text": "Nights drop close to freezing from Mangsir to Falgun.",
+         "detail": ""
+        },
+        {
+         "title": "Shoes with grip",
+         "text": "The steps are slippery when wet, and polished smooth by the rest of the year.",
+         "detail": ""
+        },
+        {
+         "title": "A torch",
+         "text": "For the sunrise walk and for the lanes after dinner.",
+         "detail": ""
+        },
+        {
+         "title": "Cash",
+         "text": "There is no cash machine in Ghandruk. The nearest is in Nayapul.",
+         "detail": ""
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "map",
+      "variant": "split",
+      "props": {
+       "heading": "Where we are",
+       "address": "Ward 11, Ghandruk, Annapurna Rural Municipality, Kaski",
+       "hours": "",
+       "phone": "",
+       "note": "From the Gurung Museum, climb the stone steps and turn left at the prayer wheel. Blue door, stone terrace, a dog called Kalu.",
+       "query": "Ghandruk, Kaski, Nepal",
+       "link": ""
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "On the way",
+       "intro": "",
+       "items": [
+        {
+         "q": "Can a jeep reach the house?",
+         "a": "A rough road now reaches the lower village, but it is often closed in the monsoon. The walk from Kimche is more reliable and much nicer."
+        },
+        {
+         "q": "Can you carry our bags?",
+         "a": "Yes. Bikram or a neighbour will meet you at Kimche. Rs 800 for up to two bags."
+        },
+        {
+         "q": "We are trekking to Poon Hill. Can we stop with you?",
+         "a": "Many guests do, on the first or last night of the loop. Leave spare luggage with us while you walk."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Tell us when you leave Pokhara",
+       "text": "We will have tea ready and someone waiting at Kimche.",
+       "primary": {
+        "label": "Ask for dates",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "book",
+    "slug": "book",
+    "title": "Book",
+    "nav": true,
+    "seoTitle": "Ask for dates at Aangan Homestay, Ghandruk",
+    "seoDescription": "Pick a room and a date and we reply the same day. No deposit needed. Call or WhatsApp 9846-218405 from 7:00 to 21:00.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Ask for dates",
+       "text": "No deposit and no card. Tell us when you are coming and we hold the room. If your plans change, just let us know.",
+       "primary": {
+        "label": "",
+        "href": ""
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Which room, and when?",
+       "text": "Sunita replies the same day, usually within a few hours. Most people stay two or three nights.",
+       "services": "Twin room\nDouble room with bathroom\nFamily attic (up to four)\nWhichever is free",
+       "askTime": false,
+       "button": "Ask for these dates",
+       "success": "Thank you. Sunita will confirm by phone or WhatsApp today."
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "split",
+      "props": {
+       "heading": "When to reach us",
+       "note": "The phone is in the kitchen. If nobody answers, we are probably in the fields; send a WhatsApp message.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "07:00 – 21:00"
+        },
+        {
+         "day": "Monday",
+         "hours": "07:00 – 21:00"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "07:00 – 21:00"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "07:00 – 21:00"
+        },
+        {
+         "day": "Thursday",
+         "hours": "07:00 – 21:00"
+        },
+        {
+         "day": "Friday",
+         "hours": "07:00 – 21:00"
+        },
+        {
+         "day": "Saturday",
+         "hours": "07:00 – 21:00"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Before you book",
+       "intro": "",
+       "items": [
+        {
+         "q": "Do you need a deposit?",
+         "a": "No. We only ask that you tell us if you are not coming, so we can offer the room to someone walking up the steps."
+        },
+        {
+         "q": "How do we pay?",
+         "a": "When you leave, in cash or by mobile wallet. We cannot take cards."
+        },
+        {
+         "q": "Can we arrive late?",
+         "a": "Please arrive before dark. The steps from Kimche have no lights."
+        }
+       ]
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "stacked",
+      "props": {
+       "heading": "Or just write to us",
+       "text": "Questions about the walk, food, a group or a long stay. We answer every message.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send",
+       "success": "Thank you. We will reply today, or tomorrow morning if it is late."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

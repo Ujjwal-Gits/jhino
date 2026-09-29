@@ -1,442 +1,1157 @@
 {
-  "id": "tuition",
-  "name": "Himal Learning Centre",
-  "category": "School and tuition",
-  "description": "A trustworthy tuition centre site: courses with fees, a term timeline, teachers, FAQs and an enquiry form.",
-  "site": {
-    "name": "Himal Learning Centre",
-    "theme": {
-      "preset": "meridian",
-      "display": "newsreader",
-      "body": "schibsted",
-      "colors": {
-        "bg": "#fdfaf3",
-        "surface": "#f1ecdd",
-        "text": "#14213a",
-        "muted": "#54607a",
-        "accent": "#1c3f8a",
-        "onAccent": "#ffffff",
-        "line": "#ddd5bf"
-      },
-      "radius": 6,
-      "button": "solid",
-      "rhythm": "even"
+ "id": "tuition",
+ "name": "Ujyalo Learning Centre",
+ "category": "School and tuition",
+ "description": "A tuition centre for SEE, +2 Science and entrance courses: fees in rupees, the week and the year, teachers, a bridge-course page and an enquiry form.",
+ "site": {
+  "name": "Ujyalo Learning Centre",
+  "theme": {
+   "preset": "kora"
+  },
+  "settings": {
+   "tagline": "SEE, +2 Science and entrance tuition in Putalisadak",
+   "lang": "en",
+   "phone": "01-4430126",
+   "email": "desk@ujyalolearning.edu.np",
+   "address": "Putalisadak Road, Kathmandu 44600",
+   "social": [
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/ujyalolearning"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
-        {
-          "network": "facebook",
-          "url": "https://www.facebook.com/himallearningcentre"
-        },
-        {
-          "network": "viber",
-          "url": "https://invite.viber.com/?g=himal-learning"
-        }
-      ],
-      "tagline": "SEE and Class 11–12 preparation in Lazimpat",
-      "phone": "01-4410256",
-      "email": "office@himallearning.edu.np",
-      "address": "Lazimpat, behind Hotel Radisson, Kathmandu 44600"
+    {
+     "network": "viber",
+     "url": "https://invite.viber.com/?g=ujyalo-learning"
     },
-    "header": {
-      "type": "header",
-      "variant": "bar",
+    {
+     "network": "youtube",
+     "url": "https://www.youtube.com/@ujyalolearning"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Ask about a seat",
+     "href": "page:enquire"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Twenty to a class. A test every Friday.",
+    "cta": {
+     "label": "Ask about a seat",
+     "href": "page:enquire"
+    },
+    "about": "A tuition centre for Class 9 to entrance level in Putalisadak, Kathmandu, since 2071.",
+    "hours": "Sunday to Friday, 6:00 to 19:00\nSaturday, 8:00 to 12:00 (doubt-clearing)",
+    "note": "Fees include VAT where it applies.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Ujyalo Learning Centre, Putalisadak: SEE, +2 and entrance tuition",
+    "seoDescription": "Maths and science tuition in Putalisadak, Kathmandu: SEE preparation, +2 Science, the bridge course and entrance classes. Twenty to a class, fees written down.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
       "props": {
-        "cta": {
-          "label": "Ask about a seat",
-          "href": "page:enquire"
-        },
-        "sticky": true
+       "title": "Maths and science tuition, twenty to a class",
+       "text": "SEE preparation, +2 Science, the bridge course and entrance classes, taught by subject teachers who mark every Friday test themselves.",
+       "primary": {
+        "label": "See courses and fees",
+        "href": "page:courses"
+       },
+       "secondary": {
+        "label": "Ask about a seat",
+        "href": "page:enquire"
+       },
+       "image": {
+        "src": "lib:study-board",
+        "alt": "A student in a white uniform working a problem on the blackboard",
+        "focal": [
+         60,
+         45
+        ]
+       },
+       "eyebrow": "Morning, day and evening batches · Putalisadak, Kathmandu",
+       "video": ""
       }
-    },
-    "footer": {
-      "type": "footer",
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "Courses",
+       "intro": "Fees are per month unless written otherwise. Books and test papers are included.",
+       "items": [
+        {
+         "title": "SEE preparation, Class 9 and 10",
+         "text": "Compulsory Maths, Science, English and Optional Maths, five days a week.",
+         "detail": "Rs 4,500 a month"
+        },
+        {
+         "title": "Single SEE subject",
+         "text": "For students who need help in one subject only.",
+         "detail": "Rs 1,800 a month"
+        },
+        {
+         "title": "Bridge course after SEE",
+         "text": "Eight weeks in Baisakh and Jestha, for +2 Science entrance tests.",
+         "detail": "Rs 9,500, whole course"
+        },
+        {
+         "title": "+2 Science, Class 11 and 12",
+         "text": "Physics, Chemistry, Biology and Maths, following the NEB syllabus.",
+         "detail": "Rs 2,500 per subject"
+        },
+        {
+         "title": "Engineering entrance",
+         "text": "Twelve weeks of Physics, Chemistry, Maths and English, with weekly mock tests.",
+         "detail": "Rs 18,000, whole course"
+        },
+        {
+         "title": "Medical entrance",
+         "text": "Sixteen weeks of Physics, Chemistry, Zoology and Botany, with full mocks.",
+         "detail": "Rs 28,000, whole course"
+        }
+       ]
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "A student who is afraid to ask in a class of sixty will ask in a class of twenty. That is the whole idea.",
+       "name": "Hari Prasad Adhikari",
+       "detail": "Founder and Physics teacher",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "What a week here looks like",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:study-test",
+          "alt": "A boy in glasses thinking over his exam paper at a wooden desk",
+          "focal": [
+           55,
+           40
+          ]
+         },
+         "title": "A test every Friday",
+         "text": "Forty-five minutes, in exam conditions, on what was taught that week. Teachers mark the papers over the weekend and go through the mistakes on Sunday, one by one.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:study-lab",
+          "alt": "A student looking through a microscope in a science lab",
+          "focal": [
+           45,
+           40
+          ]
+         },
+         "title": "A lab that is used",
+         "text": "Microscopes, slides and the practical sets for Class 10 and +2 Biology and Chemistry. Every +2 student does the syllabus practicals here before the board exam.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:study-library",
+          "alt": "A student reading at a long table in a wood-panelled library",
+          "focal": [
+           50,
+           60
+          ]
+         },
+         "title": "A quiet room until seven",
+         "text": "The reading room upstairs is open to every student from 7:00 to 19:00, with old question papers from the last ten years in labelled files.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "steps",
       "variant": "columns",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "A tuition centre for students of Class 9 to 12, with batches of no more than 18 and a monthly report to parents."
+       "heading": "How a term runs",
+       "intro": "",
+       "items": [
+        {
+         "title": "Placement test",
+         "text": "A short test and a talk with the student and a parent, so we put them in the right batch.",
+         "detail": "Week 1"
+        },
+        {
+         "title": "Classes begin",
+         "text": "Morning, day or evening batch, never more than twenty students.",
+         "detail": "Week 1"
+        },
+        {
+         "title": "Friday tests",
+         "text": "Marked, returned and gone through in class.",
+         "detail": "Every week"
+        },
+        {
+         "title": "Report to parents",
+         "text": "Marks and attendance on Viber at the end of each month, and a meeting each term.",
+         "detail": "Monthly"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
       }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Himal Learning Centre, Lazimpat: SEE, Class 11 and 12 tuition",
-        "seoDescription": "Small-batch tuition in Lazimpat, Kathmandu. SEE preparation, Class 11 and 12 Science and Management. Batches of 18, monthly parent reports.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "text",
-            "props": {
-              "eyebrow": "Lazimpat, Kathmandu · Admissions open for Baisakh",
-              "title": "Eighteen students in a room, and a teacher who knows every name",
-              "text": "Tuition for SEE, and for Class 11 and 12 Science and Management under NEB. We test every Friday and send you the marks on Viber on Sunday.",
-              "primary": {
-                "label": "Ask about a seat",
-                "href": "page:enquire"
-              },
-              "secondary": {
-                "label": "See the courses",
-                "href": "page:courses"
-              }
-            }
-          },
-          {
-            "type": "features",
-            "variant": "grid",
-            "props": {
-              "heading": "What we teach",
-              "items": [
-                {
-                  "title": "SEE preparation",
-                  "text": "Maths, science, English, Nepali and social. Model questions from the last ten years of SEE papers.",
-                  "detail": "Rs 3,500 a month"
-                },
-                {
-                  "title": "Class 11 and 12 Science",
-                  "text": "Physics, chemistry, maths and biology, with a lab session every second Saturday.",
-                  "detail": "Rs 6,000 a month"
-                },
-                {
-                  "title": "Class 11 and 12 Management",
-                  "text": "Accountancy, economics, business studies and English.",
-                  "detail": "Rs 5,000 a month"
-                },
-                {
-                  "title": "IOE and CEE crash course",
-                  "text": "Sixteen weeks, Sunday to Friday evenings, with mock tests in the exam format.",
-                  "detail": "Rs 18,000 total"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "imagetext",
-            "variant": "left",
-            "props": {
-              "image": {
-                "src": "lib:school-class",
-                "alt": "Students sitting at desks listening to a teacher standing at the front"
-              },
-              "eyebrow": "How we work",
-              "heading": "A Friday test, a Sunday message",
-              "body": "<p>Every student sits a forty-minute test each Friday. Sunday morning, parents get the marks, the class average and one line from the teacher on what to fix.</p><p>Students below 50 in a subject get a free Saturday doubt class until they are not.</p>",
-              "link": {
-                "label": "Meet the teachers",
-                "href": "page:teachers"
-              }
-            }
-          },
-          {
-            "type": "timeline",
-            "variant": "horizontal",
-            "props": {
-              "heading": "The year at a glance",
-              "items": [
-                {
-                  "date": "Baisakh",
-                  "title": "New batches begin",
-                  "text": "After SEE results and the Class 11 admission lists."
-                },
-                {
-                  "date": "Shrawan",
-                  "title": "First terminal tests",
-                  "text": "Marks meeting with every parent."
-                },
-                {
-                  "date": "Ashwin",
-                  "title": "Dashain break",
-                  "text": "Ten days off, revision sheet sent home."
-                },
-                {
-                  "date": "Poush",
-                  "title": "Second terminal",
-                  "text": "Mock papers begin."
-                },
-                {
-                  "date": "Falgun",
-                  "title": "Final revision",
-                  "text": "Extra evening classes, no extra fee."
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "boxed",
-            "props": {
-              "title": "Visit a class before you decide",
-              "text": "Sit in on one session, free, any weekday at 4 pm.",
-              "primary": {
-                "label": "Ask about a seat",
-                "href": "page:enquire"
-              },
-              "secondary": {
-                "label": "Call 01-4410256",
-                "href": "tel:014410256"
-              }
-            }
-          }
+     },
+     {
+      "type": "sticky",
+      "variant": "left",
+      "props": {
+       "heading": "The bridge course, week by week",
+       "intro": "For students waiting for SEE results who want to start +2 Science ahead, and sit a college entrance test.",
+       "image": {
+        "src": "lib:study-desk",
+        "alt": "A study desk with a scientific calculator and pages of worked problems",
+        "focal": [
+         50,
+         55
         ]
-      },
-      {
-        "id": "courses",
-        "title": "Courses",
-        "nav": true,
-        "seoTitle": "Courses and fees at Himal Learning Centre, Lazimpat",
-        "seoDescription": "SEE Rs 3,500, Class 11 and 12 Science Rs 6,000, Management Rs 5,000 a month. Batch timings and what is included.",
-        "blocks": [
-          {
-            "type": "image",
-            "variant": "contained",
-            "props": {
-              "image": {
-                "src": "lib:school-board",
-                "alt": "A hand writing an equation on a green chalkboard"
-              },
-              "caption": "Maths, Class 12, morning batch"
-            }
-          },
-          {
-            "type": "pricing",
-            "variant": "table",
-            "props": {
-              "heading": "Courses and monthly fees",
-              "intro": "Admission fee Rs 1,500, once. Sibling discount of 10 percent.",
-              "currency": "NPR",
-              "plans": [
-                {
-                  "name": "SEE preparation",
-                  "price": "3500",
-                  "period": "a month",
-                  "note": "Class 10, 4 pm to 6 pm, Sunday to Friday",
-                  "features": "Five subjects\nFriday test\nSaturday doubt class",
-                  "cta": {
-                    "label": "Ask about a seat",
-                    "href": "page:enquire"
-                  },
-                  "featured": false
-                },
-                {
-                  "name": "Class 11–12 Science",
-                  "price": "6000",
-                  "period": "a month",
-                  "note": "6:30 am and 4 pm batches",
-                  "features": "Physics, chemistry, maths, biology\nLab every second Saturday\nNEB model papers",
-                  "cta": {
-                    "label": "Ask about a seat",
-                    "href": "page:enquire"
-                  },
-                  "featured": true
-                },
-                {
-                  "name": "Class 11–12 Management",
-                  "price": "5000",
-                  "period": "a month",
-                  "note": "7 am and 4 pm batches",
-                  "features": "Accountancy, economics, business studies\nEnglish\nCase-study sessions",
-                  "cta": {
-                    "label": "Ask about a seat",
-                    "href": "page:enquire"
-                  },
-                  "featured": false
-                },
-                {
-                  "name": "IOE and CEE crash course",
-                  "price": "18000",
-                  "period": "16 weeks",
-                  "note": "Evenings, 5 pm to 8 pm",
-                  "features": "Weekly mock in exam format\nOMR practice\nPast-question booklets",
-                  "cta": {
-                    "label": "Ask about a seat",
-                    "href": "page:enquire"
-                  },
-                  "featured": false
-                }
-              ]
-            }
-          },
-          {
-            "type": "faq",
-            "variant": "accordion",
-            "props": {
-              "heading": "Parents ask",
-              "items": [
-                {
-                  "q": "How many students are in a batch?",
-                  "a": "Eighteen at most. When a batch is full we open the next timing, we do not add chairs."
-                },
-                {
-                  "q": "Can my child join in the middle of the year?",
-                  "a": "Yes. We do a short placement test on the first day and send you a catch-up plan."
-                },
-                {
-                  "q": "Do you provide notes?",
-                  "a": "Printed notes for every chapter, included in the fee. Textbooks are not included."
-                },
-                {
-                  "q": "How do I pay?",
-                  "a": "Cash at the office, or eSewa and Fonepay to the centre QR, by the 7th of each month."
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          }
-        ]
-      },
-      {
-        "id": "teachers",
-        "title": "Teachers",
-        "nav": true,
-        "seoTitle": "Teachers at Himal Learning Centre, Lazimpat",
-        "seoDescription": "Meet the teachers of Himal Learning Centre: maths, physics, chemistry, accountancy and English.",
-        "blocks": [
-          {
-            "type": "team",
-            "variant": "list",
-            "props": {
-              "heading": "Teachers",
-              "intro": "Every teacher here teaches. None of them only manages.",
-              "people": [
-                {
-                  "name": "Ramesh Adhikari",
-                  "role": "Maths, 14 years",
-                  "bio": "M.Sc. from Tribhuvan University. Writes the Friday tests himself.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                },
-                {
-                  "name": "Kabita Poudel",
-                  "role": "Physics and chemistry",
-                  "bio": "Taught Class 12 at a college in Bagbazar before starting here.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                },
-                {
-                  "name": "Suresh Bhandari",
-                  "role": "Accountancy and economics",
-                  "bio": "Chartered accountant, teaches on weekday evenings.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                },
-                {
-                  "name": "Mina Joshi",
-                  "role": "English and Nepali",
-                  "bio": "Runs the writing class every Saturday.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "type": "image",
-            "variant": "framed",
-            "props": {
-              "image": {
-                "src": "lib:school-lecture",
-                "alt": "A teacher speaking to students at wooden desks while a student raises a hand"
-              },
-              "caption": "A Saturday doubt class. Hands go up, and the teacher answers at the desk."
-            }
-          }
-        ]
-      },
-      {
-        "id": "enquire",
-        "title": "Enquire",
-        "nav": true,
-        "seoTitle": "Ask about a seat at Himal Learning Centre, Lazimpat",
-        "seoDescription": "Send an enquiry about a batch, fees or a visit. The office replies the same day, Sunday to Friday.",
-        "blocks": [
-          {
-            "type": "contact",
-            "variant": "split",
-            "props": {
-              "heading": "Ask about a seat",
-              "text": "Tell us your child's class and school, and which batch time suits. The office replies the same day.",
-              "address": "",
-              "phone": "",
-              "email": "",
-              "askPhone": true,
-              "button": "Send enquiry",
-              "success": "Thank you. The office will call you by tomorrow morning."
-            }
-          },
-          {
-            "type": "hours",
-            "variant": "compact",
-            "props": {
-              "heading": "Office hours",
-              "note": "",
-              "days": [
-                {
-                  "day": "Sunday",
-                  "hours": "07:00 – 18:00"
-                },
-                {
-                  "day": "Monday",
-                  "hours": "07:00 – 18:00"
-                },
-                {
-                  "day": "Tuesday",
-                  "hours": "07:00 – 18:00"
-                },
-                {
-                  "day": "Wednesday",
-                  "hours": "07:00 – 18:00"
-                },
-                {
-                  "day": "Thursday",
-                  "hours": "07:00 – 18:00"
-                },
-                {
-                  "day": "Friday",
-                  "hours": "07:00 – 18:00"
-                },
-                {
-                  "day": "Saturday",
-                  "hours": "Closed"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "map",
-            "variant": "embed",
-            "props": {
-              "heading": "",
-              "address": "Lazimpat, behind Hotel Radisson, Kathmandu",
-              "query": "Lazimpat, Kathmandu",
-              "link": ""
-            }
-          }
-        ]
+       },
+       "items": [
+        {
+         "label": "Weeks 1 and 2",
+         "title": "Maths and Physics foundations",
+         "text": "Sets, functions, trigonometry and vectors; units, motion and forces. The topics +2 assumes you already know."
+        },
+        {
+         "label": "Weeks 3 and 4",
+         "title": "Chemistry and Biology",
+         "text": "Mole concept, periodic table and bonding; cells, classification and the human body."
+        },
+        {
+         "label": "Weeks 5 and 6",
+         "title": "English and model tests",
+         "text": "Grammar and comprehension, then two full model tests in the format colleges use."
+        },
+        {
+         "label": "Weeks 7 and 8",
+         "title": "Entrance practice and advice",
+         "text": "Timed papers every other day, and a one-to-one talk about which colleges and which stream suit each student."
+        }
+       ]
       }
+     },
+     {
+      "type": "team",
+      "variant": "monogram",
+      "props": {
+       "heading": "Your teachers",
+       "intro": "Each teaches one subject, and has taught it for at least eight years.",
+       "people": [
+        {
+         "name": "Hari Prasad Adhikari",
+         "role": "Physics, founder",
+         "bio": "M.Sc. Physics, Tribhuvan University. Eighteen years teaching +2 and entrance Physics.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Sarita Koirala",
+         "role": "Chemistry",
+         "bio": "M.Sc. Chemistry. Runs the lab and the practical classes.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Dipesh Yadav",
+         "role": "Mathematics",
+         "bio": "M.Sc. Mathematics. SEE Optional Maths and +2 Maths.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Nirmala Bhattarai",
+         "role": "Biology",
+         "bio": "M.Sc. Zoology. +2 Biology and the medical entrance course.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Anish Joshi",
+         "role": "English",
+         "bio": "M.A. English. SEE English and entrance comprehension.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "bento",
+      "props": {
+       "heading": "Inside the centre",
+       "intro": "Three classrooms, a lab and a reading room, on the second and third floors.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:study-class",
+          "alt": "Schoolgirls in white uniforms listening in a classroom",
+          "focal": [
+           45,
+           45
+          ]
+         },
+         "caption": "SEE morning batch"
+        },
+        {
+         "image": {
+          "src": "lib:study-physics",
+          "alt": "A teacher drawing a physics diagram on a green chalkboard",
+          "focal": [
+           55,
+           40
+          ]
+         },
+         "caption": "Physics, +2 evening batch"
+        },
+        {
+         "image": {
+          "src": "lib:study-microscopes",
+          "alt": "A row of microscopes on a lab bench"
+         },
+         "caption": "The Biology lab"
+        },
+        {
+         "image": {
+          "src": "lib:study-revision",
+          "alt": "A student reading her notes at a table in a quiet classroom",
+          "focal": [
+           45,
+           45
+          ]
+         },
+         "caption": "Revision week"
+        },
+        {
+         "image": {
+          "src": "lib:study-notes",
+          "alt": "A girl writing in her exercise book with a pencil"
+         },
+         "caption": "Friday test"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Fees, in full",
+       "intro": "Admission fee Rs 1,000, once. Siblings pay 10% less. Fees can be paid monthly or for the term.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "SEE preparation",
+         "price": "4500",
+         "period": "month",
+         "note": "Four subjects, five days a week, weekly tests.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": true
+        },
+        {
+         "name": "+2 Science, one subject",
+         "price": "2500",
+         "period": "month",
+         "note": "Physics, Chemistry, Biology or Maths.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Bridge course",
+         "price": "9500",
+         "period": "8 weeks",
+         "note": "Books, two model tests and college advice.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Engineering entrance",
+         "price": "18000",
+         "period": "12 weeks",
+         "note": "Ten full mock tests.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Medical entrance",
+         "price": "28000",
+         "period": "16 weeks",
+         "note": "Fourteen full mock tests.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Questions parents ask",
+       "intro": "",
+       "items": [
+        {
+         "q": "Can my child try a class first?",
+         "a": "Yes. Any student can sit in on two classes before paying, after the placement test."
+        },
+        {
+         "q": "What if my child misses a class?",
+         "a": "Notes are kept at the desk, and the teacher goes through the missed topic in the doubt-clearing hour on Saturday morning."
+        },
+        {
+         "q": "How will I know how my child is doing?",
+         "a": "Friday test marks and attendance are sent on Viber at the end of every month. You can ask to meet any teacher on Saturday."
+        },
+        {
+         "q": "Is there a scholarship?",
+         "a": "Students from community schools with a GPA of 3.6 or more in Class 9 pay half fees for SEE preparation. Bring the mark sheet."
+        },
+        {
+         "q": "Are girls and boys taught together?",
+         "a": "Yes, in all batches. There is a woman staff member at the desk from 6:00 to 19:00."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Seats fill before each term",
+       "text": "Batches are capped at twenty. Ask now for the next SEE, +2 or bridge course intake.",
+       "primary": {
+        "label": "Ask about a seat",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "Call 01-4430126",
+        "href": "tel:014430126"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "courses",
+    "slug": "courses",
+    "title": "Courses and fees",
+    "nav": true,
+    "seoTitle": "Courses and fees · Ujyalo Learning Centre, Putalisadak",
+    "seoDescription": "SEE preparation Rs 4,500 a month, +2 Science Rs 2,500 a subject, engineering and medical entrance courses. Batch times and the year’s intakes.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Courses and fees",
+       "text": "Four kinds of class, for Class 9 to after +2. Each is taught by a subject teacher, with a test every Friday.",
+       "primary": {
+        "label": "Ask about a seat",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "Call the desk",
+        "href": "tel:014430126"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "Admission fee Rs 1,000, once",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:study-class",
+          "alt": "Schoolgirls in white uniforms listening in a classroom",
+          "focal": [
+           45,
+           45
+          ]
+         },
+         "title": "SEE preparation, Class 9 and 10",
+         "text": "Compulsory Maths, Science, English and Optional Maths, Sunday to Thursday. We follow the CDC syllabus chapter by chapter and finish a month before the exam, so the last month is for past papers. Rs 4,500 a month for all four, or Rs 1,800 for one.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:study-lab",
+          "alt": "A student using a microscope in the lab",
+          "focal": [
+           45,
+           40
+          ]
+         },
+         "title": "+2 Science, Class 11 and 12",
+         "text": "Physics, Chemistry, Biology and Maths on the NEB syllabus, in the evening after college. Take one subject or all four. Syllabus practicals are done in our lab. Rs 2,500 a subject each month.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:study-desk",
+          "alt": "Pages of worked problems and a calculator",
+          "focal": [
+           50,
+           55
+          ]
+         },
+         "title": "Engineering and medical entrance",
+         "text": "For students who have finished +2. Engineering runs for twelve weeks, medical for sixteen, both with full mock tests every week and a ranking so you know where you stand. Rs 18,000 and Rs 28,000.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "horizontal",
+      "props": {
+       "heading": "The year at the centre",
+       "items": [
+        {
+         "date": "Baisakh",
+         "title": "New SEE batches",
+         "text": "Class 9 and 10 begin with the school year."
+        },
+        {
+         "date": "Baisakh to Jestha",
+         "title": "Bridge course",
+         "text": "Eight weeks, while SEE results are awaited."
+        },
+        {
+         "date": "Shrawan",
+         "title": "+2 evening batches",
+         "text": "Class 11 starts after college admissions."
+        },
+        {
+         "date": "Bhadra",
+         "title": "Entrance courses",
+         "text": "Engineering and medical, after +2 results."
+        },
+        {
+         "date": "Magh to Falgun",
+         "title": "SEE revision",
+         "text": "Past papers and two full model exams."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "columns",
+      "props": {
+       "heading": "Paying for a term",
+       "intro": "Pay monthly, or pay for the term and save a month’s fee on SEE preparation.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Monthly",
+         "price": "4500",
+         "period": "month",
+         "note": "SEE preparation, all four subjects.",
+         "features": "Books and test papers\nFriday tests\nMonthly report on Viber",
+         "cta": {
+          "label": "Ask about a seat",
+          "href": "page:enquire"
+         },
+         "featured": false
+        },
+        {
+         "name": "Full year",
+         "price": "49500",
+         "period": "12 months",
+         "note": "Twelve months for the price of eleven.",
+         "features": "Everything in Monthly\nTwo full model exams\nA term meeting with every teacher",
+         "cta": {
+          "label": "Ask about a seat",
+          "href": "page:enquire"
+         },
+         "featured": true
+        }
+       ]
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "About the courses",
+       "intro": "",
+       "items": [
+        {
+         "q": "Which batch times are there?",
+         "a": "Morning 6:00 to 9:00, day 13:00 to 15:00 (for students on leave or waiting for results) and evening 16:00 to 19:00."
+        },
+        {
+         "q": "Do you teach Management or Humanities?",
+         "a": "Only +2 Accountancy and Economics in the evening, on request. Our teachers are mostly Science."
+        },
+        {
+         "q": "Do you guarantee results?",
+         "a": "No, and please be wary of anyone who does. We promise the syllabus finished on time, a test every week and honest reports."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Not sure which course fits?",
+       "text": "Book a placement test. It takes forty minutes and it is free.",
+       "primary": {
+        "label": "Ask about a seat",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "The bridge course",
+        "href": "page:bridge"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "bridge",
+    "slug": "bridge-course",
+    "title": "Bridge course",
+    "nav": true,
+    "seoTitle": "Bridge course after SEE in Kathmandu · Ujyalo Learning Centre",
+    "seoDescription": "Eight weeks of Maths, Science and English after SEE, with two model entrance tests and college advice. Rs 9,500, Putalisadak.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "The bridge course, for students waiting on SEE results",
+       "text": "Eight weeks that turn three idle months into a head start in +2 Science, and prepare students for college entrance tests.",
+       "primary": {
+        "label": "Reserve a seat",
+        "href": "#booking"
+       },
+       "secondary": {
+        "label": "What it covers",
+        "href": "#timeline"
+       },
+       "image": {
+        "src": "lib:study-lecture",
+        "alt": "A teacher talking to a small class seated at long desks",
+        "focal": [
+         40,
+         50
+        ]
+       },
+       "eyebrow": "Starts the week after SEE ends · Rs 9,500",
+       "video": ""
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "Why a bridge course",
+       "body": "<p>Class 11 Science moves fast. Students who arrive already comfortable with vectors, the mole and the cell keep up; the rest spend the first term catching up.</p><p>Most good +2 colleges also hold an entrance test in Jestha. The bridge course ends with two full model tests in the same format, and a one-to-one talk about which colleges suit which student.</p>"
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "vertical",
+      "props": {
+       "heading": "Eight weeks",
+       "items": [
+        {
+         "date": "Weeks 1 and 2",
+         "title": "Maths and Physics foundations",
+         "text": "Sets, functions, trigonometry and vectors. Units, motion, forces and energy."
+        },
+        {
+         "date": "Weeks 3 and 4",
+         "title": "Chemistry and Biology",
+         "text": "Mole concept, periodic table, bonding. Cells, classification and human biology."
+        },
+        {
+         "date": "Weeks 5 and 6",
+         "title": "English, and model test one",
+         "text": "Grammar and comprehension, then a full test under exam conditions."
+        },
+        {
+         "date": "Weeks 7 and 8",
+         "title": "Entrance practice, model test two",
+         "text": "Timed papers every other day, a second model test, and college advice."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "What is included",
+       "intro": "",
+       "items": [
+        {
+         "title": "Classes",
+         "text": "Sunday to Friday, 7:00 to 10:00 or 13:00 to 16:00.",
+         "detail": "8 weeks"
+        },
+        {
+         "title": "Books",
+         "text": "Our own bridge course workbook, one for each subject.",
+         "detail": "Included"
+        },
+        {
+         "title": "Model tests",
+         "text": "Two full tests, marked and ranked.",
+         "detail": "Included"
+        },
+        {
+         "title": "College advice",
+         "text": "Fifteen minutes with the student and a parent.",
+         "detail": "Included"
+        },
+        {
+         "title": "Fee",
+         "text": "Paid at admission. A sibling pays 10% less.",
+         "detail": "Rs 9,500"
+        }
+       ]
+      }
+     },
+     {
+      "type": "image",
+      "variant": "contained",
+      "props": {
+       "image": {
+        "src": "lib:study-room",
+        "alt": "An empty science classroom with benches and a green board",
+        "focal": [
+         50,
+         55
+        ]
+       },
+       "caption": "Room 3, where the bridge course is taught, with the lab next door."
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Reserve a bridge course seat",
+       "text": "Leave a name and a phone number. We call with the start date and ask which batch suits you.",
+       "services": "Morning batch, 7:00 to 10:00\nDay batch, 13:00 to 16:00",
+       "askTime": false,
+       "button": "Reserve a seat",
+       "success": "Thank you. We will call you this week with the start date."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "teachers",
+    "slug": "teachers",
+    "title": "Teachers",
+    "nav": true,
+    "seoTitle": "Our teachers · Ujyalo Learning Centre",
+    "seoDescription": "Five subject teachers with master’s degrees and at least eight years of teaching: Physics, Chemistry, Maths, Biology and English.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "The teachers",
+       "text": "Five subject teachers, all with a master’s degree in what they teach and at least eight years in a classroom.",
+       "primary": {
+        "label": "Ask about a seat",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "Every teacher takes doubt-clearing on Saturday",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "team",
+      "variant": "list",
+      "props": {
+       "heading": "Who teaches what",
+       "intro": "",
+       "people": [
+        {
+         "name": "Hari Prasad Adhikari",
+         "role": "Physics, founder",
+         "bio": "M.Sc. Physics, Tribhuvan University. Taught +2 Physics in two Kathmandu colleges before opening the centre in 2071. Teaches the +2 and entrance Physics batches.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Sarita Koirala",
+         "role": "Chemistry",
+         "bio": "M.Sc. Chemistry. Ten years of +2 Chemistry. Runs the lab and every practical class, and writes the Friday Chemistry tests.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Dipesh Yadav",
+         "role": "Mathematics",
+         "bio": "M.Sc. Mathematics. SEE Optional Maths and +2 Maths. Known for making students do the problem on the board.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Nirmala Bhattarai",
+         "role": "Biology",
+         "bio": "M.Sc. Zoology. +2 Biology and the medical entrance course. Keeps the slide collection.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Anish Joshi",
+         "role": "English",
+         "bio": "M.A. English. SEE English, and the comprehension and grammar part of every entrance course.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "image",
+      "props": {
+       "quote": "I write the question on the board and wait. The silence is where the learning happens.",
+       "name": "Dipesh Yadav",
+       "detail": "Mathematics",
+       "image": {
+        "src": "lib:study-physics",
+        "alt": "A teacher at a green chalkboard in front of a class",
+        "focal": [
+         55,
+         40
+        ]
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "How we teach",
+       "body": "<p>Every class starts with five minutes on last class’s homework. Every chapter ends with a short test. Every Friday, a longer one.</p><p>Teachers mark their own papers. It takes longer, but it means the person who taught the chapter sees the mistakes and can fix them on Sunday.</p><ul><li>Twenty students to a batch, at most</li><li>A doubt-clearing hour on Saturday, 8:00 to 9:00</li><li>Old board and entrance papers for every chapter</li></ul>"
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Meet a teacher before you join",
+       "text": "Come on a Saturday morning. Bring the student and a recent mark sheet.",
+       "primary": {
+        "label": "Ask about a seat",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "Call 01-4430126",
+        "href": "tel:014430126"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "enquire",
+    "slug": "enquire",
+    "title": "Enquire",
+    "nav": true,
+    "seoTitle": "Ask about a seat · Ujyalo Learning Centre, Putalisadak",
+    "seoDescription": "Enquire about SEE, +2 Science, bridge or entrance classes in Putalisadak. Free placement test and two trial classes.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Ask about a seat",
+       "text": "Tell us the class and the course. We call back the same day with batch times and the next placement test.",
+       "primary": {
+        "label": "Call 01-4430126",
+        "href": "tel:014430126"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "The desk is open from 6:00 to 19:00",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "split",
+      "props": {
+       "heading": "Send an enquiry",
+       "text": "Write the student’s class, school and the course you are asking about.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send enquiry",
+       "success": "Thank you. We will call you back today."
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "Joining in three steps",
+       "intro": "",
+       "items": [
+        {
+         "title": "Placement test",
+         "text": "Forty minutes, free, any morning except Saturday.",
+         "detail": "Day 1"
+        },
+        {
+         "title": "Two trial classes",
+         "text": "Sit in before you decide.",
+         "detail": "Days 2 and 3"
+        },
+        {
+         "title": "Admission",
+         "text": "Fill the form, pay the admission fee and the first month, get the books.",
+         "detail": "Day 4"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "split",
+      "props": {
+       "heading": "When the desk is open",
+       "note": "Closed on Saturday afternoons and public holidays. During SEE the reading room stays open until 20:00.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "06:00 – 19:00"
+        },
+        {
+         "day": "Monday",
+         "hours": "06:00 – 19:00"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "06:00 – 19:00"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "06:00 – 19:00"
+        },
+        {
+         "day": "Thursday",
+         "hours": "06:00 – 19:00"
+        },
+        {
+         "day": "Friday",
+         "hours": "06:00 – 19:00"
+        },
+        {
+         "day": "Saturday",
+         "hours": "08:00 – 12:00"
+        }
+       ]
+      }
+     },
+     {
+      "type": "map",
+      "variant": "location",
+      "props": {
+       "heading": "Second floor, Putalisadak",
+       "address": "Second and third floors, Putalisadak Road, Kathmandu 44600",
+       "hours": "Sunday to Friday, 6:00 to 19:00\nSaturday, 8:00 to 12:00",
+       "phone": "",
+       "note": "Blue sign above the stationery shop, a two-minute walk from the Putalisadak bus stop. No car parking; scooters in the lane behind.",
+       "query": "Putalisadak, Kathmandu",
+       "link": ""
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

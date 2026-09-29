@@ -1,330 +1,1082 @@
 {
-  "id": "portfolio",
-  "name": "Anish Karki",
-  "category": "Portfolio and resume",
-  "description": "A personal portfolio and resume for a freelance web developer: projects, experience timeline, skills and a message form.",
-  "site": {
-    "name": "Anish Karki",
-    "theme": {
-      "preset": "nocturne",
-      "display": "fraunces",
-      "body": "hanken",
-      "colors": {
-        "bg": "#12171a",
-        "surface": "#1a2226",
-        "text": "#e9ede6",
-        "muted": "#98a59f",
-        "accent": "#9ad8bd",
-        "onAccent": "#0f1a16",
-        "line": "#2b373b"
-      },
-      "radius": 6,
-      "button": "solid",
-      "rhythm": "even"
+ "id": "portfolio",
+ "name": "Rabina Maharjan",
+ "category": "Portfolio and resume",
+ "description": "A white, black-type portfolio for an architect or designer: large project photos, how the work is done, a practice page with a CV, fees and a contact form.",
+ "site": {
+  "name": "Rabina Maharjan",
+  "theme": {
+   "preset": "salt",
+   "button": "solid"
+  },
+  "settings": {
+   "tagline": "Architect in Patan. Brick houses, courtyards and careful repairs",
+   "lang": "en",
+   "phone": "9841-552217",
+   "email": "studio@rabinamaharjan.com.np",
+   "address": "Nag Bahal, Patan, Lalitpur 44700",
+   "social": [
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/rabina.maharjan.architect"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
+    {
+     "network": "linkedin",
+     "url": "https://www.linkedin.com/in/rabinamaharjan"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "minimal",
+   "props": {
+    "cta": {
+     "label": "Write to me",
+     "href": "page:contact"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Houses for the valley, drawn by hand in a Patan courtyard.",
+    "cta": {
+     "label": "Book a first meeting",
+     "href": "page:contact"
+    },
+    "about": "Architect, registered with the Nepal Engineering Council. Houses, courtyards and small public buildings in the Kathmandu valley since 2012.",
+    "hours": "Studio, Sunday to Friday\n10:00 to 17:30\nSite visits by appointment",
+    "note": "Photographs of built work are used with the owners’ permission.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Rabina Maharjan, architect in Patan: brick houses and courtyards",
+    "seoDescription": "Architect in Nag Bahal, Patan. New brick houses, courtyard restorations and small public buildings across the Kathmandu valley, drawn by hand first.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "Brick houses that keep cool in Jestha and hold the sun in Poush",
+       "text": "I design homes, courtyards and small public buildings in the Kathmandu valley, and repair the old ones. Local brick, deep eaves and rooms that face the right way.",
+       "primary": {
+        "label": "See the projects",
+        "href": "page:projects"
+       },
+       "secondary": {
+        "label": "Fees and how I work",
+        "href": "page:services"
+       },
+       "image": {
+        "src": "lib:arch-gable",
+        "alt": "The brick gable and deep eave of the Bungamati house against a blue sky",
+        "focal": [
+         50,
+         62
+        ]
+       },
+       "eyebrow": "Studio in Nag Bahal, Patan · Taking two new houses for 2084",
+       "video": ""
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "A one-architect studio, on purpose",
+       "body": "<p>I work with one assistant and a model-maker, so the person who walks your plot is the one who draws every sheet and signs the naksa. That limits me to about six projects a year.</p><p>Most clients are families building on inherited land: a narrow plot in Kirtipur, a field in Bungamati, a crumbling house in a Patan bahal that three brothers want to share. The brief is usually more about the people than the building. That is where I like to start.</p>"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "feature",
+      "props": {
+       "heading": "Selected projects",
+       "intro": "Built between 2076 and 2081. Every one is lived in.",
+       "items": [
         {
-          "network": "linkedin",
-          "url": "https://www.linkedin.com/in/anishkarki"
+         "image": {
+          "src": "lib:arch-house",
+          "alt": "The Bungamati house from the garden: brick walls, tall windows and a glass-block stair"
+         },
+         "title": "House for two generations, Bungamati",
+         "tag": "New house · 2,900 sq ft",
+         "text": "Parents on the ground floor, a son’s family above, one kitchen between them. The glass-block stair lights both floors without a single west window.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
         },
         {
-          "network": "website",
-          "url": "https://github.com/anishkarki"
+         "image": {
+          "src": "lib:arch-courtyard",
+          "alt": "A restored courtyard with timber balconies around a young tree"
+         },
+         "title": "Chhen in Nag Bahal",
+         "tag": "Restoration",
+         "text": "A 1930s house around a shared courtyard, re-roofed, re-wired and made safe without losing a single carved post.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
         },
         {
-          "network": "x",
-          "url": "https://x.com/anishkarki"
+         "image": {
+          "src": "lib:arch-lightwell",
+          "alt": "A light well with a brick wall, a young tree and built-in timber shelves"
+         },
+         "title": "Light-well house, Kirtipur",
+         "tag": "New house · 1,650 sq ft",
+         "text": "A 22-foot plot between two tall neighbours. The rooms open onto a planted light well instead of the street.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:arch-hall",
+          "alt": "Afternoon sun falling between brick columns in a long reading hall"
+         },
+         "title": "Community reading hall, Khokana",
+         "tag": "Public building",
+         "text": "A reading room for the ward office, built by village masons over one dry season.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:arch-jali",
+          "alt": "A screen of terracotta breeze blocks in afternoon light"
+         },
+         "title": "Clay screen for a school canteen",
+         "tag": "Detail",
+         "text": "Fired in Thimi from our own mould. It shades the dining hall and lets the cooking smoke out.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
         }
-      ],
-      "tagline": "Freelance web developer, Kathmandu",
-      "phone": "980-1445566",
-      "email": "anish@anishkarki.com.np",
-      "address": "Chabahil, Kathmandu"
-    },
-    "header": {
-      "type": "header",
-      "variant": "bar",
+       ],
+       "link": {
+        "label": "All projects",
+        "href": "page:projects"
+       }
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "image",
       "props": {
-        "cta": {
-          "label": "Say hello",
-          "href": "page:contact"
+       "quote": "A good house in the valley is not complicated. Face south, keep the west wall solid, make the eaves deep enough for Asar, and leave somewhere to sit outside.",
+       "name": "Rabina Maharjan",
+       "detail": "Architect",
+       "image": {
+        "src": "lib:arch-portrait",
+        "alt": "Portrait of Rabina Maharjan in a checked shirt",
+        "focal": [
+         50,
+         30
+        ]
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "right",
+      "props": {
+       "heading": "How a house gets drawn",
+       "intro": "About four months from the first walk on site to drawings a contractor can price.",
+       "image": {
+        "src": "lib:arch-plan",
+        "alt": "A hand drawing a floor plan in pencil with a scale ruler"
+       },
+       "items": [
+        {
+         "label": "Week 1",
+         "title": "We walk the plot together",
+         "text": "I measure it, note where the sun rises and sets, which neighbour will build next, and where the water sits after rain."
         },
-        "sticky": true
+        {
+         "label": "Weeks 2 to 4",
+         "title": "Three rough ideas, by hand",
+         "text": "Pencil plans and a card model of each. You pick one, or the best parts of two. Nothing is drawn on a computer yet."
+        },
+        {
+         "label": "Weeks 5 to 10",
+         "title": "The design, room by room",
+         "text": "Plans, sections and a finished model. We agree on brick, timber and windows, and I give you a first cost estimate."
+        },
+        {
+         "label": "Weeks 11 to 16",
+         "title": "Naksa and working drawings",
+         "text": "The municipal approval set, structural drawings from our engineer, and the sheets your contractor will build from."
+        }
+       ]
       }
-    },
-    "footer": {
-      "type": "footer",
-      "variant": "simple",
+     },
+     {
+      "type": "gallery",
+      "variant": "masonry",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "Available for two new projects from Magh."
+       "heading": "From the sketchbook and the site",
+       "intro": "Details, surveys and the old buildings I learn from.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:arch-walkway",
+          "alt": "A steel walkway crossing a tall brick courtyard"
+         },
+         "caption": "The bridge, Kirtipur"
+        },
+        {
+         "image": {
+          "src": "lib:arch-sketch",
+          "alt": "A sketchbook open in front of the temples of a durbar square"
+         },
+         "caption": "Saturday drawing, Bhaktapur"
+        },
+        {
+         "image": {
+          "src": "lib:arch-balcony",
+          "alt": "Carved timber balconies under a tiled roof, seen from a courtyard"
+         },
+         "caption": "Chhen in Nag Bahal, after"
+        },
+        {
+         "image": {
+          "src": "lib:arch-site",
+          "alt": "Masons stacking bricks on a building site"
+         },
+         "caption": "Brick delivery, Khokana"
+        },
+        {
+         "image": {
+          "src": "lib:arch-night",
+          "alt": "A dark brick house with lit windows at night"
+         },
+         "caption": "Bungamati, first winter"
+        },
+        {
+         "image": {
+          "src": "lib:arch-window",
+          "alt": "A carved timber window on an old brick facade"
+         },
+         "caption": "Survey drawing, Kwa Bahal"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
       }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Anish Karki: freelance web developer in Kathmandu",
-        "seoDescription": "Freelance web developer in Kathmandu. Websites and web apps for shops, schools and clinics, built to load fast on Nepali mobile data.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "split",
-            "props": {
-              "eyebrow": "Freelance · Kathmandu",
-              "title": "I build websites that load on a 4G bar in Dhading",
-              "text": "Six years building sites and small web apps for shops, schools and clinics. I design a little, write the copy with you, and hand over something you can edit.",
-              "primary": {
-                "label": "See projects",
-                "href": "page:projects"
-              },
-              "secondary": {
-                "label": "Say hello",
-                "href": "page:contact"
-              },
-              "image": {
-                "src": "lib:portrait-man",
-                "alt": "A smiling man",
-                "focal": [
-                  50,
-                  30
-                ]
-              }
-            }
-          },
-          {
-            "type": "features",
-            "variant": "grid",
-            "props": {
-              "heading": "What I can take off your plate",
-              "items": [
-                {
-                  "title": "Business websites",
-                  "text": "Five to eight pages, Nepali and English, booking or enquiry form, Google Business set up.",
-                  "detail": "From Rs 60,000"
-                },
-                {
-                  "title": "Small web apps",
-                  "text": "Order books, class attendance, appointment lists. Built to use on a phone at the counter.",
-                  "detail": "From Rs 1.2 lakh"
-                },
-                {
-                  "title": "Fixing what exists",
-                  "text": "Slow WordPress, hacked contact form, a site the last developer disappeared from.",
-                  "detail": "Rs 2,500 an hour"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "logos",
-            "variant": "row",
-            "props": {
-              "heading": "Tools I reach for",
-              "items": [
-                {
-                  "name": "TypeScript",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  },
-                  "url": ""
-                },
-                {
-                  "name": "React",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  },
-                  "url": ""
-                },
-                {
-                  "name": "Node",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  },
-                  "url": ""
-                },
-                {
-                  "name": "PostgreSQL",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  },
-                  "url": ""
-                },
-                {
-                  "name": "eSewa and Khalti",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  },
-                  "url": ""
-                }
-              ]
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "split",
-            "props": {
-              "title": "Two project slots open from Magh",
-              "text": "Tell me what you need and I will reply the same day with a rough price.",
-              "primary": {
-                "label": "Say hello",
-                "href": "page:contact"
-              },
-              "secondary": {
-                "label": "",
-                "href": ""
-              }
-            },
-            "style": {
-              "bg": "accent"
-            }
-          }
-        ]
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "What I can do for you",
+       "intro": "Fees are per square foot of finished floor, excluding VAT. Every project starts with a free first meeting.",
+       "items": [
+        {
+         "title": "New house, full design",
+         "text": "Concept, design, approval drawings, working drawings and site visits during the build.",
+         "detail": "Rs 55 per sq ft"
+        },
+        {
+         "title": "Naksa pass drawings only",
+         "text": "For a design you already have. Drawings to your municipality’s rules, and I follow the file through approval.",
+         "detail": "Rs 18 per sq ft"
+        },
+        {
+         "title": "Restoration of an old house",
+         "text": "Measured survey, structural check with our engineer, and a repair plan that keeps what can be kept. Repair drawings are priced after the survey.",
+         "detail": "Rs 40 per sq ft"
+        },
+        {
+         "title": "Site visits",
+         "text": "For houses I did not design, when you want a second pair of eyes on the contractor. Two hours minimum.",
+         "detail": "Rs 1500 an hour"
+        }
+       ]
       },
-      {
-        "id": "projects",
-        "title": "Projects",
-        "nav": true,
-        "seoTitle": "Projects by Anish Karki, freelance web developer",
-        "seoDescription": "Selected projects: a school fee portal in Bhaktapur, an appointment system for a Baneshwor clinic, and a shop site with Khalti payments.",
-        "blocks": [
-          {
-            "type": "imagetext",
-            "variant": "left",
-            "props": {
-              "image": {
-                "src": "lib:doctor-visit",
-                "alt": "A doctor talking with a patient"
-              },
-              "eyebrow": "Web app · 2080",
-              "heading": "Appointment list for a Baneshwor clinic",
-              "body": "<p>Replaced a paper register. Reception books visits from a phone, and patients get an SMS the evening before. The no-show rate at the clinic fell from about one in five to one in twelve.</p>",
-              "link": {
-                "label": "",
-                "href": ""
-              }
-            }
-          },
-          {
-            "type": "imagetext",
-            "variant": "right",
-            "props": {
-              "image": {
-                "src": "lib:cafe-hall",
-                "alt": "A bright café with long tables"
-              },
-              "eyebrow": "Website · 2079",
-              "heading": "Menu and table requests for a Jhamsikhel café",
-              "body": "<p>A menu the owner edits herself, a Nepali and English switch, and a form for groups of eight or more. Google Business photos and hours brought in with it.</p>",
-              "link": {
-                "label": "",
-                "href": ""
-              }
-            }
-          },
-          {
-            "type": "imagetext",
-            "variant": "left",
-            "props": {
-              "image": {
-                "src": "lib:school-class",
-                "alt": "Students at desks in a classroom"
-              },
-              "eyebrow": "Web app · 2078",
-              "heading": "Fee reminders for a Bhaktapur school",
-              "body": "<p>Parents pay through Khalti or eSewa and the accountant no longer chases a paper ledger. It handles 620 students across nine classes.</p>",
-              "link": {
-                "label": "",
-                "href": ""
-              }
-            }
-          }
-        ]
-      },
-      {
-        "id": "resume",
-        "title": "Resume",
-        "nav": true,
-        "seoTitle": "Resume of Anish Karki, freelance web developer",
-        "seoDescription": "Experience and education: freelance since 2077, three years at a Lalitpur software company, BSc CSIT from Tribhuvan University.",
-        "blocks": [
-          {
-            "type": "timeline",
-            "variant": "list",
-            "props": {
-              "heading": "Experience",
-              "items": [
-                {
-                  "date": "2077 to now",
-                  "title": "Freelance web developer",
-                  "text": "Twenty-odd sites and apps for small businesses across the valley and in Pokhara."
-                },
-                {
-                  "date": "2074 to 2077",
-                  "title": "Web developer, Lalitpur",
-                  "text": "Built the customer portal for a hydropower construction firm."
-                },
-                {
-                  "date": "2070 to 2074",
-                  "title": "BSc CSIT, Tribhuvan University",
-                  "text": "Padma Kanya Campus, Bagbazar."
-                }
-              ]
-            }
-          },
-          {
-            "type": "downloads",
-            "variant": "list",
-            "props": {
-              "heading": "",
-              "items": [
-                {
-                  "label": "Resume as PDF",
-                  "url": "",
-                  "note": "PDF, 2 pages"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          }
-        ]
-      },
-      {
-        "id": "contact",
-        "title": "Contact",
-        "nav": true,
-        "seoTitle": "Contact Anish Karki, freelance web developer in Kathmandu",
-        "seoDescription": "Send a message about a website or web app. Anish replies the same day, Sunday to Friday.",
-        "blocks": [
-          {
-            "type": "contact",
-            "variant": "form",
-            "props": {
-              "heading": "Say hello",
-              "text": "Tell me about the business, and roughly what you need. If you have a budget in mind, say it. It saves us both time.",
-              "askPhone": true,
-              "button": "Send message",
-              "success": "Thank you. I will reply today or tomorrow."
-            }
-          }
-        ]
+      "style": {
+       "bg": "surface"
       }
+     },
+     {
+      "type": "imagetext",
+      "variant": "left",
+      "props": {
+       "image": {
+        "src": "lib:arch-model",
+        "alt": "A white card model of a house with an outside stair"
+       },
+       "eyebrow": "",
+       "heading": "You will hold the house before you pay for it",
+       "body": "<p>Every design comes with a card model at 1:50, with a roof that lifts off. Families understand a model in five minutes; a plan can take five meetings.</p><p>Grandparents walk their fingers up the stairs. Children find their room. Arguments about the kitchen get settled at the table, not on site.</p>",
+       "link": {
+        "label": "How a project runs",
+        "href": "page:services"
+       }
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "Asked at most first meetings",
+       "intro": "",
+       "items": [
+        {
+         "q": "Do you work outside the valley?",
+         "a": "Sometimes, for a house or a school in Kavre, Nuwakot or Dhading. Travel is billed at cost and site visits are fewer, so we plan them carefully."
+        },
+        {
+         "q": "Can you build it too?",
+         "a": "No. I help you choose a contractor, check their prices against my estimate and visit the site at every stage. Keeping design and building separate protects you."
+        },
+        {
+         "q": "What will the house cost to build?",
+         "a": "In 2083, a well-built brick house in the valley costs roughly Rs 5,500 to 7,500 per square foot, depending on finishes. I give you an estimate at the design stage and update it before you sign with a builder."
+        },
+        {
+         "q": "Is my plot too small?",
+         "a": "Probably not. The Kirtipur house sits on a 22-foot frontage. Bring the lalpurja and the plot map and we will see what the bylaws allow."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "Building on family land next year?",
+       "text": "Come in for an hour, bring the plot map and your list of who will live there. The first meeting is free.",
+       "primary": {
+        "label": "Book a first meeting",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "Call 9841-552217",
+        "href": "tel:9841552217"
+       },
+       "image": {
+        "src": "lib:arch-lightwell",
+        "alt": "Sun falling into a planted light well beside a brick wall",
+        "focal": [
+         40,
+         50
+        ]
+       }
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "projects",
+    "slug": "projects",
+    "title": "Projects",
+    "nav": true,
+    "seoTitle": "Projects: houses, restorations and a reading hall in the valley",
+    "seoDescription": "New brick houses in Bungamati and Kirtipur, a courtyard restoration in Nag Bahal, a reading hall in Khokana. Photographs, briefs and what each one cost.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Eleven buildings, all of them still lived in",
+       "text": "Built work from the last six years. Owners are happy to show visitors around two of the houses; ask and I will arrange it.",
+       "primary": {
+        "label": "Ask for a visit",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "large",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:arch-gable",
+          "alt": "The brick gable and deep timber eave of the Bungamati house against a blue sky"
+         },
+         "title": "House for two generations, Bungamati, 2080",
+         "text": "Brief: two households, one kitchen, a garden for vegetables and a parking space that does not look like a garage. The house sits on the north edge of the plot so the garden gets the winter sun. Walls are 14-inch brick from a kiln in Harisiddhi; the eaves project three feet to keep the monsoon off the windows. Built for Rs 1.9 crore over 14 months.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:arch-courtyard",
+          "alt": "The Nag Bahal courtyard with its repaired timber balconies and a tree"
+         },
+         "title": "Chhen in Nag Bahal, 2079",
+         "text": "Three brothers inherited one house and one courtyard, badly cracked after 2072. We rebuilt the back wall, tied the floors with timber bands, replaced the roof in jhingati tiles and gave each family its own stair and bathroom. Every carved window went back where it came from.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:arch-walkway",
+          "alt": "A slim steel bridge crossing the brick light well of the Kirtipur house"
+         },
+         "title": "Light-well house, Kirtipur, 2081",
+         "text": "On a 22-foot frontage, the rooms turn inward to a planted light well. A steel bridge joins the front and back bedrooms on the upper floor, and the stair doubles as a bookshelf.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "work",
+      "variant": "grid",
+      "props": {
+       "heading": "Smaller work",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:arch-hall",
+          "alt": "Brick columns and long windows in the Khokana reading hall"
+         },
+         "title": "Reading hall, Khokana",
+         "tag": "Public building, 2078",
+         "text": "Forty seats, no fans needed. Built with the ward office and village masons.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:arch-jali",
+          "alt": "The terracotta screen of the school canteen"
+         },
+         "title": "Canteen screen, Sunakothi",
+         "tag": "Detail, 2080",
+         "text": "A breeze-block wall fired in Thimi from a mould we made.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:arch-window",
+          "alt": "A carved window being surveyed on an old brick facade"
+         },
+         "title": "Window survey, Kwa Bahal",
+         "tag": "Survey, 2077",
+         "text": "Measured drawings of 26 windows for the owners’ repair fund.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:arch-night",
+          "alt": "A small brick house glowing at dusk"
+         },
+         "title": "Weekend house, Chapagaun",
+         "tag": "New house, 2079",
+         "text": "Two rooms and a porch for a retired teacher and her books.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "I would rather spend a week measuring an old house than a day guessing. Everything good in a repair comes out of that survey.",
+       "name": "Rabina Maharjan",
+       "detail": "On the Nag Bahal restoration",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "image",
+      "variant": "full",
+      "props": {
+       "image": {
+        "src": "lib:arch-balcony",
+        "alt": "Looking up at carved balconies and a tiled roof from inside a courtyard",
+        "focal": [
+         50,
+         40
+        ]
+       },
+       "caption": "Chhen in Nag Bahal: the east balcony, rebuilt with its original posts and new sal beams."
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Have an old house nobody wants to give up on?",
+       "text": "Restorations start with a two-day survey. You keep the drawings whatever you decide.",
+       "primary": {
+        "label": "Ask about a survey",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "services",
+    "slug": "services",
+    "title": "Fees",
+    "nav": true,
+    "seoTitle": "Architect fees in the Kathmandu valley, and how a project runs",
+    "seoDescription": "Design fees per square foot, naksa pass drawings, restoration surveys and site visits, with what each stage includes and how long it takes.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Fees you can plan around",
+       "text": "One fee for the whole design, paid in five parts as the work is done. No percentage of the building cost, so I never gain from making it bigger.",
+       "primary": {
+        "label": "Book a first meeting",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:arch-model",
+        "alt": "A white card model of a house on a table",
+        "focal": [
+         55,
+         50
+        ]
+       },
+       "eyebrow": "All fees exclude 13% VAT",
+       "video": ""
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Design fees",
+       "intro": "Square feet are measured on finished floor, including stairs and covered terraces.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "New house, full design",
+         "price": "55",
+         "period": "sq ft",
+         "note": "Four months of design, then site visits until handover.",
+         "features": "Three hand-drawn options and card models\nDesign drawings and a 1:50 model\nNaksa pass set and follow-up\nStructural drawings from our engineer\nWorking drawings and a bill of quantities\nUp to 12 site visits",
+         "cta": {
+          "label": "Ask for a quote",
+          "href": "page:contact"
+         },
+         "featured": true
+        },
+        {
+         "name": "Naksa pass drawings",
+         "price": "18",
+         "period": "sq ft",
+         "note": "Your design, drawn to the bylaws.",
+         "features": "Site plan and setbacks\nPlans, sections and elevations\nStructural drawings\nFiling and follow-up at the municipality",
+         "cta": {
+          "label": "Ask for a quote",
+          "href": "page:contact"
+         },
+         "featured": false
+        },
+        {
+         "name": "Restoration survey",
+         "price": "40",
+         "period": "sq ft",
+         "note": "Measured on every floor, courtyard included.",
+         "features": "Two days of measuring on site\nMeasured plans, sections and elevations\nCondition report with our engineer\nA repair plan in stages",
+         "cta": {
+          "label": "Ask for a quote",
+          "href": "page:contact"
+         },
+         "featured": false
+        },
+        {
+         "name": "Site visit",
+         "price": "1500",
+         "period": "hour",
+         "note": "Two hours minimum, within the valley.",
+         "features": "On site with you or your contractor\nA written note the same evening",
+         "cta": {
+          "label": "Book a visit",
+          "href": "page:contact"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "How the fee is paid",
+       "intro": "Each part is due when that stage is finished and you have signed off on it.",
+       "items": [
+        {
+         "title": "On signing",
+         "text": "The site survey and three rough options.",
+         "detail": "15%"
+        },
+        {
+         "title": "Design agreed",
+         "text": "Plans, sections, the model and a first cost estimate.",
+         "detail": "25%"
+        },
+        {
+         "title": "Naksa filed",
+         "text": "The approval set submitted to the municipality.",
+         "detail": "20%"
+        },
+        {
+         "title": "Working drawings",
+         "text": "Everything a contractor needs to price and build.",
+         "detail": "25%"
+        },
+        {
+         "title": "Handover",
+         "text": "Paid in parts across the site visits, the last one at handover.",
+         "detail": "15%"
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "What is not in the fee",
+       "intro": "So nothing surprises you later.",
+       "items": [
+        {
+         "title": "Municipal fees",
+         "text": "Paid by you directly at the ward and municipality. I tell you the amounts before we file.",
+         "detail": ""
+        },
+        {
+         "title": "Soil test",
+         "text": "Needed for most houses over two floors. A lab in the valley charges about Rs 35,000.",
+         "detail": ""
+        },
+        {
+         "title": "Travel outside the valley",
+         "text": "Bus or jeep fare and a night’s stay, at cost.",
+         "detail": ""
+        },
+        {
+         "title": "Interior design",
+         "text": "Built-in shelves and kitchens are included. Furniture and curtains are yours to choose.",
+         "detail": ""
+        }
+       ]
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "About fees",
+       "intro": "",
+       "items": [
+        {
+         "q": "Why per square foot and not a percentage?",
+         "a": "A percentage of the building cost rewards the architect for making things bigger and more expensive. A fixed rate per square foot, agreed once the design is settled, does not."
+        },
+        {
+         "q": "What if we stop halfway?",
+         "a": "You pay for the stages finished and keep every drawing and the model. Some families pause for a year to save; the design waits."
+        },
+        {
+         "q": "Can you work with our contractor?",
+         "a": "Yes. I will check their prices against my estimate and tell you honestly if anything looks wrong."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "boxed",
+      "props": {
+       "title": "Tell me about the plot",
+       "text": "Size, road, who will live there and roughly what you can spend. I reply within two working days.",
+       "primary": {
+        "label": "Write to me",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "page"
+      }
+     }
+    ]
+   },
+   {
+    "id": "practice",
+    "slug": "practice",
+    "title": "About",
+    "nav": true,
+    "seoTitle": "About Rabina Maharjan: training, practice and the studio team",
+    "seoDescription": "Architect trained at Pulchowk Campus, restoration work in Patan and Bhaktapur, her own studio in Nag Bahal since 2012. CV, team and teaching.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "I grew up in a Patan courtyard. I still work in one.",
+       "text": "Twenty years of drawing houses, four of them spent repairing old ones after the earthquake. The studio is on the first floor of a house in Nag Bahal, above a tailor.",
+       "primary": {
+        "label": "See the projects",
+        "href": "page:projects"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:arch-portrait",
+        "alt": "Rabina Maharjan in her studio",
+        "focal": [
+         50,
+         30
+        ]
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "Why brick, still",
+       "body": "<p>The valley has built in fired brick for a thousand years because it works here: it is made from the ground you stand on, it breathes through the monsoon and it stores the winter sun. Concrete frames are not wrong, but they are often used where they are not needed.</p><p>I use concrete where it earns its place, in bands and slabs, and brick for everything the hand touches. The result costs about the same, lasts longer and ages well.</p>"
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "list",
+      "props": {
+       "heading": "Curriculum vitae",
+       "items": [
+        {
+         "date": "2062 to 2067",
+         "title": "Bachelor of Architecture, Pulchowk Campus",
+         "text": "Thesis on the water spouts and courtyards of Patan."
+        },
+        {
+         "date": "2067 to 2069",
+         "title": "Assistant architect, a practice in Lazimpat",
+         "text": "Houses and two hotels in Pokhara."
+        },
+        {
+         "date": "2069",
+         "title": "Opened the studio in Nag Bahal",
+         "text": "The first commission was my aunt’s kitchen."
+        },
+        {
+         "date": "2072 to 2076",
+         "title": "Post-earthquake surveys and repairs",
+         "text": "More than forty houses surveyed in Patan and Bungamati with the owners’ repair groups."
+        },
+        {
+         "date": "2077 to now",
+         "title": "Visiting teacher, first-year design studio",
+         "text": "One afternoon a week, drawing old buildings with students."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "team",
+      "variant": "monogram",
+      "props": {
+       "heading": "The studio",
+       "intro": "Three people, one big table.",
+       "people": [
+        {
+         "name": "Rabina Maharjan",
+         "role": "Architect",
+         "bio": "Draws every project, walks every site.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Sujan Shakya",
+         "role": "Assistant architect",
+         "bio": "Working drawings, bills of quantities and the municipality.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Ishwor Awale",
+         "role": "Model-maker",
+         "bio": "Card, balsa and a very sharp knife. Three days a week.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "grid",
+      "props": {
+       "heading": "Saturday drawings",
+       "intro": "I draw old buildings most weekends. Some of them end up in a repair plan.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:arch-sketch",
+          "alt": "Sketching in front of the temples of a durbar square"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:arch-window",
+          "alt": "A carved window studied for a survey"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:arch-plan",
+          "alt": "A floor plan being drawn in pencil"
+         },
+         "caption": ""
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Teaching, talks or a student placement?",
+       "text": "I take one intern each year, from Shrawan to Poush.",
+       "primary": {
+        "label": "Write to me",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "contact",
+    "slug": "contact",
+    "title": "Contact",
+    "nav": true,
+    "seoTitle": "Contact Rabina Maharjan, architect in Nag Bahal, Patan",
+    "seoDescription": "Book a free first meeting at the studio in Nag Bahal, Patan. Bring the plot map and the list of who will live there. Sunday to Friday, 10:00 to 17:30.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Start with an hour at the studio",
+       "text": "The first meeting is free and there is no obligation. Tell me a little below and I will suggest two times.",
+       "primary": {
+        "label": "",
+        "href": ""
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "split",
+      "props": {
+       "heading": "Tell me about the project",
+       "text": "Where the land is, roughly how big, who will live there and when you hope to start. A photo of the plot map helps.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send",
+       "success": "Thank you. I will reply within two working days with times for a first meeting."
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "What to bring",
+       "intro": "",
+       "items": [
+        {
+         "title": "The lalpurja and plot map",
+         "text": "A clear photo is enough for the first meeting.",
+         "detail": ""
+        },
+        {
+         "title": "Everyone who will live there",
+         "text": "Or at least their list of wishes. Grandparents’ knees matter.",
+         "detail": ""
+        },
+        {
+         "title": "A number you are comfortable with",
+         "text": "The total you can spend on building, so the design fits it.",
+         "detail": ""
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "map",
+      "variant": "split",
+      "props": {
+       "heading": "Finding the studio",
+       "address": "First floor, Nag Bahal, Patan, Lalitpur 44700",
+       "hours": "Sunday to Friday, 10:00 to 17:30",
+       "phone": "",
+       "note": "Enter Nag Bahal from Mangal Bazaar and walk to the far corner of the courtyard. Green door beside the tailor, up one flight. Park at Patan Durbar Square.",
+       "query": "Nag Bahal, Patan, Lalitpur",
+       "link": ""
+      }
+     },
+     {
+      "type": "social",
+      "variant": "big",
+      "props": {
+       "heading": "Drawings in progress, most weeks",
+       "links": []
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

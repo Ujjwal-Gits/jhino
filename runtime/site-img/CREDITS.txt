@@ -79,3 +79,175 @@ agency-team-1       WYwNK-zW7u4  Arnab De
 agency-team-2       NWazg9d26kc  Vitaly Gariev
 agency-team-3       bY8ffJZD2tE  Sushmita Nag
 agency-meeting      ITlbzevlInQ  Rodrigo Rodrigues / WOLF ART
+
+Templates batch B (portfolio, ngo, homestay, trek, consultant, photographer), Unsplash License; ids are unsplash.com/photos/<id> page ids. Two sizes each (800, 1600 wide, WebP).
+ngo-classroom           LYL31WBHynQ  Sushanta Rokka
+ngo-girls               gDQi4l7H7gA  Sushanta Rokka
+ngo-boys                XrWlSSW4DNM  Sushanta Rokka
+ngo-school              FtwOpIoxsvc  Ravi Sharma
+ngo-kitchen             fkwj3etR9Fk  Happysurd Photography
+ngo-dalbhat             EvxE8j6lfyY  Frederick Shaw
+ngo-pot                 Wj-JhBwtXVY  Karthick Gislen
+ngo-washing             yuG4Wjd3Sg4  Guillermo Suarez
+ngo-desk                geAqYpYbK80  Swastik Arora
+ngo-desks               R7liKyziWG8  Swastik Arora
+ngo-line                wog7pvO66WM  Ian Taylor
+ngo-market              WDX7pOIfJ3c  Andy Bridge
+ngo-nutrition           zetbexM4zt8  Sushanta Rokka
+ngo-walk                9XTxB38xKlo  sippakorn yamkasikorn
+ngo-meal                erauug2J5fM  jaikishan patel
+trek-everest            Wj9ELwGXa6c  Sebastian Pena Lambarri
+trek-amadablam          johHd-MxPsc  Dylan Shaw
+trek-namche             N_ZHaKeVc7Y  Nepal Visuals
+trek-tengboche          JjytBsXOj30  Nepal Visuals
+trek-porter             IC6dc0Awhzg  Polina Kneis
+trek-rest               ObsAqk4LvRk  Dmitriy Suponnikov
+trek-bridge             T8D7wUslMLM  Geetangey
+trek-porter-bridge      dkSqA7VyNnc  Sean Martin
+trek-yak                La4CAA8QF8U  Mero ImageHub
+trek-gokyo              7WZW4xDIPvk  Himalayan Ecological Trekking
+trek-ebc                -I64We8WuBs  Rajan Dahal
+trek-glacier            NtRM64QMccg  Kubindra Basnet
+trek-langtang           gbAkdv5Ehts  Lesly Derksen
+trek-maniwall           wdPLnU8dv-Y  Prabin Karki
+trek-gorakshep          vyUb6VxcH0c  Dylan Shaw
+stay-house              HLi1PjkCEdQ  Shrish Shrestha
+stay-village            1c1IarFFE8A  Kushal Poudel
+stay-cloud              CM84AWj-Zxg  Ramesh Khanal
+stay-night              SpfQSwUWbBc  Samrat Khadka
+stay-alpenglow          B8xq4hYhyV4  Imam Hossain
+stay-steps              q8raQMN7MuQ  Sushanta Rokka
+stay-stone              Hvp-w224G34  Sushanta Rokka
+stay-family             GV7EWRw_ps4  Sushanta Rokka
+stay-room               Jw8ea2aE1Pk  Luca J
+stay-bed                UJBoBfB2XoY  Woody Kelly
+stay-thali              fJozv1wkqs0  Ira Ispita Roy
+stay-aama               KUcIow0Fy7o  PerOla Hammar
+stay-stove              rNKFYBWLedQ  Alisha Limbu
+stay-chiya              Ke0BiErDX_Y  Amir Shrestha
+stay-fields             SyDy54CSHBg  Giacomo Berardi
+ca-partner              kgc1vAw1Tl8  Skytech Aviation
+ca-partner-2            7eSLtuTYmbU  Skytech Aviation
+ca-partner-3            ueUYcRPXnXw  Skytech Aviation
+ca-calc                 JhevWHCbVyw  Towfiqu barbhuiya
+ca-desk                 FVwy7PBiSUo  Cht Gsml
+ca-review               tLqtcDZltPs  Kelly Sikkema
+ca-ledger               741iShluYhk  FIN
+ca-khata                BgDf7_FFVhE  Magic Fan
+ca-shop                 BYQrA_uhX2Y  Saad Ahmad
+ca-workshop             tvoxfUSV_fg  Saad Ahmad
+ca-meeting              MhqUBTxQ3Hw  Olena Kholina
+ca-training             Uz8THWPXwhI  Smartworks Coworking
+ca-office               v4ypGg1otD4  EqualStock
+photo-bride             T-PUQaJ8YEw  Dollar Gill
+photo-bride-2           qpBIiwzm2ww  sagar shrestha
+photo-couple            _avTjkLwe5I  Sushanta Rokka
+photo-henna             SUwPo4ErQCc  Love Arya
+photo-bangles           5EfVgcZYi3s  Sujeeth Potla
+photo-doorway           M6RF0skaVJw  Sushanta Rokka
+photo-headpiece         HWJr0KkaYIA  Sushanta Rokka
+photo-aama              MkPINODL-Tw  Shashank Thapa
+photo-girl              0nKxTFuXPQs  Srijal Maharjan
+photo-lamps             3dY4ape5pCM  Sushanta Rokka
+photo-family            3MQmdH-QyPo  Sunil Chandra Sharma
+photo-garlands          qqxwMNUhmug  Sushanta Rokka
+photo-outdoors          5393gR3mEBw  Sushanta Rokka
+photo-mirror            F5DGL_uFhgo  Sushanta Rokka
+photo-garland-exchange  qxI6jZ3g0oo  Sushanta Rokka
+arch-house              5n7RqKHdR6k  Yudiono Putranto
+arch-gable              ZL5X7EjJIU8  Yudiono Putranto
+arch-lightwell          yJlnlQ3Qm7k  Rajith Jayawardana
+arch-walkway            Njo2zqCiVPs  Caroline Badran
+arch-courtyard          Iie7DiTzB4Y  WILLIAN REIS
+arch-balcony            sT-1TqDhCtg  Timur Seyfelmlyukov
+arch-window             h6MY2OTr4Pk  Sushanta Rokka
+arch-hall               UMPvB9mI1Mw  LISK OBE
+arch-model              C-zio8nFBDg  Fernando Andrade
+arch-plan               4ZuD2HzSGi0  SOHAM BANERJEE
+arch-sketch             xdP_U-QPxBg  Sushanta Rokka
+arch-jali               fPt8OXRsGeQ  Leonardo Vargas
+arch-portrait           o45-2SlbiTU  Abhinav Roy
+arch-site               A8KeditXu5w  Swastik Arora
+arch-night              pEJziWlpDX8  Kay Nauwelaerts
+
+Templates batch A (salon, gym, tuition, boutique, realestate, wedding), Unsplash License; ids are unsplash.com/photos/<id> page ids. Two sizes each (800, 1600 wide, WebP).
+bloom-room              KMvUcGanzPc  Daniel
+bloom-styling           PnDr2j28gXA  Daniel
+bloom-cut               V2HDOQTJh3o  Farhad Ibrahimzade
+bloom-colour            qMjrFNDdjpw  Ionela Mat
+bloom-bride             VPwSJhu5uhs  Aayush(gop) Rawat
+bloom-bride-2           N9hRh86R4T0  gurpreet singh
+bloom-mehndi            wbLCos9rVLQ  anik das
+bloom-threading         cowLgyb63c4  Rune Enstad
+bloom-lashes            ToLhVLEbiRg  Cipriano Bala
+bloom-facial            g-m8EDc4X6Q  engin akyurt
+bloom-nails             Ng2uqWHLyHo  Farhad Ibrahimzade
+bloom-blowdry           JGAjwBa-APo  Ola Dybul
+bloom-wash              3oSUATckBvE  Toan Le
+lift-deadlift           bt6yXdk_SnM  Shan A. Rajpoot
+lift-press              u6wDM6tRhBs  Gyan Shahane
+lift-pulldown           53JXtipb4-A  Gyan Shahane
+lift-coach              FL890gGWvzo  Frederick Shaw
+lift-rest               IQEJcrK62Hw  Nandkishore Sahu
+lift-squat              H6wTktsFxik  Jonathan Borba
+lift-pt                 R0y_bEUjiOM  Jonathan Borba
+lift-boxing             9D_rUDe7xvA  LOGAN WEAVER | @LGNWVR
+lift-plate              feGujveehNs  Redd Francisco
+lift-floor              2e4lbLTqPIo  Samuel Girven
+lift-pull               vqDAUejnwKw  Victor Freitas
+lift-dumbbells          uwk8IS-HfJ8  Ambitious Studio* | Rick Barrett
+lift-bells              CPSjcuuV8E8  Heidi Erickson
+study-physics           TVSRWmnW8Us  Tra  Nguyen
+study-lab               SjzZV4JOge8  Chidera Faustina Okeke
+study-microscopes       H6A0DB8BJdU  Araf Ibne Alam
+study-desk              xY83U6AHXP4  Minh Đức
+study-lecture           u6OsIM1ZEnk  Vitaly Gariev
+study-board             NsPDiPFTp4c  Nikhita S
+study-class             M92wusZZ_qg  Yogendra Singh
+study-test              j2SfdG8rR2Y  Tahsin Labib
+study-library           YhfxJpa_Ch0  Praveen Gupta
+study-room              W949DE3ia0g  Brecht Corbeel
+study-revision          NaVcHdClY7A  Shantanu Kumar
+study-notes             wBzxapFHSOk  Sudhakar Chandra
+sari-green-sari         njVir8eVq1M  Sabesh Photography LTD
+sari-white-sari         j7Ljsqhnwag  Sabesh Photography LTD
+sari-red-sari           Rm9DL9DmGi4  shades by 43
+sari-mint-sari          A7H3qmJTNJc  Bulbul Ahmed
+sari-border             nSBC88WAklo  Souravi Sinha
+sari-cloth              udCX1mvNFos  Jainica Dhingra
+sari-pink-sari          jFyEr_5d_7A  Himanshu Dewangan
+sari-kurta              t6G7GyZHCrs  Zayed Ahmed Zadu
+sari-white-kurta        12aD0ZNVvw8  nikhil uttam
+sari-mens-kurta         J-WjiWJnsdE  Abhishek Rai
+sari-loom               XCd_6nOdzjo  Akhil Pawar
+sari-sewing             5zg-ZDesJAk  alex jhonson
+sari-folds              stb9o3RE5lI  Victor Volkov
+sari-shop               yJCrK6IIA24  Daniel Velásquez
+estate-bungalow         wmx6RqemfqQ  Chandan Chaurasia
+estate-lane             uI_8MLAHtiA  Aryan Bhattarai
+estate-valley           MVMnEFvnTIU  Ghana Shyam Khadka
+estate-modern           P21wf6KAykw  Felix
+estate-townhouse        t4FMbSdmeR0  George Barros
+estate-house            W7m9axKKg_s  Guilherme Hellwinkel
+estate-living           QQ6xmTXXFZ8  Bailey Alexander
+estate-kitchen          cYeCxtKpTTQ  Bailey Alexander
+estate-bedroom          XM-miHibz64  Spacejoy
+estate-sunroom          AgK_XAqSbfk  Danilo Rios
+estate-plans            3QzMBrvCeyQ  Pedro Miranda
+estate-keys             bqUZEAeWuok  Jakub Żerdzicki
+estate-dining           k4xYgLXMV5I  Elias Storm
+vivah-bride             MopGEu-jUkI  kabita Darlami
+vivah-garlands          lk4B_yrFhYk  Sushanta Rokka
+vivah-pote              vFbYvLeM2ho  Sushanta Rokka
+vivah-ceremony          yEg_THl6lQA  Sushanta Rokka
+vivah-swagat            XmqkJMQ76ew  Sushanta Rokka
+vivah-rites             GOALmjrhcFo  Sushanta Rokka
+vivah-mehndi            gfVofr15ICc  Vitaliy Lyubezhanin
+vivah-marigold          f912OZHcou4  Avinash Narnaware
+vivah-garland-strings   EEeGY0XgNSw  Sangram Rakate
+vivah-lights            xMDo8y776uE  Junior REIS
+vivah-mandap            XGeKyTG6U6A  Vidit Goswami
+vivah-bouquet           -JK-_Cfn7Jg  sagar shrestha
+vivah-ring              iBNA_fHgiU4  Sushanta Rokka
+vivah-pair              qpGODIB5kAQ  Sushanta Rokka
+vivah-haldi             YVECUW7Juxs  Arun Prakash

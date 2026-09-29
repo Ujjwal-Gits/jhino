@@ -1,356 +1,1226 @@
 {
-  "id": "boutique",
-  "name": "Kasturi Cloth House",
-  "category": "Shop and boutique",
-  "description": "A clothes and textile shop: what is in stock with prices, a gallery, and an order-or-visit form.",
-  "site": {
-    "name": "Kasturi Cloth House",
-    "theme": {
-      "preset": "bloom",
-      "display": "bricolage",
-      "body": "hanken",
-      "colors": {
-        "bg": "#f2efe7",
-        "surface": "#e5e1d3",
-        "text": "#1d2419",
-        "muted": "#565d4e",
-        "accent": "#26472e",
-        "onAccent": "#f7f5ee",
-        "line": "#cfcabb"
-      },
-      "radius": 0,
-      "button": "outline",
-      "rhythm": "tight"
+ "id": "boutique",
+ "name": "Chhaya Sari House",
+ "category": "Shop and boutique",
+ "description": "A sari and tailoring shop: new arrivals with prices, fabrics and price ranges, a tailoring floor, wedding orders and a fitting booking.",
+ "site": {
+  "name": "Chhaya Sari House",
+  "theme": {
+   "preset": "counsel",
+   "display": "dmserif",
+   "body": "hanken",
+   "colors": {
+    "bg": "#ffffff",
+    "surface": "#f1f2f7",
+    "text": "#161a2b",
+    "muted": "#50556a",
+    "accent": "#2f3b73",
+    "onAccent": "#ffffff",
+    "line": "#dfe1ea"
+   }
+  },
+  "settings": {
+   "tagline": "Silk, Dhaka and handloom saris, and tailoring, in Indra Chowk",
+   "lang": "en",
+   "phone": "01-4227519",
+   "email": "shop@chhayasari.com.np",
+   "address": "Indra Chowk, Kathmandu 44600",
+   "social": [
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/chhayasarihouse"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
-        {
-          "network": "instagram",
-          "url": "https://www.instagram.com/kasturiclothhouse"
-        },
-        {
-          "network": "viber",
-          "url": "https://invite.viber.com/?g=kasturi-cloth"
-        },
-        {
-          "network": "facebook",
-          "url": "https://www.facebook.com/kasturiclothhouse"
-        }
-      ],
-      "tagline": "Dhaka topi, pashmina and handloom cloth in Asan",
-      "phone": "01-4222908",
-      "email": "orders@kasturicloth.com.np",
-      "address": "Asan Tole, Kathmandu 44600, opposite the Annapurna temple"
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/chhayasarihouse"
     },
-    "header": {
-      "type": "header",
-      "variant": "centered",
+    {
+     "network": "viber",
+     "url": "https://invite.viber.com/?g=chhaya-sari"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Book a fitting",
+     "href": "page:tailoring"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Come in and let us unfold a few.",
+    "cta": {
+     "label": "Plan a visit",
+     "href": "page:visit"
+    },
+    "about": "A sari and tailoring shop on Indra Chowk, Kathmandu, in the Tuladhar family for three generations.",
+    "hours": "Sunday to Friday, 10:00 to 20:00\nSaturday, 12:00 to 18:00",
+    "note": "Prices include VAT.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Chhaya Sari House, Indra Chowk: silk, Dhaka and handloom saris",
+    "seoDescription": "Banarasi silk, Palpali Dhaka and handloom cotton saris in Indra Chowk, Kathmandu, with blouses stitched in three days. Prices shown; ask on Viber.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
       "props": {
-        "cta": {
-          "label": "Order on Viber",
-          "href": "page:visit"
-        },
-        "sticky": true
+       "title": "Silk, Dhaka and handloom saris in Indra Chowk",
+       "text": "Three floors of saris, suit pieces and men’s kurta cloth, chosen in Varanasi, Palpa and Tangail. Blouses stitched upstairs in three days.",
+       "primary": {
+        "label": "See the saris",
+        "href": "page:saris"
+       },
+       "secondary": {
+        "label": "Tailoring",
+        "href": "page:tailoring"
+       },
+       "image": {
+        "src": "lib:sari-green-sari",
+        "alt": "A woman in a green silk sari with a long gold and ruby necklace",
+        "focal": [
+         50,
+         30
+        ]
+       },
+       "eyebrow": "Open 10:00 to 20:00, Sunday to Friday · Indra Chowk, Kathmandu",
+       "video": ""
       }
-    },
-    "footer": {
-      "type": "footer",
+     },
+     {
+      "type": "marquee",
+      "variant": "large",
+      "props": {
+       "items": [
+        {
+         "text": "Banarasi silk"
+        },
+        {
+         "text": "Palpali Dhaka"
+        },
+        {
+         "text": "Handloom cotton"
+        },
+        {
+         "text": "Blouses in three days"
+        },
+        {
+         "text": "Fall and pico while you wait"
+        }
+       ]
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "grid",
+      "props": {
+       "heading": "New on the shelves",
+       "intro": "Arrived this month. Each piece is one of a few; ask on Viber if you want one kept for a day.",
+       "items": [
+        {
+         "image": {
+          "src": "lib:sari-white-sari",
+          "alt": "A cream sari with a red and gold border, worn with a red blouse",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Cream tissue silk with a temple border",
+         "tag": "Silk · Rs 18,500",
+         "text": "Woven in Varanasi. Red blouse piece included.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-pink-sari",
+          "alt": "A magenta silk sari with a black and gold border",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Magenta raw silk, black pallu",
+         "tag": "Silk · Rs 14,500",
+         "text": "Light enough for a long day of tika.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-red-sari",
+          "alt": "A red and gold silk sari, worn by the sea",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Red and gold Banarasi",
+         "tag": "Bridal · Rs 42,000",
+         "text": "Zari woven through the body, a heavy pallu.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-mint-sari",
+          "alt": "A pale mint and silver sari against a red wall",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Mint cotton silk with silver butti",
+         "tag": "Cotton silk · Rs 7,800",
+         "text": "For office days and daytime weddings.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "See all saris",
+        "href": "page:saris"
+       }
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "My grandfather sold cloth from a wooden box on this corner. We still unfold every sari on the floor for you, the way he did.",
+       "name": "Kamala Tuladhar",
+       "detail": "Owner, third generation",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "Three things we are known for",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:sari-loom",
+          "alt": "A weaver at a handloom working a black, white and red cloth"
+         },
+         "title": "Dhaka from Palpa and Tehrathum",
+         "text": "Dhaka saris, shawls and topi cloth from family looms we have bought from for twenty years. Each sari takes a weaver about ten days; the pattern is counted by hand, thread by thread.",
+         "link": {
+          "label": "See Dhaka saris",
+          "href": "page:saris"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-sewing",
+          "alt": "Hands guiding cloth under a sewing machine needle",
+          "focal": [
+           50,
+           60
+          ]
+         },
+         "title": "A tailoring floor upstairs",
+         "text": "Four tailors on the second floor. Fall and pico while you drink tea, a blouse in three days, kurta suruwal in a week. Bring a blouse that fits and we will copy it.",
+         "link": {
+          "label": "Tailoring prices",
+          "href": "page:tailoring"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-mens-kurta",
+          "alt": "A man in a pale yellow kurta against a warm wall",
+          "focal": [
+           50,
+           35
+          ]
+         },
+         "title": "For the men of the family",
+         "text": "Daura suruwal made to measure, cotton and silk kurtas, and Dhaka topi in every size. Grooms and their brothers can be measured together.",
+         "link": {
+          "label": "Wedding orders",
+          "href": "page:weddings"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "Tailoring prices",
+       "intro": "Stitching only; cloth is extra. Express in 24 hours for half as much again.",
+       "items": [
+        {
+         "title": "Fall and pico",
+         "text": "While you wait, about 40 minutes.",
+         "detail": "Rs 200"
+        },
+        {
+         "title": "Blouse, plain",
+         "text": "Your measurements or a blouse to copy.",
+         "detail": "Rs 1,200"
+        },
+        {
+         "title": "Blouse, lined with a design",
+         "text": "Princess cut, back neck designs, hooks or zip.",
+         "detail": "Rs 2,200"
+        },
+        {
+         "title": "Kurta suruwal",
+         "text": "Three-piece, with dupatta hemmed.",
+         "detail": "Rs 1,800"
+        },
+        {
+         "title": "Daura suruwal",
+         "text": "Made to measure, eight ties, as it should be.",
+         "detail": "Rs 4,500"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "right",
+      "props": {
+       "heading": "A blouse in three days",
+       "intro": "Order on a Sunday, wear it on Wednesday.",
+       "image": {
+        "src": "lib:sari-border",
+        "alt": "Close-up of red silk with a woven gold border",
+        "focal": [
+         50,
+         40
+        ]
+       },
+       "items": [
+        {
+         "label": "Day 1",
+         "title": "Measure and choose",
+         "text": "Maya takes twelve measurements, or copies a blouse you love. You choose the neck, the sleeve and the lining from the pattern book."
+        },
+        {
+         "label": "Day 2",
+         "title": "Cut and stitch",
+         "text": "Cut from the blouse piece of your sari, or from our matching cloth. Lined blouses are stitched and pressed the same day."
+        },
+        {
+         "label": "Day 3",
+         "title": "Try it on",
+         "text": "A fitting in the trial room upstairs. Small changes are made while you wait, so you leave with it."
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "masonry",
+      "props": {
+       "heading": "On the shelves",
+       "intro": "The ground floor is saris, the first floor suit pieces and men’s cloth, the second floor tailoring.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:sari-shop",
+          "alt": "Shelves stacked high with folded printed cloth"
+         },
+         "caption": "Printed cotton, ground floor"
+        },
+        {
+         "image": {
+          "src": "lib:sari-kurta",
+          "alt": "A red block-printed kurta on a mannequin"
+         },
+         "caption": "Block-printed kurta, Rs 3,400"
+        },
+        {
+         "image": {
+          "src": "lib:sari-white-kurta",
+          "alt": "A woman in a white embroidered cotton kurta",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "caption": "Chikan cotton kurta, Rs 4,200"
+        },
+        {
+         "image": {
+          "src": "lib:sari-cloth",
+          "alt": "Folded lengths of lime and magenta cloth with tassels"
+         },
+         "caption": "Dupattas with tassels"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "Before you visit",
+       "intro": "",
+       "items": [
+        {
+         "q": "Can I see saris on Viber first?",
+         "a": "Yes. Send what you are looking for and a budget, and we send photos and prices the same day."
+        },
+        {
+         "q": "Do you deliver?",
+         "a": "Inside the valley, free on orders over Rs 10,000. Outside the valley by courier, paid by you, usually two to four days."
+        },
+        {
+         "q": "Can I return a sari?",
+         "a": "Within seven days, unworn, unwashed and with the tag, for an exchange or a credit note. Stitched blouses cannot be returned."
+        },
+        {
+         "q": "How do I pay?",
+         "a": "Cash, card, eSewa, Khalti or Fonepay QR. For wedding orders, a 30% advance."
+        }
+       ]
+      }
+     },
+     {
+      "type": "map",
+      "variant": "location",
+      "props": {
+       "heading": "The green door on Indra Chowk",
+       "address": "Indra Chowk, on the Makhan Tole side, Kathmandu 44600",
+       "hours": "Sunday to Friday, 10:00 to 20:00\nSaturday, 12:00 to 18:00",
+       "phone": "",
+       "note": "Walk from Basantapur towards Asan; we are the green door three shops past the Akash Bhairav temple. Parking at Basantapur, a five-minute walk.",
+       "query": "Indra Chowk, Kathmandu",
+       "link": ""
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "A wedding in the family this season?",
+       "text": "Book an hour on the first floor. We lay out saris for the bride, the mothers and the sisters, with tea.",
+       "primary": {
+        "label": "Plan a wedding order",
+        "href": "page:weddings"
+       },
+       "secondary": {
+        "label": "Call 01-4227519",
+        "href": "tel:014227519"
+       },
+       "image": {
+        "src": "lib:sari-folds",
+        "alt": "Rolled lengths of cloth in mustard, grey and maroon",
+        "focal": [
+         50,
+         50
+        ]
+       }
+      }
+     }
+    ]
+   },
+   {
+    "id": "saris",
+    "slug": "saris",
+    "title": "Saris",
+    "nav": true,
+    "seoTitle": "Saris with prices · Chhaya Sari House, Kathmandu",
+    "seoDescription": "Banarasi from Rs 14,500, Dhaka from Rs 7,500, handloom cotton from Rs 3,200. This month’s saris and price ranges at Chhaya Sari House.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Saris",
+       "text": "About six hundred saris on the ground floor at any time. These are a few from this month, with their prices; ask for more on Viber.",
+       "primary": {
+        "label": "Ask on Viber",
+        "href": "https://invite.viber.com/?g=chhaya-sari",
+        "newTab": true
+       },
+       "secondary": {
+        "label": "Visit the shop",
+        "href": "page:visit"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "Every sari comes with a blouse piece",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "grid",
+      "props": {
+       "heading": "This month",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:sari-green-sari",
+          "alt": "A woman in a green silk sari with gold jewellery",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Peacock green silk",
+         "tag": "Silk · Rs 16,800",
+         "text": "Self-woven pattern all over, a plain gold border.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-white-sari",
+          "alt": "A cream sari with a red and gold border",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Cream tissue silk, temple border",
+         "tag": "Silk · Rs 18,500",
+         "text": "Red blouse piece included.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-red-sari",
+          "alt": "A red and gold silk sari",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Red and gold Banarasi",
+         "tag": "Bridal · Rs 42,000",
+         "text": "Heavy zari pallu. We keep three in this red.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-pink-sari",
+          "alt": "A magenta silk sari with a black border",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Magenta raw silk",
+         "tag": "Silk · Rs 14,500",
+         "text": "Black and gold border, black pallu.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-mint-sari",
+          "alt": "A pale mint and silver cotton silk sari",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Mint cotton silk",
+         "tag": "Cotton silk · Rs 7,800",
+         "text": "Silver butti, light for the heat.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-cloth",
+          "alt": "Folded lime and magenta cloth with tassels",
+          "focal": [
+           50,
+           50
+          ]
+         },
+         "title": "Lime and magenta georgette",
+         "tag": "Party · Rs 6,200",
+         "text": "With tasselled pallu and a contrast blouse piece.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "By fabric, and what they cost",
+       "intro": "Price ranges for what is usually in stock.",
+       "items": [
+        {
+         "title": "Banarasi silk",
+         "text": "Woven zari from Varanasi. Bridal reds, and lighter ones for guests.",
+         "detail": "Rs 14,500 to 48,000"
+        },
+        {
+         "title": "Soft silk",
+         "text": "Lighter, easier to drape, and forgiving in the heat.",
+         "detail": "Rs 9,500 to 22,000"
+        },
+        {
+         "title": "Palpali Dhaka",
+         "text": "Handwoven in Palpa and Tehrathum. Saris, shawls and topi cloth.",
+         "detail": "Rs 7,500 to 12,000"
+        },
+        {
+         "title": "Handloom cotton",
+         "text": "Tangail and Bengal cottons for everyday and office.",
+         "detail": "Rs 3,200 to 6,500"
+        },
+        {
+         "title": "Georgette and chiffon",
+         "text": "Party saris that pack small and do not crease.",
+         "detail": "Rs 4,800 to 9,500"
+        },
+        {
+         "title": "Suit pieces",
+         "text": "Three-piece kurta suruwal cloth, unstitched.",
+         "detail": "Rs 2,800 to 7,500"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "image",
+      "variant": "full",
+      "props": {
+       "image": {
+        "src": "lib:sari-shop",
+        "alt": "Shelves stacked high with folded printed cloth",
+        "focal": [
+         50,
+         40
+        ]
+       },
+       "caption": "The ground floor. Ask and we will unfold anything."
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Caring for a sari",
+       "intro": "",
+       "items": [
+        {
+         "q": "How should I wash silk?",
+         "a": "Dry clean the first time. After that, a cold hand wash with a mild shampoo, rolled in a towel and dried in the shade."
+        },
+        {
+         "q": "How do I store a Banarasi?",
+         "a": "Folded in a muslin cloth, not plastic, and refolded every few months so the zari does not crack at the folds."
+        },
+        {
+         "q": "Will a Dhaka sari shrink?",
+         "a": "A little at the first wash. We can pre-wash it for you for Rs 300 before stitching the blouse."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Looking for something specific?",
+       "text": "Send a photo, a colour or a budget on Viber. We reply with what we have.",
+       "primary": {
+        "label": "Ask on Viber",
+        "href": "https://invite.viber.com/?g=chhaya-sari",
+        "newTab": true
+       },
+       "secondary": {
+        "label": "Call 01-4227519",
+        "href": "tel:014227519"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "tailoring",
+    "slug": "tailoring",
+    "title": "Tailoring",
+    "nav": true,
+    "seoTitle": "Blouse stitching and tailoring in Kathmandu · Chhaya Sari House",
+    "seoDescription": "Blouses in three days from Rs 1,200, kurta suruwal Rs 1,800, daura suruwal Rs 4,500, fall and pico Rs 200. Book a fitting in Indra Chowk.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "Tailoring on the second floor",
+       "text": "Four tailors, twelve measurements and a trial room. Blouses in three days, kurta suruwal in seven, daura suruwal in ten.",
+       "primary": {
+        "label": "Book a fitting",
+        "href": "#booking"
+       },
+       "secondary": {
+        "label": "Prices",
+        "href": "#pricing"
+       },
+       "image": {
+        "src": "lib:sari-sewing",
+        "alt": "Hands guiding cloth under a sewing machine needle",
+        "focal": [
+         50,
+         55
+        ]
+       },
+       "eyebrow": "Fall and pico while you wait",
+       "video": ""
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Stitching prices",
+       "intro": "Stitching only; cloth is extra. Express, in 24 hours, costs half as much again.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Fall and pico",
+         "price": "200",
+         "period": "sari",
+         "note": "About 40 minutes. Wait with a cup of tea.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Plain blouse",
+         "price": "1200",
+         "period": "",
+         "note": "Three days. Your measurements or a blouse to copy.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Lined blouse with a design",
+         "price": "2200",
+         "period": "",
+         "note": "Three days. Back neck designs, piping, hooks or zip.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": true
+        },
+        {
+         "name": "Kurta suruwal",
+         "price": "1800",
+         "period": "",
+         "note": "Seven days, with the dupatta hemmed.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Daura suruwal",
+         "price": "4500",
+         "period": "",
+         "note": "Ten days. Made to measure, eight ties.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Alterations",
+         "price": "From Rs 300",
+         "period": "",
+         "note": "Taking in, letting out, hems and sleeves.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "How an order works",
+       "intro": "",
+       "items": [
+        {
+         "title": "Bring the cloth",
+         "text": "Your sari’s blouse piece, a suit piece, or choose from ours on the first floor.",
+         "detail": "Any day"
+        },
+        {
+         "title": "Measure",
+         "text": "Twelve measurements for a blouse, eighteen for daura suruwal. Or leave a garment that fits and we copy it.",
+         "detail": "15 minutes"
+        },
+        {
+         "title": "Trial",
+         "text": "Come back for a fitting. Small changes are done while you wait.",
+         "detail": "Day 3 to 10"
+        },
+        {
+         "title": "Collect",
+         "text": "Pressed, folded and ready. We keep your measurements for next time.",
+         "detail": "Same day"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:sari-white-kurta",
+          "alt": "A woman in a white embroidered cotton kurta",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Kurtas, copied or new",
+         "text": "Bring a kurta you wear often and we will copy the fit in a new cloth. Or choose a neck and a length from the book.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:sari-mens-kurta",
+          "alt": "A man in a pale yellow kurta",
+          "focal": [
+           50,
+           35
+          ]
+         },
+         "title": "Daura suruwal",
+         "text": "Cut from cotton, Dhaka or silk, with the eight ties and the proper overlap. Ten days, or seven if the wedding is close.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Book a fitting",
+       "text": "Pick a day and we will keep a tailor free for you. Fittings take about fifteen minutes.",
+       "services": "Blouse\nKurta suruwal\nDaura suruwal\nAlterations\nA wedding order for the family",
+       "askTime": true,
+       "button": "Book the fitting",
+       "success": "Thank you. We will call to confirm the time."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "weddings",
+    "slug": "weddings",
+    "title": "Weddings",
+    "nav": true,
+    "seoTitle": "Wedding saris and daura suruwal · Chhaya Sari House",
+    "seoDescription": "Bridal saris, family orders and the groom’s daura suruwal, chosen in one private afternoon at Indra Chowk, Kathmandu.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Wedding orders for the whole family",
+       "text": "The bride’s sari, the mothers’ and the sisters’, the groom’s daura suruwal and the topi, chosen together in one afternoon and stitched in time.",
+       "primary": {
+        "label": "Book an afternoon",
+        "href": "#contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:sari-red-sari",
+        "alt": "A woman in a red and gold Banarasi sari",
+        "focal": [
+         50,
+         30
+        ]
+       },
+       "eyebrow": "Book three to six weeks before the wedding",
+       "video": ""
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "How a wedding afternoon works",
+       "body": "<p>We close the first floor for you for two hours. Bring the bride, the mothers, the sisters and anyone whose opinion matters. We bring the tea.</p><p>We start with the bride’s wedding sari, then the reception, then the family. Blouses are measured the same afternoon, and the groom’s side can come another day for the daura suruwal.</p>"
+      }
+     },
+     {
+      "type": "pricing",
       "variant": "columns",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "A family shop in Asan since 2041. We stock cloth by the metre, ready-made topis and shawls, and stitch to measure in five days."
-      }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Kasturi Cloth House, Asan: dhaka topi, pashmina, handloom cloth",
-        "seoDescription": "Cloth shop in Asan, Kathmandu. Dhaka topi from Rs 850, pashmina shawls from Rs 4,200, cloth by the metre. Stitching in five days.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "split",
-            "props": {
-              "eyebrow": "Asan Tole · Since 2041",
-              "title": "Cloth you can hold before you buy",
-              "text": "Dhaka topi woven in Palpa, pure and blended pashmina, cotton and handloom by the metre. Bring the occasion, we bring out the rolls.",
-              "primary": {
-                "label": "Visit or order",
-                "href": "page:visit"
-              },
-              "secondary": {
-                "label": "What is in stock",
-                "href": "page:stock"
-              },
-              "image": {
-                "src": "lib:shop-fabric-shelf",
-                "alt": "Shelves of folded cloth rolls in a small shop with bunting",
-                "focal": [
-                  50,
-                  45
-                ]
-              }
-            }
-          },
-          {
-            "type": "features",
-            "variant": "rows",
-            "props": {
-              "heading": "Three things people come for",
-              "items": [
-                {
-                  "title": "Dhaka topi and daura suruwal cloth",
-                  "text": "Palpa dhaka in traditional and plain patterns. Topi sized on the spot, daura suruwal stitched in five working days.",
-                  "detail": "Topi from Rs 850"
-                },
-                {
-                  "title": "Pashmina and wool",
-                  "text": "Blended shawls and pure pashmina, with a burn test at the counter if you want to see it done.",
-                  "detail": "From Rs 4,200"
-                },
-                {
-                  "title": "Cloth by the metre",
-                  "text": "Cotton, khadi, silk-cotton and handloom for kurta, saree blouse and curtains.",
-                  "detail": "From Rs 320 a metre"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "gallery",
-            "variant": "masonry",
-            "props": {
-              "heading": "Recently in",
-              "intro": "",
-              "images": [
-                {
-                  "image": {
-                    "src": "lib:shop-fabric-rolls",
-                    "alt": "Stacked folded fabric in blue, teal, cream and magenta"
-                  },
-                  "caption": "Cotton and silk-cotton, by the metre"
-                },
-                {
-                  "image": {
-                    "src": "lib:shop-rack",
-                    "alt": "A rail of ready-made clothes in a shop"
-                  },
-                  "caption": "Ready-made kurta and shawls"
-                }
-              ]
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "split",
-            "props": {
-              "title": "Send a photo, we will find a match",
-              "text": "Have a saree and need a blouse piece? Send a photo on Viber and we will match the shade.",
-              "primary": {
-                "label": "Order on Viber",
-                "href": "page:visit"
-              },
-              "secondary": {
-                "label": "Call 01-4222908",
-                "href": "tel:014222908"
-              }
-            },
-            "style": {
-              "bg": "accent"
-            }
-          }
-        ]
+       "heading": "Wedding orders",
+       "intro": "Guide prices. The final bill depends on the saris you choose.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "The bride",
+         "price": "From Rs 55,000",
+         "period": "",
+         "note": "Wedding sari and reception sari, two lined blouses with designs.",
+         "features": "A private afternoon\nTwo blouse trials\nFall, pico and pressing",
+         "cta": {
+          "label": "Book an afternoon",
+          "href": "#contact"
+         },
+         "featured": true
+        },
+        {
+         "name": "The family",
+         "price": "10% off",
+         "period": "ten saris or more",
+         "note": "On saris for the family, chosen the same day.",
+         "features": "Blouses in a week\nDelivered to one house\nNames tagged on each",
+         "cta": {
+          "label": "Book an afternoon",
+          "href": "#contact"
+         },
+         "featured": false
+        },
+        {
+         "name": "The groom",
+         "price": "From Rs 14,500",
+         "period": "",
+         "note": "Daura suruwal in Dhaka or silk, with a matching topi.",
+         "features": "Made to measure\nOne trial\nReady in ten days",
+         "cta": {
+          "label": "Book an afternoon",
+          "href": "#contact"
+         },
+         "featured": false
+        }
+       ]
       },
-      {
-        "id": "stock",
-        "title": "In stock",
-        "nav": true,
-        "seoTitle": "What is in stock at Kasturi Cloth House, Asan: prices",
-        "seoDescription": "Dhaka topi Rs 850 to 2,400, pashmina Rs 4,200 upward, cloth by the metre Rs 320 upward. Price board, Asan, Kathmandu.",
-        "blocks": [
-          {
-            "type": "menu",
-            "variant": "compact",
-            "props": {
-              "heading": "Price board",
-              "intro": "Prices are marked on the shelf too. Stitching is charged extra and quoted before you leave.",
-              "currency": "NPR",
-              "sections": [
-                {
-                  "title": "Ready-made",
-                  "note": "",
-                  "items": [
-                    {
-                      "name": "Dhaka topi, plain",
-                      "desc": "Palpa, cotton",
-                      "price": "850",
-                      "tag": ""
-                    },
-                    {
-                      "name": "Dhaka topi, traditional pattern",
-                      "desc": "",
-                      "price": "1600",
-                      "tag": ""
-                    },
-                    {
-                      "name": "Dhaka topi, silk-cotton",
-                      "desc": "Wedding weight",
-                      "price": "2400",
-                      "tag": ""
-                    },
-                    {
-                      "name": "Blended pashmina shawl",
-                      "desc": "Plain or striped",
-                      "price": "4200",
-                      "tag": ""
-                    },
-                    {
-                      "name": "Pure pashmina shawl",
-                      "desc": "Ask for the certificate",
-                      "price": "From 12,500",
-                      "tag": ""
-                    }
-                  ]
-                },
-                {
-                  "title": "By the metre",
-                  "note": "Minimum 1.5 metres.",
-                  "items": [
-                    {
-                      "name": "Cotton",
-                      "desc": "",
-                      "price": "320",
-                      "tag": ""
-                    },
-                    {
-                      "name": "Khadi",
-                      "desc": "",
-                      "price": "480",
-                      "tag": ""
-                    },
-                    {
-                      "name": "Silk-cotton",
-                      "desc": "",
-                      "price": "1150",
-                      "tag": ""
-                    },
-                    {
-                      "name": "Dhaka fabric",
-                      "desc": "",
-                      "price": "2800",
-                      "tag": ""
-                    }
-                  ]
-                },
-                {
-                  "title": "Stitching",
-                  "note": "",
-                  "items": [
-                    {
-                      "name": "Daura suruwal",
-                      "desc": "Five working days",
-                      "price": "3800",
-                      "tag": ""
-                    },
-                    {
-                      "name": "Kurta",
-                      "desc": "",
-                      "price": "1400",
-                      "tag": ""
-                    },
-                    {
-                      "name": "Blouse",
-                      "desc": "",
-                      "price": "600",
-                      "tag": ""
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        "id": "visit",
-        "title": "Visit or order",
-        "nav": true,
-        "seoTitle": "Visit or order from Kasturi Cloth House, Asan",
-        "seoDescription": "Send an order or ask to see something. Address, hours, and a form that reaches the shop owner.",
-        "blocks": [
-          {
-            "type": "contact",
-            "variant": "stacked",
-            "props": {
-              "heading": "Ask, order or reserve",
-              "text": "Tell us what you are after, and a size or metre count if you know it. We reply on Viber or call before noon.",
-              "askPhone": true,
-              "button": "Send to the shop",
-              "success": "Thank you. We will call or message you on Viber."
-            }
-          },
-          {
-            "type": "hours",
-            "variant": "split",
-            "props": {
-              "heading": "Shop hours",
-              "note": "Closed on Tihar day two.",
-              "days": [
-                {
-                  "day": "Sunday",
-                  "hours": "10:00 – 19:00"
-                },
-                {
-                  "day": "Monday",
-                  "hours": "10:00 – 19:00"
-                },
-                {
-                  "day": "Tuesday",
-                  "hours": "10:00 – 19:00"
-                },
-                {
-                  "day": "Wednesday",
-                  "hours": "10:00 – 19:00"
-                },
-                {
-                  "day": "Thursday",
-                  "hours": "10:00 – 19:00"
-                },
-                {
-                  "day": "Friday",
-                  "hours": "10:00 – 19:00"
-                },
-                {
-                  "day": "Saturday",
-                  "hours": "10:00 – 13:00"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "map",
-            "variant": "embed",
-            "props": {
-              "heading": "",
-              "address": "",
-              "query": "Asan Tole, Kathmandu",
-              "link": ""
-            }
-          }
-        ]
+      "style": {
+       "bg": "surface"
       }
+     },
+     {
+      "type": "gallery",
+      "variant": "grid",
+      "props": {
+       "heading": "Saris brides choose",
+       "intro": "",
+       "images": [
+        {
+         "image": {
+          "src": "lib:sari-red-sari",
+          "alt": "A red and gold Banarasi sari",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "caption": "Red and gold Banarasi"
+        },
+        {
+         "image": {
+          "src": "lib:sari-white-sari",
+          "alt": "A cream sari with a red temple border",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "caption": "Cream and red for the reception"
+        },
+        {
+         "image": {
+          "src": "lib:sari-green-sari",
+          "alt": "A peacock green silk sari",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "caption": "Green silk for the mehndi"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "split",
+      "props": {
+       "heading": "Book a wedding afternoon",
+       "text": "Tell us the wedding date and how many people are coming to choose.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send",
+       "success": "Thank you. Kamala will call you to fix the afternoon."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "visit",
+    "slug": "visit",
+    "title": "Visit",
+    "nav": true,
+    "seoTitle": "Visit Chhaya Sari House, Indra Chowk: hours and map",
+    "seoDescription": "Find Chhaya Sari House on Indra Chowk, Kathmandu. Open Sunday to Friday 10:00 to 20:00, Saturday 12:00 to 18:00.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Visit the shop",
+       "text": "Three floors on Indra Chowk. Saris on the ground floor, suit pieces and men’s cloth on the first, tailoring on the second.",
+       "primary": {
+        "label": "Call 01-4227519",
+        "href": "tel:014227519"
+       },
+       "secondary": {
+        "label": "Get directions",
+        "href": "https://www.google.com/maps/search/?api=1&query=Indra+Chowk+Kathmandu",
+        "newTab": true
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "Open every day except Saturday morning",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "map",
+      "variant": "split",
+      "props": {
+       "heading": "Indra Chowk, Makhan Tole side",
+       "address": "Indra Chowk, on the Makhan Tole side, Kathmandu 44600",
+       "hours": "Sunday to Friday, 10:00 to 20:00\nSaturday, 12:00 to 18:00",
+       "phone": "",
+       "note": "Three shops past the Akash Bhairav temple, towards Asan. Parking at Basantapur; the lanes are too narrow for cars.",
+       "query": "Indra Chowk, Kathmandu",
+       "link": ""
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "split",
+      "props": {
+       "heading": "Opening hours",
+       "note": "Open late until 21:00 in the three weeks before Dashain and Tihar. Closed on Dashain Tika and Laxmi Puja.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "10:00 – 20:00"
+        },
+        {
+         "day": "Monday",
+         "hours": "10:00 – 20:00"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "10:00 – 20:00"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "10:00 – 20:00"
+        },
+        {
+         "day": "Thursday",
+         "hours": "10:00 – 20:00"
+        },
+        {
+         "day": "Friday",
+         "hours": "10:00 – 20:00"
+        },
+        {
+         "day": "Saturday",
+         "hours": "12:00 – 18:00"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "stacked",
+      "props": {
+       "heading": "Write to us",
+       "text": "Ask about a sari, an order or a delivery. We reply the same day.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send message",
+       "success": "Thank you. We will reply today."
+      }
+     },
+     {
+      "type": "social",
+      "variant": "big",
+      "props": {
+       "heading": "See new saris first",
+       "links": [
+        {
+         "network": "instagram",
+         "url": "https://www.instagram.com/chhayasarihouse"
+        },
+        {
+         "network": "facebook",
+         "url": "https://www.facebook.com/chhayasarihouse"
+        },
+        {
+         "network": "viber",
+         "url": "https://invite.viber.com/?g=chhaya-sari"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

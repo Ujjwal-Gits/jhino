@@ -1,329 +1,1038 @@
 {
-  "id": "consultant",
+ "id": "consultant",
+ "name": "Acharya and Associates",
+ "category": "Consultant and professional office",
+ "description": "A sober, trustworthy site for an accounting or tax practice: who you serve, services and fixed fees, the tax calendar, the partners and a consultation form.",
+ "site": {
   "name": "Acharya and Associates",
-  "category": "Consultant and professional office",
-  "description": "A chartered accountant and tax consultant office: services with fees, what to bring, FAQs and a consultation request.",
-  "site": {
-    "name": "Acharya and Associates",
-    "theme": {
-      "preset": "counsel"
+  "theme": {
+   "preset": "counsel"
+  },
+  "settings": {
+   "tagline": "Chartered accountants in New Baneshwor. Books, tax and audit for small businesses",
+   "lang": "en",
+   "phone": "01-4785214",
+   "email": "office@acharyaassociates.com.np",
+   "address": "Third floor, Thapagaun Marg, New Baneshwor, Kathmandu 44600",
+   "social": [
+    {
+     "network": "linkedin",
+     "url": "https://www.linkedin.com/company/acharya-and-associates"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
-        {
-          "network": "linkedin",
-          "url": "https://www.linkedin.com/company/acharya-and-associates"
-        },
-        {
-          "network": "facebook",
-          "url": "https://www.facebook.com/acharyaassociates"
-        }
-      ],
-      "tagline": "Chartered accountants and tax consultants in Putalisadak",
-      "phone": "01-4168420",
-      "email": "office@acharyaassociates.com.np",
-      "address": "3rd floor, Kamal Pokhari Plaza, Putalisadak, Kathmandu 44600"
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/acharyaassociates"
     },
-    "header": {
-      "type": "header",
-      "variant": "bar",
+    {
+     "network": "whatsapp",
+     "url": "https://wa.me/9779851063347"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Book a consultation",
+     "href": "page:book"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Keep the bills. We will do the rest.",
+    "cta": {
+     "label": "Book a consultation",
+     "href": "page:book"
+    },
+    "about": "A firm of chartered accountants, members of the Institute of Chartered Accountants of Nepal. Accounts, tax and audit for small and growing businesses since 2068.",
+    "hours": "Sunday to Friday, 10:00 to 17:30\nUntil 19:00 in the last week of Asoj and Poush",
+    "note": "Fees exclude 13% VAT. Government fees are paid at cost, with receipts.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Acharya and Associates, chartered accountants in New Baneshwor",
+    "seoDescription": "Bookkeeping, VAT and TDS returns, income tax, company registration and audit for small businesses in Kathmandu. Fixed monthly fees from Rs 8,000.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
       "props": {
-        "cta": {
-          "label": "Book a consultation",
-          "href": "page:consult"
-        },
-        "sticky": true
+       "title": "Books, tax and audit for businesses that would rather be doing business",
+       "text": "We keep the accounts of shops, workshops, clinics and young companies across the valley. Your VAT, TDS and income tax go in on time, and you get one clear page of numbers every month.",
+       "primary": {
+        "label": "Book a consultation",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "See our fees",
+        "href": "page:fees"
+       },
+       "image": {
+        "src": "lib:ca-office",
+        "alt": "A client smiling at her desk in a busy office, papers and screens around her",
+        "focal": [
+         35,
+         45
+        ]
+       },
+       "eyebrow": "Chartered accountants · New Baneshwor, since 2068",
+       "video": ""
       }
-    },
-    "footer": {
-      "type": "footer",
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "Most tax trouble in Nepal does not start with fraud. It starts with a shoebox of bills nobody opened until Asoj.",
+       "name": "Rajendra Acharya, FCA",
+       "detail": "Founding partner",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "Who we keep the books for",
+       "intro": "About 140 clients, most of them with fewer than twenty staff.",
+       "items": [
+        {
+         "image": {
+          "src": "lib:ca-shop",
+          "alt": "A shopkeeper in a small kiosk hung with packets of snacks",
+          "focal": [
+           50,
+           50
+          ]
+         },
+         "title": "Shops and traders",
+         "text": "Grocery wholesalers, pharmacies, hardware stores and kirana shops that have grown past the VAT threshold. We set up billing that the Inland Revenue Office will accept, and file every month.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:ca-workshop",
+          "alt": "A carpenter cutting timber in his workshop"
+         },
+         "title": "Workshops and small manufacturers",
+         "text": "Furniture makers, printers, garment units. Stock, depreciation and payroll are where the tax savings are, and where most mistakes happen.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:ca-meeting",
+          "alt": "Two people going through documents at a table",
+          "focal": [
+           50,
+           50
+          ]
+         },
+         "title": "Young companies and NGOs",
+         "text": "From registration at the Office of the Company Registrar to your first audit. Software firms, travel agencies, clinics and a few non-profits that need donor-ready accounts.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "What we do",
+       "intro": "Fixed fees, agreed in writing before we start.",
+       "items": [
+        {
+         "title": "Monthly bookkeeping",
+         "text": "Sales and purchase books, bank reconciliation and a one-page summary by the 10th of each month.",
+         "detail": "From Rs 8,000 a month"
+        },
+        {
+         "title": "VAT and TDS returns",
+         "text": "Filed online before the 25th, with the challan sent to you to pay from your bank app.",
+         "detail": "Included in bookkeeping"
+        },
+        {
+         "title": "Income tax returns",
+         "text": "For proprietors, partnerships and companies, with advance tax worked out in Poush and Chaitra.",
+         "detail": "From Rs 7,500 a year"
+        },
+        {
+         "title": "Company registration",
+         "text": "Name approval, memorandum and articles, registration, PAN and VAT, and your first bank account.",
+         "detail": "Rs 18,000 plus government fees"
+        },
+        {
+         "title": "Statutory audit",
+         "text": "For private companies and NGOs, done by a partner who has not kept your books.",
+         "detail": "From Rs 45,000"
+        },
+        {
+         "title": "Payroll and Social Security Fund",
+         "text": "Salary sheets, SSF contributions and staff tax, every month.",
+         "detail": "Rs 250 per employee"
+        }
+       ]
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "left",
+      "props": {
+       "heading": "From the khata to proper books, in one quarter",
+       "intro": "How we take on a business that has only ever kept a handwritten ledger.",
+       "image": {
+        "src": "lib:ca-khata",
+        "alt": "Old handwritten account books open on a table"
+       },
+       "items": [
+        {
+         "label": "Week 1",
+         "title": "We sit with your khata",
+         "text": "At your shop or ours. We read the last year of entries with you and list what is missing: bills, bank statements, loan papers."
+        },
+        {
+         "label": "Weeks 2 to 4",
+         "title": "We rebuild the year",
+         "text": "Opening balances, stock, what you owe and what you are owed. Any late returns are filed, and penalties kept as small as the law allows."
+        },
+        {
+         "label": "Month 2",
+         "title": "Billing you can keep up with",
+         "text": "An approved billing system or IRD-registered invoice book, and a ten-minute routine for your staff each evening."
+        },
+        {
+         "label": "Month 3",
+         "title": "Your first clean month",
+         "text": "Returns filed on time, and a one-page summary you can read over tea: sales, costs, tax due, cash in the bank."
+        }
+       ]
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "horizontal",
+      "props": {
+       "heading": "The Nepali tax year, and when we file",
+       "items": [
+        {
+         "date": "1 Shrawan",
+         "title": "The fiscal year begins",
+         "text": "We close last year’s books by the end of the month."
+        },
+        {
+         "date": "Every 25th",
+         "title": "VAT and TDS",
+         "text": "Returns for the previous Nepali month, filed and paid."
+        },
+        {
+         "date": "End of Asoj",
+         "title": "Income tax returns",
+         "text": "For the year that ended in Asar, unless extended."
+        },
+        {
+         "date": "Poush and Chaitra",
+         "title": "Advance tax",
+         "text": "40% of the year’s estimate by the end of Poush, 70% by the end of Chaitra."
+        },
+        {
+         "date": "End of Asar",
+         "title": "Year end",
+         "text": "The final instalment, and stock counted."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "team",
+      "variant": "grid",
+      "props": {
+       "heading": "Who you will deal with",
+       "intro": "A partner signs off every return. You will always know whose phone to call.",
+       "people": [
+        {
+         "name": "Rajendra Acharya, FCA",
+         "role": "Founding partner, audit",
+         "bio": "Twenty-two years in practice. Audits for manufacturers, cooperatives and NGOs.",
+         "image": {
+          "src": "lib:ca-partner",
+          "alt": "Rajendra Acharya in a dark suit at his desk",
+          "focal": [
+           55,
+           35
+          ]
+         }
+        },
+        {
+         "name": "Pratiksha Acharya, ACA",
+         "role": "Partner, tax",
+         "bio": "Income tax, VAT disputes and letters from the Inland Revenue Office that nobody else wants to open.",
+         "image": {
+          "src": "lib:ca-partner-2",
+          "alt": "Pratiksha Acharya in a cream blazer at her desk",
+          "focal": [
+           50,
+           35
+          ]
+         }
+        },
+        {
+         "name": "Sushma Karki",
+         "role": "Manager, bookkeeping",
+         "bio": "Runs the team of six who keep our clients’ monthly books. Speaks fluent billing software.",
+         "image": {
+          "src": "lib:ca-partner-3",
+          "alt": "Sushma Karki in a white blazer at her desk",
+          "focal": [
+           50,
+           35
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "pricing",
       "variant": "columns",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "Chartered accountants registered with the Institute of Chartered Accountants of Nepal. Tax filings are made through the Inland Revenue Department portal."
-      }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Acharya and Associates, Putalisadak: chartered accountants and tax consultants",
-        "seoDescription": "Chartered accountants in Putalisadak, Kathmandu. Company registration, VAT and income tax filing, audit and bookkeeping. First consultation Rs 1,000.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "text",
-            "props": {
-              "eyebrow": "Putalisadak, Kathmandu · Chartered accountants",
-              "title": "Your books, in order, before the 30th of Ashwin",
-              "text": "We register companies, keep the books, file VAT and income tax, and sit with you when the Inland Revenue Department sends a letter.",
-              "primary": {
-                "label": "Book a consultation",
-                "href": "page:consult"
-              },
-              "secondary": {
-                "label": "Services and fees",
-                "href": "page:services"
-              }
-            }
-          },
-          {
-            "type": "features",
-            "variant": "rows",
-            "props": {
-              "heading": "Where people come to us",
-              "items": [
-                {
-                  "title": "Company and PAN registration",
-                  "text": "Private limited, partnership and sole proprietorship, from name approval to PAN and VAT certificate.",
-                  "detail": "From Rs 18,000"
-                },
-                {
-                  "title": "Monthly bookkeeping and VAT",
-                  "text": "Your bills in, your VAT return filed by the 25th, and a plain-language summary each month.",
-                  "detail": "From Rs 6,000 a month"
-                },
-                {
-                  "title": "Income tax returns",
-                  "text": "For individuals, freelancers and companies, with advance tax planned for the year.",
-                  "detail": "From Rs 5,000"
-                },
-                {
-                  "title": "Audit",
-                  "text": "Statutory audit for private companies and NGOs, with the audit report signed by a partner.",
-                  "detail": "Quoted"
-                }
-              ]
-            }
-          },
-          {
-            "type": "imagetext",
-            "variant": "left",
-            "props": {
-              "image": {
-                "src": "lib:portrait-man",
-                "alt": "A smiling man",
-                "focal": [
-                  50,
-                  30
-                ]
-              },
-              "eyebrow": "Partner",
-              "heading": "CA Rajan Acharya",
-              "body": "<p>Rajan qualified in 2066 and worked at an audit firm in Kathmandu before opening this office. He takes the first consultation himself and tells you honestly whether you need us at all.</p>",
-              "link": {
-                "label": "",
-                "href": ""
-              }
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "timeline",
-            "variant": "vertical",
-            "props": {
-              "heading": "A year on the tax calendar",
-              "items": [
-                {
-                  "date": "Monthly, by the 25th",
-                  "title": "VAT return",
-                  "text": "For the previous Nepali month."
-                },
-                {
-                  "date": "Poush end",
-                  "title": "Second advance tax instalment",
-                  "text": "For companies and self-employed."
-                },
-                {
-                  "date": "Chaitra end",
-                  "title": "Third advance tax instalment",
-                  "text": "Also the last day to clear the year's TDS deposits."
-                },
-                {
-                  "date": "Ashwin end",
-                  "title": "Annual income tax return",
-                  "text": "For the year ending Ashadh."
-                }
-              ]
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "boxed",
-            "props": {
-              "title": "A first consultation is Rs 1,000, and it counts towards any work you engage us for",
-              "text": "Bring whatever you have, even if it is a shoebox of bills.",
-              "primary": {
-                "label": "Book a consultation",
-                "href": "page:consult"
-              },
-              "secondary": {
-                "label": "Call 01-4168420",
-                "href": "tel:014168420"
-              }
-            }
-          }
-        ]
+       "heading": "Monthly packages",
+       "intro": "For VAT-registered businesses. Every package includes a partner’s review and your annual income tax return.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Shop",
+         "price": "8000",
+         "period": "month",
+         "note": "Up to 150 bills a month.",
+         "features": "Sales and purchase books\nVAT and TDS returns\nMonthly one-page summary\nAnnual income tax return",
+         "cta": {
+          "label": "Start with a consultation",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Growing business",
+         "price": "16500",
+         "period": "month",
+         "note": "Up to 500 bills and 10 staff.",
+         "features": "Everything in Shop\nPayroll, SSF and staff tax\nStock and fixed-asset register\nQuarterly meeting with a partner",
+         "cta": {
+          "label": "Start with a consultation",
+          "href": "page:book"
+         },
+         "featured": true
+        },
+        {
+         "name": "Company",
+         "price": "32000",
+         "period": "month",
+         "note": "Private limited companies.",
+         "features": "Everything in Growing business\nBoard minutes and OCR annual return\nAudit preparation\nAdvance tax planning",
+         "cta": {
+          "label": "Start with a consultation",
+          "href": "page:book"
+         },
+         "featured": false
+        }
+       ]
       },
-      {
-        "id": "services",
-        "title": "Services",
-        "nav": true,
-        "seoTitle": "Services and fees at Acharya and Associates, Putalisadak",
-        "seoDescription": "Company registration from Rs 18,000, monthly VAT and bookkeeping from Rs 6,000, income tax returns from Rs 5,000. Fees quoted in writing.",
-        "blocks": [
-          {
-            "type": "pricing",
-            "variant": "table",
-            "props": {
-              "heading": "Services and fees",
-              "intro": "Fees are quoted in writing before we start, and do not include government fees or stamp duty.",
-              "currency": "NPR",
-              "plans": [
-                {
-                  "name": "Company registration",
-                  "price": "18000",
-                  "period": "once",
-                  "note": "Private limited company",
-                  "features": "Name approval\nMOA and AOA drafted\nPAN and VAT registration",
-                  "cta": {
-                    "label": "Book a consultation",
-                    "href": "page:consult"
-                  },
-                  "featured": false
-                },
-                {
-                  "name": "Monthly bookkeeping and VAT",
-                  "price": "6000",
-                  "period": "a month",
-                  "note": "Up to 60 bills a month",
-                  "features": "Books kept in Tally\nMonthly VAT return\nMonthly summary",
-                  "cta": {
-                    "label": "Book a consultation",
-                    "href": "page:consult"
-                  },
-                  "featured": true
-                },
-                {
-                  "name": "Income tax return",
-                  "price": "5000",
-                  "period": "a year",
-                  "note": "Individual or sole proprietor",
-                  "features": "Return filed online\nAdvance tax schedule\nCopy of everything",
-                  "cta": {
-                    "label": "Book a consultation",
-                    "href": "page:consult"
-                  },
-                  "featured": false
-                }
-              ]
-            }
-          },
-          {
-            "type": "faq",
-            "variant": "accordion",
-            "props": {
-              "heading": "What to bring to the first meeting",
-              "items": [
-                {
-                  "q": "For a new company?",
-                  "a": "Citizenship copies and passport photos of every director, the proposed name, the registered address with a rent agreement, and the share split."
-                },
-                {
-                  "q": "For bookkeeping?",
-                  "a": "Bank statements, sales and purchase bills for the last three months, and your PAN and VAT certificates."
-                },
-                {
-                  "q": "For a tax notice?",
-                  "a": "The letter itself, and the returns filed for the years it mentions. Bring it as soon as it arrives, replies are time-bound."
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          }
-        ]
-      },
-      {
-        "id": "consult",
-        "title": "Consultation",
-        "nav": true,
-        "seoTitle": "Book a consultation with Acharya and Associates, Putalisadak",
-        "seoDescription": "Send a request for a first consultation, in person at Putalisadak or by phone. Rs 1,000, counted towards any work.",
-        "blocks": [
-          {
-            "type": "booking",
-            "variant": "split",
-            "props": {
-              "heading": "Book a consultation",
-              "text": "Thirty minutes with a partner, in the office or by phone. Tell us briefly what it is about, and we will say what to bring.",
-              "services": "Company registration\nVAT and bookkeeping\nIncome tax\nAudit\nA notice from the tax office\nSomething else",
-              "askTime": true,
-              "button": "Request a time",
-              "success": "Thank you. Our office will call you to confirm a time."
-            }
-          },
-          {
-            "type": "hours",
-            "variant": "compact",
-            "props": {
-              "heading": "Office hours",
-              "note": "Closed on Saturdays and public holidays.",
-              "days": [
-                {
-                  "day": "Sunday",
-                  "hours": "09:30 – 17:30"
-                },
-                {
-                  "day": "Monday",
-                  "hours": "09:30 – 17:30"
-                },
-                {
-                  "day": "Tuesday",
-                  "hours": "09:30 – 17:30"
-                },
-                {
-                  "day": "Wednesday",
-                  "hours": "09:30 – 17:30"
-                },
-                {
-                  "day": "Thursday",
-                  "hours": "09:30 – 17:30"
-                },
-                {
-                  "day": "Friday",
-                  "hours": "09:30 – 17:30"
-                },
-                {
-                  "day": "Saturday",
-                  "hours": "Closed"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "map",
-            "variant": "split",
-            "props": {
-              "heading": "Find the office",
-              "address": "3rd floor, Kamal Pokhari Plaza, Putalisadak, Kathmandu",
-              "query": "Putalisadak, Kathmandu",
-              "link": ""
-            }
-          }
-        ]
+      "style": {
+       "bg": "surface"
       }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Asked in the first meeting",
+       "intro": "",
+       "items": [
+        {
+         "q": "I have not filed for two years. Is it too late?",
+         "a": "No. We file the missing returns, work out the penalty and interest, and where there is a reasonable cause we ask the tax office to waive part of it. The sooner you come, the smaller it is."
+        },
+        {
+         "q": "Do I need to register for VAT?",
+         "a": "You must once your turnover passes Rs 50 lakh a year for goods, or Rs 30 lakh for services or a mix. Some trades must register from the first rupee. We will check yours."
+        },
+        {
+         "q": "Can you work with our billing software?",
+         "a": "Almost certainly. We work with the IRD-approved systems most businesses in Kathmandu use, and with Excel if that is all you have."
+        },
+        {
+         "q": "Do I have to come to the office?",
+         "a": "Only for the first meeting, and not even then if you prefer a video call. After that, bills can be sent by photo each week."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Income tax returns for 2082/83 are due by the end of Asoj",
+       "text": "If yours is not started, book a consultation this week. We can still file on time, or apply for the extension to Poush.",
+       "primary": {
+        "label": "Book a consultation",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "The tax calendar",
+        "href": "page:calendar"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "services",
+    "slug": "services",
+    "title": "Services",
+    "nav": true,
+    "seoTitle": "Accounting, VAT, income tax and audit services in Kathmandu",
+    "seoDescription": "Monthly bookkeeping, VAT and TDS filing, income tax returns, payroll and SSF, company registration and statutory audit, by a partner-led firm in New Baneshwor.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "Everything the tax office will ask for, done before it asks",
+       "text": "Most clients start with bookkeeping and returns. As the business grows we add payroll, advance tax planning and, for companies, the audit.",
+       "primary": {
+        "label": "Book a consultation",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "Fees",
+        "href": "page:fees"
+       },
+       "image": {
+        "src": "lib:ca-review",
+        "alt": "Hands going through printed forms with a calculator and a cup of coffee",
+        "focal": [
+         50,
+         50
+        ]
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "large",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:ca-ledger",
+          "alt": "A calculator and pen on a ledger page"
+         },
+         "title": "Bookkeeping and monthly returns",
+         "text": "Send us photos of your bills each week, or let us log in to your billing software. By the 10th you get a one-page summary; by the 25th your VAT and TDS are filed, and the challan is on your phone ready to pay.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:ca-meeting",
+          "alt": "Two people going through documents at a table"
+         },
+         "title": "Income tax and the tax office",
+         "text": "Annual returns for you and your business, advance tax worked out in Poush and Chaitra, and a partner beside you if the Inland Revenue Office calls you in. We answer notices in writing, within the time allowed, every time.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:ca-training",
+          "alt": "A training session around a long meeting table"
+         },
+         "title": "Audit and company secretarial",
+         "text": "Statutory audits for private companies and NGOs, AGM minutes, share registers and the annual return to the Office of the Company Registrar. The audit partner never keeps your books.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "One-off work",
+       "intro": "Priced before we start. Excluding VAT and government fees.",
+       "items": [
+        {
+         "title": "Private company registration",
+         "text": "Name approval to PAN and VAT, about three weeks.",
+         "detail": "Rs 18,000"
+        },
+        {
+         "title": "Proprietorship registration",
+         "text": "At the ward or Department of Commerce, with PAN.",
+         "detail": "Rs 7,000"
+        },
+        {
+         "title": "Catch-up of missed returns",
+         "text": "Per year of returns, including the penalty calculation.",
+         "detail": "From Rs 12,000"
+        },
+        {
+         "title": "Tax notice reply",
+         "text": "Reading the notice, gathering evidence, and a written reply.",
+         "detail": "From Rs 10,000"
+        },
+        {
+         "title": "Tax clearance certificate",
+         "text": "For visas, tenders and loans.",
+         "detail": "Rs 4,500"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "Your first month with us",
+       "intro": "",
+       "items": [
+        {
+         "title": "Consultation",
+         "text": "An hour with a partner, free. We look at what you have and say what it will cost.",
+         "detail": "Week 1"
+        },
+        {
+         "title": "Engagement letter",
+         "text": "The work, the fee and who does what, signed by both of us.",
+         "detail": "Week 1"
+        },
+        {
+         "title": "Handover",
+         "text": "Your login details, last returns and a bag of bills. We give you a receipt for every paper.",
+         "detail": "Week 2"
+        },
+        {
+         "title": "First filing",
+         "text": "Your first VAT and TDS returns filed by us, before the 25th.",
+         "detail": "Week 4"
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Not sure what you need?",
+       "text": "Bring your last return and a few months of bills. We will tell you in an hour.",
+       "primary": {
+        "label": "Book a consultation",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "fees",
+    "slug": "fees",
+    "title": "Fees",
+    "nav": true,
+    "seoTitle": "Accountant fees in Kathmandu: monthly packages and fixed prices",
+    "seoDescription": "Monthly bookkeeping and returns from Rs 8,000, income tax returns from Rs 7,500, company registration Rs 18,000, audits from Rs 45,000. VAT extra.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Fixed fees, in writing, before we start",
+       "text": "No hourly billing and no surprise invoice after the audit. If the work grows, we tell you before the fee changes.",
+       "primary": {
+        "label": "Book a consultation",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:ca-calc",
+        "alt": "Hands working a calculator at a desk",
+        "focal": [
+         55,
+         50
+        ]
+       },
+       "eyebrow": "All fees exclude 13% VAT",
+       "video": ""
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Annual and one-off fees",
+       "intro": "Government fees and penalties, if any, are paid at cost with the official receipt.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Income tax return, individual or proprietor",
+         "price": "7500",
+         "period": "year",
+         "note": "Including advance tax estimates.",
+         "features": "Return filed online\nAdvance tax in Poush and Chaitra\nA copy of every acknowledgement",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Income tax return, company",
+         "price": "25000",
+         "period": "year",
+         "note": "When we also keep the books: included.",
+         "features": "Tax computation and return\nDepreciation schedule\nAdvance tax planning",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Statutory audit",
+         "price": "45000",
+         "period": "year",
+         "note": "Small private company or NGO. Larger audits quoted.",
+         "features": "Audit by a partner who did not keep your books\nManagement letter in plain language\nSigned report for OCR and the tax office",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": true
+        },
+        {
+         "name": "Company registration",
+         "price": "18000",
+         "period": "once",
+         "note": "Plus the Registrar’s fee for your capital.",
+         "features": "Name approval and documents\nRegistration, PAN and VAT\nHelp opening a bank account",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "How we bill",
+       "intro": "",
+       "items": [
+        {
+         "title": "Monthly, in advance",
+         "text": "Packages are invoiced on the 1st of each Nepali month, payable by bank transfer or QR.",
+         "detail": ""
+        },
+        {
+         "title": "Audits in two parts",
+         "text": "Half when we start fieldwork, half when we sign the report.",
+         "detail": ""
+        },
+        {
+         "title": "Leave any time",
+         "text": "One month’s notice. We hand over every file and password within a week.",
+         "detail": ""
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "About fees",
+       "intro": "",
+       "items": [
+        {
+         "q": "Why is the first year sometimes more?",
+         "a": "If the books need rebuilding, we charge for that once, as a catch-up fee agreed in advance. After that, the monthly package is all you pay."
+        },
+        {
+         "q": "Do you charge for phone calls?",
+         "a": "No. Call or message as often as you like."
+        },
+        {
+         "q": "Do you give discounts to new businesses?",
+         "a": "For a business in its first year we charge the Shop package whatever the size, until the first annual return is filed."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "boxed",
+      "props": {
+       "title": "Ask for a written quote",
+       "text": "Tell us your turnover, number of staff and what you file now. We will send a fixed fee within two working days.",
+       "primary": {
+        "label": "Ask for a quote",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      }
+     }
+    ]
+   },
+   {
+    "id": "calendar",
+    "slug": "tax-calendar",
+    "title": "Tax calendar",
+    "nav": true,
+    "seoTitle": "Nepal tax calendar: VAT, TDS, advance tax and income tax dates",
+    "seoDescription": "The Nepali fiscal year month by month: VAT and TDS by the 25th, advance tax in Poush, Chaitra and Asar, income tax returns by the end of Asoj.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "The dates that matter, in the Nepali calendar",
+       "text": "The fiscal year runs from 1 Shrawan to the end of Asar. These are the deadlines most small businesses face. Your own may differ; ask us.",
+       "primary": {
+        "label": "Get a reminder before each one",
+        "href": "#newsletter"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "list",
+      "props": {
+       "heading": "Month by month",
+       "items": [
+        {
+         "date": "Every month, by the 25th",
+         "title": "VAT return and TDS",
+         "text": "For the previous Nepali month. Filed online, paid by bank or wallet."
+        },
+        {
+         "date": "Shrawan",
+         "title": "New fiscal year",
+         "text": "Close last year’s books, count stock, renew registrations that expire."
+        },
+        {
+         "date": "Asoj, by the last day",
+         "title": "Income tax return",
+         "text": "For the year that ended in Asar. An extension of up to three months can be requested in writing."
+        },
+        {
+         "date": "Poush, by the last day",
+         "title": "First advance tax instalment",
+         "text": "40% of the estimated tax for this year. Also the extended deadline for last year’s return."
+        },
+        {
+         "date": "Chaitra, by the last day",
+         "title": "Second advance tax instalment",
+         "text": "Paid up to 70% of the estimate."
+        },
+        {
+         "date": "Asar, by the last day",
+         "title": "Final instalment and year end",
+         "text": "The remaining 30%. Count stock on the last day."
+        }
+       ]
+      }
+     },
+     {
+      "type": "image",
+      "variant": "contained",
+      "props": {
+       "image": {
+        "src": "lib:ca-desk",
+        "alt": "A calculator, reading glasses, printed charts and binders on a desk"
+       },
+       "caption": "The week before Asoj ends, our office stays open until seven."
+      }
+     },
+     {
+      "type": "features",
+      "variant": "rows",
+      "props": {
+       "heading": "Rules that catch people out",
+       "intro": "",
+       "items": [
+        {
+         "title": "The VAT threshold",
+         "text": "Registration is required above Rs 50 lakh a year in goods, or Rs 30 lakh in services or a mix.",
+         "detail": ""
+        },
+        {
+         "title": "Late VAT returns",
+         "text": "Carry a fee and interest on unpaid tax, even when no tax is due. File a nil return if you had no sales.",
+         "detail": ""
+        },
+        {
+         "title": "Rent and TDS",
+         "text": "Rent paid by a business usually needs tax deducted at source and deposited by the 25th.",
+         "detail": ""
+        },
+        {
+         "title": "Cash payments",
+         "text": "Large cash payments may not be accepted as business expenses. Pay suppliers through the bank.",
+         "detail": ""
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "newsletter",
+      "variant": "card",
+      "props": {
+       "heading": "A reminder three days before each deadline",
+       "text": "One short email, in English or Nepali. Nothing else.",
+       "button": "Remind me",
+       "success": "Thank you. The next reminder comes before the 25th."
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Rather not think about any of this?",
+       "text": "That is what the monthly package is for.",
+       "primary": {
+        "label": "See the packages",
+        "href": "page:fees"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "book",
+    "slug": "book",
+    "title": "Contact",
+    "nav": true,
+    "seoTitle": "Book a free consultation with Acharya and Associates",
+    "seoDescription": "An hour with a partner, free, at our New Baneshwor office or by video call. Sunday to Friday, 10:00 to 17:30.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "An hour with a partner, free",
+       "text": "Bring your last tax return, a few months of bills and your questions. You will leave knowing what needs doing and what it will cost.",
+       "primary": {
+        "label": "",
+        "href": ""
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Choose a time",
+       "text": "We confirm by phone the same working day. Video calls are fine; say so in the notes.",
+       "services": "Monthly bookkeeping and returns\nIncome tax return\nCompany registration\nAudit\nA letter from the tax office\nSomething else",
+       "askTime": true,
+       "button": "Request this time",
+       "success": "Thank you. We will call to confirm your consultation today."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "split",
+      "props": {
+       "heading": "Office hours",
+       "note": "In the last week of Asoj and Poush we stay open until 19:00. Closed on public holidays and for Dashain from Fulpati to Tika.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "10:00 – 17:30"
+        },
+        {
+         "day": "Monday",
+         "hours": "10:00 – 17:30"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "10:00 – 17:30"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "10:00 – 17:30"
+        },
+        {
+         "day": "Thursday",
+         "hours": "10:00 – 17:30"
+        },
+        {
+         "day": "Friday",
+         "hours": "10:00 – 15:00"
+        },
+        {
+         "day": "Saturday",
+         "hours": "Closed"
+        }
+       ]
+      }
+     },
+     {
+      "type": "map",
+      "variant": "split",
+      "props": {
+       "heading": "Finding the office",
+       "address": "Third floor, Thapagaun Marg, New Baneshwor, Kathmandu 44600",
+       "hours": "",
+       "phone": "",
+       "note": "Turn off the main road at the Baneshwor Chowk bus stop, walk 200 metres; the building with the pharmacy on the ground floor. There is a lift. Two-wheeler parking in front.",
+       "query": "Thapagaun, New Baneshwor, Kathmandu",
+       "link": ""
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "stacked",
+      "props": {
+       "heading": "Or send a question",
+       "text": "For a quick question about a deadline or a notice. A partner replies within one working day.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send",
+       "success": "Thank you. We will reply within one working day."
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

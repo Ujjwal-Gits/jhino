@@ -1,406 +1,1187 @@
 {
-  "id": "gym",
-  "name": "Iron Yak Fitness",
-  "category": "Gym and fitness",
-  "description": "A loud, simple gym site: memberships in rupees, class timetable, coaches and a free trial pass form.",
-  "site": {
-    "name": "Iron Yak Fitness",
-    "theme": {
-      "preset": "summit"
+ "id": "gym",
+ "name": "Bhimsen Barbell Club",
+ "category": "Gym and fitness",
+ "description": "A strength gym with coached classes: memberships in rupees, a weekly timetable, the first four weeks, coaches and a free-class booking form.",
+ "site": {
+  "name": "Bhimsen Barbell Club",
+  "theme": {
+   "preset": "summit"
+  },
+  "settings": {
+   "tagline": "Coached strength training in Kupondole",
+   "lang": "en",
+   "phone": "01-5422761",
+   "email": "train@bhimsenbarbell.com.np",
+   "address": "Kupondole Height Road, Lalitpur 44700",
+   "social": [
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/bhimsenbarbell"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/bhimsenbarbell"
+    },
+    {
+     "network": "youtube",
+     "url": "https://www.youtube.com/@bhimsenbarbell"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Free class",
+     "href": "page:join"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Lift something heavy this week.",
+    "cta": {
+     "label": "Book a free class",
+     "href": "page:join"
+    },
+    "about": "A coached strength gym in Kupondole, Lalitpur, since 2076. Owned and run by Kiran Thapa.",
+    "hours": "Sunday to Friday, 5:30 to 21:30\nSaturday, 7:00 to 12:00 (open gym)",
+    "note": "Talk to a doctor before starting if you have a heart condition or a recent injury.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Bhimsen Barbell Club, Kupondole: coached strength training",
+    "seoDescription": "Barbell, kettlebell and boxing classes in Kupondole, Lalitpur, coached from 5:30 am. Memberships from Rs 4,500 a month. First class free.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "image",
+      "props": {
+       "title": "Strength training in Kupondole, coached every session",
+       "text": "Barbells, kettlebells and a boxing corner, with a coach on the floor from 5:30 in the morning. No contracts, no mirrors-and-selfies crowd. Your first class is free.",
+       "primary": {
+        "label": "Book a free class",
+        "href": "page:join"
+       },
+       "secondary": {
+        "label": "Memberships",
+        "href": "page:memberships"
+       },
+       "image": {
+        "src": "lib:lift-deadlift",
+        "alt": "A member standing tall with a loaded barbell in the dark gym",
+        "focal": [
+         55,
+         35
+        ]
+       },
+       "eyebrow": "Sunday to Friday, 5:30 to 21:30 · Kupondole, Lalitpur",
+       "video": ""
+      }
+     },
+     {
+      "type": "marquee",
+      "variant": "small",
+      "props": {
+       "items": [
         {
-          "network": "instagram",
-          "url": "https://www.instagram.com/ironyakfitness"
+         "text": "Coached from 5:30 am"
         },
         {
-          "network": "facebook",
-          "url": "https://www.facebook.com/ironyakfitness"
+         "text": "Women’s strength, three mornings a week"
+        },
+        {
+         "text": "No contracts"
+        },
+        {
+         "text": "First class free"
+        },
+        {
+         "text": "Chalk allowed"
         }
-      ],
-      "tagline": "Strength training and classes in Baneshwor",
-      "phone": "01-5912345",
-      "email": "join@ironyak.com.np",
-      "address": "Second floor, Sunrise Complex, Baneshwor Chowk, Kathmandu 44600"
-    },
-    "header": {
-      "type": "header",
-      "variant": "bar",
+       ]
+      },
+      "style": {
+       "bg": "accent"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
       "props": {
-        "cta": {
-          "label": "Free trial day",
-          "href": "page:join"
+       "heading": "What is on the floor",
+       "intro": "One big room on the ground floor, open to the street, with the shutters up in summer.",
+       "items": [
+        {
+         "title": "Six racks and platforms",
+         "text": "Calibrated plates, bumpers and three women’s bars. Deadlift on the platforms, not on the tiles.",
+         "detail": ""
         },
-        "sticky": true
+        {
+         "title": "Dumbbells to 50 kg",
+         "text": "In 2.5 kg steps, on two racks by the wall.",
+         "detail": ""
+        },
+        {
+         "title": "Kettlebells, 8 to 32 kg",
+         "text": "Enough pairs for a full class of twelve.",
+         "detail": ""
+        },
+        {
+         "title": "Rowers and air bikes",
+         "text": "Four of each, for warm-ups and the Friday conditioning class.",
+         "detail": ""
+        },
+        {
+         "title": "Boxing corner",
+         "text": "Three heavy bags, pads and gloves you can borrow.",
+         "detail": ""
+        },
+        {
+         "title": "Showers that work",
+         "text": "Hot water all year, lockers, and a separate women’s changing room.",
+         "detail": ""
+        }
+       ]
       }
-    },
-    "footer": {
-      "type": "footer",
-      "variant": "big",
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "Barbells, dumbbells to 50 kg, two squat racks and a small cardio floor. Open from 5:30 am so you can train before the office."
+       "heading": "Three ways to train here",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:lift-pull",
+          "alt": "A lifter setting up for a deadlift on the rubber floor",
+          "focal": [
+           50,
+           60
+          ]
+         },
+         "title": "Strength classes",
+         "text": "Squat, bench, deadlift and press, in groups of eight with one coach. You follow a written programme, and the coach sets your weights from last week’s log.",
+         "link": {
+          "label": "See the timetable",
+          "href": "page:classes"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:lift-bells",
+          "alt": "Rows of black kettlebells ready for the conditioning class"
+         },
+         "title": "Conditioning",
+         "text": "Forty minutes of kettlebells, rowers and carries. Hard, short and over before you can think about it. Scaled for every level.",
+         "link": {
+          "label": "See the timetable",
+          "href": "page:classes"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:lift-pt",
+          "alt": "A coach correcting a man’s push-up position on the turf",
+          "focal": [
+           45,
+           50
+          ]
+         },
+         "title": "One-to-one coaching",
+         "text": "For a first-timer, a comeback after injury or a meet. Your own programme, checked every session, with a written plan to take home.",
+         "link": {
+          "label": "Meet the coaches",
+          "href": "page:coaches"
+         }
+        }
+       ]
       }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Iron Yak Fitness, Baneshwor: strength gym, classes and coaches",
-        "seoDescription": "Strength gym in Baneshwor, Kathmandu. Monthly from Rs 3,000, morning batch from 5:30 am. Free trial day, no card needed.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "image",
-            "props": {
-              "eyebrow": "Baneshwor Chowk · 5:30 am to 9 pm",
-              "title": "Lift heavy. Go to work.",
-              "text": "Two squat racks, real plates, a coach on the floor from 6 to 9 in the morning and 5 to 8 in the evening.",
-              "primary": {
-                "label": "Free trial day",
-                "href": "page:join"
-              },
-              "secondary": {
-                "label": "Memberships",
-                "href": "page:plans"
-              },
-              "image": {
-                "src": "lib:gym-kettlebells",
-                "alt": "A wall of black kettlebells in a dark gym",
-                "focal": [
-                  50,
-                  55
-                ]
-              }
-            }
-          },
-          {
-            "type": "stats",
-            "variant": "big",
-            "props": {
-              "heading": "",
-              "text": "",
-              "items": [
-                {
-                  "value": "2",
-                  "label": "Squat racks, so no queue at 6 pm"
-                },
-                {
-                  "value": "50 kg",
-                  "label": "Heaviest dumbbell"
-                },
-                {
-                  "value": "5:30",
-                  "label": "Doors open, every day but Saturday"
-                }
-              ]
-            },
-            "style": {
-              "bg": "ink"
-            }
-          },
-          {
-            "type": "features",
-            "variant": "rows",
-            "props": {
-              "heading": "What is on the floor",
-              "items": [
-                {
-                  "title": "Strength floor",
-                  "text": "Racks, benches, deadlift platforms, chalk allowed. Programmes on paper if you want one.",
-                  "detail": "All plans"
-                },
-                {
-                  "title": "Conditioning class",
-                  "text": "Forty minutes, kettlebells and sleds, Sunday to Friday at 6:30 am and 6 pm.",
-                  "detail": "Fee-inclusive"
-                },
-                {
-                  "title": "Beginner basics",
-                  "text": "Four sessions with a coach on squat, hinge, press and pull before you are left alone with a barbell.",
-                  "detail": "Rs 2,000"
-                },
-                {
-                  "title": "Personal training",
-                  "text": "One-to-one, twelve sessions, with a written plan and a food chart that fits dal-bhat.",
-                  "detail": "Rs 900 a session"
-                }
-              ]
-            }
-          },
-          {
-            "type": "gallery",
-            "variant": "grid",
-            "props": {
-              "heading": "On the floor",
-              "intro": "",
-              "images": [
-                {
-                  "image": {
-                    "src": "lib:gym-barbell",
-                    "alt": "A barbell loaded with plates beside a squat rack"
-                  },
-                  "caption": "Squat rack, plates to 25 kg"
-                },
-                {
-                  "image": {
-                    "src": "lib:gym-lift",
-                    "alt": "A lifter gripping a barbell overhead"
-                  },
-                  "caption": "Overhead press"
-                },
-                {
-                  "image": {
-                    "src": "lib:gym-dumbbells",
-                    "alt": "Rows of black dumbbells on a rack"
-                  },
-                  "caption": "Dumbbells to 50 kg"
-                }
-              ]
-            }
-          },
-          {
-            "type": "imagetext",
-            "variant": "right",
-            "props": {
-              "image": {
-                "src": "lib:portrait-man",
-                "alt": "A smiling man"
-              },
-              "eyebrow": "Head coach",
-              "heading": "Bikash Gurung, 11 years on the floor",
-              "body": "<p>Bikash lifted at the national powerlifting meet in Pokhara and now runs the beginner sessions himself. He will tell you when you are ready to add weight, and when you are not.</p>",
-              "link": {
-                "label": "See the coaches",
-                "href": "page:coaches"
-              }
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "split",
-            "props": {
-              "title": "Come once, no forms, no card",
-              "text": "Your first day is free. Bring shoes and a towel.",
-              "primary": {
-                "label": "Claim the trial day",
-                "href": "page:join"
-              },
-              "secondary": {
-                "label": "",
-                "href": ""
-              }
-            },
-            "style": {
-              "bg": "accent"
-            }
-          }
-        ]
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "Most people who walk in here have been told they are doing it wrong. We would rather show them how to do it right, one rep at a time.",
+       "name": "Kiran Thapa",
+       "detail": "Head coach and owner",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
       },
-      {
-        "id": "plans",
-        "title": "Memberships",
-        "nav": true,
-        "seoTitle": "Gym memberships in Baneshwor from Rs 3,000 a month, Iron Yak Fitness",
-        "seoDescription": "Monthly Rs 3,000, quarterly Rs 8,000, yearly Rs 28,000. Student rate Rs 2,500 with ID. Iron Yak Fitness, Baneshwor.",
-        "blocks": [
-          {
-            "type": "pricing",
-            "variant": "columns",
-            "props": {
-              "heading": "Memberships",
-              "intro": "One joining fee of Rs 1,000, waived if you sign up for three months or more. Pay by cash, eSewa or Fonepay.",
-              "currency": "NPR",
-              "plans": [
-                {
-                  "name": "Monthly",
-                  "price": "3000",
-                  "period": "a month",
-                  "note": "Students with ID: Rs 2,500",
-                  "features": "Full floor access\nAll classes\nLocker on the day",
-                  "cta": {
-                    "label": "Try a day first",
-                    "href": "page:join"
-                  },
-                  "featured": false
-                },
-                {
-                  "name": "Quarterly",
-                  "price": "8000",
-                  "period": "3 months",
-                  "note": "About Rs 2,670 a month",
-                  "features": "Everything in monthly\nJoining fee waived\nOne body-fat check a month",
-                  "cta": {
-                    "label": "Try a day first",
-                    "href": "page:join"
-                  },
-                  "featured": true
-                },
-                {
-                  "name": "Yearly",
-                  "price": "28000",
-                  "period": "12 months",
-                  "note": "About Rs 2,330 a month",
-                  "features": "Everything in quarterly\nFreeze for up to 30 days\nBeginner basics free",
-                  "cta": {
-                    "label": "Try a day first",
-                    "href": "page:join"
-                  },
-                  "featured": false
-                }
-              ]
-            }
-          },
-          {
-            "type": "faq",
-            "variant": "plain",
-            "props": {
-              "heading": "Asked at the front desk",
-              "items": [
-                {
-                  "q": "Is there a ladies' hour?",
-                  "a": "Yes, Sunday to Friday 10 am to 12 noon, with Sarita didi on the floor."
-                },
-                {
-                  "q": "Can I freeze my membership for Dashain?",
-                  "a": "Quarterly and yearly members can freeze up to 30 days. Monthly members can pay for the days they use."
-                },
-                {
-                  "q": "Is there a shower?",
-                  "a": "Two, with hot water from the solar heater. Bring your own towel."
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          }
-        ]
-      },
-      {
-        "id": "coaches",
-        "title": "Coaches",
-        "nav": true,
-        "seoTitle": "Coaches at Iron Yak Fitness, Baneshwor",
-        "seoDescription": "Meet the coaches at Iron Yak Fitness: strength, conditioning and beginner basics.",
-        "blocks": [
-          {
-            "type": "team",
-            "variant": "list",
-            "props": {
-              "heading": "Who is on the floor",
-              "intro": "Morning 6 to 9 and evening 5 to 8, every day the gym is open.",
-              "people": [
-                {
-                  "name": "Bikash Gurung",
-                  "role": "Head coach, strength",
-                  "bio": "Powerlifting, 11 years. Runs the beginner basics.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                },
-                {
-                  "name": "Sarita Rai",
-                  "role": "Conditioning and ladies' hour",
-                  "bio": "Kettlebell instructor. Takes the 6:30 am class.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                },
-                {
-                  "name": "Prabin Thapa",
-                  "role": "Evening coach",
-                  "bio": "Former Army PT instructor, good with people coming back from injury.",
-                  "image": {
-                    "src": "",
-                    "alt": ""
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "type": "hours",
-            "variant": "table",
-            "props": {
-              "heading": "Gym hours",
-              "note": "",
-              "days": [
-                {
-                  "day": "Sunday",
-                  "hours": "05:30 – 21:00"
-                },
-                {
-                  "day": "Monday",
-                  "hours": "05:30 – 21:00"
-                },
-                {
-                  "day": "Tuesday",
-                  "hours": "05:30 – 21:00"
-                },
-                {
-                  "day": "Wednesday",
-                  "hours": "05:30 – 21:00"
-                },
-                {
-                  "day": "Thursday",
-                  "hours": "05:30 – 21:00"
-                },
-                {
-                  "day": "Friday",
-                  "hours": "05:30 – 21:00"
-                },
-                {
-                  "day": "Saturday",
-                  "hours": "06:00 – 12:00"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          }
-        ]
-      },
-      {
-        "id": "join",
-        "title": "Free trial",
-        "nav": true,
-        "seoTitle": "Free trial day at Iron Yak Fitness, Baneshwor",
-        "seoDescription": "Ask for a free trial day at Iron Yak Fitness. Leave your number and preferred time and a coach will call you.",
-        "blocks": [
-          {
-            "type": "booking",
-            "variant": "split",
-            "props": {
-              "heading": "Claim your free day",
-              "text": "Pick a day and a time. A coach meets you at the front desk and walks you through the floor. No card, no contract.",
-              "services": "Morning strength (6 to 9 am)\nConditioning class\nEvening strength (5 to 8 pm)\nI am a complete beginner",
-              "askTime": true,
-              "button": "Send trial request",
-              "success": "Thank you. A coach will call you to confirm."
-            }
-          },
-          {
-            "type": "map",
-            "variant": "card",
-            "props": {
-              "heading": "Where we are",
-              "address": "Second floor, Sunrise Complex, Baneshwor Chowk, Kathmandu",
-              "query": "Baneshwor Chowk, Kathmandu",
-              "link": ""
-            }
-          }
-        ]
+      "style": {
+       "bg": "surface"
       }
+     },
+     {
+      "type": "sticky",
+      "variant": "left",
+      "props": {
+       "heading": "Your first four weeks",
+       "intro": "Everyone starts the same way, whether you have lifted for years or never touched a bar.",
+       "image": {
+        "src": "lib:lift-squat",
+        "alt": "A member doing a split squat with a barbell in a squat rack",
+        "focal": [
+         55,
+         45
+        ]
+       },
+       "items": [
+        {
+         "label": "Week 1",
+         "title": "Assessment",
+         "text": "Thirty minutes with a coach: old injuries, how you move, what you want. We film a squat and a hinge so you can see where you start."
+        },
+        {
+         "label": "Week 2",
+         "title": "The basic lifts",
+         "text": "Squat, hinge, push and pull with a bar or a kettlebell. Light weights, many small corrections."
+        },
+        {
+         "label": "Week 3",
+         "title": "Your programme",
+         "text": "A written three-day plan, logged in a notebook we keep at the desk. Weights go up only when the coach says the form is ready."
+        },
+        {
+         "label": "Week 4",
+         "title": "Retest",
+         "text": "The same film as week one, side by side. Then you choose a membership, or you do not. No hard sell."
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "bento",
+      "props": {
+       "heading": "The floor at six in the morning",
+       "intro": "Busiest from 6:00 to 8:00 and 17:30 to 19:30. Quietest at noon.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:lift-floor",
+          "alt": "Squat racks with coloured bumper plates under a skylit roof",
+          "focal": [
+           50,
+           55
+          ]
+         },
+         "caption": "Racks and platforms"
+        },
+        {
+         "image": {
+          "src": "lib:lift-press",
+          "alt": "A member pressing two dumbbells on an incline bench"
+         },
+         "caption": "Incline press"
+        },
+        {
+         "image": {
+          "src": "lib:lift-boxing",
+          "alt": "Two women laughing in boxing gloves by a heavy bag",
+          "focal": [
+           40,
+           40
+          ]
+         },
+         "caption": "Tuesday boxing"
+        },
+        {
+         "image": {
+          "src": "lib:lift-pulldown",
+          "alt": "A member in a turban pulling down on the lat machine",
+          "focal": [
+           60,
+           45
+          ]
+         },
+         "caption": "Pull-down station"
+        },
+        {
+         "image": {
+          "src": "lib:lift-dumbbells",
+          "alt": "Two rows of dumbbells on a rack"
+         },
+         "caption": "Dumbbells to 50 kg"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "columns",
+      "props": {
+       "heading": "Memberships",
+       "intro": "All classes and open gym included. A one-time joining fee of Rs 1,500 covers your assessment and a locker key.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Monthly",
+         "price": "4500",
+         "period": "month",
+         "note": "Pay as you go. Stop any time.",
+         "features": "Open gym, 5:30 to 21:30\nAll group classes\nProgramme card and logbook",
+         "cta": {
+          "label": "Start with a free class",
+          "href": "page:join"
+         },
+         "featured": false
+        },
+        {
+         "name": "Three months",
+         "price": "12000",
+         "period": "3 months",
+         "note": "Most members start here.",
+         "features": "Everything in Monthly\nAssessment again at 12 weeks\nOne freeze of up to two weeks",
+         "cta": {
+          "label": "Start with a free class",
+          "href": "page:join"
+         },
+         "featured": true
+        },
+        {
+         "name": "Year",
+         "price": "39000",
+         "period": "year",
+         "note": "Works out to Rs 3,250 a month.",
+         "features": "Everything in Three months\nFour assessments a year\nTwo freezes of up to a month\nOne personal session a quarter",
+         "cta": {
+          "label": "Start with a free class",
+          "href": "page:join"
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "imagetext",
+      "variant": "left",
+      "props": {
+       "image": {
+        "src": "lib:lift-coach",
+        "alt": "Portrait of Kiran Thapa, head coach, in a yellow club T-shirt",
+        "focal": [
+         50,
+         25
+        ]
+       },
+       "eyebrow": "",
+       "heading": "Coached by people who lift",
+       "body": "<p>Kiran has coached strength for eleven years and competes in powerlifting. The three coaches with him are all certified, first-aid trained and on the floor, not behind the desk.</p><p>There is always a coach on the floor. If you are unsure about a lift, ask; that is what they are there for.</p>",
+       "link": {
+        "label": "Meet the coaches",
+        "href": "page:coaches"
+       }
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Questions before your first visit",
+       "intro": "",
+       "items": [
+        {
+         "q": "I have never lifted. Is that a problem?",
+         "a": "No. About half our members had not held a barbell before they came. Everyone starts with the same four weeks."
+        },
+        {
+         "q": "Is there a women-only time?",
+         "a": "Women’s Strength runs Sunday, Tuesday and Thursday at 7:00 with a woman coach, and there is a separate women’s changing room with its own shower."
+        },
+        {
+         "q": "What should I bring?",
+         "a": "Flat shoes or clean trainers, a water bottle and a towel. We lend belts, wraps and gloves."
+        },
+        {
+         "q": "Can I pause my membership?",
+         "a": "Three-month and yearly members can freeze for travel, exams or injury. Tell the desk a day before."
+        },
+        {
+         "q": "How do I pay?",
+         "a": "Cash, card, eSewa, Khalti or Fonepay QR at the desk. We give a VAT bill for every payment."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "Your first class is on us",
+       "text": "Pick a class and a time. Wear flat shoes, come ten minutes early, and meet the coach.",
+       "primary": {
+        "label": "Book a free class",
+        "href": "page:join"
+       },
+       "secondary": {
+        "label": "Call 01-5422761",
+        "href": "tel:015422761"
+       },
+       "image": {
+        "src": "lib:lift-plate",
+        "alt": "A lifter’s hand on a loaded barbell on the rubber floor",
+        "focal": [
+         50,
+         60
+        ]
+       }
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "memberships",
+    "slug": "memberships",
+    "title": "Memberships",
+    "nav": true,
+    "seoTitle": "Gym memberships and prices · Bhimsen Barbell Club",
+    "seoDescription": "Drop-in Rs 600, monthly Rs 4,500, three months Rs 12,000, a year Rs 39,000. Personal training and student rates at Bhimsen Barbell Club, Kupondole.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Memberships and prices",
+       "text": "Every membership includes all classes and open gym. No contracts, no hidden fees, a VAT bill for every payment.",
+       "primary": {
+        "label": "Book a free class",
+        "href": "page:join"
+       },
+       "secondary": {
+        "label": "Call the desk",
+        "href": "tel:015422761"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "Joining fee Rs 1,500, once",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Pick how you pay",
+       "intro": "Prices include VAT.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Drop-in",
+         "price": "600",
+         "period": "visit",
+         "note": "One class or one open-gym session. Good for visitors.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Ten-visit card",
+         "price": "5000",
+         "period": "10 visits",
+         "note": "Use within three months. For shift workers and travellers.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Monthly",
+         "price": "4500",
+         "period": "month",
+         "note": "All classes and open gym. Stop any time.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Three months",
+         "price": "12000",
+         "period": "3 months",
+         "note": "Assessment again at 12 weeks and one freeze.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": true
+        },
+        {
+         "name": "Year",
+         "price": "39000",
+         "period": "year",
+         "note": "Four assessments, two freezes and a personal session each quarter.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Student, monthly",
+         "price": "3500",
+         "period": "month",
+         "note": "With a college ID. Weekdays before 16:00.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "Coaching and extras",
+       "intro": "",
+       "items": [
+        {
+         "title": "Personal training, 8 sessions",
+         "text": "Sixty minutes each, within six weeks, with the coach you choose.",
+         "detail": "Rs 14,000"
+        },
+        {
+         "title": "Personal training, 16 sessions",
+         "text": "For a meet, a comeback or a big change.",
+         "detail": "Rs 26,000"
+        },
+        {
+         "title": "Programme only",
+         "text": "A written 8-week plan and two check-ins, for members who train alone.",
+         "detail": "Rs 3,500"
+        },
+        {
+         "title": "Locker by the month",
+         "text": "Keep your shoes and belt here.",
+         "detail": "Rs 400"
+        },
+        {
+         "title": "Towel service",
+         "text": "A fresh towel every visit.",
+         "detail": "Rs 300 a month"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "image",
+      "variant": "full",
+      "props": {
+       "image": {
+        "src": "lib:lift-dumbbells",
+        "alt": "Two rows of dumbbells on a rack against a block wall",
+        "focal": [
+         50,
+         60
+        ]
+       },
+       "caption": "Dumbbells from 2.5 to 50 kg, and nobody leaves them on the floor."
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "About paying",
+       "intro": "",
+       "items": [
+        {
+         "q": "Is there a contract?",
+         "a": "No. Monthly members can stop at the end of any month. Longer plans are paid up front and cannot be refunded, but they can be frozen."
+        },
+        {
+         "q": "How does a freeze work?",
+         "a": "Tell the desk a day before. Your end date moves by the number of days you were away."
+        },
+        {
+         "q": "Can two of us share a card?",
+         "a": "The ten-visit card can be shared by two people who come together. Memberships are for one person."
+        },
+        {
+         "q": "Do you give a bill?",
+         "a": "Yes, a VAT bill for every payment, with your name and PAN if you need it for your office."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Try a class before you pay",
+       "text": "The first one is free, and nobody will try to sell you a year at the door.",
+       "primary": {
+        "label": "Book a free class",
+        "href": "page:join"
+       },
+       "secondary": {
+        "label": "See the timetable",
+        "href": "page:classes"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "classes",
+    "slug": "classes",
+    "title": "Classes",
+    "nav": true,
+    "seoTitle": "Class timetable · Bhimsen Barbell Club, Kupondole",
+    "seoDescription": "Strength basics, women’s strength, conditioning, boxing and mobility classes, Sunday to Friday, from 6:00. See the week’s timetable.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "Classes and timetable",
+       "text": "Groups of eight to twelve, one coach, a plan on the whiteboard. Book at the desk or by phone; walk-ins join if there is a place.",
+       "primary": {
+        "label": "Book a free class",
+        "href": "page:join"
+       },
+       "secondary": {
+        "label": "Memberships",
+        "href": "page:memberships"
+       },
+       "image": {
+        "src": "lib:lift-floor",
+        "alt": "The training floor with racks and bumper plates under a skylit roof",
+        "focal": [
+         50,
+         60
+        ]
+       },
+       "eyebrow": "Classes run Sunday to Friday",
+       "video": ""
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "This week",
+       "intro": "Open gym runs alongside every class. Saturday is open gym only, 7:00 to 12:00.",
+       "items": [
+        {
+         "title": "Strength basics",
+         "text": "Squat, hinge, press and pull. The class to start with.",
+         "detail": "Sun to Fri, 6:00 and 18:00"
+        },
+        {
+         "title": "Women’s strength",
+         "text": "Coached by Sushma Gurung, for women only.",
+         "detail": "Sun, Tue, Thu, 7:00"
+        },
+        {
+         "title": "Conditioning",
+         "text": "Kettlebells, rowers, sleds and carries. 40 minutes.",
+         "detail": "Mon, Wed, Fri, 7:00 and 19:00"
+        },
+        {
+         "title": "Boxing",
+         "text": "Pads, bags and footwork. No sparring unless you ask.",
+         "detail": "Sun, Tue, Thu, 19:00"
+        },
+        {
+         "title": "Mobility",
+         "text": "Slow stretching and breathing. Good the day after deadlifts.",
+         "detail": "Friday, 17:00"
+        },
+        {
+         "title": "Barbell club",
+         "text": "For members on a meet plan. Heavy singles with spotters.",
+         "detail": "Friday, 18:00"
+        }
+       ]
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "large",
+      "props": {
+       "heading": "What happens in each",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:lift-squat",
+          "alt": "A member doing a split squat with a barbell",
+          "focal": [
+           55,
+           45
+          ]
+         },
+         "title": "Strength basics and Women’s strength",
+         "text": "Ten minutes of warm-up, forty of lifting, ten of accessory work. Your weights are written in your logbook, and the coach checks the first set of every lift.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:lift-boxing",
+          "alt": "Two women laughing in boxing gloves by a heavy bag",
+          "focal": [
+           40,
+           40
+          ]
+         },
+         "title": "Boxing",
+         "text": "Stance, jab, cross and slips on the pads, then rounds on the bags. Gloves and wraps to borrow; bring your own if you come twice a week.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "How a strength class runs",
+       "intro": "",
+       "items": [
+        {
+         "title": "Warm-up",
+         "text": "Rower or bike, then the movement of the day with an empty bar.",
+         "detail": "10 minutes"
+        },
+        {
+         "title": "Main lift",
+         "text": "Work up to your sets. The coach watches your first working set and adjusts.",
+         "detail": "25 minutes"
+        },
+        {
+         "title": "Accessories",
+         "text": "Rows, lunges, carries or core work, in pairs.",
+         "detail": "15 minutes"
+        },
+        {
+         "title": "Log it",
+         "text": "Write your numbers in the logbook so next week starts from here.",
+         "detail": "5 minutes"
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Not sure which class?",
+       "text": "Start with Strength basics. Everyone does.",
+       "primary": {
+        "label": "Book a free class",
+        "href": "page:join"
+       },
+       "secondary": {
+        "label": "Call 01-5422761",
+        "href": "tel:015422761"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "ink"
+      }
+     }
+    ]
+   },
+   {
+    "id": "coaches",
+    "slug": "coaches",
+    "title": "Coaches",
+    "nav": true,
+    "seoTitle": "Our coaches · Bhimsen Barbell Club",
+    "seoDescription": "Four certified strength coaches in Kupondole, Lalitpur. Group classes and one-to-one programmes, with form checked on every lift.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "The coaches",
+       "text": "Four coaches, all certified and first-aid trained. At least one of them is on the floor every hour we are open.",
+       "primary": {
+        "label": "Book a free class",
+        "href": "page:join"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:lift-coach",
+        "alt": "Portrait of Kiran Thapa, head coach, in a yellow club T-shirt",
+        "focal": [
+         50,
+         25
+        ]
+       },
+       "eyebrow": "Ask for any coach by name",
+       "video": ""
+      }
+     },
+     {
+      "type": "team",
+      "variant": "list",
+      "props": {
+       "heading": "Who is on the floor",
+       "intro": "",
+       "people": [
+        {
+         "name": "Kiran Thapa",
+         "role": "Head coach and owner",
+         "bio": "Eleven years coaching strength. Competes in powerlifting in the 83 kg class. Runs the barbell club and most one-to-one programmes.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Sushma Gurung",
+         "role": "Coach, Women’s strength",
+         "bio": "Former national-level basketball player. Coaches the women’s classes and returns-to-training after pregnancy.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Bibek Shrestha",
+         "role": "Coach, conditioning and boxing",
+         "bio": "Amateur boxer for eight years. Runs conditioning and the evening boxing classes.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Rajan Magar",
+         "role": "Coach, mornings",
+         "bio": "Opens the gym at 5:30. Strength basics, mobility, and the patience to teach a first deadlift ten times.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "image",
+      "props": {
+       "quote": "I would rather you leave a session knowing one thing well than ten things badly. Next week we add the eleventh.",
+       "name": "Sushma Gurung",
+       "detail": "Coach, Women’s strength",
+       "image": {
+        "src": "lib:lift-pt",
+        "alt": "A coach correcting a member’s push-up on the turf",
+        "focal": [
+         45,
+         50
+        ]
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "How we coach",
+       "body": "<p>Every member has a logbook at the desk. Coaches read it before your session, so nobody has to remember what you lifted last Tuesday.</p><p>We teach the lifts in the same order to everyone: hinge, squat, push, pull, carry. We do not sell supplements, and we will not tell you to buy any.</p><ul><li>One coach for every eight people in a class</li><li>Form checked on the first working set of every lift</li><li>A retest every twelve weeks, on film</li></ul>"
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "feed",
+      "props": {
+       "heading": "@bhimsenbarbell",
+       "intro": "Personal bests, new members and the Friday barbell club.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:lift-deadlift",
+          "alt": "A member with a loaded barbell"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:lift-press",
+          "alt": "Dumbbell press on the incline bench"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:lift-boxing",
+          "alt": "Two members in boxing gloves"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:lift-rest",
+          "alt": "A member resting between sets",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:lift-bells",
+          "alt": "Kettlebells on the floor"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:lift-pulldown",
+          "alt": "A member on the pull-down machine",
+          "focal": [
+           60,
+           45
+          ]
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:lift-squat",
+          "alt": "A member doing a split squat",
+          "focal": [
+           55,
+           45
+          ]
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:lift-plate",
+          "alt": "A hand on a loaded bar"
+         },
+         "caption": ""
+        }
+       ],
+       "link": {
+        "label": "Follow on Instagram",
+        "href": "https://www.instagram.com/bhimsenbarbell",
+        "newTab": true
+       }
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Train with one of us",
+       "text": "Eight one-to-one sessions start at Rs 14,000. Your first class, in a group, is free.",
+       "primary": {
+        "label": "Book a free class",
+        "href": "page:join"
+       },
+       "secondary": {
+        "label": "See prices",
+        "href": "page:memberships"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "join",
+    "slug": "join",
+    "title": "Free class",
+    "nav": true,
+    "seoTitle": "Book a free class · Bhimsen Barbell Club, Kupondole",
+    "seoDescription": "Book your first class free at Bhimsen Barbell Club, Kupondole, Lalitpur. Open Sunday to Friday 5:30 to 21:30.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Book a free class",
+       "text": "Tell us which class and which day. We call to confirm and to ask about any injuries before you come.",
+       "primary": {
+        "label": "Call 01-5422761",
+        "href": "tel:015422761"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "One free class per person",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Your free class",
+       "text": "Wear flat shoes and bring water. Come ten minutes early so the coach can show you around.",
+       "services": "Strength basics\nWomen’s strength\nConditioning\nBoxing\nA one-to-one assessment",
+       "askTime": true,
+       "button": "Book the class",
+       "success": "Thank you. A coach will call you today to confirm."
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "table",
+      "props": {
+       "heading": "When we are open",
+       "note": "Closed on Dashain Tika and Laxmi Puja. On other public holidays we open 7:00 to 12:00.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "05:30 – 21:30"
+        },
+        {
+         "day": "Monday",
+         "hours": "05:30 – 21:30"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "05:30 – 21:30"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "05:30 – 21:30"
+        },
+        {
+         "day": "Thursday",
+         "hours": "05:30 – 21:30"
+        },
+        {
+         "day": "Friday",
+         "hours": "05:30 – 21:30"
+        },
+        {
+         "day": "Saturday",
+         "hours": "07:00 – 12:00"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "map",
+      "variant": "location",
+      "props": {
+       "heading": "Ground floor, Kupondole",
+       "address": "Ground floor, Kupondole Height Road, near the Bagmati bridge, Lalitpur 44700",
+       "hours": "Sunday to Friday, 5:30 to 21:30\nSaturday, 7:00 to 12:00",
+       "phone": "",
+       "note": "Yellow shutter, opposite the petrol pump. Free scooter parking inside the gate; car parking on the street after 19:00.",
+       "query": "Kupondole, Lalitpur",
+       "link": ""
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "split",
+      "props": {
+       "heading": "Something to ask first?",
+       "text": "An old injury, a pregnancy, a question about a plan. Write and a coach will reply.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send message",
+       "success": "Thank you. A coach will reply today."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

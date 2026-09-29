@@ -1,219 +1,1122 @@
 {
-  "id": "photographer",
+ "id": "photographer",
+ "name": "Tole Studio",
+ "category": "Photographer and studio",
+ "description": "A dark, gallery-first site for a wedding and portrait photographer: recent stories, packages with prices, how a booking works, and a date-check form.",
+ "site": {
   "name": "Tole Studio",
-  "category": "Photographer and studio",
-  "description": "A dark, image-first studio site: portfolio wall, packages with prices, how a booking works, and a date enquiry form.",
-  "site": {
-    "name": "Tole Studio",
-    "theme": { "preset": "nocturne" },
-    "settings": {
-      "tagline": "Wedding, portrait and food photography in Patan",
-      "lang": "en",
-      "phone": "9851012345",
-      "email": "studio@tolestudio.com.np",
-      "address": "Nag Bahal, Patan, Lalitpur 44700",
-      "social": [
-        { "network": "instagram", "url": "https://www.instagram.com/tolestudio" },
-        { "network": "facebook", "url": "https://www.facebook.com/tolestudio" },
-        { "network": "youtube", "url": "https://www.youtube.com/@tolestudio" }
-      ]
+  "theme": {
+   "preset": "nocturne"
+  },
+  "settings": {
+   "tagline": "Wedding, ceremony and family photographs from Patan",
+   "lang": "en",
+   "phone": "9851-174208",
+   "email": "hello@tolestudio.com.np",
+   "address": "Kumbheshwor, Patan, Lalitpur 44700",
+   "social": [
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/tolestudio"
     },
-    "header": { "type": "header", "variant": "centered", "props": { "cta": { "label": "Check a date", "href": "page:contact" }, "sticky": false } },
-    "footer": {
-      "type": "footer", "variant": "big",
-      "props": { "about": "Anish and Rejina Maharjan. Weddings, portraits and food, from a small studio behind Patan Durbar Square.", "note": "", "showPages": true, "showContact": true, "showSocial": true }
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/tolestudio"
     },
-    "pages": [
-      {
-        "id": "work", "title": "Work",
-        "seoTitle": "Tole Studio: wedding and portrait photographers in Patan",
-        "seoDescription": "Wedding, portrait and food photography in the Kathmandu Valley by Anish and Rejina Maharjan. See recent work, packages and prices.",
-        "blocks": [
-          {
-            "type": "hero", "variant": "image",
-            "props": {
-              "eyebrow": "Weddings, portraits and food · Kathmandu Valley",
-              "title": "Photographs of the days you will want to remember exactly",
-              "text": "Two photographers, one small studio in Patan, and every photo edited by hand before it reaches you.",
-              "primary": { "label": "See packages", "href": "page:services" },
-              "secondary": { "label": "Check a date", "href": "page:contact" },
-              "image": { "src": "lib:wedding-bouquet", "alt": "A bride holding a bouquet of roses in warm evening light", "focal": [55, 40] }
-            }
-          },
-          {
-            "type": "gallery", "variant": "masonry",
-            "props": {
-              "heading": "Recent work",
-              "intro": "A few frames from the last two seasons. Full galleries are shared with each couple and family privately.",
-              "images": [
-                { "image": { "src": "lib:portrait-woman", "alt": "Portrait of a woman in a striped shirt outdoors" }, "caption": "Family portraits, Godawari, Poush 2080" },
-                { "image": { "src": "lib:swayambhu", "alt": "Swayambhu stupa with prayer flags" }, "caption": "Pre-wedding walk, Swayambhu" },
-                { "image": { "src": "lib:shoot-cheers", "alt": "Two coffee cups raised together" }, "caption": "Menu shoot for a café in Jhamsikhel" },
-                { "image": { "src": "lib:ridge-photographer", "alt": "A photographer on a rocky ridge above the clouds" }, "caption": "Scouting Nagarkot at sunrise" },
-                { "image": { "src": "lib:long-table", "alt": "A long reception table with glasses and flowers" }, "caption": "Reception, Bhaktapur, Mangsir 2080" },
-                { "image": { "src": "lib:portrait-man", "alt": "Portrait of a smiling man against a grey wall" }, "caption": "Studio portrait, Nag Bahal" },
-                { "image": { "src": "lib:dinner-plate", "alt": "A plated dish on a restaurant table" }, "caption": "Tasting menu, Thamel" },
-                { "image": { "src": "lib:himal-trek", "alt": "A trekker looking at snow peaks" }, "caption": "Honeymoon session, Mardi Himal" }
-              ]
-            }
-          },
-          {
-            "type": "richtext", "variant": "split",
-            "props": {
-              "heading": "How we work",
-              "body": "<p>We meet you before the day, at the studio or on a call, and go through it hour by hour: who needs to be in which photo, when the light is best, where the families will stand.</p><p>On the day there are two of us, so the <em>sagun</em> and the guests get covered while the couple is being photographed. Every photo you receive is chosen and edited by one of us, not a filter.</p>"
-            }
-          },
-          {
-            "type": "timeline", "variant": "horizontal",
-            "props": {
-              "heading": "From the first call to the album",
-              "items": [
-                { "date": "Week 0", "title": "A call and a date", "text": "We check the date and hold it for a week, free." },
-                { "date": "2 weeks before", "title": "The shot list", "text": "Names, rituals, places and timings, on one page." },
-                { "date": "The day", "title": "Two photographers", "text": "Up to ten hours, from getting ready to the reception." },
-                { "date": "Within 3 weeks", "title": "Your online gallery", "text": "Every edited photo, to download and share." },
-                { "date": "Within 8 weeks", "title": "The printed album", "text": "Designed with you, printed in Kathmandu." }
-              ]
-            },
-            "style": { "bg": "surface" }
-          },
-          {
-            "type": "cta", "variant": "split",
-            "props": {
-              "title": "Mangsir and Falgun fill up by Asar",
-              "text": "Wedding season dates book months ahead. Ask for yours now; holding it costs nothing for a week.",
-              "primary": { "label": "Check a date", "href": "page:contact" },
-              "secondary": { "label": "", "href": "" }
-            }
-          }
+    {
+     "network": "tiktok",
+     "url": "https://www.tiktok.com/@tolestudio"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "centered",
+   "props": {
+    "cta": {
+     "label": "Check a date",
+     "href": "page:book"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "The best photographs happen when everyone forgets we are there.",
+    "cta": {
+     "label": "Check a date",
+     "href": "page:book"
+    },
+    "about": "Sagun and Rojina Shakya photograph weddings, Newari ceremonies and families from a small studio in Kumbheshwor, Patan. Since 2073.",
+    "hours": "Studio by appointment\nSunday to Friday, 11:00 to 18:00",
+    "note": "Every photograph here is shared with the family’s permission.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "surface"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Tole Studio: wedding and family photographers in Patan",
+    "seoDescription": "Weddings, mehendi, pasni, ihi and family portraits across the Kathmandu valley, photographed quietly by Sagun and Rojina Shakya. Wedding days from Rs 85,000.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "image",
+      "props": {
+       "title": "Weddings and ceremonies, photographed as they happen",
+       "text": "We are two photographers from Patan. We do not stage the swayambar or ask the priest to wait. We stay close, keep quiet, and give you the day back as it was.",
+       "primary": {
+        "label": "See the weddings",
+        "href": "page:weddings"
+       },
+       "secondary": {
+        "label": "Check a date",
+        "href": "page:book"
+       },
+       "image": {
+        "src": "lib:photo-henna",
+        "alt": "A bride’s and groom’s hennaed hands holding each other, with red wedding bangles",
+        "focal": [
+         50,
+         50
         ]
-      },
-      {
-        "id": "services", "slug": "services", "title": "Packages",
-        "seoTitle": "Wedding and portrait photography prices · Tole Studio",
-        "seoDescription": "Portrait sessions from Rs 12,000, wedding days from Rs 1,45,000, menu and food shoots from Rs 35,000. Travel inside the Valley included.",
-        "blocks": [
-          {
-            "type": "hero", "variant": "text",
-            "props": { "eyebrow": "", "title": "Packages and prices", "text": "Prices in rupees, travel inside the Kathmandu Valley included. Outside the Valley we add travel and a room at cost.", "primary": { "label": "", "href": "" }, "secondary": { "label": "", "href": "" } },
-            "style": { "space": "s" }
-          },
-          {
-            "type": "pricing", "variant": "columns",
-            "props": {
-              "heading": "", "intro": "", "currency": "NPR",
-              "plans": [
-                { "name": "Portrait session", "price": "12000", "period": "session", "note": "Families, couples, graduates, new parents.", "features": "One hour at the studio or outdoors\n25 edited photos\nOnline gallery for a year", "cta": { "label": "Book a session", "href": "page:contact" }, "featured": false },
-                { "name": "Wedding day", "price": "145000", "period": "day", "note": "Our most booked package, from sagun to reception.", "features": "Two photographers, up to 10 hours\n600 or more edited photos\n40-page printed album\n50 preview photos within a week", "cta": { "label": "Check your date", "href": "page:contact" }, "featured": true },
-                { "name": "Menu and food", "price": "35000", "period": "half day", "note": "For restaurants, bakeries and cafés.", "features": "Up to 20 dishes\nStyling help and props\nPhotos sized for delivery apps and Instagram", "cta": { "label": "Plan a shoot", "href": "page:contact" }, "featured": false }
-              ]
-            }
-          },
-          {
-            "type": "features", "variant": "compact",
-            "props": {
-              "heading": "Add to any package",
-              "intro": "",
-              "items": [
-                { "title": "An extra hour", "text": "", "detail": "Rs 6,000" },
-                { "title": "A second album for parents", "text": "", "detail": "Rs 14,000" },
-                { "title": "Drone photos, where allowed", "text": "", "detail": "Rs 18,000" },
-                { "title": "Unedited files", "text": "", "detail": "Rs 10,000" }
-              ]
-            }
-          },
-          {
-            "type": "faq", "variant": "split",
-            "props": {
-              "heading": "Questions couples ask",
-              "intro": "",
-              "items": [
-                { "q": "How much do we pay to book?", "a": "Thirty percent holds the date. The rest is due a week after the wedding, once you have seen the preview photos." },
-                { "q": "Do you travel to Pokhara, Chitwan or India?", "a": "Yes. We add the travel and a room at cost, and nothing else." },
-                { "q": "When do we get the photos?", "a": "Fifty preview photos within a week, the full online gallery within three weeks, the album within eight." },
-                { "q": "Can we choose the photos for the album?", "a": "Yes. You mark your favourites in the online gallery and we design the album around them, with one round of changes." }
-              ]
-            },
-            "style": { "bg": "surface" }
-          }
-        ]
-      },
-      {
-        "id": "about", "slug": "about", "title": "About",
-        "seoTitle": "About Tole Studio, Patan",
-        "seoDescription": "Anish and Rejina Maharjan have photographed weddings, families and food in the Kathmandu Valley since 2072.",
-        "blocks": [
-          {
-            "type": "imagetext", "variant": "right",
-            "props": {
-              "image": { "src": "lib:camera-kit", "alt": "A camera body and two lenses on a dark table" },
-              "eyebrow": "Since 2072",
-              "heading": "Two photographers, one small studio in Patan",
-              "body": "<p>Anish learned on a borrowed film camera in Nag Bahal; Rejina came from newspaper work. We started Tole Studio in the room above Anish's family shop and still work from there.</p><p>We take a limited number of weddings each season so that the two of us can shoot every one of them ourselves.</p>",
-              "link": { "label": "", "href": "" }
-            }
-          },
-          {
-            "type": "team", "variant": "monogram",
-            "props": {
-              "heading": "Who you will work with",
-              "intro": "",
-              "people": [
-                { "name": "Anish Maharjan", "role": "Weddings and landscapes", "bio": "Plans the day with you and shoots the rituals and the families.", "image": { "src": "", "alt": "" } },
-                { "name": "Rejina Maharjan", "role": "Portraits and food", "bio": "Shoots the couple, edits every gallery and designs the albums.", "image": { "src": "", "alt": "" } }
-              ]
-            }
-          },
-          {
-            "type": "logos", "variant": "row",
-            "props": {
-              "heading": "Menus photographed for",
-              "items": [
-                { "name": "Ghumti Café", "image": { "src": "", "alt": "" }, "url": "" },
-                { "name": "Tulsi Bakehouse", "image": { "src": "", "alt": "" }, "url": "" },
-                { "name": "Pokhari Kitchen", "image": { "src": "", "alt": "" }, "url": "" },
-                { "name": "Chautari Dining", "image": { "src": "", "alt": "" }, "url": "" }
-              ]
-            }
-          },
-          { "type": "social", "variant": "big", "props": { "heading": "Follow new work", "links": [] } }
-        ]
-      },
-      {
-        "id": "contact", "slug": "contact", "title": "Contact",
-        "seoTitle": "Check a date · Tole Studio",
-        "seoDescription": "Ask Tole Studio about your wedding or portrait date. We reply within a day.",
-        "blocks": [
-          {
-            "type": "contact", "variant": "split",
-            "props": {
-              "heading": "Check a date",
-              "text": "Tell us the date, the place and roughly how many guests. We reply within a day, usually with a call.",
-              "address": "", "phone": "", "email": "",
-              "askPhone": true,
-              "button": "Send",
-              "success": "Thank you. We will get back to you within a day."
-            }
-          },
-          {
-            "type": "hours", "variant": "compact",
-            "props": {
-              "heading": "Studio hours",
-              "note": "Weddings and outdoor sessions happen any day; these are the hours to visit the studio.",
-              "days": [
-                { "day": "Sunday – Friday", "hours": "10:00 – 18:00" },
-                { "day": "Saturday", "hours": "By appointment" }
-              ]
-            },
-            "style": { "bg": "surface" }
-          },
-          {
-            "type": "map", "variant": "card",
-            "props": { "heading": "The studio", "address": "Nag Bahal, Patan, Lalitpur 44700. Up the stairs beside the brass shop.", "query": "Nag Bahal, Lalitpur", "link": "" }
-          }
-        ]
+       },
+       "eyebrow": "Now booking Mangsir 2083 to Baisakh 2084",
+       "video": ""
       }
+     },
+     {
+      "type": "gallery",
+      "variant": "masonry",
+      "props": {
+       "heading": "From the last season",
+       "intro": "Weddings in Bhaktapur, Kirtipur and Pokhara, an ihi in Kwa Bahal and a lot of Tihar.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:photo-bride",
+          "alt": "A bride in a red and gold sari looking down, against a dark wall"
+         },
+         "caption": "Before the janti arrived"
+        },
+        {
+         "image": {
+          "src": "lib:photo-garlands",
+          "alt": "Newlyweds laughing in flower garlands, the groom in a dhaka topi"
+         },
+         "caption": "Srijana and Anup"
+        },
+        {
+         "image": {
+          "src": "lib:photo-doorway",
+          "alt": "A woman in a red and black sari standing in a carved Newari doorway"
+         },
+         "caption": "Kwa Bahal"
+        },
+        {
+         "image": {
+          "src": "lib:photo-bride-2",
+          "alt": "A bride in red with her hennaed hands raised"
+         },
+         "caption": "Mehendi night, Pokhara"
+        },
+        {
+         "image": {
+          "src": "lib:photo-couple",
+          "alt": "A couple in wedding clothes walking down a hillside path"
+         },
+         "caption": "After the ceremony, Kirtipur"
+        },
+        {
+         "image": {
+          "src": "lib:photo-headpiece",
+          "alt": "A woman in a golden headpiece and red beads at a festival"
+         },
+         "caption": "Festival portrait, Boudha"
+        }
+       ],
+       "link": {
+        "label": "More weddings",
+        "href": "page:weddings"
+       }
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "Nobody remembers the posed photo at the stage. They remember their aunt crying at the kanyadan, and the cousin asleep on the chairs at two in the morning.",
+       "name": "Sagun Shakya",
+       "detail": "Photographer",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      }
+     },
+     {
+      "type": "work",
+      "variant": "feature",
+      "props": {
+       "heading": "Stories",
+       "intro": "Each one is a full day, told in about four hundred photographs.",
+       "items": [
+        {
+         "image": {
+          "src": "lib:photo-garland-exchange",
+          "alt": "A couple exchanging garlands in front of red and gold drapes",
+          "focal": [
+           50,
+           35
+          ]
+         },
+         "title": "Srijana and Anup, Bhaktapur",
+         "tag": "Wedding · Mangsir 2082",
+         "text": "Two days, three hundred guests and a janti that arrived two hours late with a brass band.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:photo-bangles",
+          "alt": "Hennaed hands with gold bangles resting on an orange sari"
+         },
+         "title": "Mehendi at the Joshi house",
+         "tag": "Mehendi",
+         "text": "An afternoon of henna, songs and one very patient grandmother.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:photo-girl",
+          "alt": "A young girl in red and gold with a festival crowd behind her",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Ihi in Kwa Bahal",
+         "tag": "Newari ceremony",
+         "text": "Eleven girls, one bel fruit each, and two days of feasting in the courtyard.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:photo-lamps",
+          "alt": "A woman sitting among hundreds of lit oil lamps"
+         },
+         "title": "Tihar at the Tuladhar house",
+         "tag": "Family",
+         "text": "Laxmi Puja from the first diyo to the last deusi group at midnight.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:photo-family",
+          "alt": "A family in festival clothes walking down a busy street"
+         },
+         "title": "Three generations at Indra Jatra",
+         "tag": "Family",
+         "text": "A walk through Basantapur with a family who have gone every year since 1990.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "marquee",
+      "variant": "small",
+      "props": {
+       "items": [
+        {
+         "text": "Swayambar"
+        },
+        {
+         "text": "Mehendi"
+        },
+        {
+         "text": "Bihe"
+        },
+        {
+         "text": "Ihi and Barha"
+        },
+        {
+         "text": "Pasni"
+        },
+        {
+         "text": "Bratabandha"
+        },
+        {
+         "text": "Family portraits"
+        }
+       ]
+      },
+      "style": {
+       "bg": "accent"
+      }
+     },
+     {
+      "type": "imagetext",
+      "variant": "left",
+      "props": {
+       "image": {
+        "src": "lib:photo-aama",
+        "alt": "An older woman smiling in a red blouse in a narrow street",
+        "focal": [
+         50,
+         30
+        ]
+       },
+       "eyebrow": "",
+       "heading": "Portraits of the people who hold a family together",
+       "body": "<p>Every wedding has someone who has been to sixty of them. We always ask for twenty minutes with the grandparents, away from the stage, in good light.</p><p>We also photograph elders at home, on their own or with the family, for the wall and for the day they are not with you any more.</p>",
+       "link": {
+        "label": "Portraits and family",
+        "href": "page:portraits"
+       }
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "columns",
+      "props": {
+       "heading": "Wedding packages",
+       "intro": "Inside the Kathmandu valley. Outside it, travel and a room for the night are added at cost.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "The wedding day",
+         "price": "85000",
+         "period": "day",
+         "note": "One photographer, up to 10 hours.",
+         "features": "About 400 edited photographs\nPrivate online gallery\nSneak peek within three days",
+         "cta": {
+          "label": "Check a date",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Two days",
+         "price": "160000",
+         "period": "wedding",
+         "note": "Both of us, mehendi or swayambar and the bihe.",
+         "features": "About 900 edited photographs\nPrivate online gallery\nEngagement portraits in Patan\nSneak peek within three days",
+         "cta": {
+          "label": "Check a date",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Everything, with an album",
+         "price": "225000",
+         "period": "wedding",
+         "note": "Three days, both of us, and a printed album.",
+         "features": "Every ceremony, from mehendi to reception\nA 40-page album, printed and bound in Kathmandu\nTwo parents’ albums of 20 pages",
+         "cta": {
+          "label": "Check a date",
+          "href": "page:book"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "From the first call to the album",
+       "intro": "",
+       "items": [
+        {
+         "title": "Check the date",
+         "text": "Tell us the sait and where. We reply within a day with yes, no, or who we would recommend.",
+         "detail": "First"
+        },
+        {
+         "title": "Tea and a plan",
+         "text": "At the studio or your home. We go through every ritual and who matters most.",
+         "detail": "A month before"
+        },
+        {
+         "title": "The day",
+         "text": "We arrive before the first ritual and leave after the last dance.",
+         "detail": "The wedding"
+        },
+        {
+         "title": "Photographs and album",
+         "text": "The online gallery in four weeks, the album six weeks after you choose.",
+         "detail": "After"
+        }
+       ]
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "Before you book",
+       "intro": "",
+       "items": [
+        {
+         "q": "How far ahead should we book?",
+         "a": "For Mangsir and Falgun saits, three to six months. We take one wedding a day, and the best dates go first."
+        },
+        {
+         "q": "Do you do video too?",
+         "a": "No, only photographs. We work often with two videographers in Patan and are happy to introduce you."
+        },
+        {
+         "q": "Can we have all the photographs, unedited?",
+         "a": "We give you every photograph worth keeping, edited. Blurred and blinking frames are deleted, which is kinder to everyone."
+        },
+        {
+         "q": "How do we pay?",
+         "a": "Thirty per cent to hold the date, the rest a week before the wedding, by bank transfer or QR."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "Is your sait in Mangsir or Falgun?",
+       "text": "Send the date and the place. We will tell you within a day if we are free.",
+       "primary": {
+        "label": "Check a date",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "Call 9851-174208",
+        "href": "tel:9851174208"
+       },
+       "image": {
+        "src": "lib:photo-outdoors",
+        "alt": "A bride and groom face to face outdoors",
+        "focal": [
+         50,
+         40
+        ]
+       }
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "weddings",
+    "slug": "weddings",
+    "title": "Weddings",
+    "nav": true,
+    "seoTitle": "Wedding photography in Kathmandu, Patan and Bhaktapur",
+    "seoDescription": "Mehendi, swayambar, bihe and reception, photographed by two photographers from Patan. Packages from Rs 85,000, with albums printed in Kathmandu.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Every ritual, and everything between them",
+       "text": "A Nepali wedding is three days of small moments with a few big ones in the middle. We photograph the tika, the tears and the dancing, and nobody has to stand still for us.",
+       "primary": {
+        "label": "Check a date",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:photo-bride-2",
+        "alt": "A bride in red with her hennaed hands raised",
+        "focal": [
+         50,
+         30
+        ]
+       },
+       "eyebrow": "From Rs 85,000 a day in the valley",
+       "video": ""
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "The three days",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:photo-bangles",
+          "alt": "Hennaed hands and gold bangles on an orange sari"
+         },
+         "title": "Mehendi",
+         "text": "Usually at home, usually loud. We photograph the henna going on, the aunts singing and the bride trying not to smudge anything for four hours.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:photo-garland-exchange",
+          "alt": "A couple exchanging garlands in front of red and gold drapes"
+         },
+         "title": "Swayambar",
+         "text": "The garlands, the rings and the first look. We stay near the stage but not on it, and move with the families rather than asking them to move for us.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:photo-mirror",
+          "alt": "A bride checking her reflection in a mirror"
+         },
+         "title": "Bihe",
+         "text": "From getting ready at dawn to the sindoor, the kanyadan and the doli. Rojina stays with the bride; Sagun stays with the groom and the janti.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "bento",
+      "props": {
+       "heading": "Couples",
+       "intro": "",
+       "images": [
+        {
+         "image": {
+          "src": "lib:photo-couple",
+          "alt": "A couple walking down a hillside path in wedding clothes"
+         },
+         "caption": "Kirtipur"
+        },
+        {
+         "image": {
+          "src": "lib:photo-garlands",
+          "alt": "Newlyweds laughing in flower garlands"
+         },
+         "caption": "Bhaktapur"
+        },
+        {
+         "image": {
+          "src": "lib:photo-outdoors",
+          "alt": "A bride and groom face to face outdoors"
+         },
+         "caption": "Godawari"
+        },
+        {
+         "image": {
+          "src": "lib:photo-henna",
+          "alt": "Two hennaed hands holding each other"
+         },
+         "caption": "Patan"
+        },
+        {
+         "image": {
+          "src": "lib:photo-bride",
+          "alt": "A bride in red and gold looking down"
+         },
+         "caption": "Pokhara"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Packages and extras",
+       "intro": "Prices for 2083/84, inside the Kathmandu valley.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "The wedding day",
+         "price": "85000",
+         "period": "day",
+         "note": "One photographer, up to 10 hours.",
+         "features": "About 400 edited photographs\nOnline gallery",
+         "cta": {
+          "label": "Check a date",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Two days",
+         "price": "160000",
+         "period": "wedding",
+         "note": "Both of us.",
+         "features": "About 900 edited photographs\nEngagement portraits\nOnline gallery",
+         "cta": {
+          "label": "Check a date",
+          "href": "page:book"
+         },
+         "featured": true
+        },
+        {
+         "name": "Everything, with an album",
+         "price": "225000",
+         "period": "wedding",
+         "note": "Three days, both of us.",
+         "features": "40-page album\nTwo 20-page parents’ albums\nOnline gallery",
+         "cta": {
+          "label": "Check a date",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Extra album",
+         "price": "28000",
+         "period": "album",
+         "note": "20 pages, same design.",
+         "features": "Printed and bound in Kathmandu",
+         "cta": {
+          "label": "Ask",
+          "href": "page:book"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "About the wedding day",
+       "intro": "",
+       "items": [
+        {
+         "q": "Do you know the rituals?",
+         "a": "We have photographed Newar, Brahmin, Chhetri, Gurung, Magar and Rai weddings. If yours has something we have not seen, we ask the family priest the week before."
+        },
+        {
+         "q": "What about the dances and the reception?",
+         "a": "Included in the hours. If the party runs past the ten hours, extra time is Rs 6,000 an hour."
+        },
+        {
+         "q": "Will you travel?",
+         "a": "Yes: Pokhara, Chitwan, Dharan, Janakpur and once to Darjeeling. Travel and a room are added at cost."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Tell us your sait",
+       "text": "We take one wedding a day. Ask before the date goes.",
+       "primary": {
+        "label": "Check a date",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "portraits",
+    "slug": "portraits",
+    "title": "Portraits and family",
+    "nav": true,
+    "seoTitle": "Family portraits, pasni and ceremonies in Patan and Kathmandu",
+    "seoDescription": "Family and elder portraits at home or in Patan’s courtyards, and half-day coverage for pasni, bratabandha, ihi and barha. From Rs 12,000.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "Families, in the places they belong",
+       "text": "Portraits at home, in your tole or in the courtyards of Patan. And the smaller ceremonies that deserve a photographer as much as a wedding does.",
+       "primary": {
+        "label": "Book a session",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:photo-family",
+        "alt": "A family in festival clothes walking down a busy street",
+        "focal": [
+         45,
+         45
+        ]
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "list",
+      "props": {
+       "heading": "Sessions and prices",
+       "intro": "Inside the Kathmandu valley. Edited photographs in a private online gallery within three weeks.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Family at home",
+         "price": "18000",
+         "period": "",
+         "note": "Two hours in your house and on your street. About 80 edited photographs.",
+         "features": "",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Elders’ portrait",
+         "price": "9000",
+         "period": "",
+         "note": "An hour, and one framed 12 by 18 inch print chosen with you.",
+         "features": "",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Portraits in Patan",
+         "price": "12000",
+         "period": "",
+         "note": "An hour in the courtyards around Kumbheshwor and the Durbar Square.",
+         "features": "",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Pasni or bratabandha",
+         "price": "30000",
+         "period": "",
+         "note": "Half a day, from the puja to the meal. About 250 edited photographs.",
+         "features": "",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Ihi or barha",
+         "price": "45000",
+         "period": "",
+         "note": "Both days, including the courtyard feast.",
+         "features": "",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Festival walk",
+         "price": "15000",
+         "period": "",
+         "note": "A family outing at Indra Jatra, Bisket or Tihar, photographed as you go.",
+         "features": "",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "grid",
+      "props": {
+       "heading": "Portraits",
+       "intro": "",
+       "images": [
+        {
+         "image": {
+          "src": "lib:photo-aama",
+          "alt": "An older woman smiling in a red blouse"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:photo-headpiece",
+          "alt": "A woman in a golden headpiece and red beads"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:photo-doorway",
+          "alt": "A woman in a carved doorway"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:photo-girl",
+          "alt": "A young girl in red and gold at a festival"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:photo-lamps",
+          "alt": "A woman among oil lamps at Tihar"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:photo-mirror",
+          "alt": "A bride at a mirror"
+         },
+         "caption": ""
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "How a family session goes",
+       "body": "<p>We arrive, have tea and talk for twenty minutes before the camera comes out. Children stop performing after about half an hour, which is when the good photographs start.</p><p>Wear what you would wear to a family puja. Avoid matching outfits; they look better on a calendar than on a wall.</p>"
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Grandparents visiting for Dashain?",
+       "text": "Book an elders’ portrait for the week they are with you.",
+       "primary": {
+        "label": "Book a session",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "about",
+    "slug": "about",
+    "title": "About",
+    "nav": true,
+    "seoTitle": "About Tole Studio: Sagun and Rojina Shakya, Patan",
+    "seoDescription": "Two photographers from Kumbheshwor, Patan, working together since 2073. How we started, how we work, and where to see more.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Two photographers, one tole",
+       "text": "Sagun grew up above his father’s photo shop in Mangal Bazaar, printing passport photos after school. Rojina studied sociology and still takes notes at every wedding.",
+       "primary": {
+        "label": "Check a date",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:photo-doorway",
+        "alt": "A woman in a red and black sari in a carved Newari doorway",
+        "focal": [
+         50,
+         40
+        ]
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "list",
+      "props": {
+       "heading": "How we got here",
+       "items": [
+        {
+         "date": "2068",
+         "title": "The first wedding",
+         "text": "A cousin’s, on a borrowed camera with one lens."
+        },
+        {
+         "date": "2073",
+         "title": "Tole Studio opens",
+         "text": "A room in Kumbheshwor with good north light and a very steep stair."
+        },
+        {
+         "date": "2076",
+         "title": "Rojina joins full time",
+         "text": "And the studio becomes two people who photograph every wedding together."
+        },
+        {
+         "date": "2080",
+         "title": "Albums printed in Kathmandu",
+         "text": "We moved all printing to a bindery in Balkhu, so we can check every page."
+        }
+       ]
+      }
+     },
+     {
+      "type": "team",
+      "variant": "monogram",
+      "props": {
+       "heading": "Who you will see on the day",
+       "intro": "",
+       "people": [
+        {
+         "name": "Sagun Shakya",
+         "role": "Photographer",
+         "bio": "The quiet one at the back with two cameras.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Rojina Shakya",
+         "role": "Photographer",
+         "bio": "Usually with the bride, usually first to know when anything is about to happen.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Bibek Maharjan",
+         "role": "Assistant and editor",
+         "bio": "Carries the lights, backs up the cards every hour and edits most of our colour.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "image",
+      "props": {
+       "quote": "At a wedding my job is to watch the mothers. When they cry, something important is happening.",
+       "name": "Rojina Shakya",
+       "detail": "Photographer",
+       "image": {
+        "src": "lib:photo-mirror",
+        "alt": "A bride checking her reflection in a mirror",
+        "focal": [
+         60,
+         35
+        ]
+       }
+      }
+     },
+     {
+      "type": "social",
+      "variant": "big",
+      "props": {
+       "heading": "More photographs, every week",
+       "links": []
+      }
+     }
+    ]
+   },
+   {
+    "id": "book",
+    "slug": "book",
+    "title": "Book",
+    "nav": true,
+    "seoTitle": "Check a date with Tole Studio, Patan",
+    "seoDescription": "Send your wedding or ceremony date and place, and we reply within a day. Studio visits by appointment in Kumbheshwor, Patan.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Is your date free?",
+       "text": "Send the date, the place and what kind of day it is. We reply within a day, and hold the date for a week while you decide.",
+       "primary": {
+        "label": "",
+        "href": ""
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Check a date",
+       "text": "If you have a sait from the family priest, give the first day of the wedding. Tell us the venues in the notes.",
+       "services": "Wedding, one day\nWedding, two days\nWedding, everything with an album\nPasni or bratabandha\nIhi or barha\nFamily or elders’ portrait",
+       "askTime": false,
+       "button": "Check this date",
+       "success": "Thank you. We will reply within a day to say if we are free."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "After you send it",
+       "intro": "",
+       "items": [
+        {
+         "title": "We reply",
+         "text": "Free or not. If not, we suggest photographers we trust.",
+         "detail": "Within a day"
+        },
+        {
+         "title": "We meet",
+         "text": "Tea at the studio or a video call, to walk through the day.",
+         "detail": "Within two weeks"
+        },
+        {
+         "title": "You hold the date",
+         "text": "With 30% of the package, by bank transfer or QR.",
+         "detail": "When you are ready"
+        }
+       ]
+      }
+     },
+     {
+      "type": "map",
+      "variant": "card",
+      "props": {
+       "heading": "The studio",
+       "address": "First floor, Kumbheshwor, Patan, Lalitpur 44700",
+       "hours": "By appointment, Sunday to Friday, 11:00 to 18:00",
+       "phone": "",
+       "note": "Opposite the Kumbheshwor temple pond, above the pottery shop. Park at Patan Durbar Square and walk five minutes north.",
+       "query": "Kumbheshwor, Patan, Lalitpur",
+       "link": ""
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "form",
+      "props": {
+       "heading": "Anything else",
+       "text": "Prints, albums, a question about last year’s photographs.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": false,
+       "button": "Send",
+       "success": "Thank you. We will reply within a day."
+      },
+      "style": {
+       "bg": "page"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

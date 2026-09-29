@@ -1,312 +1,1148 @@
 {
-  "id": "wedding",
-  "name": "Utsav Wedding Planners",
-  "category": "Wedding and events",
-  "description": "A wedding planner site with a story, packages priced in rupees, a wedding-week timeline and an enquiry form asking for a date and guest count.",
-  "site": {
-    "name": "Utsav Wedding Planners",
-    "theme": {
-      "preset": "kora",
-      "display": "fraunces",
-      "body": "schibsted",
-      "colors": {
-        "bg": "#fbf6ee",
-        "surface": "#f2e6d6",
-        "text": "#2d1622",
-        "muted": "#6f5560",
-        "accent": "#6e2145",
-        "onAccent": "#fff8f2",
-        "line": "#e5d5c1"
-      },
-      "radius": 24,
-      "button": "pill",
-      "rhythm": "airy"
+ "id": "wedding",
+ "name": "Janti Weddings",
+ "category": "Wedding and events",
+ "description": "A wedding planner for Nepali Hindu weddings: rituals, venue and decor, a four-day wedding-week schedule, packages in rupees and an enquiry form with the date.",
+ "site": {
+  "name": "Janti Weddings",
+  "theme": {
+   "preset": "nocturne"
+  },
+  "settings": {
+   "tagline": "Nepali wedding planning in the Kathmandu valley and beyond",
+   "lang": "en",
+   "phone": "01-5550642",
+   "email": "hello@jantiweddings.com.np",
+   "address": "Sanepa Chowk, Lalitpur 44700",
+   "social": [
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/jantiweddings"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/jantiweddings"
+    },
+    {
+     "network": "tiktok",
+     "url": "https://www.tiktok.com/@jantiweddings"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Tell us your date",
+     "href": "page:enquire"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Leave the schedule to us. Stay with your family.",
+    "cta": {
+     "label": "Tell us your date",
+     "href": "page:enquire"
+    },
+    "about": "Wedding planners in Sanepa, Lalitpur, since 2073. Hindu weddings in the valley, Nagarkot, Dhulikhel, Chitwan and Pokhara.",
+    "hours": "Sunday to Friday, 10:00 to 18:00\nSaturday, meetings by appointment",
+    "note": "We take no commission from venues, caterers or decorators.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "surface"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Janti Weddings: Nepali wedding planners in Kathmandu and Pokhara",
+    "seoDescription": "Full planning or day-of coordination for Hindu weddings in the Kathmandu valley, Nagarkot, Dhulikhel and Pokhara. Rituals, venue, decor and the janti.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "image",
+      "props": {
+       "title": "Nepali weddings, planned from the first tika to the bidai",
+       "text": "We plan Hindu weddings in the Kathmandu valley, Nagarkot, Dhulikhel and Pokhara: the purohit, the janti, the mandap, the kitchen and the thousand small things in between, so both families can simply be there.",
+       "primary": {
+        "label": "Tell us your date",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "Packages",
+        "href": "page:packages"
+       },
+       "image": {
+        "src": "lib:vivah-garland-strings",
+        "alt": "Strings of marigold and white jasmine hanging as a curtain at a bride’s home",
+        "focal": [
+         50,
+         40
+        ]
+       },
+       "eyebrow": "Now planning for Mangsir, Magh and Falgun · Sanepa, Lalitpur",
+       "video": ""
+      }
+     },
+     {
+      "type": "marquee",
+      "variant": "large",
+      "props": {
+       "items": [
         {
-          "network": "instagram",
-          "url": "https://www.instagram.com/utsavweddingplanners"
+         "text": "Swagat"
         },
         {
-          "network": "facebook",
-          "url": "https://www.facebook.com/utsavweddingplanners"
+         "text": "Janti"
         },
         {
-          "network": "whatsapp",
-          "url": "https://wa.me/9779801112233"
+         "text": "Kanyadan"
+        },
+        {
+         "text": "Sindoor"
+        },
+        {
+         "text": "Bidai"
+        },
+        {
+         "text": "Reception"
         }
-      ],
-      "tagline": "Weddings in the valley, planned so the family can be guests",
-      "phone": "980-1112233",
-      "email": "hello@utsavweddings.com.np",
-      "address": "Sanepa Chowk, Lalitpur 44700"
-    },
-    "header": {
-      "type": "header",
-      "variant": "centered",
+       ]
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
       "props": {
-        "cta": {
-          "label": "Check a date",
-          "href": "page:enquire"
+       "quote": "A Nepali wedding is four days, two families, one purohit and a kitchen that never closes. Our job is to make sure the bride’s mother gets to sit down.",
+       "name": "Pratiksha Joshi",
+       "detail": "Founder and lead planner",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "What we plan",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:vivah-rites",
+          "alt": "The couple’s hands during an offering among rice, fruit and flowers"
+         },
+         "title": "The rituals, done properly",
+         "text": "We work with your family purohit, or introduce one. The sait is fixed first; then the samagri for every ritual is bought, checked and laid out before the family arrives, down to the last supari and the sagun for each guest.",
+         "link": {
+          "label": "How the week runs",
+          "href": "page:week"
+         }
         },
-        "sticky": true
+        {
+         "image": {
+          "src": "lib:vivah-haldi",
+          "alt": "A woman in a yellow sari and flower jewellery beside marigold strings",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "title": "Mehndi and haldi at home",
+         "text": "Marigold strings, low seating, a dhol player and a mehndi artist for the women of the family. We arrange it in your courtyard or on the roof, and clear it away before the wedding morning.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:vivah-mandap",
+          "alt": "A white floral mandap at the end of an aisle, with hills behind"
+         },
+         "title": "The mandap and the venue",
+         "text": "Party palaces in the valley, a garden in Dhulikhel or a lakeside hotel in Pokhara. We design the mandap, the stage and the entrance, and we are on site from the first delivery to the last chair.",
+         "link": {
+          "label": "See packages",
+          "href": "page:packages"
+         }
+        }
+       ]
       }
-    },
-    "footer": {
-      "type": "footer",
-      "variant": "simple",
+     },
+     {
+      "type": "features",
+      "variant": "compact",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "We plan Newari, Brahmin, Chhetri and mixed weddings for 100 to 600 guests across Kathmandu, Lalitpur, Bhaktapur and Nagarkot."
-      }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Utsav Wedding Planners, Lalitpur: weddings planned around your family",
-        "seoDescription": "Wedding planners in Lalitpur for 100 to 600 guests. Full planning from Rs 2.5 lakh. Newari, Brahmin, Chhetri and mixed ceremonies.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "image",
-            "props": {
-              "eyebrow": "Sanepa, Lalitpur · Weddings across the valley",
-              "title": "The mother of the bride should get to sit down",
-              "text": "Venue, catering, decoration, photographers and the priest's timings, handled by one team that stays until the last guest has gone home.",
-              "primary": {
-                "label": "Check a date",
-                "href": "page:enquire"
-              },
-              "secondary": {
-                "label": "Packages",
-                "href": "page:packages"
-              },
-              "image": {
-                "src": "lib:wedding-bouquet",
-                "alt": "A bride holding a bouquet in warm light",
-                "focal": [
-                  50,
-                  45
-                ]
-              }
-            }
-          },
-          {
-            "type": "imagetext",
-            "variant": "stacked",
-            "props": {
-              "image": {
-                "src": "lib:long-table",
-                "alt": "A long table set with glasses and flowers"
-              },
-              "eyebrow": "Our way",
-              "heading": "One planner on the phone from the first visit to the bidaai",
-              "body": "<p>Nepali weddings run over several days, with a lot of hands. We draw up a plan for each ceremony (<em>swayambar</em>, <em>mehendi</em>, <em>bratabandha</em> or <em>pasni</em> if it falls in the same week), assign a person to each, and give your family one number to call.</p>",
-              "link": {
-                "label": "",
-                "href": ""
-              }
-            }
-          },
-          {
-            "type": "timeline",
-            "variant": "vertical",
-            "props": {
-              "heading": "How the last three months go",
-              "items": [
-                {
-                  "date": "90 days",
-                  "title": "Venue and date locked",
-                  "text": "We visit two or three venues with you, and check the muhurat with your pandit before paying an advance."
-                },
-                {
-                  "date": "60 days",
-                  "title": "Menu tasting",
-                  "text": "Catering tasting for the family, including a plate for those who eat no onion or garlic."
-                },
-                {
-                  "date": "30 days",
-                  "title": "Decoration and photos",
-                  "text": "Mock-up of the stage and mandap. Photographers walk the venue in the same light as the ceremony."
-                },
-                {
-                  "date": "7 days",
-                  "title": "Run sheet to every family member",
-                  "text": "A one-page plan in Nepali, with names and phone numbers for each ceremony."
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "gallery",
-            "variant": "carousel",
-            "props": {
-              "heading": "Tables and flowers from recent weddings",
-              "intro": "",
-              "images": [
-                {
-                  "image": {
-                    "src": "lib:long-table",
-                    "alt": "A long table with glasses and flowers"
-                  },
-                  "caption": "Reception, Godawari"
-                },
-                {
-                  "image": {
-                    "src": "lib:food-spread",
-                    "alt": "A spread of grilled meat, greens and dips"
-                  },
-                  "caption": "Sunday lunch for 180"
-                },
-                {
-                  "image": {
-                    "src": "lib:dinner-plate",
-                    "alt": "A plated dish on a dinner table"
-                  },
-                  "caption": "Sit-down dinner, Bhaktapur"
-                }
-              ]
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "boxed",
-            "props": {
-              "title": "Which date are you thinking about?",
-              "text": "Tell us the date and the number of guests. We will say honestly whether we can do it well.",
-              "primary": {
-                "label": "Check a date",
-                "href": "page:enquire"
-              },
-              "secondary": {
-                "label": "Call 980-1112233",
-                "href": "tel:9801112233"
-              }
-            }
-          }
-        ]
+       "heading": "What we take off your hands",
+       "intro": "Choose all of it, or only the parts your family does not have time for.",
+       "items": [
+        {
+         "title": "Purohit and sait",
+         "text": "Dates and times checked with your family priest, and every ritual timed on a written schedule.",
+         "detail": ""
+        },
+        {
+         "title": "Venue and catering",
+         "text": "Shortlist, visits and a tasting. Veg and non-veg menus priced per plate.",
+         "detail": ""
+        },
+        {
+         "title": "Janti",
+         "text": "Cars, band baja, the route and the arrival time, so the swagat happens on the sait.",
+         "detail": ""
+        },
+        {
+         "title": "Decor",
+         "text": "Mandap, stage, entrance and marigold for the house, designed and built by our own team.",
+         "detail": ""
+        },
+        {
+         "title": "Guests",
+         "text": "Invitations, the guest list, hotel rooms for relatives from outside the valley.",
+         "detail": ""
+        },
+        {
+         "title": "The day itself",
+         "text": "Four of us on site, with a timeline, a kit and the phone numbers of everyone.",
+         "detail": ""
+        }
+       ]
       },
-      {
-        "id": "packages",
-        "title": "Packages",
-        "nav": true,
-        "seoTitle": "Wedding planning packages from Rs 2.5 lakh, Utsav Wedding Planners",
-        "seoDescription": "Day-of coordination Rs 60,000, full planning from Rs 2.5 lakh. Packages for weddings of 100 to 600 guests in Kathmandu Valley.",
-        "blocks": [
-          {
-            "type": "pricing",
-            "variant": "columns",
-            "props": {
-              "heading": "Three ways to work with us",
-              "intro": "Venue, food and decoration are billed at cost, with no markup. Our fee covers planning and people.",
-              "currency": "NPR",
-              "plans": [
-                {
-                  "name": "Day-of",
-                  "price": "60000",
-                  "period": "fee",
-                  "note": "You planned it, we run it",
-                  "features": "One meeting, one venue visit\nRun sheet in Nepali\nFour coordinators on the day",
-                  "cta": {
-                    "label": "Check a date",
-                    "href": "page:enquire"
-                  },
-                  "featured": false
-                },
-                {
-                  "name": "Full planning",
-                  "price": "250000",
-                  "period": "from",
-                  "note": "For 150 to 350 guests",
-                  "features": "Everything in Day-of\nVenue, caterer, decoration and photo quotes\nTasting and mock-up\nTwo days of coordinators",
-                  "cta": {
-                    "label": "Check a date",
-                    "href": "page:enquire"
-                  },
-                  "featured": true
-                },
-                {
-                  "name": "Multi-day",
-                  "price": "450000",
-                  "period": "from",
-                  "note": "Mehendi, swayambar and reception",
-                  "features": "Everything in Full planning\nGuest transport and rooms\nLive Viber updates to the family",
-                  "cta": {
-                    "label": "Check a date",
-                    "href": "page:enquire"
-                  },
-                  "featured": false
-                }
-              ]
-            }
-          },
-          {
-            "type": "faq",
-            "variant": "split",
-            "props": {
-              "heading": "Asked before booking",
-              "items": [
-                {
-                  "q": "Do you work with our own pandit?",
-                  "a": "Always. We only ask for the muhurat and the timings for each ritual."
-                },
-                {
-                  "q": "Can you plan outside the valley?",
-                  "a": "Yes, Pokhara and Chitwan. Travel and rooms for the team are added at cost."
-                },
-                {
-                  "q": "How much advance do we pay?",
-                  "a": "Rs 25,000 to hold the date, taken from the fee."
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          }
-        ]
-      },
-      {
-        "id": "enquire",
-        "title": "Check a date",
-        "nav": true,
-        "seoTitle": "Check a wedding date with Utsav Wedding Planners",
-        "seoDescription": "Ask whether we are free on your wedding date. Tell us the date, the guest count and the venue you have in mind.",
-        "blocks": [
-          {
-            "type": "booking",
-            "variant": "split",
-            "props": {
-              "heading": "Check a date",
-              "text": "Give us the date you have in mind and the rough number of guests. We reply within a day, and we say honestly if the date is taken.",
-              "services": "Full planning\nDay-of coordination\nMulti-day wedding\nEngagement or bratabandha\nNot sure yet",
-              "askTime": false,
-              "button": "Check this date",
-              "success": "Thank you. We will call you within a day."
-            }
-          },
-          {
-            "type": "map",
-            "variant": "card",
-            "props": {
-              "heading": "Come to the office",
-              "address": "Sanepa Chowk, Lalitpur, behind the Nabil Bank ATM",
-              "query": "Sanepa Chowk, Lalitpur",
-              "link": ""
-            }
-          }
-        ]
+      "style": {
+       "bg": "surface"
       }
+     },
+     {
+      "type": "sticky",
+      "variant": "left",
+      "props": {
+       "heading": "The wedding week",
+       "intro": "A typical four-day wedding in the valley. Every family is different; we write yours down together.",
+       "image": {
+        "src": "lib:vivah-bride",
+        "alt": "A Nepali bride in a red and white sari with a tall garland",
+        "focal": [
+         50,
+         30
+        ]
+       },
+       "items": [
+        {
+         "label": "Two days before",
+         "title": "Mehndi",
+         "text": "An evening at the bride’s home: mehndi artists, songs and dinner for the women of the family."
+        },
+        {
+         "label": "The day before",
+         "title": "Haldi and the purbanga",
+         "text": "Turmeric in the morning, the purbanga puja with the purohit in the afternoon, marigold on every door."
+        },
+        {
+         "label": "The wedding day",
+         "title": "Janti, kanyadan, sindoor and bidai",
+         "text": "The janti arrives on the sait for the swagat. Kanyadan, sindoor and the pote follow at the mandap, and the bidai at dusk."
+        },
+        {
+         "label": "The day after",
+         "title": "Reception",
+         "text": "Dinner for four hundred at a party palace, with a stage for photographs and a quiet table for the grandparents."
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "bento",
+      "props": {
+       "heading": "From weddings we planned",
+       "intro": "Photographs by the couples’ own photographers, shown with their permission.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:vivah-garlands",
+          "alt": "A bride and groom in flower garlands, holding hands",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "caption": "After the jaimala"
+        },
+        {
+         "image": {
+          "src": "lib:vivah-swagat",
+          "alt": "A groom in a dhaka topi welcomed with fruit and flowers",
+          "focal": [
+           55,
+           40
+          ]
+         },
+         "caption": "Swagat at the gate"
+        },
+        {
+         "image": {
+          "src": "lib:vivah-mehndi",
+          "alt": "Hands with fresh mehndi held together"
+         },
+         "caption": "Mehndi night"
+        },
+        {
+         "image": {
+          "src": "lib:vivah-pair",
+          "alt": "A bride and groom sitting side by side during the rites",
+          "focal": [
+           50,
+           45
+          ]
+         },
+         "caption": "At the mandap, before the sindoor"
+        },
+        {
+         "image": {
+          "src": "lib:vivah-ring",
+          "alt": "The groom slipping a ring onto the bride’s finger",
+          "focal": [
+           55,
+           45
+          ]
+         },
+         "caption": "Ring ceremony"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "columns",
+      "props": {
+       "heading": "Packages",
+       "intro": "Our fee only. Venue, food, decor materials and the purohit’s dakshina are paid by you, at cost, with every bill shown.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "On the day",
+         "price": "85000",
+         "period": "wedding day",
+         "note": "You have planned it. We run it.",
+         "features": "Two meetings before the day\nA written timeline for every vendor\nFour coordinators on site\nJanti arrival and swagat managed",
+         "cta": {
+          "label": "Ask about your date",
+          "href": "page:enquire"
+         },
+         "featured": false
+        },
+        {
+         "name": "Full planning",
+         "price": "350000",
+         "period": "up to 300 guests",
+         "note": "Six months to the bidai.",
+         "features": "Budget and schedule from the first meeting\nVenue, catering and decor booked\nMehndi, haldi, wedding and reception\nGuest list, invitations and rooms\nFour coordinators on every day",
+         "cta": {
+          "label": "Ask about your date",
+          "href": "page:enquire"
+         },
+         "featured": true
+        },
+        {
+         "name": "Decor only",
+         "price": "From Rs 1,20,000",
+         "period": "",
+         "note": "Mandap, stage and entrance, designed and built by our team.",
+         "features": "Design meeting and drawings\nMarigold and fresh flowers\nSet-up and removal",
+         "cta": {
+          "label": "Ask about your date",
+          "href": "page:enquire"
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "How we begin",
+       "intro": "",
+       "items": [
+        {
+         "title": "A first meeting",
+         "text": "At your home or our office in Sanepa, with the people who will decide. About an hour.",
+         "detail": "Free"
+        },
+        {
+         "title": "Budget and schedule",
+         "text": "A written budget and a day-by-day plan, within a week.",
+         "detail": "Week 1"
+        },
+        {
+         "title": "Bookings",
+         "text": "Venue, caterer and decor confirmed, and a 30% advance paid to us.",
+         "detail": "Weeks 2 to 4"
+        },
+        {
+         "title": "The week",
+         "text": "We move in. You receive guests.",
+         "detail": "The wedding"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Questions families ask",
+       "intro": "",
+       "items": [
+        {
+         "q": "How early should we book?",
+         "a": "For Mangsir, Magh and Falgun, four to six months ahead; party palaces fill first. For other months, two to three months is usually enough."
+        },
+        {
+         "q": "Do you plan Newar, Brahmin and Chhetri weddings?",
+         "a": "Yes, and mixed ones. The rituals differ from family to family, so we always sit with the elders and the purohit before writing the schedule."
+        },
+        {
+         "q": "Can you work with our own caterer or decorator?",
+         "a": "Yes. We coordinate them as we would our own, and we do not charge them a commission."
+        },
+        {
+         "q": "Do you plan weddings outside the valley?",
+         "a": "In Nagarkot, Dhulikhel, Chitwan and Pokhara. Travel and rooms for our team are added at cost."
+        },
+        {
+         "q": "How are payments made?",
+         "a": "30% to book, 40% a month before, and the rest after the reception. Bank transfer or cheque, with a VAT bill."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "Has the sait been fixed?",
+       "text": "Send us the date and the number of guests. We reply within a day with what is still free.",
+       "primary": {
+        "label": "Tell us your date",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "Call 01-5550642",
+        "href": "tel:015550642"
+       },
+       "image": {
+        "src": "lib:vivah-lights",
+        "alt": "A garden aisle lit by string lights at night",
+        "focal": [
+         50,
+         60
+        ]
+       }
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "planning",
+    "slug": "planning",
+    "title": "Planning",
+    "nav": true,
+    "seoTitle": "Wedding planning services · Janti Weddings, Lalitpur",
+    "seoDescription": "Sait and rituals, venue, catering, decor, janti and guests: what we arrange for a Nepali wedding, and the six months to the bidai.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Wedding planning, all of it or part of it",
+       "text": "From fixing the sait with your purohit to the last chair folded after the reception. Choose the parts your family needs.",
+       "primary": {
+        "label": "Tell us your date",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "Packages",
+        "href": "page:packages"
+       },
+       "image": {
+        "src": "lib:vivah-bouquet",
+        "alt": "A Nepali bride in red holding a bouquet and smiling",
+        "focal": [
+         50,
+         30
+        ]
+       },
+       "eyebrow": "Hindu weddings across the valley and beyond",
+       "video": ""
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "Everything we arrange",
+       "intro": "",
+       "items": [
+        {
+         "title": "Sait and rituals",
+         "text": "Working with your purohit on dates, times and the samagri for each ritual. A printed schedule for both families.",
+         "detail": ""
+        },
+        {
+         "title": "Venue",
+         "text": "Party palaces, hotels and gardens. We visit with you, check parking, generators and kitchens, and negotiate the rate.",
+         "detail": ""
+        },
+        {
+         "title": "Catering",
+         "text": "A tasting with two or three caterers. Menus priced per plate; we count plates on the night.",
+         "detail": ""
+        },
+        {
+         "title": "Decor",
+         "text": "Mandap, stage, entrance, marigold for the house and the car for the bidai.",
+         "detail": ""
+        },
+        {
+         "title": "Janti",
+         "text": "Cars, band baja and the route, timed so the janti arrives on the sait.",
+         "detail": ""
+        },
+        {
+         "title": "Photography and make-up",
+         "text": "We introduce people we trust and put them on the timeline. You book and pay them directly.",
+         "detail": ""
+        },
+        {
+         "title": "Guests",
+         "text": "Invitation cards, the guest list, SMS reminders and hotel rooms for relatives from outside the valley.",
+         "detail": ""
+        },
+        {
+         "title": "On the day",
+         "text": "Four coordinators with a timeline, an emergency kit, spare safety pins and everyone’s phone number.",
+         "detail": ""
+        }
+       ]
+      }
+     },
+     {
+      "type": "image",
+      "variant": "full",
+      "props": {
+       "image": {
+        "src": "lib:vivah-ceremony",
+        "alt": "A bride and groom seated before the fire at their wedding rites",
+        "focal": [
+         50,
+         40
+        ]
+       },
+       "caption": "The rites at the mandap, with the purohit and both families close by."
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "vertical",
+      "props": {
+       "heading": "Six months to the bidai",
+       "items": [
+        {
+         "date": "Six months before",
+         "title": "First meeting and the sait",
+         "text": "We meet both families, fix the date with the purohit and write the budget."
+        },
+        {
+         "date": "Five months before",
+         "title": "Venue and caterer",
+         "text": "Visits, a tasting and the advance paid."
+        },
+        {
+         "date": "Three months before",
+         "title": "Decor and invitations",
+         "text": "Mandap design approved, cards printed, guest list started."
+        },
+        {
+         "date": "One month before",
+         "title": "The schedule",
+         "text": "A minute-by-minute plan for each day, shared with every vendor and both families."
+        },
+        {
+         "date": "The week",
+         "title": "We move in",
+         "text": "Deliveries, set-up, rehearsal with the purohit, and four days on site."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "About planning",
+       "intro": "",
+       "items": [
+        {
+         "q": "We have a family decorator already.",
+         "a": "Good. We share the schedule with them and make sure the mandap is ready before the purohit arrives."
+        },
+        {
+         "q": "How many people will we deal with?",
+         "a": "One planner from the first meeting to the reception, and three more coordinators during the week."
+        },
+        {
+         "q": "Do you handle the reception too?",
+         "a": "Yes, in the Full planning package, or on its own as a one-day job."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Start with an hour",
+       "text": "The first meeting is free, at your home or our office in Sanepa.",
+       "primary": {
+        "label": "Tell us your date",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "Call 01-5550642",
+        "href": "tel:015550642"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "packages",
+    "slug": "packages",
+    "title": "Packages",
+    "nav": true,
+    "seoTitle": "Wedding planner packages and fees · Janti Weddings",
+    "seoDescription": "On the day Rs 85,000, full planning from Rs 3,50,000, decor from Rs 1,20,000. Our fee only; no commissions from vendors.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Packages and fees",
+       "text": "Our fee only. Venue, food, decor materials and the purohit’s dakshina are paid by you at cost, and you see every bill.",
+       "primary": {
+        "label": "Tell us your date",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "Fees include VAT",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "What we charge",
+       "intro": "",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "On the day",
+         "price": "85000",
+         "period": "wedding day",
+         "note": "Two meetings before, a timeline for every vendor, four coordinators on the day.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Wedding and reception",
+         "price": "160000",
+         "period": "two days",
+         "note": "On the day, plus the reception and a rehearsal with the purohit.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Full planning",
+         "price": "350000",
+         "period": "up to 300 guests",
+         "note": "Six months of planning; mehndi, haldi, wedding and reception.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": true
+        },
+        {
+         "name": "Full planning, larger",
+         "price": "480000",
+         "period": "up to 700 guests",
+         "note": "As above, with six coordinators and a second venue team.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Mehndi or haldi only",
+         "price": "45000",
+         "period": "one evening",
+         "note": "Decor, seating, a mehndi artist and a dhol player at home.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Decor only",
+         "price": "From Rs 1,20,000",
+         "period": "",
+         "note": "Mandap, stage and entrance, designed and built by our team.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "Often added",
+       "intro": "Paid to the supplier at cost; we arrange and coordinate them.",
+       "items": [
+        {
+         "title": "Band baja for the janti",
+         "text": "Eleven players, two hours.",
+         "detail": "About Rs 35,000"
+        },
+        {
+         "title": "Decorated car for the bidai",
+         "text": "With marigold and a driver.",
+         "detail": "About Rs 15,000"
+        },
+        {
+         "title": "Dhol player",
+         "text": "For mehndi or haldi, three hours.",
+         "detail": "About Rs 8,000"
+        },
+        {
+         "title": "Mehndi artist",
+         "text": "Bride, plus eight guests.",
+         "detail": "About Rs 12,000"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "What is not in our fee",
+       "body": "<p>The venue, food and drinks, decor materials and flowers, the purohit’s dakshina, photographers, make-up and transport are paid by you, directly or through us at cost.</p><p>We never take a commission from a venue, a caterer or a decorator. When we recommend someone, it is because they turned up on time the last ten weddings.</p>"
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Ask what your wedding would cost",
+       "text": "Send the date, the guest count and the places. We reply with a written estimate in three days.",
+       "primary": {
+        "label": "Tell us your date",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "Call 01-5550642",
+        "href": "tel:015550642"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "week",
+    "slug": "wedding-week",
+    "title": "The wedding week",
+    "nav": true,
+    "seoTitle": "A Nepali wedding week, day by day · Janti Weddings",
+    "seoDescription": "Mehndi, haldi, purbanga, janti, swagat, kanyadan, sindoor, bidai and reception: how a four-day wedding runs with us.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "How a wedding week runs with us",
+       "text": "Four days, written down to the minute and shared with both families, the purohit and every vendor.",
+       "primary": {
+        "label": "Tell us your date",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:vivah-pair",
+        "alt": "A bride and groom sitting cross-legged side by side during the rites",
+        "focal": [
+         50,
+         45
+        ]
+       },
+       "eyebrow": "A typical four-day Hindu wedding in the valley",
+       "video": ""
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "list",
+      "props": {
+       "heading": "Day by day",
+       "items": [
+        {
+         "date": "Day 1, 16:00",
+         "title": "Mehndi at the bride’s home",
+         "text": "Seating and marigold set up by 15:00. Mehndi artists for the bride and guests; dhol from 18:00; dinner at 19:30."
+        },
+        {
+         "date": "Day 2, 8:00",
+         "title": "Haldi",
+         "text": "Turmeric for the bride and groom at their own homes. We clear up by 11:00."
+        },
+        {
+         "date": "Day 2, 14:00",
+         "title": "Purbanga puja",
+         "text": "With the purohit, at both homes. Samagri laid out the night before."
+        },
+        {
+         "date": "Day 3, 10:00",
+         "title": "Janti leaves",
+         "text": "Cars and band baja at the groom’s gate. We call ahead so the swagat is ready."
+        },
+        {
+         "date": "Day 3, 12:00",
+         "title": "Swagat and jaimala",
+         "text": "The groom is welcomed with fruit, flowers and tika; garlands are exchanged at the mandap."
+        },
+        {
+         "date": "Day 3, 14:00",
+         "title": "Kanyadan, sindoor and pote",
+         "text": "At the mandap with the purohit. We keep the elders seated and the photographers out of the smoke."
+        },
+        {
+         "date": "Day 3, 18:00",
+         "title": "Bidai",
+         "text": "The bride leaves in the decorated car. Our team stays to pack up the venue."
+        },
+        {
+         "date": "Day 4, 18:00",
+         "title": "Reception",
+         "text": "Guests arrive; the couple takes the stage at 19:00; dinner from 19:30."
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "grid",
+      "props": {
+       "heading": "Moments in the schedule",
+       "intro": "",
+       "images": [
+        {
+         "image": {
+          "src": "lib:vivah-swagat",
+          "alt": "A groom welcomed with fruit and flowers",
+          "focal": [
+           55,
+           40
+          ]
+         },
+         "caption": "Swagat"
+        },
+        {
+         "image": {
+          "src": "lib:vivah-rites",
+          "alt": "Hands during an offering among rice and flowers"
+         },
+         "caption": "Offerings at the mandap"
+        },
+        {
+         "image": {
+          "src": "lib:vivah-pote",
+          "alt": "A bride in pink with a green and red pote necklace",
+          "focal": [
+           50,
+           25
+          ]
+         },
+         "caption": "The pote, after sindoor"
+        },
+        {
+         "image": {
+          "src": "lib:vivah-mehndi",
+          "alt": "Hands with fresh mehndi"
+         },
+         "caption": "Mehndi night"
+        },
+        {
+         "image": {
+          "src": "lib:vivah-haldi",
+          "alt": "A woman in a yellow sari beside marigold strings",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "caption": "Haldi morning"
+        },
+        {
+         "image": {
+          "src": "lib:vivah-marigold",
+          "alt": "A heap of bright orange marigolds"
+         },
+         "caption": "Forty kilos of marigold, the average"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "image",
+      "props": {
+       "quote": "The schedule is printed in large type for the grandparents. They are the ones who know when something is out of order.",
+       "name": "Rabin Karki",
+       "detail": "Planner",
+       "image": {
+        "src": "lib:vivah-garlands",
+        "alt": "A bride and groom in flower garlands",
+        "focal": [
+         50,
+         30
+        ]
+       }
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Your family’s week will be different",
+       "text": "Tell us the rituals your family keeps, and we will write the schedule around them.",
+       "primary": {
+        "label": "Tell us your date",
+        "href": "page:enquire"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "enquire",
+    "slug": "enquire",
+    "title": "Enquire",
+    "nav": true,
+    "seoTitle": "Tell us your wedding date · Janti Weddings, Sanepa",
+    "seoDescription": "Send your wedding date and guest count. We reply within a day. First meeting free, at your home or our office in Sanepa.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Tell us your date",
+       "text": "The date, the places and roughly how many guests. We reply within a day with what is still free and a time to meet.",
+       "primary": {
+        "label": "Call 01-5550642",
+        "href": "tel:015550642"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "The first meeting is free",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Your wedding",
+       "text": "Put the date of the main day. In the notes, add the other days, the places and the number of guests.",
+       "services": "Full planning\nOn the day\nWedding and reception\nMehndi or haldi only\nDecor only\nNot sure yet",
+       "askTime": false,
+       "button": "Send",
+       "success": "Thank you. Pratiksha will call you within a day."
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "What happens next",
+       "intro": "",
+       "items": [
+        {
+         "title": "We call",
+         "text": "Within a day, to hear about the wedding and the families.",
+         "detail": "Day 1"
+        },
+        {
+         "title": "We meet",
+         "text": "At your home or our office in Sanepa.",
+         "detail": "Week 1"
+        },
+        {
+         "title": "A written estimate",
+         "text": "Our fee, and a realistic budget for everything else.",
+         "detail": "Within 3 days"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "map",
+      "variant": "card",
+      "props": {
+       "heading": "The office in Sanepa",
+       "address": "Second floor, Sanepa Chowk, Lalitpur 44700",
+       "hours": "Sunday to Friday, 10:00 to 18:00\nSaturday, meetings by appointment",
+       "phone": "",
+       "note": "Above the pharmacy on the chowk. Parking in the lane beside it.",
+       "query": "Sanepa Chowk, Lalitpur",
+       "link": ""
+      }
+     },
+     {
+      "type": "social",
+      "variant": "big",
+      "props": {
+       "heading": "Weddings we have planned",
+       "links": [
+        {
+         "network": "instagram",
+         "url": "https://www.instagram.com/jantiweddings"
+        },
+        {
+         "network": "facebook",
+         "url": "https://www.facebook.com/jantiweddings"
+        },
+        {
+         "network": "tiktok",
+         "url": "https://www.tiktok.com/@jantiweddings"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }
