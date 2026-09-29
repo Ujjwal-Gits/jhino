@@ -637,7 +637,7 @@ test('super admin screens: sidebar on the left edge, dashboard, short links; oth
   await expect(side).toBeVisible();
   expect((await side.boundingBox())!.x).toBe(0);
   await expect(page.getByRole('heading', { name: 'Revenue by month' })).toBeVisible();
-  await expect(page.locator('.kpi2')).toHaveCount(4);
+  await expect(page.locator('.hm-kpis:not(.small) > a')).toHaveCount(4);
   await expect(page.locator('.bars .bar')).toHaveCount(12);
   await page.locator('.adm-nav a', { hasText: 'Short links' }).click();
   await expect(page).toHaveURL(/\/admin\/links$/);

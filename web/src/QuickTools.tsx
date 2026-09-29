@@ -499,20 +499,27 @@ function TextTools() {
 /* ---------------- "Your day" for dashboards ---------------- */
 export function YourDay() {
   const [d, setD] = useState<{ tasks: Item[]; events: Item[]; subs: Item[]; openTasks: number } | null>(null);
-  useEffect(() => { get<typeof d>('/api/tools-today').then(setD, () => setD({ tasks: [], events: [], subs: [], openTasks: 0 })); }, []);
-  if (!d) return null;
-  const all = [
+  const load = useCallback(() => { get<typeof d>('/api/tools-today').then(setD, () => setD({ tasks: [], events: [], subs: [], openTasks: 0 })); }, []);
+  useEffect(() => { load(); addEventListener('jhino-tools-changed', load); return () => removeEventListener('jhino-tools-changed', load); }, [load]);
+  const open = (t: string) => window.dispatchEvent(new CustomEvent('jhino-tool', { detail: t }));
+  const all = d ? [
     ...d.tasks.map((i) => ({ i, k: 'Task', late: !!i.dueAt && new Date(i.dueAt) < new Date() })),
     ...d.events.map((i) => ({ i, k: 'Event', late: false })),
     ...d.subs.map((i) => ({ i, k: i.cycle === 'trial' ? 'Trial ends' : 'Renews', late: false })),
-  ].sort((a, b) => String(a.i.dueAt).localeCompare(String(b.i.dueAt)));
+  ].sort((a, b) => String(a.i.dueAt).localeCompare(String(b.i.dueAt))) : [];
+  const end = new Date(); end.setHours(23, 59, 59, 999);
   return (
-    <section className="dpanel" aria-labelledby="day-h">
-      <div className="panel-h"><h2 id="day-h">Your day</h2><span className="muted small">{d.openTasks} open {d.openTasks === 1 ? 'task' : 'tasks'}</span></div>
-      {!all.length ? <p className="q-clear"><Icon name="check" size={16} />Nothing due today or tomorrow. Add tasks and events from the quick tools bar.</p> : (
-        <ul className="q-list">{all.slice(0, 8).map(({ i, k, late }) => (
-          <li key={i.id}><span className="q-row"><span className="q-k">{k}</span><span className="q-t"><b>{i.title || i.service}</b><small className={late ? 'warn-text' : ''}>{late ? 'Overdue · ' : ''}{when(i.dueAt)}</small></span></span></li>
-        ))}</ul>
+    <section className="hm-card" aria-labelledby="day-h">
+      <div className="hm-card-h"><h2 id="day-h">Your day{d && <small>{d.openTasks} open {d.openTasks === 1 ? 'task' : 'tasks'}</small>}</h2><button className="link" onClick={() => open('tasks')}>All tasks</button></div>
+      {!d ? <PanelLoader /> : (
+        <>
+          <div className="hm-stats"><div><b>{d.openTasks}</b><span>Open</span></div><div><b>{all.filter((x) => new Date(x.i.dueAt!) <= end).length}</b><span>Due today</span></div><div><b>{d.subs.length}</b><span>Renewals this week</span></div></div>
+          {!all.length ? <p className="hm-empty">Nothing due today or tomorrow. <button className="link" onClick={() => open('tasks')}>Add a task</button> or <button className="link" onClick={() => open('calendar')}>an event</button>.</p> : (
+            <ul className="hm-list">{all.slice(0, 5).map(({ i, k, late }) => (
+              <li key={i.id}><span className="t"><b>{i.title || i.service}</b><small>{k}</small></span><span className={`hm-kind ${late ? 'late' : ''}`}>{late ? 'Overdue' : when(i.dueAt)}</span></li>
+            ))}</ul>
+          )}
+        </>
       )}
     </section>
   );

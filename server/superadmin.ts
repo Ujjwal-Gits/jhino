@@ -66,6 +66,13 @@ function daily(sql: string, days: number) {
   return Array.from({ length: days }, (_, i) => { const d = new Date(start); d.setUTCDate(start.getUTCDate() + i); const k = d.toISOString().slice(0, 10); return { day: k, n: by.get(k) ?? 0 }; });
 }
 /** What the dashboard draws: money by month, sign-ups and apps by day, the plan mix, and what needs a hand. */
+/**
+ * Paying: on Plus or Pro now, and that plan came from an approved payment (their latest plan record has a
+ * payment). Plans an admin gave for free have no payment, so they are never counted as customers' money.
+ */
+const PAID_NOW = "(SELECT s.payment_id FROM subscriptions s WHERE s.user_id=users.id ORDER BY s.created_at DESC LIMIT 1) IS NOT NULL";
+const GIFTED_NOW = "(SELECT s.payment_id FROM subscriptions s WHERE s.user_id=users.id ORDER BY s.created_at DESC LIMIT 1) IS NULL";
+
 function trends() {
   const n = (sql: string, ...a: unknown[]) => (db.prepare(sql).get(...a) as { n: number }).n;
   const t = now();
@@ -75,14 +82,15 @@ function trends() {
   const byMonth = new Map((db.prepare("SELECT substr(reviewed_at,1,7) m, SUM(amount) n FROM payments WHERE status='approved' AND reviewed_at >= ? GROUP BY m").all(m0.toISOString()) as { m: string; n: number }[]).map((r) => [r.m, r.n]));
   const revenueByMonth = Array.from({ length: 12 }, (_, i) => { const d = new Date(m0); d.setUTCMonth(m0.getUTCMonth() + i); const k = d.toISOString().slice(0, 7); return { month: k, n: byMonth.get(k) ?? 0 }; });
   const creators = "kind='person' AND created_by IS NULL AND is_admin=0";
-  const paid = (p: string) => n(`SELECT COUNT(*) n FROM users WHERE ${creators} AND plan=? AND (plan_expires_at IS NULL OR plan_expires_at > ?)`, p, t);
-  const plus = paid('plus'); const pro = paid('pro');
-  const monthlyOf = (p: 'plus' | 'pro') => (db.prepare(`SELECT plan_period p, COUNT(*) n FROM users WHERE ${creators} AND plan=? AND (plan_expires_at IS NULL OR plan_expires_at > ?) GROUP BY plan_period`).all(p, t) as { p: string | null; n: number }[])
+  const onPlan = (p: string) => n(`SELECT COUNT(*) n FROM users WHERE ${creators} AND plan=? AND (plan_expires_at IS NULL OR plan_expires_at > ?)`, p, t);
+  const plus = onPlan('plus'); const pro = onPlan('pro');
+  const monthlyOf = (p: 'plus' | 'pro') => (db.prepare(`SELECT plan_period p, COUNT(*) n FROM users WHERE ${creators} AND plan=? AND (plan_expires_at IS NULL OR plan_expires_at > ?) AND ${PAID_NOW} GROUP BY plan_period`).all(p, t) as { p: string | null; n: number }[])
     .reduce((s, r) => s + r.n * (r.p === 'year' ? PLANS[p].yearly / 12 : PLANS[p].price), 0);
   return {
     revenuePrev30: n("SELECT COALESCE(SUM(amount),0) n FROM payments WHERE status='approved' AND reviewed_at > ? AND reviewed_at <= ?", d60, d30),
     newUsersPrev30: n(`SELECT COUNT(*) n FROM users WHERE ${creators} AND created_at > ? AND created_at <= ?`, d60, d30),
     monthlyRevenue: Math.round(monthlyOf('plus') + monthlyOf('pro')),
+    gifted: n(`SELECT COUNT(*) n FROM users WHERE ${creators} AND plan IN ('plus','pro') AND (plan_expires_at IS NULL OR plan_expires_at > ?) AND ${GIFTED_NOW}`, t),
     revenueByMonth,
     signupsByDay: daily(`SELECT substr(created_at,1,10) d, COUNT(*) n FROM users WHERE ${creators} AND created_at >= ? GROUP BY d`, 30),
     appsByDay: daily('SELECT substr(created_at,1,10) d, COUNT(*) n FROM apps WHERE created_at >= ? GROUP BY d', 30),
@@ -104,7 +112,7 @@ export function registerSuperAdmin(app: FastifyInstance) {
       users: n("SELECT COUNT(*) n FROM users WHERE kind='person' AND created_by IS NULL AND is_admin=0"),
       clients: n("SELECT COUNT(*) n FROM users WHERE kind='person' AND created_by IS NOT NULL AND is_admin=0"),
       newUsers30: n("SELECT COUNT(*) n FROM users WHERE kind='person' AND created_by IS NULL AND is_admin=0 AND created_at > ?", since),
-      paying: n("SELECT COUNT(*) n FROM users WHERE kind='person' AND plan IN ('plus','pro') AND is_admin=0 AND (plan_expires_at IS NULL OR plan_expires_at > ?)", now()),
+      paying: n(`SELECT COUNT(*) n FROM users WHERE kind='person' AND plan IN ('plus','pro') AND is_admin=0 AND (plan_expires_at IS NULL OR plan_expires_at > ?) AND ${PAID_NOW}`, now()),
       pendingPayments: n("SELECT COUNT(*) n FROM payments WHERE status='pending'"),
       revenue30: n("SELECT COALESCE(SUM(amount),0) n FROM payments WHERE status='approved' AND reviewed_at > ?", since),
       revenueAll: n("SELECT COALESCE(SUM(amount),0) n FROM payments WHERE status='approved'"),

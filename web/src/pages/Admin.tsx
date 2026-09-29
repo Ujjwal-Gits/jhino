@@ -5,6 +5,7 @@ import { Link, useRoute, useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 import { refreshPlans } from '../plans';
 import { QuickTools, YourDay } from '../QuickTools';
+import { PanelLoader } from '../Loader';
 
 /*
  * Super Admin: the platform owners' own workspace. A full-height sidebar on the left edge, a working
@@ -123,6 +124,7 @@ function Head({ title, lede, actions }: { title: string; lede?: ReactNode; actio
 interface OverviewT {
   users: number; clients: number; newUsers30: number; newUsersPrev30: number; paying: number; pendingPayments: number; revenue30: number; revenuePrev30: number; revenueAll: number; monthlyRevenue: number;
   apps: number; hosted: number; openTickets: number; links: number; linkClicks30: number; mailReady: boolean;
+  gifted: number;
   revenueByMonth: { month: string; n: number }[]; signupsByDay: { day: string; n: number }[]; appsByDay: { day: string; n: number }[];
   planMix: { free: number; plus: number; pro: number };
   pendingList: { id: string; userName: string; plan: string; period: string; amount: number; expectedAmount: number; createdAt: string }[];
@@ -189,128 +191,90 @@ function Lines({ a, b, labelA, labelB }: { a: { day: string; n: number }[]; b: {
 function Overview() {
   const [o, setO] = useState<OverviewT | null>(null);
   const { user } = useSession();
+  const { go } = useRoute();
   useEffect(() => { get<OverviewT>('/api/admin/overview').then(setO, () => {}); }, []);
-  if (!o) return <div className="dash-skel"><div className="acc-skel sm" /><div className="acc-skel" /></div>;
-  const mixTotal = o.planMix.free + o.planMix.plus + o.planMix.pro || 1;
-  const queue = o.pendingList.length + o.ticketsList.length + o.expiring.length;
+  if (!o) return <PanelLoader label="Loading the dashboard" />;
+  const chevron = <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>;
+  const queue = [
+    ...o.pendingList.map((p) => ({ key: 'p' + p.id, to: `/admin/payments/${p.id}`, title: `${npr(p.amount)} · ${p.userName}`, sub: `${planName(p.plan)} for one ${periodName(p.period)} · sent ${ago(p.createdAt)}${p.amount !== p.expectedAmount ? ' · amount differs' : ''}` })),
+    ...o.ticketsList.map((t) => ({ key: 't' + t.id, to: '/admin/support', title: t.subject, sub: `${t.kind === 'problem' ? 'Problem report' : t.kind === 'feedback' ? 'Feature request or feedback' : 'Support message'} · ${t.email} · ${ago(t.createdAt)}` })),
+    ...o.expiring.map((u) => ({ key: 'e' + u.id, to: `/admin/users/${u.id}`, title: `${u.name}: ${planName(u.plan)} ends ${fmtDate(u.expiresAt)}`, sub: `Renewal · ${u.email}` })),
+  ];
+  // One notice: the most urgent thing only.
+  const notice = o.pendingPayments ? { btn: 'Review plan requests', to: '/admin/payments', title: `${o.pendingPayments} ${o.pendingPayments === 1 ? 'person has' : 'people have'} paid and ${o.pendingPayments === 1 ? 'is' : 'are'} waiting for you.`, text: 'Check the payment screenshot, then switch their plan on.' }
+    : o.openTickets ? { btn: 'Open support', to: '/admin/support', title: `${o.openTickets} open support ${o.openTickets === 1 ? 'message' : 'messages'}.`, text: 'Problems, questions and feature requests from customers.' }
+      : !o.mailReady ? { btn: 'Email settings', to: '/admin/settings', title: 'Emails are not being delivered.', text: 'Sign-in codes and receipts wait in Settings until email is set up.' }
+        : o.expiring.length ? { btn: 'See renewals', to: `/admin/users/${o.expiring[0].id}`, title: `${o.expiring.length} ${o.expiring.length === 1 ? 'plan ends' : 'plans end'} in the next two weeks.`, text: o.expiring.map((u) => u.name).slice(0, 3).join(', ') }
+          : null;
+  const disk = o.storage.disk;
   return (
-    <div className="dash">
-      <Head title={`${greeting()}, ${(user.displayName || user.name).split(' ')[0]}`} lede={new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} />
-
-      <section className="kpi-strip" aria-label="Key numbers">
-        <div className="kpi2">
-          <p className="k-l">Monthly revenue</p>
-          <p className="k-v mono">{npr(o.monthlyRevenue)}</p>
-          <p className="k-s" title="Yearly plans count as a twelfth each month">{o.paying} paying {o.paying === 1 ? 'customer' : 'customers'}</p>
+    <div className="hm adm-home">
+      <div className="hm-head">
+        <div>
+          <h1>{greeting()}, {(user.displayName || user.name).split(' ')[0]}</h1>
+          <p>{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · {o.paying} paying · {o.gifted} on a free plan from an admin</p>
         </div>
-        <div className="kpi2">
-          <p className="k-l">Collected, 30 days</p>
-          <p className="k-v mono">{npr(o.revenue30)}</p>
-          <Delta now={o.revenue30} before={o.revenuePrev30} money />
+        <div className="hm-acts">
+          <Link to="/admin/analytics" className="btn"><Icon name="live" size={16} />Analytics</Link>
+          <Link to="/admin/users" className="btn"><Icon name="users" size={16} />All users</Link>
         </div>
-        <Link to="/admin/users" className="kpi2">
-          <p className="k-l">Customers</p>
-          <p className="k-v mono">{o.users.toLocaleString('en-IN')}</p>
-          <Delta now={o.newUsers30} before={o.newUsersPrev30} />
-        </Link>
-        <Link to="/admin/payments" className={`kpi2 ${o.pendingPayments ? 'hot' : ''}`}>
-          <p className="k-l">Plan requests to review</p>
-          <p className="k-v mono">{o.pendingPayments}</p>
-          <p className="k-s">{o.pendingPayments ? 'Oldest first in the queue' : 'Nothing waiting'}</p>
-        </Link>
-      </section>
+      </div>
 
-      <div className="dash-grid">
-        <section className="dpanel span2" aria-labelledby="rev-h">
-          <div className="panel-h"><h2 id="rev-h">Revenue by month</h2><span className="muted small">approved payments · all time {npr(o.revenueAll)}</span></div>
-          <Bars data={o.revenueByMonth.map((m) => ({ key: m.month, label: monthLabel(m.month), n: m.n }))} label="Revenue by month, last 12 months" format={npr} />
+      {notice && (
+        <section className="hm-card hm-notice">
+          <button className="btn primary" onClick={() => go(notice.to)}>{notice.btn}</button>
+          <div><b>{notice.title}</b><p>{notice.text}</p></div>
         </section>
+      )}
 
-        <section className="dpanel queue" aria-labelledby="q-h">
-          <div className="panel-h"><h2 id="q-h">Needs you</h2>{queue > 0 && <span className="mono small muted">{queue}</span>}</div>
-          {!o.mailReady && <p className="q-warn"><Icon name="mail" size={15} /><span>Emails are not delivered. Set SMTP_URL; until then read them in <Link to="/admin/settings" className="link">Settings</Link>.</span></p>}
-          {!queue ? <p className="q-clear"><Icon name="check" size={16} />All clear. New payments and requests land here.</p> : (
-            <ul className="q-list">
-              {o.pendingList.map((p) => (
-                <li key={p.id}><Link to={`/admin/payments/${p.id}`}>
-                  <span className="q-k">Payment</span>
-                  <span className="q-t"><b>{p.userName}</b><small>{planName(p.plan)} · one {periodName(p.period)} · {ago(p.createdAt)}</small></span>
-                  <span className={`mono q-n ${p.amount !== p.expectedAmount ? 'warn-text' : ''}`}>{npr(p.amount)}</span>
-                </Link></li>
-              ))}
-              {o.ticketsList.map((t) => (
-                <li key={t.id}><Link to="/admin/support">
-                  <span className="q-k">{t.kind === 'problem' ? 'Problem' : t.kind === 'feedback' ? 'Feedback' : 'Message'}</span>
-                  <span className="q-t"><b>{t.subject}</b><small>{t.email} · {ago(t.createdAt)}</small></span>
-                </Link></li>
-              ))}
-              {o.expiring.map((u) => (
-                <li key={u.id}><Link to={`/admin/users/${u.id}`}>
-                  <span className="q-k">Renewal</span>
-                  <span className="q-t"><b>{u.name}</b><small>{planName(u.plan)} ends {fmtDate(u.expiresAt)}</small></span>
-                </Link></li>
-              ))}
-            </ul>
+      <div className="hm-grid">
+        <section className="hm-card" aria-labelledby="nd-h">
+          <div className="hm-card-h"><h2 id="nd-h">Needs you<small>{queue.length} {queue.length === 1 ? 'item' : 'items'}</small></h2><Link to="/admin/payments">Plan requests</Link></div>
+          {!queue.length ? <p className="hm-empty">All clear. Payments to check, support messages and renewals land here.</p> : (
+            <ul className="hm-list">{queue.map((q) => (
+              <li key={q.key} className="hm-row"><Link to={q.to} className="t"><b>{q.title}</b><small>{q.sub}</small></Link><Link to={q.to} className="hm-go" aria-hidden="true" tabIndex={-1}>{chevron}</Link></li>
+            ))}</ul>
           )}
         </section>
         <YourDay />
+      </div>
 
-        <section className="dpanel span2" aria-labelledby="gr-h">
-          <div className="panel-h"><h2 id="gr-h">Growth, last 30 days</h2></div>
-          <Lines a={o.signupsByDay} b={o.appsByDay} labelA="Sign-ups" labelB="New apps" />
+      <section className="hm-card hm-kpis" aria-label="Money and customers">
+        <Link to="/admin/subscriptions"><span>Collected, 30 days</span><b className="mono">{npr(o.revenue30)}</b><Delta now={o.revenue30} before={o.revenuePrev30} money /></Link>
+        <Link to="/admin/subscriptions"><span>Monthly revenue</span><b className="mono">{npr(o.monthlyRevenue)}</b><small>from paid plans only</small></Link>
+        <Link to="/admin/subscriptions"><span>Paying customers</span><b className="mono">{o.paying}</b><small>{o.gifted} more on a free plan from an admin</small></Link>
+        <Link to="/admin/users"><span>Customers</span><b className="mono">{o.users.toLocaleString('en-IN')}</b><Delta now={o.newUsers30} before={o.newUsersPrev30} /></Link>
+      </section>
+
+      <div className="hm-grid">
+        <section className="hm-card" aria-labelledby="rv-h">
+          <div className="hm-card-h"><h2 id="rv-h">Revenue by month<small>all time {npr(o.revenueAll)}</small></h2></div>
+          <div className="hm-pad"><Bars data={o.revenueByMonth.map((m) => ({ key: m.month, label: monthLabel(m.month), n: m.n }))} label="Revenue by month, last 12 months" format={npr} /></div>
         </section>
-
-        <section className="dpanel" aria-labelledby="mix-h">
-          <div className="panel-h"><h2 id="mix-h">Plans</h2><span className="muted small">{o.users} customers</span></div>
-          <div className="mix" role="img" aria-label={`Free ${o.planMix.free}, Plus ${o.planMix.plus}, Pro ${o.planMix.pro}`}>
-            <i className="m-free" style={{ flexGrow: o.planMix.free }} /><i className="m-plus" style={{ flexGrow: o.planMix.plus }} /><i className="m-pro" style={{ flexGrow: o.planMix.pro }} />
-          </div>
-          <dl className="mix-legend">
-            {([['free', 'Free Forever'], ['plus', 'Plus'], ['pro', 'Pro']] as const).map(([k, l]) => (
-              <div key={k}><dt><i className={`sw m-${k}`} />{l}</dt><dd className="mono">{o.planMix[k]}<small> · {Math.round((o.planMix[k] / mixTotal) * 100)}%</small></dd></div>
-            ))}
-          </dl>
-          <dl className="plat">
-            <div><dt>Apps</dt><dd className="mono">{o.apps}</dd></div>
-            <div><dt>Addresses</dt><dd className="mono"><Link to="/admin/hosting">{o.hosted}</Link></dd></div>
-            <div><dt>Short links</dt><dd className="mono"><Link to="/admin/links">{o.links}</Link></dd></div>
-            <div><dt>Link clicks, 30 d</dt><dd className="mono">{o.linkClicks30.toLocaleString('en-IN')}</dd></div>
-            <div><dt>Client sign-ins</dt><dd className="mono">{o.clients}</dd></div>
-            <div><dt>Open requests</dt><dd className="mono"><Link to="/admin/support">{o.openTickets}</Link></dd></div>
-          </dl>
-        </section>
-
-        <section className="dpanel" aria-labelledby="st-h">
-          <div className="panel-h"><h2 id="st-h">Storage</h2>{o.storage.disk && <span className="muted small">{fmtBytes(o.storage.disk.free)} free</span>}</div>
-          {o.storage.disk && (() => { const used = o.storage.disk.total - o.storage.disk.free; const pct = Math.min(100, Math.round((used / o.storage.disk.total) * 100)); return (
-            <>
-              <div className={`disk ${pct > 85 ? 'hot' : ''}`} role="meter" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct} aria-label="Disk used"><i style={{ transform: `scaleX(${pct / 100})` }} /></div>
-              <p className="small muted disk-l">{fmtBytes(used)} of {fmtBytes(o.storage.disk.total)} used on the server disk ({pct}%)</p>
-            </>
-          ); })()}
-          <dl className="plat">
-            <div><dt>Database</dt><dd className="mono">{fmtBytes(o.storage.database)}</dd></div>
-            <div><dt>Uploaded files</dt><dd className="mono">{fmtBytes(o.storage.files)}</dd></div>
-            <div><dt>App files</dt><dd className="mono">{fmtBytes(o.storage.apps)}</dd></div>
-            <div><dt>Largest upload</dt><dd className="mono"><Link to="/admin/plans">by plan</Link></dd></div>
-          </dl>
-        </section>
-
-        <section className="dpanel span2" aria-labelledby="act-h">
-          <div className="panel-h"><h2 id="act-h">Recent admin activity</h2><Link to="/admin/audit" className="link small">Audit log</Link></div>
-          {!o.recent.length ? <p className="muted">Nothing yet.</p> : (
-            <table className="adm-table act-table">
-              <tbody>{o.recent.map((r, i) => <tr key={i}><td className="mono small nowrap">{r.action}</td><td className="small">{r.detail}</td><td className="muted small hide-sm">{r.actor}</td><td className="muted small nowrap">{ago(r.at)}</td></tr>)}</tbody>
-            </table>
+        <section className="hm-card" aria-labelledby="ac-h">
+          <div className="hm-card-h"><h2 id="ac-h">Recent admin activity</h2><Link to="/admin/audit">Audit log</Link></div>
+          {!o.recent.length ? <p className="hm-empty">Nothing yet.</p> : (
+            <ul className="hm-list">{o.recent.slice(0, 6).map((r, i) => (
+              <li key={i}><span className="t"><b>{r.detail || r.action}</b><small>{r.action} · {r.actor}</small></span><span className="hm-kind">{ago(r.at)}</span></li>
+            ))}</ul>
           )}
         </section>
       </div>
+
+      <section className="hm-card hm-kpis small" aria-label="Platform">
+        <Link to="/admin/apps"><span>Apps</span><b className="mono">{o.apps}</b><small>{o.clients} client sign-ins</small></Link>
+        <Link to="/admin/hosting"><span>Addresses</span><b className="mono">{o.hosted}</b><small>apps at their own address</small></Link>
+        <Link to="/admin/links"><span>Short links</span><b className="mono">{o.links}</b><small>{o.linkClicks30.toLocaleString('en-IN')} clicks in 30 days</small></Link>
+        <Link to="/admin/plans"><span>Plans</span><b className="mono">{o.planMix.free} · {o.planMix.plus} · {o.planMix.pro}</b><small>Free · Plus · Pro</small></Link>
+        <div><span>Server disk</span><b className="mono">{disk ? fmtBytes(disk.free) : '—'}</b><small>{disk ? `free of ${fmtBytes(disk.total)} · database ${fmtBytes(o.storage.database)}` : `database ${fmtBytes(o.storage.database)}`}</small></div>
+      </section>
     </div>
   );
 }
 
 /* ---------------- short links: every link on the platform ---------------- */
 interface AdminLinkT { id: string; code: string; url: string; short: string; clicks: number; disabled: boolean; disabledReason: string; createdAt: string; ownerEmail: string; ownerId: string }
+
 function AdminLinks() {
   const toast = useToast();
   const [q, setQ] = useState('');
