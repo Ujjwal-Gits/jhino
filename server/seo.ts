@@ -34,7 +34,7 @@ const withSuffix = (t: string) => (/\|\s*jhino\s*$/i.test(t) ? t.replace(/\s*\|\
 const base = (req: FastifyRequest) => baseFor(req).replace(/\/$/, '');
 
 /** Which parts of the site are pages of Jhino itself (keep in step with KNOWN in web/src/main.tsx). */
-const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'sitemap']);
+const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'sitemap', 'home']);
 
 interface Doc {
   status: number;

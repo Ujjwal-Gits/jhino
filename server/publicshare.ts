@@ -36,7 +36,7 @@ export const RESERVED = new Set(['api', 'run', 'apps', 'app', 'build', 'shared',
  */
 export const SYSTEM_PATHS = new Set([
   // web pages
-  '_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash',
+  'home', '_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash',
   'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing',
   // server routes and files
   '_jhino', 'preview', 'health', 'robots.txt', 'sitemap.xml', 'sitemap', 'sitemap.xsl', 'llms.txt', 'favicon.svg', 'assets', 'img', 'favicon.ico', 'index.html', 'manifest.json',
