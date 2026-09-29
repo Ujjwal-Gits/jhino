@@ -22,6 +22,8 @@ export interface AppSummary {
   createdAt: string; updatedAt: string; deletedAt: string | null;
   last: { action: string; at: string; name: string | null } | null;
   built?: boolean;
+  /** A website made with the website builder. */
+  site?: boolean;
   brand?: { client: string; field: string; accent: string; logo: boolean; sections: number } | null;
   storage?: { files: number; bytes: number };
   access?: 'private' | 'public' | 'password'; slug?: string | null; rootSlug?: string | null; ownerUsername?: string | null; showBar?: boolean;

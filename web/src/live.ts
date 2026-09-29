@@ -2,7 +2,7 @@ import { post } from './api';
 
 /** One live connection per tab. Pages watch the apps they show and get committed changes. */
 type Handler = (event: string, data: any) => void;
-const EVENTS = ['kv', 'record', 'file', 'presence', 'activity', 'revoked', 'app-updated', 'role-changed', 'apps-changed', 'trash', 'notification'];
+const EVENTS = ['kv', 'record', 'file', 'presence', 'activity', 'revoked', 'app-updated', 'role-changed', 'apps-changed', 'trash', 'notification', 'site-submission'];
 
 class Live {
   private es: EventSource | null = null;

@@ -21,6 +21,7 @@ import { withCurrentBuilder } from './builder.js';
 import { CNAME_TARGET as CF_TARGET, ORIGIN as CF_ORIGIN, cfCreds, onCloudflareChange } from './cloudflare.js';
 import { trackRun } from './analytics.js';
 import { installInfo } from './pwa.js';
+import { finishSiteHtml, siteCsp } from './site/serve.js';
 
 /*
  * Custom domains: Jhino as a hosting provider. A person's own domain (shop.com, app.shop.com) opens one of
@@ -890,7 +891,11 @@ async function serveSite(req: FastifyRequest, reply: FastifyReply, h: Hosted, ho
     if (entry) trackRun(req, a.id, a.name);
     let html = fs.readFileSync(file, 'utf8');
     if (entry && v.builder) html = withCurrentBuilder(html);
-    html = inject(html, boot, usesIdb);
+    // A website made in Jhino is plain HTML: no runtime, and its own stricter rules.
+    if ((v as { site?: string | null }).site) {
+      html = finishSiteHtml(html, { origin, root: '/', noindex: !indexable(a, d) });
+      c.csp = siteCsp(secureSite(req));
+    } else html = inject(html, boot, usesIdb);
     html = headExtras(html, origin, pathname, a);
     const showCredit = !(d.backlink === 0 && h.owner?.is_admin && h.owner.id === d.owner_id);
     if (showCredit) html = withCredit(html, d.hostname);
@@ -976,9 +981,10 @@ export function registerCustomDomains(app: FastifyInstance) {
       return; // on to the app's data routes
     }
     if (req.method === 'GET' || req.method === 'HEAD') {
-      if (/^\/_jhino\/(shim\.js|idb\.js|fonts\/[\w-]+\.woff2|icon\/[\w-]+\.png)$/.test(pathname)) return; // the runtime and icons
+      if (/^\/_jhino\/(shim\.js|idb\.js|site\.js|fonts\/[\w-]+\.woff2|icon\/[\w-]+\.png|site-img\/[\w-]+\.webp)$/.test(pathname)) return; // the runtime, fonts, icons and website photos
     }
     if (req.method === 'POST' && POST_PAGES.has(pathname)) return; // the gate, sign-in and sign-out forms (routes below)
+    if (req.method === 'POST' && pathname === '/_jhino/site-form') return; // a website's contact and booking forms (sites.ts)
     if (req.method !== 'GET' && req.method !== 'HEAD') return reply.code(405).header('Allow', 'GET, HEAD').type('text/plain').send('Method not allowed');
     return serveSite(req, reply, fresh, host, c);
   });

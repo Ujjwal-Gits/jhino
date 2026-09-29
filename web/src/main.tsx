@@ -100,6 +100,7 @@ function App() {
   const invite = path.match(/^\/invite\/([\w-]+)$/);
   const appMatch = path.match(/^\/apps\/([\w-]+)$/);
   const blocksMatch = path.match(/^\/apps\/([\w-]+)\/blocks$/);
+  const siteMatch = path.match(/^\/apps\/([\w-]+)\/site$/);
   const viewMatch = path.match(/^\/apps\/([\w-]+)\/view$/);
   const shareMatch = path.match(/^\/s\/([\w-]{2,64})$/);
   const accountMatch = path.match(/^\/account(?:\/([\w-]+))?\/?$/);
@@ -150,6 +151,8 @@ function App() {
   else if (homeMatch) page = user.canCreate ? <Shell><ToolsPage k={homeMatch[1]} /></Shell> : <GoTo to="/apps" />;
   else if (path === '/links' && user.canCreate) page = <Shell><LinksPage /></Shell>;
   else if (path === '/build') page = <Builder />;
+  else if (path === '/build/site') page = user.canCreate ? <SiteStart /> : <GoTo to="/apps" />;
+  else if (siteMatch) page = <SiteEditor id={siteMatch[1]} />;
   else if (blocksMatch) page = <Builder appId={blocksMatch[1]} />;
   else if (viewMatch) page = <Player id={viewMatch[1]} solo />;
   else if (appMatch) page = <Player id={appMatch[1]} />;
@@ -178,6 +181,8 @@ const AccountPage = lazy(() => import('./pages/Account').then((m) => ({ default:
 const ReceiptPage = lazy(() => import('./pages/Account').then((m) => ({ default: m.ReceiptPage })));
 const AdminPage = lazy(() => import('./pages/Admin').then((m) => ({ default: m.AdminPage })));
 const Builder = lazy(() => import('./pages/Builder').then((m) => ({ default: m.Builder })));
+const SiteStart = lazy(() => import('./site/SiteStart').then((m) => ({ default: m.SiteStart })));
+const SiteEditor = lazy(() => import('./site/SiteEditor').then((m) => ({ default: m.SiteEditor })));
 const LinksPage = lazy(() => import('./pages/Links').then((m) => ({ default: m.LinksPage })));
 const ToolsPage = lazy(() => import('./pages/Tools').then((m) => ({ default: m.ToolsPage })));
 const AskPage = lazy(() => import('./pages/Ask').then((m) => ({ default: m.AskPage })));

@@ -189,7 +189,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const now = new Date();
   const today = `${now.toLocaleDateString(undefined, { weekday: 'long' })}, ${bsToday(now) || now.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}`;
   const pages: Hit[] = [
-    ...(user.canCreate ? [['Home', '/home'], ['Tools', '/home/all'], ['My apps', '/apps'], ['Shared with me', '/shared'], ['Links', '/links'], ...(user.username ? [['My page', `/${user.username}`]] : []), ['Trash', '/trash'], ['Create an app', '/build']] : [['Your apps', '/apps']]),
+    ...(user.canCreate ? [['Home', '/home'], ['Tools', '/home/all'], ['My apps', '/apps'], ['Shared with me', '/shared'], ['Links', '/links'], ...(user.username ? [['My page', `/${user.username}`]] : []), ['Trash', '/trash'], ['Create an app', '/build'], ['Create a website', '/build/site']] : [['Your apps', '/apps']]),
     ...accountSections.map((s) => [s.label, `/account/${s.key}`]),
     ...(user.isAdmin ? [['Super Admin', '/admin']] : []),
   ].map(([label, to]) => ({ group: 'Pages', label, to }));

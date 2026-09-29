@@ -98,7 +98,7 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
 
   const inView = useMemo(() => (apps ?? []).filter((a) => view === 'trash' || (view === 'mine' ? a.role === 'owner' : a.role !== 'owner')), [apps, view]);
   const shown = useMemo(() => {
-    let list = inView.filter((a) => kind === 'all' || (kind === 'created' ? a.built : !a.built));
+    let list = inView.filter((a) => kind === 'all' || (kind === 'created' ? a.built || a.site : !a.built && !a.site));
     const s = q.trim().toLowerCase();
     if (s) list = list.filter((a) => [a.name, a.brand?.client, ...a.members.map((m) => m.name)].some((x) => x && x.toLowerCase().includes(s)));
     const fresh = (a: AppSummary) => ((pulse[a.id]?.unread ?? 0) > 0 ? 1 : 0);
@@ -133,18 +133,18 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
 
   const title = view === 'mine' ? 'My apps' : view === 'shared' ? (user.canCreate ? 'Shared with me' : 'Your apps') : 'Trash';
   const clients = new Set(inView.map((a) => a.brand?.client).filter(Boolean)).size;
-  const counts = { all: inView.length, created: inView.filter((a) => a.built).length, uploaded: inView.filter((a) => !a.built).length };
+  const counts = { all: inView.length, created: inView.filter((a) => a.built || a.site).length, uploaded: inView.filter((a) => !a.built && !a.site).length };
 
   const moreButton = (a: AppSummary) => (
     <button className="icon-btn ap-more" aria-label={`More for ${a.name}`} aria-haspopup="menu" aria-expanded={menu?.a.id === a.id}
       onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenu({ a, el: e.currentTarget }); }}><Icon name="more" /></button>
   );
 
-  const kindWord = (a: AppSummary) => (a.built ? FIELD[a.brand?.field ?? 'other'] ?? 'Client room' : `Uploaded HTML, v${a.liveVersion}`);
+  const kindWord = (a: AppSummary) => (a.site ? 'Website' : a.built ? FIELD[a.brand?.field ?? 'other'] ?? 'Client room' : `Uploaded HTML, v${a.liveVersion}`);
 
   /** Who it is for, when the name does not already say it. */
   const clientOf = (a: AppSummary) => {
-    const c = a.brand?.client || (a.built ? '' : kindWord(a));
+    const c = a.brand?.client || (a.built && !a.site ? '' : kindWord(a));
     return c && !a.name.toLowerCase().includes(c.toLowerCase()) ? c : '';
   };
   /** One app, one row: mark, name, the latest thing that happened, people, what is new. */
@@ -222,6 +222,12 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
               <span>A client room made for you: video approvals, photo picks, receipts, to-dos, messages and more.</span>
               <span className="go">Create app <Icon name="blocks" size={16} /></span>
             </button>
+            <button className="start-card" onClick={() => go('/build/site')}>
+              <span className="n mono">03</span>
+              <b>Create a website</b>
+              <span>A site for your café, studio or clinic from a template: pages, prices, opening hours, a map and forms that land in Submissions.</span>
+              <span className="go">Create a website <Icon name="globe" size={16} /></span>
+            </button>
           </div>
           <p className="hint" style={{ marginTop: 14 }}>You can also drop an .html or .zip file anywhere on this page.</p>
         </section>
@@ -264,6 +270,7 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
           <button role="menuitem" onClick={() => window.open(appPath(menu.a), '_blank', 'noopener')}>Open in a new tab</button>
           <button role="menuitem" onClick={async () => { const id = menu.a.id; setMenu(null); const fail = await downloadHtml(id); toast(fail ?? 'Downloaded. Open the file, sign in once, and it stays in sync.', !!fail); }}>Download as HTML file</button>
           {menu.a.role === 'owner' && <button role="menuitem" onClick={() => setShare(menu.a)}>Share and sign-ins</button>}
+          {menu.a.role === 'owner' && menu.a.site && <button role="menuitem" onClick={() => go(`/apps/${menu.a.id}/site`)}>Edit the website</button>}
           {menu.a.role === 'owner' && menu.a.built && <button role="menuitem" onClick={() => go(`/apps/${menu.a.id}/blocks`)}>Edit features and design</button>}
           {menu.a.role === 'owner' && <><hr /><button role="menuitem" className="danger" onClick={() => trash(menu.a)}>Move to Trash</button></>}
         </Menu>

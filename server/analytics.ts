@@ -197,7 +197,7 @@ export function registerSiteAnalytics(app: FastifyInstance) {
 /* ---------------- Super Admin: apps made on Jhino ---------------- */
 // How an app was made, from its oldest kept version: built with Create app, an uploaded HTML file, or a ZIP.
 // (Old versions are pruned by the janitor, so version 1 may be gone; the oldest one left tells the same.)
-const KIND = `CASE WHEN v.builder IS NOT NULL THEN 'built' WHEN lower(v.source_name) LIKE '%.zip' THEN 'zip' ELSE 'html' END`;
+const KIND = `CASE WHEN v.site IS NOT NULL THEN 'site' WHEN v.builder IS NOT NULL THEN 'built' WHEN lower(v.source_name) LIKE '%.zip' THEN 'zip' ELSE 'html' END`;
 
 export function registerCreations(app: FastifyInstance) {
   app.get('/api/admin/creations', async (req) => {

@@ -74,6 +74,8 @@ function appSummary(a: AppRow, userId: string) {
     createdAt: a.created_at, updatedAt: a.updated_at, deletedAt: a.deleted_at,
     last: last ?? null,
     built: !!v?.builder,
+    // A website made with the website builder (sites.ts): opened in its editor.
+    site: !!(a as AppRow & { site_draft?: string | null }).site_draft,
     brand,
     storage: db.prepare('SELECT COUNT(*) files, COALESCE(SUM(size),0) bytes FROM files WHERE app_id=?').get(a.id) as { files: number; bytes: number },
     access: a.access ?? 'private', slug: a.slug ?? null, rootSlug: a.root_slug ?? null, ownerUsername: usernameOf(a.owner_id), showBar: a.show_bar !== 0,

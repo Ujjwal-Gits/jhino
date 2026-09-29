@@ -1,0 +1,205 @@
+{
+  "id": "clinic",
+  "name": "Sahara Family Clinic",
+  "category": "Clinic and health",
+  "description": "A calm, information-first clinic site: hours up front, services and fees, doctors, and a visit request form.",
+  "site": {
+    "name": "Sahara Family Clinic",
+    "theme": { "preset": "clinic" },
+    "settings": {
+      "tagline": "Family doctors and a lab in New Baneshwor",
+      "lang": "en",
+      "phone": "01-4781230",
+      "email": "care@saharaclinic.com.np",
+      "address": "Madan Bhandari Road, New Baneshwor, Kathmandu 44600",
+      "social": [
+        { "network": "facebook", "url": "https://www.facebook.com/saharafamilyclinic" },
+        { "network": "viber", "url": "https://invite.viber.com/?g=sahara-clinic" }
+      ]
+    },
+    "header": { "type": "header", "variant": "bar", "props": { "cta": { "label": "Book a visit", "href": "page:book" }, "sticky": true } },
+    "footer": {
+      "type": "footer", "variant": "columns",
+      "props": { "about": "A day clinic for families in New Baneshwor: doctors, a lab and a pharmacy under one roof. In an emergency, go to the nearest hospital or call 102.", "note": "", "showPages": true, "showContact": true, "showSocial": true },
+      "style": { "bg": "surface" }
+    },
+    "pages": [
+      {
+        "id": "home", "title": "Home",
+        "seoTitle": "Sahara Family Clinic, New Baneshwor: doctors, lab and pharmacy",
+        "seoDescription": "Family clinic in New Baneshwor, Kathmandu. General OPD Rs 600, children's health, women's health, same-day lab results. Open every day.",
+        "blocks": [
+          {
+            "type": "hero", "variant": "split",
+            "props": {
+              "eyebrow": "New Baneshwor, Kathmandu · Open every day",
+              "title": "A family clinic that answers the phone",
+              "text": "Check-ups, children's health, blood tests and small procedures, with lab results sent to your phone the same evening.",
+              "primary": { "label": "Book a visit", "href": "page:book" },
+              "secondary": { "label": "Call 01-4781230", "href": "tel:014781230" },
+              "image": { "src": "lib:doctor-visit", "alt": "A doctor talking with a patient in a consulting room", "focal": [45, 35] }
+            }
+          },
+          {
+            "type": "hours", "variant": "split",
+            "props": {
+              "heading": "Opening hours",
+              "note": "We are a day clinic. In an emergency, go to the nearest hospital emergency department or call 102 for an ambulance.",
+              "days": [
+                { "day": "Sunday", "hours": "07:00 – 19:00" },
+                { "day": "Monday", "hours": "07:00 – 19:00" },
+                { "day": "Tuesday", "hours": "07:00 – 19:00" },
+                { "day": "Wednesday", "hours": "07:00 – 19:00" },
+                { "day": "Thursday", "hours": "07:00 – 19:00" },
+                { "day": "Friday", "hours": "07:00 – 19:00" },
+                { "day": "Saturday", "hours": "08:00 – 13:00" }
+              ]
+            },
+            "style": { "bg": "surface", "space": "s" }
+          },
+          {
+            "type": "features", "variant": "grid",
+            "props": {
+              "heading": "What people see us for",
+              "intro": "Walk in or book ahead. A doctor sees you, and anything that needs a specialist gets a written referral the same day.",
+              "items": [
+                { "title": "General medicine", "text": "Fever, stomach trouble, coughs that will not go away, and a second opinion on a prescription.", "detail": "OPD Rs 600" },
+                { "title": "Children's health", "text": "Growth checks, vaccines on the national schedule, and sick visits the same day.", "detail": "" },
+                { "title": "Women's health", "text": "Check-ups, pregnancy tests and antenatal visits with a woman doctor on Sundays, Tuesdays and Thursdays.", "detail": "" },
+                { "title": "Diabetes and blood pressure", "text": "Regular follow-up with your readings kept in one file, and a reminder when the next test is due.", "detail": "" },
+                { "title": "Lab tests", "text": "Blood, urine and thyroid tests. Samples before 10:00 get results by SMS the same evening.", "detail": "" },
+                { "title": "Small procedures", "text": "Dressings, stitches and their removal, ear cleaning, nebulisation.", "detail": "" }
+              ]
+            }
+          },
+          {
+            "type": "imagetext", "variant": "right",
+            "props": {
+              "image": { "src": "lib:pill-bottle", "alt": "A bottle of tablets on a white surface" },
+              "eyebrow": "Downstairs",
+              "heading": "A pharmacy open the same hours",
+              "body": "<p>Fill your prescription before you leave. The pharmacist goes through each medicine with you, and writes the doses in Nepali on the packet if you ask.</p>",
+              "link": { "label": "", "href": "" }
+            }
+          },
+          {
+            "type": "faq", "variant": "accordion",
+            "props": {
+              "heading": "Before your visit",
+              "intro": "",
+              "items": [
+                { "q": "Do I need an appointment?", "a": "No. Walk-ins are seen in order. With a booking you are seen at your time, and we call if the doctor is running late." },
+                { "q": "Should I come fasting for blood tests?", "a": "For sugar and lipid tests, yes: nothing but water for ten hours. Other tests do not need it. Ask when you book." },
+                { "q": "How do I get my report?", "a": "By SMS with a link, the same evening for samples given before 10:00. Printed copies wait at the front desk." },
+                { "q": "Do you take the Health Insurance Board card?", "a": "Not yet. We give an itemised bill you can claim with private insurers." }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "doctors", "slug": "doctors", "title": "Doctors",
+        "seoTitle": "Our doctors · Sahara Family Clinic, New Baneshwor",
+        "seoDescription": "Meet the doctors at Sahara Family Clinic and see which days each one is in.",
+        "blocks": [
+          {
+            "type": "hero", "variant": "text",
+            "props": { "eyebrow": "", "title": "Our doctors", "text": "Each doctor keeps regular days, so you can see the same person every time.", "primary": { "label": "", "href": "" }, "secondary": { "label": "", "href": "" } },
+            "style": { "space": "s" }
+          },
+          {
+            "type": "team", "variant": "list",
+            "props": {
+              "heading": "", "intro": "",
+              "people": [
+                { "name": "Dr. Sabina Shrestha", "role": "General medicine · MBBS, MD", "bio": "Sunday to Friday mornings. Twelve years at a district hospital in Dhading before starting the clinic.", "image": { "src": "", "alt": "" } },
+                { "name": "Dr. Prakash Adhikari", "role": "Children's health · MBBS, MD Paediatrics", "bio": "Sunday to Friday afternoons. Runs the vaccine clinic on Tuesdays.", "image": { "src": "", "alt": "" } },
+                { "name": "Dr. Manisha Karki", "role": "Women's health · MBBS, MS Obstetrics and Gynaecology", "bio": "Sundays, Tuesdays and Thursdays, 14:00 to 18:00.", "image": { "src": "", "alt": "" } },
+                { "name": "Rita Gurung", "role": "Lab in charge · BMLT", "bio": "Every day from 07:00. Calls you herself if a result needs a doctor today.", "image": { "src": "", "alt": "" } }
+              ]
+            }
+          },
+          {
+            "type": "cta", "variant": "band",
+            "props": {
+              "title": "Want to see a particular doctor?",
+              "text": "Choose them in the booking form, or say so when you call.",
+              "primary": { "label": "Book a visit", "href": "page:book" },
+              "secondary": { "label": "", "href": "" }
+            },
+            "style": { "bg": "accent" }
+          }
+        ]
+      },
+      {
+        "id": "fees", "slug": "fees", "title": "Fees",
+        "seoTitle": "Fees and lab test prices · Sahara Family Clinic",
+        "seoDescription": "General OPD Rs 600, specialist OPD Rs 1,000, full body check-up Rs 4,500. Lab test prices with same-day results.",
+        "blocks": [
+          {
+            "type": "pricing", "variant": "table",
+            "props": {
+              "heading": "Fees", "intro": "What a visit costs, before any tests or medicine. We tell you the cost of a test before we take the sample.", "currency": "NPR",
+              "plans": [
+                { "name": "General OPD", "price": "600", "period": "visit", "note": "Follow-up within 7 days is free.", "features": "", "cta": { "label": "", "href": "" }, "featured": false },
+                { "name": "Specialist OPD", "price": "1000", "period": "visit", "note": "Children's and women's health.", "features": "", "cta": { "label": "", "href": "" }, "featured": false },
+                { "name": "Full body check-up", "price": "4500", "period": "package", "note": "Come fasting. Takes about two hours.", "features": "Blood count, sugar, lipid profile\nKidney and liver function\nThyroid (TSH) and urine routine\nECG\nA doctor goes through every result with you", "cta": { "label": "Book a check-up", "href": "page:book" }, "featured": true },
+                { "name": "Vaccine visit", "price": "300", "period": "visit", "note": "Plus the cost of any vaccine not on the national schedule.", "features": "", "cta": { "label": "", "href": "" }, "featured": false }
+              ]
+            }
+          },
+          {
+            "type": "features", "variant": "compact",
+            "props": {
+              "heading": "Common lab tests",
+              "intro": "Samples before 10:00 get results the same evening.",
+              "items": [
+                { "title": "Complete blood count (CBC)", "text": "", "detail": "Rs 450" },
+                { "title": "Fasting blood sugar", "text": "", "detail": "Rs 150" },
+                { "title": "HbA1c", "text": "", "detail": "Rs 1,100" },
+                { "title": "Thyroid (TSH)", "text": "", "detail": "Rs 700" },
+                { "title": "Lipid profile", "text": "", "detail": "Rs 900" },
+                { "title": "Urine routine", "text": "", "detail": "Rs 200" }
+              ]
+            },
+            "style": { "bg": "surface" }
+          }
+        ]
+      },
+      {
+        "id": "book", "slug": "book", "title": "Book a visit",
+        "seoTitle": "Book a visit · Sahara Family Clinic, New Baneshwor",
+        "seoDescription": "Ask for a visit at Sahara Family Clinic. We call back to confirm a time within two hours during opening hours.",
+        "blocks": [
+          {
+            "type": "booking", "variant": "split",
+            "props": {
+              "heading": "Book a visit",
+              "text": "Pick a day and what the visit is for. We call back within two hours during opening hours to confirm a time.",
+              "services": "General OPD\nChildren's health\nWomen's health\nFull body check-up\nLab test only",
+              "askTime": true,
+              "button": "Request a visit",
+              "success": "Thank you. We will call you within two hours to confirm the time."
+            }
+          },
+          {
+            "type": "map", "variant": "split",
+            "props": { "heading": "Where we are", "address": "Madan Bhandari Road, New Baneshwor, Kathmandu 44600. Ground floor, across from the Baneshwor bus stop.", "query": "New Baneshwor, Kathmandu", "link": "" },
+            "style": { "bg": "surface" }
+          },
+          {
+            "type": "contact", "variant": "form",
+            "props": {
+              "heading": "A question about a report?",
+              "text": "Write to us and the lab or your doctor will reply. Please do not send urgent symptoms here; call us instead.",
+              "address": "", "phone": "", "email": "",
+              "askPhone": true,
+              "button": "Send question",
+              "success": "Thank you. We reply within one working day."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

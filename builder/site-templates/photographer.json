@@ -1,0 +1,219 @@
+{
+  "id": "photographer",
+  "name": "Tole Studio",
+  "category": "Photographer and studio",
+  "description": "A dark, image-first studio site: portfolio wall, packages with prices, how a booking works, and a date enquiry form.",
+  "site": {
+    "name": "Tole Studio",
+    "theme": { "preset": "darkroom" },
+    "settings": {
+      "tagline": "Wedding, portrait and food photography in Patan",
+      "lang": "en",
+      "phone": "9851012345",
+      "email": "studio@tolestudio.com.np",
+      "address": "Nag Bahal, Patan, Lalitpur 44700",
+      "social": [
+        { "network": "instagram", "url": "https://www.instagram.com/tolestudio" },
+        { "network": "facebook", "url": "https://www.facebook.com/tolestudio" },
+        { "network": "youtube", "url": "https://www.youtube.com/@tolestudio" }
+      ]
+    },
+    "header": { "type": "header", "variant": "centered", "props": { "cta": { "label": "Check a date", "href": "page:contact" }, "sticky": false } },
+    "footer": {
+      "type": "footer", "variant": "big",
+      "props": { "about": "Anish and Rejina Maharjan. Weddings, portraits and food, from a small studio behind Patan Durbar Square.", "note": "", "showPages": true, "showContact": true, "showSocial": true }
+    },
+    "pages": [
+      {
+        "id": "work", "title": "Work",
+        "seoTitle": "Tole Studio: wedding and portrait photographers in Patan",
+        "seoDescription": "Wedding, portrait and food photography in the Kathmandu Valley by Anish and Rejina Maharjan. See recent work, packages and prices.",
+        "blocks": [
+          {
+            "type": "hero", "variant": "image",
+            "props": {
+              "eyebrow": "Weddings, portraits and food · Kathmandu Valley",
+              "title": "Photographs of the days you will want to remember exactly",
+              "text": "Two photographers, one small studio in Patan, and every photo edited by hand before it reaches you.",
+              "primary": { "label": "See packages", "href": "page:services" },
+              "secondary": { "label": "Check a date", "href": "page:contact" },
+              "image": { "src": "lib:wedding-bouquet", "alt": "A bride holding a bouquet of roses in warm evening light", "focal": [55, 40] }
+            }
+          },
+          {
+            "type": "gallery", "variant": "masonry",
+            "props": {
+              "heading": "Recent work",
+              "intro": "A few frames from the last two seasons. Full galleries are shared with each couple and family privately.",
+              "images": [
+                { "image": { "src": "lib:portrait-woman", "alt": "Portrait of a woman in a striped shirt outdoors" }, "caption": "Family portraits, Godawari, Poush 2080" },
+                { "image": { "src": "lib:swayambhu", "alt": "Swayambhu stupa with prayer flags" }, "caption": "Pre-wedding walk, Swayambhu" },
+                { "image": { "src": "lib:shoot-cheers", "alt": "Two coffee cups raised together" }, "caption": "Menu shoot for a café in Jhamsikhel" },
+                { "image": { "src": "lib:ridge-photographer", "alt": "A photographer on a rocky ridge above the clouds" }, "caption": "Scouting Nagarkot at sunrise" },
+                { "image": { "src": "lib:long-table", "alt": "A long reception table with glasses and flowers" }, "caption": "Reception, Bhaktapur, Mangsir 2080" },
+                { "image": { "src": "lib:portrait-man", "alt": "Portrait of a smiling man against a grey wall" }, "caption": "Studio portrait, Nag Bahal" },
+                { "image": { "src": "lib:dinner-plate", "alt": "A plated dish on a restaurant table" }, "caption": "Tasting menu, Thamel" },
+                { "image": { "src": "lib:himal-trek", "alt": "A trekker looking at snow peaks" }, "caption": "Honeymoon session, Mardi Himal" }
+              ]
+            }
+          },
+          {
+            "type": "richtext", "variant": "split",
+            "props": {
+              "heading": "How we work",
+              "body": "<p>We meet you before the day, at the studio or on a call, and go through it hour by hour: who needs to be in which photo, when the light is best, where the families will stand.</p><p>On the day there are two of us, so the <em>sagun</em> and the guests get covered while the couple is being photographed. Every photo you receive is chosen and edited by one of us, not a filter.</p>"
+            }
+          },
+          {
+            "type": "timeline", "variant": "horizontal",
+            "props": {
+              "heading": "From the first call to the album",
+              "items": [
+                { "date": "Week 0", "title": "A call and a date", "text": "We check the date and hold it for a week, free." },
+                { "date": "2 weeks before", "title": "The shot list", "text": "Names, rituals, places and timings, on one page." },
+                { "date": "The day", "title": "Two photographers", "text": "Up to ten hours, from getting ready to the reception." },
+                { "date": "Within 3 weeks", "title": "Your online gallery", "text": "Every edited photo, to download and share." },
+                { "date": "Within 8 weeks", "title": "The printed album", "text": "Designed with you, printed in Kathmandu." }
+              ]
+            },
+            "style": { "bg": "surface" }
+          },
+          {
+            "type": "cta", "variant": "split",
+            "props": {
+              "title": "Mangsir and Falgun fill up by Asar",
+              "text": "Wedding season dates book months ahead. Ask for yours now; holding it costs nothing for a week.",
+              "primary": { "label": "Check a date", "href": "page:contact" },
+              "secondary": { "label": "", "href": "" }
+            }
+          }
+        ]
+      },
+      {
+        "id": "services", "slug": "services", "title": "Packages",
+        "seoTitle": "Wedding and portrait photography prices · Tole Studio",
+        "seoDescription": "Portrait sessions from Rs 12,000, wedding days from Rs 1,45,000, menu and food shoots from Rs 35,000. Travel inside the Valley included.",
+        "blocks": [
+          {
+            "type": "hero", "variant": "text",
+            "props": { "eyebrow": "", "title": "Packages and prices", "text": "Prices in rupees, travel inside the Kathmandu Valley included. Outside the Valley we add travel and a room at cost.", "primary": { "label": "", "href": "" }, "secondary": { "label": "", "href": "" } },
+            "style": { "space": "s" }
+          },
+          {
+            "type": "pricing", "variant": "columns",
+            "props": {
+              "heading": "", "intro": "", "currency": "NPR",
+              "plans": [
+                { "name": "Portrait session", "price": "12000", "period": "session", "note": "Families, couples, graduates, new parents.", "features": "One hour at the studio or outdoors\n25 edited photos\nOnline gallery for a year", "cta": { "label": "Book a session", "href": "page:contact" }, "featured": false },
+                { "name": "Wedding day", "price": "145000", "period": "day", "note": "Our most booked package, from sagun to reception.", "features": "Two photographers, up to 10 hours\n600 or more edited photos\n40-page printed album\n50 preview photos within a week", "cta": { "label": "Check your date", "href": "page:contact" }, "featured": true },
+                { "name": "Menu and food", "price": "35000", "period": "half day", "note": "For restaurants, bakeries and cafés.", "features": "Up to 20 dishes\nStyling help and props\nPhotos sized for delivery apps and Instagram", "cta": { "label": "Plan a shoot", "href": "page:contact" }, "featured": false }
+              ]
+            }
+          },
+          {
+            "type": "features", "variant": "compact",
+            "props": {
+              "heading": "Add to any package",
+              "intro": "",
+              "items": [
+                { "title": "An extra hour", "text": "", "detail": "Rs 6,000" },
+                { "title": "A second album for parents", "text": "", "detail": "Rs 14,000" },
+                { "title": "Drone photos, where allowed", "text": "", "detail": "Rs 18,000" },
+                { "title": "Unedited files", "text": "", "detail": "Rs 10,000" }
+              ]
+            }
+          },
+          {
+            "type": "faq", "variant": "split",
+            "props": {
+              "heading": "Questions couples ask",
+              "intro": "",
+              "items": [
+                { "q": "How much do we pay to book?", "a": "Thirty percent holds the date. The rest is due a week after the wedding, once you have seen the preview photos." },
+                { "q": "Do you travel to Pokhara, Chitwan or India?", "a": "Yes. We add the travel and a room at cost, and nothing else." },
+                { "q": "When do we get the photos?", "a": "Fifty preview photos within a week, the full online gallery within three weeks, the album within eight." },
+                { "q": "Can we choose the photos for the album?", "a": "Yes. You mark your favourites in the online gallery and we design the album around them, with one round of changes." }
+              ]
+            },
+            "style": { "bg": "surface" }
+          }
+        ]
+      },
+      {
+        "id": "about", "slug": "about", "title": "About",
+        "seoTitle": "About Tole Studio, Patan",
+        "seoDescription": "Anish and Rejina Maharjan have photographed weddings, families and food in the Kathmandu Valley since 2072.",
+        "blocks": [
+          {
+            "type": "imagetext", "variant": "right",
+            "props": {
+              "image": { "src": "lib:camera-kit", "alt": "A camera body and two lenses on a dark table" },
+              "eyebrow": "Since 2072",
+              "heading": "Two photographers, one small studio in Patan",
+              "body": "<p>Anish learned on a borrowed film camera in Nag Bahal; Rejina came from newspaper work. We started Tole Studio in the room above Anish's family shop and still work from there.</p><p>We take a limited number of weddings each season so that the two of us can shoot every one of them ourselves.</p>",
+              "link": { "label": "", "href": "" }
+            }
+          },
+          {
+            "type": "team", "variant": "monogram",
+            "props": {
+              "heading": "Who you will work with",
+              "intro": "",
+              "people": [
+                { "name": "Anish Maharjan", "role": "Weddings and landscapes", "bio": "Plans the day with you and shoots the rituals and the families.", "image": { "src": "", "alt": "" } },
+                { "name": "Rejina Maharjan", "role": "Portraits and food", "bio": "Shoots the couple, edits every gallery and designs the albums.", "image": { "src": "", "alt": "" } }
+              ]
+            }
+          },
+          {
+            "type": "logos", "variant": "row",
+            "props": {
+              "heading": "Menus photographed for",
+              "items": [
+                { "name": "Ghumti Café", "image": { "src": "", "alt": "" }, "url": "" },
+                { "name": "Tulsi Bakehouse", "image": { "src": "", "alt": "" }, "url": "" },
+                { "name": "Pokhari Kitchen", "image": { "src": "", "alt": "" }, "url": "" },
+                { "name": "Chautari Dining", "image": { "src": "", "alt": "" }, "url": "" }
+              ]
+            }
+          },
+          { "type": "social", "variant": "big", "props": { "heading": "Follow new work", "links": [] } }
+        ]
+      },
+      {
+        "id": "contact", "slug": "contact", "title": "Contact",
+        "seoTitle": "Check a date · Tole Studio",
+        "seoDescription": "Ask Tole Studio about your wedding or portrait date. We reply within a day.",
+        "blocks": [
+          {
+            "type": "contact", "variant": "split",
+            "props": {
+              "heading": "Check a date",
+              "text": "Tell us the date, the place and roughly how many guests. We reply within a day, usually with a call.",
+              "address": "", "phone": "", "email": "",
+              "askPhone": true,
+              "button": "Send",
+              "success": "Thank you. We will get back to you within a day."
+            }
+          },
+          {
+            "type": "hours", "variant": "compact",
+            "props": {
+              "heading": "Studio hours",
+              "note": "Weddings and outdoor sessions happen any day; these are the hours to visit the studio.",
+              "days": [
+                { "day": "Sunday – Friday", "hours": "10:00 – 18:00" },
+                { "day": "Saturday", "hours": "By appointment" }
+              ]
+            },
+            "style": { "bg": "surface" }
+          },
+          {
+            "type": "map", "variant": "card",
+            "props": { "heading": "The studio", "address": "Nag Bahal, Patan, Lalitpur 44700. Up the stairs beside the brass shop.", "query": "Nag Bahal, Lalitpur", "link": "" }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1575,7 +1575,7 @@ interface CreationsT {
   creators: { id: string; name: string; username: string | null; email: string; apps: number; builds: number }[];
   recent: { id: string; name: string; kind: string; createdAt: string; deletedAt: string | null; owner: string; username: string | null; versions: number }[];
 }
-const KIND_NAME: Record<string, string> = { built: 'Create app', html: 'HTML upload', zip: 'ZIP upload' };
+const KIND_NAME: Record<string, string> = { site: 'Website builder', built: 'Create app', html: 'HTML upload', zip: 'ZIP upload' };
 
 function Creations() {
   const [days, setDays] = useState(30);

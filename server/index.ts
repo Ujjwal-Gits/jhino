@@ -19,6 +19,7 @@ import { registerOAuth } from './oauth.js';
 import { registerBilling } from './billing.js';
 import { registerSuperAdmin } from './superadmin.js';
 import { registerPublicShare } from './publicshare.js';
+import { registerSites } from './sites.js';
 import { registerCustomDomains } from './customdomains.js';
 import { registerLinks } from './links.js';
 import { registerTools } from './tools.js';
@@ -77,6 +78,8 @@ app.setErrorHandler((err, req, reply) => {
 app.addHook('onSend', async (req, reply) => {
   // Uploaded apps (/run), previews and Pro pages made from their own HTML (/p/…/custom) set their own sandbox.
   if (req.url.startsWith('/run/') || req.url.startsWith('/preview/') || /^\/p\/[^/?]+\/custom(\?|$)/.test(req.url)) return;
+  // Websites (sites.ts) are sent with their own rules.
+  if ((req as { jhinoSite?: boolean }).jhinoSite) return;
   reply.header('X-Content-Type-Options', 'nosniff');
   reply.header('Referrer-Policy', 'same-origin');
   if (!req.url.startsWith('/api/') && !req.url.startsWith('/_jhino/')) {
@@ -93,6 +96,8 @@ registerCustomDomains(app);
 registerAuth(app);
 registerDesk(app);
 registerPublicShare(app);
+// Websites: public sites open straight from their address (before short links and the dashboard pages).
+registerSites(app);
 registerLinks(app);
 registerTools(app);
 registerMini(app);

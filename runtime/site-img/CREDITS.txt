@@ -1,0 +1,20 @@
+Library photographs for Jhino websites (runtime/site-img) are from Unsplash, used under the Unsplash
+License (https://unsplash.com/license): free to use, no attribution required. Two sizes each (640, 1400 wide).
+food-spread         photo-1504674900247-0877df9cc836
+dinner-plate        photo-1414235077428-338989a2e8c0
+cafe-hall           photo-1555396273-367ea4eb4db5
+dining-room         photo-1517248135467-4c7edcad34c4
+long-table          photo-1511795409834-ef04bbd61622
+wedding-bouquet     photo-1519741497674-611481863552
+camera-kit          photo-1516035069371-29a1b244cc32
+ridge-photographer  photo-1492691527719-9d1e07e534b4
+portrait-woman      photo-1544005313-94ddf0286df2
+portrait-man        photo-1500648767791-00dcc994a43e
+doctor-visit        photo-1631217868264-e5b90bb7e133
+doctor-coat         photo-1576091160399-112ba8d25d1d
+pill-bottle         photo-1544991875-5dc1b05f607d
+boudha              photo-1605640840605-14ac1855827b
+swayambhu           photo-1558799401-1dcba79834c2
+himal-trek          photo-1526772662000-3f88f10405ff
+night-peaks         photo-1519681393784-d120267933ba
+cut-pour-over, shoot-* : the same photographs as web/public/img (see its CREDITS.txt); one size only.

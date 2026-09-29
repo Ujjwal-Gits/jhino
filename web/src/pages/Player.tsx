@@ -470,6 +470,7 @@ export function Player({ id, solo, visitor, noFallback }: { id: string; solo?: b
           <button role="menuitem" onClick={async () => { setMenuFor(null); const fail = await downloadHtml(app.id); toast(fail ?? 'Downloaded. Open the file, sign in once, and it stays in sync with everyone.', !!fail); }}>Download as HTML file</button>
           <button role="menuitem" onClick={() => { setMenuFor(null); toggleNotify(); }}>{notify ? 'Turn off desktop notifications' : 'Turn on desktop notifications'}</button>
           {isOwner && <button role="menuitem" onClick={() => setBar(!showBar)}>{showBar ? 'Hide top bar' : 'Show top bar'}</button>}
+          {isOwner && app.site && <button role="menuitem" onClick={() => go(`/apps/${app.id}/site`)}>Edit the website</button>}
           {isOwner && app.built && <button role="menuitem" onClick={() => go(`/apps/${app.id}/blocks`)}>Edit features and design</button>}
           {isOwner && !app.built && <button role="menuitem" onClick={() => setDialog('upload')}>Upload a new version</button>}
           <hr />

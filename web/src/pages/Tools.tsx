@@ -17,10 +17,11 @@ import '../apps.css';
  * full-page from here. Smart links, dynamic QR codes and Ask me anything are saved on the server
  * (server/mini.ts); the text and image tools run only in the browser.
  */
-type AppKey = 'upload' | 'bio' | 'smart' | 'qr' | 'ask' | 'focus' | 'subs' | 'image' | 'pdf' | 'wordpdf' | 'pdfword' | 'currency' | 'text' | 'fonts' | 'thumb' | 'picker' | 'emi' | 'date' | 'password' | 'links';
+type AppKey = 'upload' | 'site' | 'bio' | 'smart' | 'qr' | 'ask' | 'focus' | 'subs' | 'image' | 'pdf' | 'wordpdf' | 'pdfword' | 'currency' | 'text' | 'fonts' | 'thumb' | 'picker' | 'emi' | 'date' | 'password' | 'links';
 interface DashApp { key: AppKey; label: string; desc: string; d: string; to?: string; group: string }
 const D = {
   upload: 'M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4',
+  site: 'M3 4h18v16H3zM3 8h18M7 12h6M7 16h4M16 12h2v4h-2z',
   bio: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM6 21v-1a6 6 0 0 1 12 0v1M3 3h4M17 3h4',
   smart: 'M6 3h5v7H6zM13 14h5v7h-5zM8.5 10v4a2 2 0 0 0 2 2h2.5M15.5 14V9a2 2 0 0 0-2-2H11',
   ask: 'M4 5h16v11H9l-5 4zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.4M12 14.5h.01',
@@ -37,6 +38,7 @@ const D = {
 };
 export const DASH_APPS: DashApp[] = [
   { key: 'upload', group: 'Publish', label: 'Upload HTML or ZIP', desc: 'Your own page or site, live in seconds.', d: D.upload },
+  { key: 'site', group: 'Publish', label: 'Website builder', desc: 'A business website from a template: pages, menu, prices, booking and contact forms.', d: D.site, to: '/build/site' },
   { key: 'bio', group: 'Publish', label: 'Link in bio', desc: 'Your page: links, videos, TikToks and posts.', d: D.bio },
   { key: 'smart', group: 'Publish', label: 'Smart link', desc: 'One link. iPhone, Android and computers each land in the right place.', d: D.smart },
   { key: 'qr', group: 'Publish', label: 'Dynamic QR', desc: 'Print it once, change where it goes any time.', d: P.qr },

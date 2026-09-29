@@ -717,6 +717,23 @@ function ensureSchema() {
       db.exec("UPDATE custom_domains SET require_login=1 WHERE app_id IN (SELECT id FROM apps WHERE COALESCE(access,'private')='private')");
     }
 
+    // Websites (sites.ts): the draft on the app, the site JSON each published version was made from, and
+    // what visitors send through the site's forms.
+    add('apps', 'site_draft', 'TEXT');
+    add('apps', 'site_draft_at', 'TEXT');
+    add('app_versions', 'site', 'TEXT');
+    db.exec(`CREATE TABLE IF NOT EXISTS site_submissions(
+      id TEXT PRIMARY KEY,
+      app_id TEXT NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+      form TEXT NOT NULL,
+      block_id TEXT NOT NULL,
+      page TEXT,
+      data TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      read_at TEXT
+    )`);
+    db.exec('CREATE INDEX IF NOT EXISTS site_submissions_app ON site_submissions(app_id, created_at)');
+
     // Indexes for lookups that ran as full table scans (checked with EXPLAIN QUERY PLAN):
     // - every GET of /<name> looks for a short link by code (links.ts), including every public page view;
     db.exec('CREATE INDEX IF NOT EXISTS short_links_code_any ON short_links(code COLLATE NOCASE)');
