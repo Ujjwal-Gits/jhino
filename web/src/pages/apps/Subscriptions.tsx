@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ApiError, api, get, post } from '../../api';
 import { PanelLoader } from '../../Loader';
 import { Icon, Modal, Select, useToast } from '../../ui';
+import { DateField } from '../../DateField';
 
 /*
  * Subscriptions and domains: every renewal in one place (AI tools, streaming, software, hosting, domains,
@@ -209,44 +210,67 @@ function SubForm({ init, kind: k0, onClose, onSaved }: { init: Sub | null; kind:
     } catch (x) { toast(msg(x, 'Could not save.'), true); }
     setBusy(false);
   };
+  const REMIND = [['0', 'On the day'], ['1', '1 day before'], ['3', '3 days before'], ['7', 'A week before'], ['14', '2 weeks before'], ['30', 'A month before'], ['60', '2 months before']].map(([v, l]) => ({ value: v, label: l }));
+  const price = (
+    <div className="field"><span>{kind === 'trial' ? 'Price after the trial' : kind === 'domain' ? 'Renewal price' : 'Price'} <em>optional</em></span>
+      <div className="sb-price"><input className="input mono" inputMode="decimal" value={f.amount} onChange={(e) => set({ amount: e.target.value.replace(/[^\d.]/g, '') })} placeholder="0.00" aria-label="Amount" />
+        <Select label="Currency" value={f.currency} options={CUR.map((c) => ({ value: c, label: c }))} onChange={(v) => set({ currency: v })} /></div></div>
+  );
+  const remind = <div className="field"><span>Remind me</span><Select label="Remind me" value={f.remind} options={REMIND} onChange={(v) => set({ remind: v })} /></div>;
+  const hasMore = !!(f.cancelUrl || f.account || f.notes);
   return (
-    <Modal title={init ? `Edit ${init.service}` : kind === 'domain' ? 'Add a domain' : kind === 'trial' ? 'Add a free trial' : 'Add a subscription'} onClose={onClose} wide>
-      <form className="tp-form sb-form" onSubmit={save}>
-        {!init && <div className="tp-seg">{([['sub', 'Subscription'], ['trial', 'Free trial'], ['domain', 'Domain']] as const).map(([v, l]) => <button type="button" key={v} aria-pressed={kind === v} onClick={() => { setKind(v); set({ remind: v === 'domain' ? '30' : v === 'trial' ? '1' : '3', cycle: v === 'domain' ? 'yearly' : f.cycle }); }}>{l}</button>)}</div>}
-        {kind === 'sub' && !init && <div className="tp-chips sb-presets">{PRESETS.map(([name, amt, cur, cyc, cat, url]) => (
-          <button type="button" key={name} className="chip" onClick={() => set({ service: name, amount: amt ? String(amt) : '', currency: cur, cycle: cyc, category: cat, cancelUrl: url })}>{name}</button>
-        ))}</div>}
-        {kind === 'domain' ? <>
+    <Modal title={init ? `Edit ${init.service}` : 'Add to your list'} onClose={onClose} wide footer={<>
+      <span className="sb-foot-hint">{kind === 'domain' ? 'Read from the public registry. Nothing changes at your registrar.' : 'No card details needed.'}</span>
+      <button type="button" className="btn quiet" onClick={onClose}>Cancel</button>
+      <button type="submit" form="sb-form" className="btn primary" disabled={busy}>{busy && <span className="spin" />}{init ? 'Save' : 'Add'}</button>
+    </>}>
+      <form id="sb-form" className="modal-body sb-form" onSubmit={save}>
+        {!init && <div className="tp-seg sb-kind" role="tablist">{([['sub', 'Subscription'], ['trial', 'Free trial'], ['domain', 'Domain']] as const).map(([v, l]) => <button type="button" role="tab" key={v} aria-pressed={kind === v} aria-selected={kind === v} onClick={() => { setKind(v); set({ remind: v === 'domain' ? '30' : v === 'trial' ? '1' : '3', cycle: v === 'domain' ? 'yearly' : 'monthly', category: v === 'domain' ? 'Domains' : f.category === 'Domains' ? 'AI tools' : f.category }); }}>{l}</button>)}</div>}
+
+        {kind === 'domain' && <>
           <div className="field"><span>Domain</span>
-            <div className="tp-inline"><input className="input" required value={f.domain} onChange={(e) => set({ domain: e.target.value })} onBlur={() => { if (f.domain && !f.date) lookup(); }} placeholder="yourbrand.com" autoFocus={!init} />
-              <button type="button" className="btn" onClick={lookup} disabled={scan.busy || !f.domain.trim()}>{scan.busy && <span className="spin" />}Look up</button></div>
+            <div className="sb-lookup">
+              <input className="input" required value={f.domain} onChange={(e) => set({ domain: e.target.value })} onBlur={() => { if (f.domain && !f.date) lookup(); }} placeholder="yourbrand.com" autoFocus={!init} />
+              <button type="button" className="btn" onClick={lookup} disabled={scan.busy || !f.domain.trim()}>{scan.busy ? <span className="spin" /> : <Icon name="search" size={15} />}Look up</button>
+            </div>
+            {scan.note ? <p className={`sb-scan ${f.date ? 'ok' : ''}`}>{f.date && <Icon name="check" size={14} />}{scan.note}</p> : <p className="hint">We find the expiry date and registrar for you, and check again every week.</p>}
           </div>
-          {scan.note && <p className="hint">{scan.note}</p>}
           <div className="grid2">
-            <label className="field"><span>Expires</span><input className="input" type="date" required value={f.date} onChange={(e) => set({ date: e.target.value })} /></label>
-            <label className="field"><span>Registrar</span><input className="input" value={f.registrar} onChange={(e) => set({ registrar: e.target.value })} placeholder="Namecheap, GoDaddy, Mercantile…" /></label>
+            <div className="field"><span>Expires</span><DateField label="Expires" required value={f.date} onChange={(v) => set({ date: v })} /></div>
+            <label className="field"><span>Registrar</span><input className="input" value={f.registrar} onChange={(e) => set({ registrar: e.target.value })} placeholder="Namecheap, GoDaddy…" /></label>
           </div>
-        </> : <>
-          <label className="field"><span>Name</span><input className="input" required maxLength={120} value={f.service} onChange={(e) => set({ service: e.target.value })} placeholder={kind === 'trial' ? 'Canva Pro trial' : 'Claude Pro'} autoFocus={!init} /></label>
-          <div className="field"><span>Category</span><Select label="Category" value={f.category} options={CATS.map((c) => ({ value: c, label: c }))} onChange={(v) => set({ category: v })} /></div>
+          <div className="grid2">{price}{remind}</div>
         </>}
-        <div className="grid2">
-          <div className="field"><span>{kind === 'trial' ? 'Price after the trial' : kind === 'domain' ? 'Renewal price' : 'Price'} <em>optional</em></span>
-            <div className="tp-inline"><input className="input mono" inputMode="decimal" value={f.amount} onChange={(e) => set({ amount: e.target.value.replace(/[^\d.]/g, '') })} placeholder="0" /><Select label="Currency" size="sm" width={92} value={f.currency} options={CUR.map((c) => ({ value: c, label: c }))} onChange={(v) => set({ currency: v })} /></div></div>
-          {kind === 'sub' ? <div className="field"><span>Billed</span><Select label="Billed" value={f.cycle} options={CYCLES.map(([v, l]) => ({ value: v, label: l }))} onChange={(v) => set({ cycle: v })} /></div>
-            : kind === 'trial' ? <label className="field"><span>Trial ends</span><input className="input" type="date" required value={f.date} onChange={(e) => set({ date: e.target.value })} /></label> : <span />}
-        </div>
-        <div className="grid2">
-          {kind === 'sub' && <label className="field"><span>Next payment</span><input className="input" type="date" value={f.date} onChange={(e) => set({ date: e.target.value })} /></label>}
-          <div className="field"><span>Remind me</span><Select label="Remind me" value={f.remind} options={[['0', 'On the day'], ['1', '1 day before'], ['3', '3 days before'], ['7', 'A week before'], ['14', '2 weeks before'], ['30', 'A month before'], ['60', '2 months before']].map(([v, l]) => ({ value: v, label: l }))} onChange={(v) => set({ remind: v })} /></div>
-        </div>
-        <div className="grid2">
-          <label className="field"><span>Manage or cancel link <em>optional</em></span><input className="input" inputMode="url" value={f.cancelUrl} onChange={(e) => set({ cancelUrl: e.target.value })} placeholder="https://…" /></label>
-          <label className="field"><span>Account <em>optional</em></span><input className="input" maxLength={120} value={f.account} onChange={(e) => set({ account: e.target.value })} placeholder="Which email or login" /></label>
-        </div>
-        <label className="field"><span>Notes <em>optional</em></span><input className="input" maxLength={500} value={f.notes} onChange={(e) => set({ notes: e.target.value })} /></label>
-        <p className="hint">{kind === 'domain' ? 'We read the public registry record for the expiry date; nothing is changed at your registrar.' : 'Monthly and yearly dates move forward by themselves after each payment. No card details are needed.'}</p>
-        <div className="actions-row"><button className="btn primary" disabled={busy}>{busy && <span className="spin" />}Save</button><button type="button" className="btn quiet" onClick={onClose}>Cancel</button></div>
+
+        {kind !== 'domain' && <>
+          {kind === 'sub' && !init && <div className="field"><span>Popular <em>tap to fill in</em></span><div className="tp-chips sb-presets">{PRESETS.map(([name, amt, cur, cyc, cat, url]) => (
+            <button type="button" key={name} className={`chip ${f.service === name ? 'on' : ''}`} onClick={() => set({ service: name, amount: amt ? String(amt) : '', currency: cur, cycle: cyc, category: cat, cancelUrl: url })}>{name}</button>
+          ))}</div></div>}
+          <div className="grid2">
+            <label className="field"><span>Name</span><input className="input" required maxLength={120} value={f.service} onChange={(e) => set({ service: e.target.value })} placeholder={kind === 'trial' ? 'Canva Pro trial' : 'Claude Pro'} autoFocus={!init} /></label>
+            <div className="field"><span>Category</span><Select label="Category" value={f.category} options={CATS.map((c) => ({ value: c, label: c }))} onChange={(v) => set({ category: v })} /></div>
+          </div>
+          <div className="grid2">
+            {price}
+            {kind === 'sub' ? <div className="field"><span>Billed</span><Select label="Billed" value={f.cycle} options={CYCLES.map(([v, l]) => ({ value: v, label: l }))} onChange={(v) => set({ cycle: v })} /></div>
+              : <div className="field"><span>Trial ends</span><DateField label="Trial ends" required value={f.date} onChange={(v) => set({ date: v })} /></div>}
+          </div>
+          <div className="grid2">
+            {kind === 'sub' && <div className="field"><span>Next payment</span><DateField label="Next payment" value={f.date} onChange={(v) => set({ date: v })} /></div>}
+            {remind}
+          </div>
+        </>}
+
+        <details className="sb-more" open={hasMore}>
+          <summary>More details <em>optional</em></summary>
+          <div className="sb-more-body">
+            <div className="grid2">
+              <label className="field"><span>Manage or cancel link</span><input className="input" inputMode="url" value={f.cancelUrl} onChange={(e) => set({ cancelUrl: e.target.value })} placeholder="https://…" /></label>
+              <label className="field"><span>Account</span><input className="input" maxLength={120} value={f.account} onChange={(e) => set({ account: e.target.value })} placeholder="Which email or login" /></label>
+            </div>
+            <label className="field"><span>Notes</span><input className="input" maxLength={500} value={f.notes} onChange={(e) => set({ notes: e.target.value })} /></label>
+          </div>
+        </details>
       </form>
     </Modal>
   );

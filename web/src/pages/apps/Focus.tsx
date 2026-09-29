@@ -205,14 +205,16 @@ export function FocusStudio() {
 
       {addTo && lib && (
         <Modal title="Add to a playlist" onClose={() => setAddTo(null)}>
+          <div className="modal-body">
           <p className="hint">{addTo.title}</p>
           <ul className="tp-list fs-pls">{lib.playlists.map((x) => { const has = x.items.some((i) => same(i, addTo)); return (
             <li key={x.id}><button disabled={has} onClick={() => { update((l) => ({ ...l, playlists: l.playlists.map((y) => (y.id === x.id ? { ...y, items: [...y.items, { ...addTo, at: undefined }] } : y)) })); toast(`Added to ${x.name}.`); setAddTo(null); }}>
               <span className="ha-ic sm"><Icon name={has ? 'check' : 'list'} size={16} /></span><span className="ha-t"><b>{x.name}</b><small>{has ? 'Already in it' : `${x.items.length} items`}</small></span></button></li>
           ); })}</ul>
-          <form className="tp-inline" style={{ marginTop: 12 }} onSubmit={(e) => { e.preventDefault(); const n = String(new FormData(e.currentTarget).get('n') ?? '').trim(); if (!n) return; update((l) => ({ ...l, playlists: [...l.playlists, { id: Math.random().toString(36).slice(2, 10), name: n.slice(0, 80), items: [{ ...addTo, at: undefined }] }] })); toast(`Added to ${n}.`); setAddTo(null); }}>
+          <form className="tp-inline" onSubmit={(e) => { e.preventDefault(); const n = String(new FormData(e.currentTarget).get('n') ?? '').trim(); if (!n) return; update((l) => ({ ...l, playlists: [...l.playlists, { id: Math.random().toString(36).slice(2, 10), name: n.slice(0, 80), items: [{ ...addTo, at: undefined }] }] })); toast(`Added to ${n}.`); setAddTo(null); }}>
             <input className="input" name="n" maxLength={80} placeholder="Or a new playlist" aria-label="New playlist name" autoFocus={!lib.playlists.length} /><button className="btn sm primary">Create and add</button>
           </form>
+          </div>
         </Modal>
       )}
     </div>

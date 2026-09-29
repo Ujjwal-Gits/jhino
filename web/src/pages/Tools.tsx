@@ -136,6 +136,7 @@ function ChooseApps({ current, onClose, onSave }: { current: AppKey[]; onClose: 
       <button className="btn quiet" onClick={() => setPick(DEFAULT)}>Reset</button>
       <button className="btn primary" disabled={!pick.length} onClick={() => onSave(pick)}>Save</button>
     </>}>
+      <div className="modal-body">
       <p className="hint">Pick up to nine for Home, in the order you like. Every app stays in All apps. <b className="mono">{pick.length}/{MAX}</b></p>
       <ul className="ha-pick">{DASH_APPS.map((a) => {
         const i = pick.indexOf(a.key), on = i >= 0;
@@ -153,6 +154,7 @@ function ChooseApps({ current, onClose, onSave }: { current: AppKey[]; onClose: 
           </li>
         );
       })}</ul>
+      </div>
     </Modal>
   );
 }
@@ -339,7 +341,7 @@ function SmartLinks({ kind }: { kind: 'smart' }) {
           ))}</ul>
         )}
       </section>
-      {qr && <Modal title={qr.title || 'QR code'} onClose={() => setQr(null)}><QrCard text={qr.short} name={qr.code} /></Modal>}
+      {qr && <Modal title={qr.title || 'QR code'} onClose={() => setQr(null)}><div className="modal-body"><QrCard text={qr.short} name={qr.code} /></div></Modal>}
     </div>
   );
 }
