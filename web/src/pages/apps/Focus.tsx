@@ -139,7 +139,7 @@ export function FocusStudio() {
       </div>
 
       <section className="tp-card fs-music">
-        {now && <div className="tp-video"><iframe key={now.src} title={now.m.title || 'Music'} src={now.src} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /></div>}
+        {now && <div className="tp-video"><iframe key={now.src} title={now.m.title || 'Music'} src={now.src} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" /></div>}
         {now && <div className="tp-row fs-now"><span className="ha-t"><b>{now.m.title}</b><small>{now.m.author}</small></span>
           <span className="actions-row"><button className={`icon-btn fs-heart ${isFav(now.m) ? 'on' : ''}`} aria-label="Favourite" aria-pressed={isFav(now.m)} onClick={() => fav(now.m)}><Heart on={isFav(now.m)} /></button><button className="icon-btn" aria-label="Add to a playlist" onClick={() => setAddTo(now.m)}><Icon name="plus" size={16} /></button><button className="btn sm quiet" onClick={() => setNow(null)}>Stop</button></span></div>}
         <form className="tp-inline" onSubmit={fromUrl}>

@@ -231,7 +231,7 @@ export function Focus({ t }: { t: ReturnType<typeof useTimer> }) {
       <div className="qt-music">
         <p className="qt-mode">Lo-fi music</p>
         {video
-          ? <iframe title="Lo-fi music" src={`https://www.youtube-nocookie.com/embed/${video}?autoplay=1`} allow="autoplay; encrypted-media" allowFullScreen />
+          ? <iframe title="Lo-fi music" src={`https://www.youtube-nocookie.com/embed/${video}?autoplay=1`} allow="autoplay; encrypted-media" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
           : <button className="qt-play" onClick={() => setVideo(LOFI)}><Icon name="play" /><span>Play lo-fi radio</span><small>From YouTube. Starts only when you press play.</small></button>}
         <div className="qt-row">
           <input className="input" placeholder="Or paste a YouTube link" value={custom} onChange={(e) => setCustom(e.target.value)} />
