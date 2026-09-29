@@ -115,6 +115,8 @@ export function revokeSessions(userId: string, keepHash: string | null = null, k
   if (keys) db.prepare('DELETE FROM app_keys WHERE user_id=?').run(userId);
   // Unused codes and email links (a pending email change, a reset) and open app links go with the sessions.
   db.prepare('DELETE FROM auth_tokens WHERE user_id=? AND used_at IS NULL').run(userId);
+  // Sign-ins on custom domains end too (a new password, "sign out everywhere", a suspension).
+  db.prepare('DELETE FROM domain_sessions WHERE user_id=?').run(userId);
   if (!keepHash) db.prepare('DELETE FROM runs WHERE user_id=?').run(userId);
   if (!keepHash) closeUser(userId);
 }

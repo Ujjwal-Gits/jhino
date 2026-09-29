@@ -539,6 +539,14 @@
     uploadsAllowed: B.uploads !== false,
     ready: function () { return readyPromise; },
     me: function () { return Promise.resolve({ id: user.id, name: user.name, username: user.username || null, email: user.email, role: user.role }); },
+    /** Who is using the app, for greetings and "can I edit?" checks: { name, username, role, signedIn }. */
+    get user() { return Object.freeze({ name: user.name, username: user.username || null, role: user.role, signedIn: !!user.signedIn }); },
+    /** On a custom domain with sign-in: sign this person out (then the sign-in page shows). Resolves false where there is nothing to sign out of. */
+    signOut: function () {
+      if (!direct || !B.direct.member || !nativeFetch) return Promise.resolve(false);
+      return nativeFetch('/__jhino/signout', { method: 'POST', credentials: 'same-origin', headers: { 'x-jhino': '1', 'x-csrf-token': String(B.direct.csrf || '') } })
+        .then(function (r) { if (r.ok) { leaving = true; location.href = '/'; } return r.ok; }, function () { return false; });
+    },
     onChange: function (fn) {
       kvListeners.push(fn);
       return function () { kvListeners = kvListeners.filter(function (x) { return x !== fn; }); };
@@ -929,6 +937,7 @@
   function http(method, url, body) {
     if (!nativeFetch) return Promise.resolve({ error: 'CONNECTION_LOST', message: 'This browser cannot reach the server.' });
     var headers = { 'x-jhino': '1' }, opts = { method: method, headers: headers, credentials: 'same-origin' };
+    if (B.direct.csrf) headers['x-csrf-token'] = String(B.direct.csrf);
     if (body !== undefined) { headers['content-type'] = 'application/json'; opts.body = JSON.stringify(body); if (method !== 'GET' && opts.body.length < 60000) opts.keepalive = true; }
     return nativeFetch(url, opts).then(function (r) {
       return r.text().then(function (t) {
@@ -938,6 +947,7 @@
         var o = j && typeof j === 'object' ? j : {};
         o.error = o.error || 'SERVER_ERROR';
         o.message = o.message || ('Request failed (' + r.status + ').');
+        if (r.status === 401) signedOut();
         return o;
       });
     }, function () { return { error: 'CONNECTION_LOST', message: 'Could not reach the server.' }; });
@@ -951,6 +961,7 @@
       var x = new NativeXHR();
       x.open('POST', API + '/files');
       x.setRequestHeader('x-jhino', '1');
+      if (B.direct.csrf) x.setRequestHeader('x-csrf-token', String(B.direct.csrf));
       x.upload.onprogress = function (e) {
         if (!e.lengthComputable) return;
         var t = Date.now();
@@ -1023,7 +1034,36 @@
     else if (type === 'open-full') { var f = hashOf(d); if (f && f !== '#') location.hash = f; }
     else if (type === 'reloading') keepScroll(d.scroll);
     else if (type === 'version-ready') { keepScroll(d.scroll); location.reload(); }
-    else if (type === 'error') { try { console.warn('[jhino]', d.message); } catch (e) { /* ignore */ } }
+    else if (type === 'error') showNote(String(d.message || 'A change could not be saved.'));
+    else if (type === 'readonly') showNote(user.signedIn ? 'You can view this site but not change it. Ask its owner for edit access.' : 'You can view this site but not change it.');
+  }
+  // The session on this domain ended (it expired, or the person was signed out elsewhere): sign in again, then come back here.
+  var leaving = false;
+  function signedOut() {
+    if (leaving) return;
+    leaving = true;
+    if (B.direct.member) location.href = '/__jhino/signin?expired=1&next=' + encodeURIComponent(location.pathname + location.search);
+    else setTimeout(function () { location.reload(); }, 400);
+  }
+  /* A short message at the bottom of the page, in its own shadow DOM so the site's styles cannot reach it. */
+  var noteHost = null, noteTimer = null;
+  function showNote(text) {
+    try {
+      if (!noteHost) {
+        noteHost = document.createElement('jhino-note');
+        noteHost.setAttribute('style', 'all:initial;position:fixed;left:0;right:0;bottom:16px;z-index:2147483647;display:flex;justify-content:center;pointer-events:none');
+        var root = noteHost.attachShadow({ mode: 'open' });
+        root.innerHTML = '<style>div{max-width:min(420px,calc(100vw - 32px));padding:10px 14px;border-radius:8px;background:#141414;color:#fff;font:500 13.5px/1.4 "Helvetica Neue",Arial,sans-serif;'
+          + 'box-shadow:0 8px 24px -8px rgba(0,0,0,.35);opacity:0;transform:translateY(8px);transition:opacity .2s cubic-bezier(.2,.7,.15,1),transform .2s cubic-bezier(.2,.7,.15,1)}'
+          + 'div.on{opacity:1;transform:none}@media (prefers-reduced-motion:reduce){div{transition:none}}</style><div role="status" aria-live="polite"></div>';
+        (document.body || document.documentElement).appendChild(noteHost);
+      }
+      var box = noteHost.shadowRoot.querySelector('div');
+      box.textContent = text.slice(0, 200);
+      requestAnimationFrame(function () { box.className = 'on'; });
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(function () { box.className = ''; }, 4200);
+    } catch (e) { try { console.warn('[jhino]', text); } catch (x) { /* ignore */ } }
   }
   function startDirect() {
     readyResolve();

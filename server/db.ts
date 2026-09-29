@@ -674,6 +674,21 @@ function ensureSchema() {
     db.exec('CREATE INDEX IF NOT EXISTS custom_domains_app ON custom_domains(app_id)');
     db.exec('CREATE INDEX IF NOT EXISTS custom_domains_owner ON custom_domains(owner_id)');
     db.exec('CREATE INDEX IF NOT EXISTS custom_domains_next ON custom_domains(next_check_at)');
+    // People signed in on a custom domain (customdomains.ts): bound to that hostname and app, host-only cookie.
+    db.exec(`CREATE TABLE IF NOT EXISTS domain_sessions(
+      token_hash TEXT PRIMARY KEY,
+      hostname TEXT NOT NULL,
+      app_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      csrf TEXT NOT NULL,
+      ip TEXT,
+      ua TEXT,
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL,
+      last_seen_at TEXT
+    )`);
+    db.exec('CREATE INDEX IF NOT EXISTS domain_sessions_expires ON domain_sessions(expires_at)');
+    db.exec('CREATE INDEX IF NOT EXISTS domain_sessions_user ON domain_sessions(user_id)');
 
     // Indexes for lookups that ran as full table scans (checked with EXPLAIN QUERY PLAN):
     // - every GET of /<name> looks for a short link by code (links.ts), including every public page view;

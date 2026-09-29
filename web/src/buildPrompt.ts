@@ -47,5 +47,13 @@ Saving data (pick one)
 Rules
 - IndexedDB works and is saved and synced too (each record is saved on the server). Do not use cookies or sessionStorage for data that must be shared.
 - Viewers can read but not change shared data; show a friendly message on FORBIDDEN.
-- Do not ask for passwords or call Jhino URLs directly; the page is sandboxed.
+- Do not build your own login or put any ID or password in the code. Jhino signs people in (on
+  jhino.com, and on the app's own domain when the owner connects one) and the app runs as that person.
+  Greet them and adapt to their access with the signed-in person:
+      const u = jhino.user;   // { name, username, role, signedIn }  role: owner, editor, contributor, viewer
+      hello.textContent = 'Hi, ' + u.name;
+      if (u.role === 'viewer') hideEditButtons();
+  On a custom domain with sign-in, add a sign-out button: button.onclick = () => jhino.signOut();
+  (jhino.signOut() resolves false where there is nothing to sign out of: hide the button then.)
+- Do not call Jhino URLs yourself; use window.jhino and localStorage.
 - Works in any modern browser, on phones and desktops.`;

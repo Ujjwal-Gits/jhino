@@ -36,6 +36,7 @@ export const RULES = {
   sessions: 'deleted when expired (web sessions last 60 days and renew while used)',
   runs: 'app launch tokens: deleted when expired',
   pub_sessions: 'link-visitor sessions: deleted when expired',
+  domain_sessions: 'sign-ins on custom domains: deleted when expired (30 days, renewed while used)',
   oauth_states: 'Google/Apple sign-in states: deleted after 15 minutes',
   auth_tokens: 'email codes and links: deleted 7 days after they expire',
   code_usage: 'daily code counters: 3 days',
@@ -105,6 +106,7 @@ async function hourly(out: Report) {
   out.sessions = await sweepIndexed('sessions', 'expires_at < ?', now);
   out.runs = await sweep('runs', 'expires_at < ?', Date.now());
   out.pub_sessions = await sweep('pub_sessions', 'expires_at < ?', now);
+  out.domain_sessions = await sweepIndexed('domain_sessions', 'expires_at < ?', now);
   out.oauth_states = await sweep('oauth_states', 'created_at < ?', iso(15 * 60_000));
   out.auth_tokens = await sweep('auth_tokens', 'expires_at < ?', iso(7 * DAY));
   out.code_usage = await sweep('code_usage', 'day < ?', dayOf(3 * DAY));

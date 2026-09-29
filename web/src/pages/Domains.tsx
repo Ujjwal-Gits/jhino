@@ -54,7 +54,11 @@ export function StatusPill({ d }: { d: Pick<DomainT, 'status' | 'disabled'> }) {
 }
 
 /* ---------------- Share → Custom domain ---------------- */
-export function CustomDomainSection({ appId, access }: { appId: string; access: 'private' | 'public' | 'password' }) {
+type Access = 'private' | 'public' | 'password';
+interface Person { id: string; name: string; role: string }
+export function CustomDomainSection({ appId, access, people, onAddPerson, onRequireSignIn }: {
+  appId: string; access: Access; people?: Person[]; onAddPerson?: () => void; onRequireSignIn?: () => void;
+}) {
   const toast = useToast();
   const [info, setInfo] = useState<DomainsInfo | null>(null);
   const [adding, setAdding] = useState(false);
@@ -146,11 +150,52 @@ export function CustomDomainSection({ appId, access }: { appId: string; access: 
           ) : !info.domains.length ? null : (
             <p className="hint">Your plan’s custom domain{info.limit === 1 ? ' is' : 's are'} in use{info.limit !== null ? ` (${info.used} of ${info.limit})` : ''}.</p>
           )}
-          {info.domains.length > 0 && access === 'private' && (
-            <p className="cd-warn"><Icon name="info" size={14} />This app is private, so the domain shows “This site is not public yet”. Choose “Anyone with the link” above to open it.</p>
+          {info.domains.length > 0 && (
+            <DomainAccess host={(info.domains.find((d) => d.status === 'active' && !d.disabled) ?? info.domains[0]).hostname}
+              access={access} people={people ?? []} onAddPerson={onAddPerson} onRequireSignIn={onRequireSignIn} />
           )}
         </>
       )}
+    </div>
+  );
+}
+
+const ROLE_WORD: Record<string, string> = { editor: 'can edit', contributor: 'can add', viewer: 'can view' };
+/**
+ * Who opens the site on the domain. It follows "Share by link" above: "Only people added below" means each person
+ * signs in on the domain itself with the ID and password made for them in Share, and uses the app as themselves.
+ */
+function DomainAccess({ host, access, people, onAddPerson, onRequireSignIn }: { host: string; access: Access; people: Person[]; onAddPerson?: () => void; onRequireSignIn?: () => void }) {
+  const toast = useToast();
+  const signin = `https://${host}/__jhino/signin`;
+  const shown = people.slice(0, 6);
+  return (
+    <div className="cd-access" aria-label="Who can open it on the domain">
+      <div className="cd-access-head">
+        <span className="cd-access-icon" aria-hidden="true"><Icon name={access === 'private' ? 'lock' : access === 'password' ? 'key' : 'globe'} size={16} /></span>
+        <div>
+          <b>{access === 'private' ? 'Only people with a sign-in' : access === 'password' ? 'Anyone with the password' : 'Anyone with the address'}</b>
+          <span className="hint">{access === 'private'
+            ? <>People open <span className="mono">{host}</span>, sign in with the ID and password you gave them, and use the app as themselves. What they can do follows their access below.</>
+            : <>As chosen in Share by link above. People you added can still sign in at <span className="mono">{host}/__jhino/signin</span> to use it as themselves.</>}</span>
+        </div>
+      </div>
+      {access === 'private' && (
+        people.length ? (
+          <ul className="cd-people" aria-label="People who can sign in">
+            {shown.map((p) => <li key={p.id}><span>{p.name}</span><small>{ROLE_WORD[p.role] ?? p.role}</small></li>)}
+            {people.length > shown.length && <li className="more">+{people.length - shown.length} more below</li>}
+          </ul>
+        ) : <p className="hint">Nobody but you yet. Add a person: they get an ID and password to sign in with.</p>
+      )}
+      <div className="actions-row">
+        {access === 'private'
+          ? <>
+            {onAddPerson && <button type="button" className="btn sm" onClick={onAddPerson}><Icon name="plus" size={14} />Add a person</button>}
+            <button type="button" className="btn sm quiet" onClick={() => copyText(signin).then(() => toast('Sign-in link copied'))}><Icon name="copy" size={14} />Copy sign-in link</button>
+          </>
+          : onRequireSignIn && <button type="button" className="btn sm" onClick={onRequireSignIn}><Icon name="lock" size={14} />Require a sign-in</button>}
+      </div>
     </div>
   );
 }
