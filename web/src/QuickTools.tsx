@@ -5,6 +5,7 @@ import { Link } from './context';
 import { Icon, ago, copyText, useToast } from './ui';
 import './quicktools.css';
 import { PanelLoader } from './Loader';
+import { Calculator, ColourTool, Encoder, JsonTool, NepaliDate, Passwords, UserLookup, WorldClock } from './MoreTools';
 
 /*
  * Quick tools: a rail on the right edge (like Google Workspace's side panel) with a focus timer and lo-fi
@@ -13,7 +14,7 @@ import { PanelLoader } from './Loader';
  * (server/tools.ts); the timer, QR maker and text tools run only in the browser (text never leaves it).
  */
 
-type ToolKey = 'focus' | 'calendar' | 'tasks' | 'notes' | 'contacts' | 'subs' | 'links' | 'qr' | 'text';
+type ToolKey = 'focus' | 'calendar' | 'tasks' | 'notes' | 'contacts' | 'subs' | 'links' | 'qr' | 'text' | 'calc' | 'date' | 'password' | 'clock' | 'json' | 'encode' | 'colour' | 'users' | 'more';
 const P: Record<string, string> = {
   focus: 'M12 7v5l3 2M9 2h6M12 22a9 9 0 1 0 0-18 9 9 0 0 0 0 18z',
   calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h2M12 14h2M16 14h0',
@@ -24,12 +25,37 @@ const P: Record<string, string> = {
   links: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
   qr: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2',
   text: 'M4 19l5-14 5 14M6 14h6M15 19v-6a3 3 0 0 1 6 0v6M15 16h6',
+  calc: 'M6 3h12v18H6zM9 7h6M9 11h.01M12 11h.01M15 11h.01M9 14.5h.01M12 14.5h.01M15 14.5h.01M9 18h6',
+  date: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8.5 15l2 2 4.5-4.5',
+  password: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4M12 15v2',
+  clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2c2.8 2.8 4 6.2 4 10s-1.2 7.2-4 10c-2.8-2.8-4-6.2-4-10s1.2-7.2 4-10z',
+  json: 'M8 4C6 4 6 6 6 8s-2 4-2 4 2 0 2 4 0 4 2 4M16 4c2 0 2 2 2 4s2 4 2 4-2 0-2 4 0 4-2 4',
+  encode: 'M7 8l-4 4 4 4M17 8l4 4-4 4M14 4l-4 16',
+  colour: 'M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.5-1.5 0-1.2-1-1.5-1-2.5s.8-1.5 2-1.5H17a4 4 0 0 0 4-4c0-4.4-4-8.5-9-8.5zM7.5 11h.01M10 7h.01M15 7h.01',
+  users: 'M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3.5 20a6.5 6.5 0 0 1 11.3-4.4M17 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM19 17.5l2.5 2.5',
 };
-const TOOLS: { key: ToolKey; label: string }[] = [
-  { key: 'focus', label: 'Focus timer' }, { key: 'calendar', label: 'Calendar' }, { key: 'tasks', label: 'Tasks' },
-  { key: 'notes', label: 'Notes' }, { key: 'contacts', label: 'Contacts' }, { key: 'subs', label: 'Subscriptions & trials' },
-  { key: 'links', label: 'Short links' }, { key: 'qr', label: 'QR code maker' }, { key: 'text', label: 'Text tools' },
+/** Every tool. `admin` tools show only in Super Admin. The first nine sit on the rail until you change it. */
+const TOOLS: { key: ToolKey; label: string; desc: string; admin?: boolean }[] = [
+  { key: 'focus', label: 'Focus timer', desc: 'Work and break timer, with lo-fi music.' },
+  { key: 'calendar', label: 'Calendar', desc: 'Events and reminders by month.' },
+  { key: 'tasks', label: 'Tasks', desc: 'To-dos with due dates, linked to notes and contacts.' },
+  { key: 'notes', label: 'Notes', desc: 'Write, search, pin and archive.' },
+  { key: 'contacts', label: 'Contacts', desc: 'Names, phones, emails and links.' },
+  { key: 'subs', label: 'Subscriptions & trials', desc: 'Get reminded before renewals and trial ends.' },
+  { key: 'links', label: 'Short links', desc: 'Turn a long address into a short one, with a QR.' },
+  { key: 'qr', label: 'QR code maker', desc: 'A QR for any link or text, SVG or PNG.' },
+  { key: 'text', label: 'Text tools', desc: 'Change case, count words, clean up spaces.' },
+  { key: 'users', label: 'User lookup', desc: 'Find anyone by name, email or ID and open them.', admin: true },
+  { key: 'calc', label: 'Calculator', desc: 'Sums in rupees, with 13% VAT in one click.' },
+  { key: 'date', label: 'Nepali date', desc: 'BS to AD and back, 2070 to 2090 BS.' },
+  { key: 'password', label: 'Password generator', desc: 'Strong passwords to send with a new sign-in.' },
+  { key: 'clock', label: 'World clock', desc: 'The time in Kathmandu and where your clients are.' },
+  { key: 'json', label: 'JSON formatter', desc: 'Format, minify and check JSON.' },
+  { key: 'encode', label: 'Encode and decode', desc: 'Base64 and URL encoding.' },
+  { key: 'colour', label: 'Colour converter', desc: 'HEX, RGB and HSL, with contrast.' },
 ];
+const DEFAULT_RAIL: ToolKey[] = ['focus', 'calendar', 'tasks', 'notes', 'contacts', 'subs', 'links', 'qr', 'text'];
+const RAIL_KEY = 'jhino-qt-rail';
 const Svg = ({ d, size = 20 }: { d: string; size?: number }) => <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 const msg = (e: unknown, f: string) => (e instanceof ApiError ? e.message : f);
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -56,44 +82,60 @@ const Stamp = ({ i }: { i: Item }) => <small className="qt-stamp">Added by {i.cr
 const Empty = ({ children }: { children: ReactNode }) => <p className="qt-empty">{children}</p>;
 
 /* ---------------- the rail ---------------- */
-export function QuickTools({ actions }: { actions?: { label: string; to?: string; onClick?: () => void }[] }) {
+export function QuickTools({ admin = false }: { admin?: boolean }) {
+  const all = TOOLS.filter((t) => admin || !t.admin);
+  const [rail, setRail] = useState<ToolKey[]>(() => {
+    try { const v = JSON.parse(localStorage.getItem(RAIL_KEY) ?? 'null'); if (Array.isArray(v)) return v.filter((k) => TOOLS.some((t) => t.key === k)); } catch { /* private mode */ }
+    return admin ? [...DEFAULT_RAIL.slice(0, 8), 'users', 'text'] : DEFAULT_RAIL;
+  });
   const [open, setOpen] = useState<ToolKey | null>(() => { try { return (sessionStorage.getItem('jhino-qt') as ToolKey) || null; } catch { return null; } });
-  const [plus, setPlus] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
-  // The menu opens beside the + button, fixed to the window so the scrolling rail cannot clip it.
-  const openPlus = (el: HTMLElement) => { const b = el.getBoundingClientRect(); setPlus(innerWidth <= 760 ? { bottom: innerHeight - b.top + 8, right: 10 } : { top: Math.min(b.top, innerHeight - 380), right: innerWidth - b.left + 10 }); };
   const timer = useTimer();
   useEffect(() => { try { if (open) sessionStorage.setItem('jhino-qt', open); else sessionStorage.removeItem('jhino-qt'); } catch { /* private mode */ } }, [open]);
+  useEffect(() => { try { localStorage.setItem(RAIL_KEY, JSON.stringify(rail)); } catch { /* private mode */ } }, [rail]);
   // Other screens can open a tool (Home's "All tasks").
-  useEffect(() => { const on = (e: Event) => { setPlus(null); setOpen((e as CustomEvent).detail as ToolKey); }; addEventListener('jhino-tool', on); return () => removeEventListener('jhino-tool', on); }, []);
-  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(null); setPlus(null); } }; addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, []);
-  const tool = TOOLS.find((t) => t.key === open);
+  useEffect(() => { const on = (e: Event) => setOpen((e as CustomEvent).detail as ToolKey); addEventListener('jhino-tool', on); return () => removeEventListener('jhino-tool', on); }, []);
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(null); }; addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, []);
+  const shown = rail.map((k) => all.find((t) => t.key === k)).filter(Boolean) as typeof TOOLS;
+  const tool = open === 'more' ? { key: 'more' as ToolKey, label: 'More tools', desc: '' } : all.find((t) => t.key === open);
+  const toggleRail = (k: ToolKey) => setRail((r) => (r.includes(k) ? r.filter((x) => x !== k) : [...r, k]));
   return (
     <>
       <nav className="qt-rail" aria-label="Quick tools">
-        {TOOLS.map((t) => (
-          <button key={t.key} className="qt-btn" aria-pressed={open === t.key} aria-label={t.label} onClick={() => { setPlus(null); setOpen(open === t.key ? null : t.key); }}>
+        {shown.map((t) => (
+          <button key={t.key} className="qt-btn" aria-pressed={open === t.key} aria-label={t.label} onClick={() => setOpen(open === t.key ? null : t.key)}>
             <Svg d={P[t.key]} />{t.key === 'focus' && timer.running && <span className="qt-dot mono">{Math.ceil(timer.left / 60)}</span>}
           </button>
         ))}
         <span className="qt-sep" aria-hidden="true" />
         <div className="qt-plus-wrap">
-          <button className="qt-btn qt-plus" aria-label="Quick actions" aria-haspopup="menu" aria-expanded={!!plus} onClick={(e) => (plus ? setPlus(null) : openPlus(e.currentTarget))}><Icon name="plus" /></button>
+          <button className="qt-btn qt-plus" aria-label="More tools" aria-pressed={open === 'more'} onClick={() => setOpen(open === 'more' ? null : 'more')}><Icon name="plus" /></button>
         </div>
       </nav>
-      {plus && (
-        <>
-          <div className="qt-menu-scrim" onClick={() => setPlus(null)} aria-hidden="true" />
-          <div className="qt-menu" role="menu" aria-label="Quick actions" style={plus}>
-            {(actions ?? []).map((a) => a.to
-              ? <Link key={a.label} role="menuitem" to={a.to} onClick={() => setPlus(null)}>{a.label}</Link>
-              : <button key={a.label} role="menuitem" onClick={() => { setPlus(null); a.onClick?.(); }}>{a.label}</button>)}
-          </div>
-        </>
-      )}
       {tool && (
         <aside className={`qt-panel ${tool.key === 'focus' ? 'wide' : ''}`} aria-label={tool.label}>
-          <header className="qt-head"><h2>{tool.label}</h2><button className="icon-btn" onClick={() => setOpen(null)} aria-label="Close"><Icon name="close" /></button></header>
+          <header className="qt-head">
+            {tool.key !== 'more' && !rail.includes(tool.key) ? <button className="icon-btn" onClick={() => setOpen('more')} aria-label="Back to more tools"><Icon name="back" size={18} /></button> : null}
+            <h2>{tool.label}</h2>
+            <button className="icon-btn" onClick={() => setOpen(null)} aria-label="Close"><Icon name="close" /></button>
+          </header>
           <div className="qt-body">
+            {tool.key === 'more' && (
+              <>
+                <p className="qt-hint">Open any tool, and choose which ones sit on the rail. Your choice is kept on this device.</p>
+                <ul className="qt-cat">{all.map((t) => (
+                  <li key={t.key}>
+                    <button className="qt-cat-open" onClick={() => setOpen(t.key)}>
+                      <span className="qt-cat-ic"><Svg d={P[t.key]} size={18} /></span>
+                      <span className="qt-li-main"><b>{t.label}</b><small>{t.desc}</small></span>
+                    </button>
+                    <label className="qt-switch" title={rail.includes(t.key) ? 'On the rail' : 'Add to the rail'}>
+                      <input type="checkbox" checked={rail.includes(t.key)} onChange={() => toggleRail(t.key)} aria-label={`Show ${t.label} on the rail`} /><i aria-hidden="true" />
+                    </label>
+                  </li>
+                ))}</ul>
+                <button className="btn sm quiet" onClick={() => setRail(admin ? [...DEFAULT_RAIL.slice(0, 8), 'users', 'text'] : DEFAULT_RAIL)}>Reset the rail</button>
+              </>
+            )}
             {tool.key === 'focus' && <Focus t={timer} />}
             {tool.key === 'calendar' && <Calendar />}
             {tool.key === 'tasks' && <Tasks />}
@@ -103,6 +145,14 @@ export function QuickTools({ actions }: { actions?: { label: string; to?: string
             {tool.key === 'links' && <ShortLinks />}
             {tool.key === 'qr' && <QrMaker />}
             {tool.key === 'text' && <TextTools />}
+            {tool.key === 'calc' && <Calculator />}
+            {tool.key === 'date' && <NepaliDate />}
+            {tool.key === 'password' && <Passwords />}
+            {tool.key === 'clock' && <WorldClock />}
+            {tool.key === 'json' && <JsonTool />}
+            {tool.key === 'encode' && <Encoder />}
+            {tool.key === 'colour' && <ColourTool />}
+            {tool.key === 'users' && admin && <UserLookup />}
           </div>
         </aside>
       )}

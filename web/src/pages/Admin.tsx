@@ -6,6 +6,10 @@ import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 import { refreshPlans } from '../plans';
 import { QuickTools, YourDay } from '../QuickTools';
 import { PanelLoader } from '../Loader';
+import { QuickSearch, type Hit } from '../Search';
+import { bsToday } from '../bs';
+import { Bell } from './Shell';
+import { applyTheme } from '../context';
 
 /*
  * Super Admin: the platform owners' own workspace. A full-height sidebar on the left edge, a working
@@ -34,6 +38,24 @@ const NAV: { group: string; items: [NavKey, string, string][] }[] = [
   { group: 'Operations', items: [['support', 'Support', 'help'], ['audit', 'Audit log', 'audit'], ['settings', 'Settings', 'settings']] },
 ];
 const TITLES: Record<NavKey, string> = { overview: 'Overview', analytics: 'Analytics', creations: 'Apps made', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', plans: 'Plans & pricing', apps: 'Apps & data', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
+
+/** Every admin screen, for the top-bar search. */
+const ADMIN_PAGES: Hit[] = [...NAV.flatMap((g) => g.items.map(([k, l]) => ({ group: 'Pages', label: l, sub: g.group || 'Dashboard', to: `/admin/${k}` }))), { group: 'Pages', label: 'My apps', sub: 'Leave Super Admin', to: '/home' }];
+/** People and apps, from the server. */
+const adminSearch = async (q: string): Promise<Hit[]> => {
+  const e = encodeURIComponent(q);
+  const [u, a] = await Promise.all([get<{ users: { id: string; name: string; email: string; username: string | null; role: string }[] }>(`/api/admin/users?q=${e}`).catch(() => ({ users: [] })), get<{ apps: { id: string; name: string; ownerEmail: string }[] }>(`/api/admin/apps?q=${e}`).catch(() => ({ apps: [] }))]);
+  return [
+    ...u.users.slice(0, 6).map((x) => ({ group: 'People', label: x.name + (x.username ? ` · @${x.username}` : ''), sub: `${x.email}${x.role === 'client' ? ' · client sign-in' : x.role === 'super_admin' ? ' · super admin' : ''}`, to: `/admin/users/${x.id}` })),
+    ...a.apps.slice(0, 6).map((x) => ({ group: 'Apps', label: x.name, sub: x.ownerEmail, to: `/admin/apps/${x.id}` })),
+  ];
+};
+/** Light and dark, as on the dashboard. */
+function ThemeButton() {
+  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark');
+  const d = dark ? 'M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M5.6 18.4l-1.4 1.4M19.8 4.2l-1.4 1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z' : 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z';
+  return <button className="icon-btn" aria-label={dark ? 'Use light theme' : 'Use dark theme'} onClick={() => { applyTheme(dark ? 'light' : 'dark'); setDark(!dark); }}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg></button>;
+}
 
 export function AdminPage({ section, sub }: { section: string; sub?: string }) {
   const { user, refresh } = useSession();
@@ -80,10 +102,13 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
       <div className="adm-main">
         <header className="adm-top">
           <button className="icon-btn adm-menu" onClick={() => setDrawer(true)} aria-label="Open menu" aria-expanded={drawer}><Icon name="list" /></button>
-          <p className="adm-where"><span className="muted">Super Admin</span><span className="muted" aria-hidden="true">/</span><b>{TITLES[cur]}</b></p>
+          <QuickSearch placeholder="Search people, apps and pages" pages={ADMIN_PAGES} search={adminSearch} />
           <div className="spacer" />
-          <button className="btn primary sm adm-new" onClick={() => setNewUser(true)}><Icon name="plus" size={15} /><span>New user</span></button>
+          <span className="dsh-date hide-sm" title={new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}>{new Date().toLocaleDateString(undefined, { weekday: 'long' })}, {bsToday() || new Date().toLocaleDateString()}</span>
           {!!counts?.pendingPayments && cur !== 'payments' && <Link to="/admin/payments" className="adm-pill"><i className="live-dot" />{counts.pendingPayments} plan {counts.pendingPayments === 1 ? 'request' : 'requests'}</Link>}
+          <button className="btn primary sm adm-new" onClick={() => setNewUser(true)}><Icon name="plus" size={15} /><span>New user</span></button>
+          <Bell />
+          <ThemeButton />
         </header>
         <main className="adm-body">
           {cur === 'overview' && <Overview />}
@@ -102,15 +127,7 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
           {cur === 'settings' && <Settings />}
         </main>
       </div>
-      <QuickTools actions={[
-        { label: 'New user', onClick: () => setNewUser(true) },
-        { label: 'Review plan requests', to: '/admin/payments' },
-        { label: 'Support and feature requests', to: '/admin/support' },
-        { label: 'Give an address', to: '/admin/hosting' },
-        { label: 'Short links', to: '/admin/links' },
-        { label: 'Send an announcement', to: '/admin/settings' },
-        { label: 'Plans & pricing', to: '/admin/plans' },
-      ]} />
+      <QuickTools admin />
       {newUser && <CreateUser onClose={(made) => { setNewUser(false); if (made) go(`/admin/users/${made}`); }} />}
     </div>
   );

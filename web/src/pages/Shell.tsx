@@ -1,5 +1,19 @@
 import { Wordmark } from '../Logo';
 import { QuickTools } from '../QuickTools';
+import { QuickSearch, type Hit } from '../Search';
+import { bsToday } from '../bs';
+import { appPathOf } from './Apps';
+
+/** Apps for the top-bar search: fetched once per page view, then matched as you type. */
+let appsCache: Promise<{ apps: { id: string; name: string; brand?: { client?: string } | null; role: string; rootSlug?: string | null; slug?: string | null; ownerUsername?: string | null }[] }> | null = null;
+const searchApps = async (q: string): Promise<Hit[]> => {
+  appsCache ??= get('/api/apps');
+  const s = q.toLowerCase();
+  const { apps } = await appsCache.catch(() => { appsCache = null; return { apps: [] }; });
+  setTimeout(() => { appsCache = null; }, 60_000);
+  return apps.filter((a) => `${a.name} ${a.brand?.client ?? ''}`.toLowerCase().includes(s)).slice(0, 8)
+    .map((a) => ({ group: 'Apps', label: a.name, sub: a.role === 'owner' ? 'Yours' : 'Shared with you', to: appPathOf(a as never) }));
+};
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
 import { Link, useRoute, useSession, applyTheme } from '../context';
@@ -146,13 +160,18 @@ export function Shell({ children }: { children: ReactNode }) {
 
   const [drawer, setDrawer] = useState(false);
   const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark');
-  const [q, setQ] = useState('');
   useEffect(() => { setDrawer(false); }, [path]);
   const nav = (to: string, label: string, icon: ReactNode, badge?: number) => (
     <Link to={to} aria-current={path === to ? 'page' : undefined}>{icon}<span>{label}</span>{!!badge && <span className="dsh-count mono">{badge}</span>}</Link>
   );
   const I = (d: string) => <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
-  const today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const now = new Date();
+  const today = `${now.toLocaleDateString(undefined, { weekday: 'long' })}, ${bsToday(now) || now.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  const pages: Hit[] = [
+    ...(user.canCreate ? [['Home', '/home'], ['My apps', '/apps'], ['Shared with me', '/shared'], ['Links', '/links'], ...(user.username ? [['My page', `/${user.username}`]] : []), ['Trash', '/trash'], ['Create an app', '/build']] : [['Your apps', '/apps']]),
+    ['Profile', '/account/profile'], ...(user.canCreate ? [['Plan & usage', '/account/plan'], ['Billing', '/account/billing']] : []), ['Notifications', '/account/notifications'], ['Security', '/account/security'], ['Help & support', '/help'],
+    ...(user.isAdmin ? [['Super Admin', '/admin']] : []),
+  ].map(([label, to]) => ({ group: 'Pages', label, to }));
 
   return (
     <>
@@ -187,13 +206,9 @@ export function Shell({ children }: { children: ReactNode }) {
         <div className="dsh-main">
           <header className="dsh-top">
             <button className="icon-btn dsh-menu" onClick={() => setDrawer(true)} aria-label="Open menu" aria-expanded={drawer}><Icon name="list" /></button>
-            {user.canCreate && (
-              <form className="dsh-search" role="search" onSubmit={(e) => { e.preventDefault(); go(`/apps?q=${encodeURIComponent(q.trim())}`); window.dispatchEvent(new CustomEvent('jhino-search', { detail: q.trim() })); }}>
-                <Icon name="search" size={16} /><input aria-label="Search your apps" placeholder="Search apps, clients, people" value={q} onChange={(e) => setQ(e.target.value)} />
-              </form>
-            )}
+            <QuickSearch placeholder={user.canCreate ? 'Search apps and pages' : 'Search your apps'} pages={pages} search={searchApps} />
             <div className="spacer" />
-            <span className="dsh-date hide-sm">{today}</span>
+            <span className="dsh-date hide-sm" title={now.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}>{today}</span>
             {user.canCreate && (
               <div className="home-actions">
                 <button className="btn primary sm" onClick={() => { setDropped(null); setDialog('upload'); }} aria-label="Upload HTML or ZIP">
@@ -234,13 +249,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <button role="menuitem" onClick={async () => { await post('/api/auth/logout'); await refresh(); go('/login', true); }}><Icon name="logout" size={16} />Log out</button>
         </Menu>
       )}
-      {user.canCreate && <QuickTools actions={[
-        { label: 'Create an app', to: '/build' },
-        { label: 'Upload HTML or ZIP', onClick: () => { setDropped(null); setDialog('upload'); } },
-        { label: 'Make a short link', to: '/links' },
-        { label: 'Edit my page', to: user.username ? `/${user.username}` : '/account/profile' },
-        { label: 'Request a feature', to: '/help?kind=feedback' },
-      ]} />}
+      {user.canCreate && <QuickTools />}
       {dialog === 'upload' && <UploadDialog file={dropped} onClose={() => setDialog(null)} />}
       {dragging && <div className="dropping-overlay">Drop to upload your app</div>}
     </>
@@ -249,7 +258,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
 /* ---------- the bell: payments, reminders, security and support notices ---------- */
 interface Note { id: number; category: string; title: string; body: string; link: string | null; createdAt: string; readAt: string | null }
-function Bell() {
+export function Bell() {
   const { go } = useRoute();
   const [items, setItems] = useState<Note[]>([]);
   const [unread, setUnread] = useState(0);
