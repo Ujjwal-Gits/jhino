@@ -250,7 +250,7 @@ function visitorApp(a: AppRow) {
   if (v?.builder) { try { const c = JSON.parse(v.builder); brand = { accent: c.design?.accent, logo: !!c.design?.logo, client: c.client }; } catch { /* old build */ } }
   return { id: a.id, name: a.name, showBar: a.show_bar !== 0, access: a.access, role: a.public_role, brand };
 }
-setInterval(() => db.prepare('DELETE FROM pub_sessions WHERE expires_at < ?').run(now()), 3600_000).unref();
+// Expired link-visitor sessions are removed every hour by the janitor (janitor.ts).
 
 export function registerPublicShare(app: FastifyInstance) {
   // View-only links never make anyone a member (joins made by them before this rule are undone).

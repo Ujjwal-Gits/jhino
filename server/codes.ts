@@ -58,7 +58,7 @@ function usage(userId: string) {
   return (db.prepare('SELECT issued, wrong FROM code_usage WHERE user_id=? AND day=?').get(userId, today()) as { issued: number; wrong: number } | undefined) ?? { issued: 0, wrong: 0 };
 }
 const bump = (userId: string, col: 'issued' | 'wrong') => db.prepare(`INSERT INTO code_usage(user_id,day,${col}) VALUES(?,?,1) ON CONFLICT(user_id,day) DO UPDATE SET ${col}=${col}+1`).run(userId, today());
-setInterval(() => db.prepare('DELETE FROM code_usage WHERE day < ?').run(new Date(Date.now() - 3 * 864e5).toISOString().slice(0, 10)), 6 * 3600e3).unref();
+// Counts older than 3 days are removed by the janitor (janitor.ts).
 
 export function issueCode(userId: string, purpose: Purpose, data: string | null = null): Issued {
   if (usage(userId).issued >= DAY_SENDS) throw new HttpError(429, 'CODE_DAY_LIMIT', 'Too many codes were asked for this account today. Try again tomorrow, or contact support.');
@@ -122,7 +122,7 @@ export function useToken(token: unknown, purposes: Purpose[]) {
   }
   return row;
 }
-setInterval(() => db.prepare('DELETE FROM auth_tokens WHERE expires_at < ?').run(new Date(Date.now() - 7 * 864e5).toISOString()), 6 * 3600e3).unref();
+// Codes and links a week past their expiry are removed by the janitor (janitor.ts).
 
 const looksLikeEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 /** A new sign-up must confirm the email with a code before it gets a session. */

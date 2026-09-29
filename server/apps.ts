@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import { trackRun } from './analytics.js';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { config, ROOT } from './config.js';
 import { db, newId, now, sha256, roleOf, logActivity, canAdd, canWrite, type AppRow, type Role, type UserRow } from './db.js';
 import { HttpError, requireUser, requireCreator, createUser, createSession, validateEmail, validateName, validatePassword, publicUser, hashPassword } from './auth.js';
@@ -127,7 +127,7 @@ export async function createAppFromUpload(user: UserRow, buf: Buffer, filename: 
 /* ---------------- run tokens: short-lived, per open app, cookie-free ---------------- */
 interface Run { appId: string; n: number; userId: string; nonce: string; exp: number; desk: number }
 const getRun = (token: string) => db.prepare('SELECT app_id appId, n, user_id userId, nonce, expires_at exp, desk FROM runs WHERE token_hash=?').get(sha256(token)) as Run | undefined;
-setInterval(() => db.prepare('DELETE FROM runs WHERE expires_at < ?').run(Date.now()), 10 * 60_000).unref();
+// Expired run tokens are removed every hour by the janitor (janitor.ts); an expired one is refused anyway.
 
 export const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.htm': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
@@ -583,15 +583,17 @@ export function registerApps(app: FastifyInstance) {
     return { url: `/run/${token}/`, nonce, role, version: a.live_version };
   });
 
-  app.get('/_jhino/shim.js', async (_req, reply) => {
-    reply.header('Content-Type', 'text/javascript; charset=utf-8').header('Cache-Control', 'no-cache');
-    return fs.createReadStream(shimPath());
-  });
-
-  app.get('/_jhino/idb.js', async (_req, reply) => {
-    reply.header('Content-Type', 'text/javascript; charset=utf-8').header('Cache-Control', 'no-cache');
-    return fs.createReadStream(path.join(ROOT, 'runtime', 'idb.js'));
-  });
+  // Loaded by every app launch: checked each time (no-cache), but sent again only when it changed (ETag).
+  const runtimeScript = (file: () => string) => async (req: FastifyRequest, reply: FastifyReply) => {
+    const p = file();
+    const st = fs.statSync(p);
+    const etag = `"${st.size.toString(36)}-${Math.round(st.mtimeMs).toString(36)}"`;
+    reply.header('Content-Type', 'text/javascript; charset=utf-8').header('Cache-Control', 'no-cache').header('ETag', etag);
+    if (req.headers['if-none-match'] === etag) return reply.code(304).send();
+    return fs.createReadStream(p);
+  };
+  app.get('/_jhino/shim.js', runtimeScript(shimPath));
+  app.get('/_jhino/idb.js', runtimeScript(() => path.join(ROOT, 'runtime', 'idb.js')));
 
   app.get('/run/:token/*', async (req, reply) => {
     const { token } = req.params as { token: string };

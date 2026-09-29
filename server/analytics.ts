@@ -66,11 +66,7 @@ const stmt = {
   visitor: db.prepare('UPDATE site_days SET visitors=visitors+1 WHERE day=? AND dim=? AND key=?'),
   hour: db.prepare('INSERT INTO site_hours(hour,views) VALUES(?,1) ON CONFLICT(hour) DO UPDATE SET views=views+1'),
 };
-setInterval(() => {
-  const old = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
-  db.prepare('DELETE FROM site_seen WHERE day < ?').run(old);
-  db.prepare('DELETE FROM site_hours WHERE hour < ?').run(new Date(Date.now() - 8 * 864e5).toISOString().slice(0, 13));
-}, 6 * 3600e3).unref();
+// Old visitor hashes (2 days), hours (30 days) and days (13 months) are removed by the janitor (janitor.ts).
 
 /**
  * Count one view (and keep the visitor in the live list). `beat` only keeps them live (a page still open).
@@ -84,7 +80,8 @@ export function track(req: FastifyRequest, t: { area: Area; key: string; title: 
     const visitor = sha256(`${daySalt(day)}:${req.ip}:${ua}`).slice(0, 32);
     const { country } = clientInfo(req);
     const device = deviceOf(ua);
-    live.set(visitor, { at: Date.now(), area: t.area, key: t.key, title: t.title, country, device });
+    // At most 100,000 people "live" at once in memory (the list is also pruned every 30 seconds).
+    if (live.size < 100_000 || live.has(visitor)) live.set(visitor, { at: Date.now(), area: t.area, key: t.key, title: t.title, country, device });
     if (t.beat) return;
     const dims: [string, string][] = [['all', ''], ['area', t.area], ['country', country ?? '—'], ['device', device], ['browser', browserOf(ua)], ['ref', refOf(t.ref, req)]];
     if (t.area === 'app') dims.push(['app', t.key]);
@@ -198,7 +195,8 @@ export function registerSiteAnalytics(app: FastifyInstance) {
 }
 
 /* ---------------- Super Admin: apps made on Jhino ---------------- */
-// How an app was made, from its first version: built with Create app, an uploaded HTML file, or a ZIP.
+// How an app was made, from its oldest kept version: built with Create app, an uploaded HTML file, or a ZIP.
+// (Old versions are pruned by the janitor, so version 1 may be gone; the oldest one left tells the same.)
 const KIND = `CASE WHEN v.builder IS NOT NULL THEN 'built' WHEN lower(v.source_name) LIKE '%.zip' THEN 'zip' ELSE 'html' END`;
 
 export function registerCreations(app: FastifyInstance) {
@@ -206,7 +204,7 @@ export function registerCreations(app: FastifyInstance) {
     requireAdmin(req);
     const days = Math.max(1, Math.min(365, Number((req.query as { days?: string }).days) || 30));
     const from = day(days - 1), pFrom = day(days * 2 - 1), pTo = day(days);
-    const first = `SELECT a.id, a.name, a.owner_id, a.created_at, a.deleted_at, ${KIND} kind FROM apps a JOIN app_versions v ON v.app_id=a.id AND v.n=1`;
+    const first = `SELECT a.id, a.name, a.owner_id, a.created_at, a.deleted_at, ${KIND} kind FROM apps a JOIN app_versions v ON v.app_id=a.id AND v.n=(SELECT MIN(n) FROM app_versions WHERE app_id=a.id)`;
     const kinds = (sql: string, ...args: unknown[]) => Object.fromEntries((db.prepare(`SELECT kind, COUNT(*) n FROM (${first}) ${sql} GROUP BY kind`).all(...args) as { kind: string; n: number }[]).map((r) => [r.kind, r.n]));
     const count = (sql: string, ...args: unknown[]) => (db.prepare(sql).get(...args) as { n: number }).n;
     const perDay = new Map((db.prepare(`SELECT substr(created_at,1,10) d, kind, COUNT(*) n FROM (${first}) WHERE created_at >= ? GROUP BY d, kind`).all(from) as { d: string; kind: string; n: number }[])

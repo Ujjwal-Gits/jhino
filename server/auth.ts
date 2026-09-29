@@ -178,7 +178,8 @@ export async function checkLogin(req: FastifyRequest, emailIn: unknown, password
 export function afterLogin(req: FastifyRequest, u: UserRow, how = 'password') {
   const c = clientInfo(req);
   const seen = db.prepare("SELECT 1 FROM security_events WHERE user_id=? AND kind='login' AND ua=? LIMIT 1").get(u.id, c.ua);
-  const first = !db.prepare("SELECT 1 FROM security_events WHERE user_id=? AND kind='login' LIMIT 1").get(u.id);
+  // Security events are kept 90 days (janitor.ts): someone who signed in before, longer ago than that, is not new.
+  const first = !u.last_login_at && !db.prepare("SELECT 1 FROM security_events WHERE user_id=? AND kind='login' LIMIT 1").get(u.id);
   db.prepare('UPDATE users SET last_login_at=?, last_login_ip=?, last_login_ua=? WHERE id=?').run(now(), c.ip, c.ua, u.id);
   securityEvent(u.id, 'login', req, how);
   if (!seen && !first) sendMail(u.email, 'new_login', mails.newLogin(u.name, deviceName(c.ua), c.country ?? '', new Date().toUTCString()));
@@ -206,7 +207,7 @@ export async function reauth(req: FastifyRequest, password: unknown) {
   return u;
 }
 
-setInterval(() => db.prepare('DELETE FROM sessions WHERE expires_at < ?').run(now()), 3600_000).unref();
+// Expired sessions are removed every hour by the janitor (janitor.ts).
 
 export function registerAuth(app: FastifyInstance) {
   app.decorateRequest('user', null);

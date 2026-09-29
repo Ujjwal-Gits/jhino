@@ -75,7 +75,7 @@ export async function verifyIdToken(token: string, e: Endpoints, aud: string, no
 /* ---------------- the flow ---------------- */
 const BIND = 'jhino_oauth';
 const bindCookie = { path: '/api/auth/oauth', httpOnly: true, secure: config.cookieSecure, sameSite: (config.cookieSecure ? 'none' : 'lax') as 'none' | 'lax', maxAge: 600 };
-setInterval(() => db.prepare('DELETE FROM oauth_states WHERE created_at < ?').run(new Date(Date.now() - 15 * 60_000).toISOString()), 600_000).unref();
+// Unused states are refused after 10 minutes (below) and removed by the janitor (janitor.ts).
 
 function fail(reply: FastifyReply, code: string) { return reply.redirect(`/login?error=${encodeURIComponent(code)}`); }
 

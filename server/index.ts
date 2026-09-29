@@ -36,6 +36,7 @@ import { registerCreations, registerSiteAnalytics } from './analytics.js';
 import { startAutoBackups } from './autobackup.js';
 import { closeAllStreams } from './realtime.js';
 import { stopVideo } from './video.js';
+import { startJanitor } from './janitor.js';
 
 const app = Fastify({
   logger: {
@@ -118,6 +119,8 @@ registerFiles(app);
 registerBuilder(app);
 registerActivity(app);
 registerTrash(app);
+// What is kept and for how long: expired rows every hour, old history and files every night (janitor.ts).
+startJanitor(app);
 
 // Fonts for built apps. They load from sandboxed (origin "null") frames, so they need CORS.
 const FONTS = path.join(ROOT, 'runtime', 'fonts');
@@ -143,13 +146,26 @@ if (fs.existsSync(path.join(webDir, 'index.html'))) {
   await app.register(fstatic, {
     // index: false, so the home page too goes through the page writer below (its title, description and schema).
     root: webDir, index: false, wildcard: true, prefix: '/', cacheControl: false,
-    // Fingerprinted assets never change; the page itself is always fetched fresh.
-    setHeaders: (res, file) => { res.header('Cache-Control', /[\\/]assets[\\/]/.test(file) ? 'public, max-age=31536000, immutable' : 'no-store'); },
+    // Fingerprinted assets never change (Cloudflare and browsers keep them a year); the page itself is always
+    // fetched fresh; other files (website photos, brand icons) have fixed names, so they are kept for a day.
+    setHeaders: (res, file) => {
+      res.header('Cache-Control', /[\\/]assets[\\/]/.test(file) ? 'public, max-age=31536000, immutable' : /\.html?$/i.test(file) ? 'no-store' : 'public, max-age=86400');
+    },
   });
+  // The page every address is written into: read once, and again only when a new build has replaced it.
+  let shell = { at: 0, mtime: 0, html: '' };
+  const indexHtml = () => {
+    if (Date.now() - shell.at > 2000) {
+      const file = path.join(webDir, 'index.html');
+      const mtime = fs.statSync(file).mtimeMs;
+      shell = { at: Date.now(), mtime, html: mtime === shell.mtime && shell.html ? shell.html : fs.readFileSync(file, 'utf8') };
+    }
+    return shell.html;
+  };
   // The home page: before the static files (a folder there answers 403), through the page writer.
   app.addHook('onRequest', async (req, reply) => {
     if ((req.method !== 'GET' && req.method !== 'HEAD') || !/^\/(\?|$)/.test(req.url)) return;
-    const page = renderDocument(req, fs.readFileSync(path.join(webDir, 'index.html'), 'utf8'));
+    const page = renderDocument(req, indexHtml());
     return reply.code(page.status).header('Cache-Control', 'no-store').type('text/html; charset=utf-8').send(page.html);
   });
   app.setNotFoundHandler((req, reply) => {
@@ -158,7 +174,7 @@ if (fs.existsSync(path.join(webDir, 'index.html'))) {
     }
     // Every page of the app: its own head for search engines and previews, its words for crawlers, and the
     // right status (404 for addresses that do not exist, so they never show up as empty pages).
-    const page = renderDocument(req, fs.readFileSync(path.join(webDir, 'index.html'), 'utf8'));
+    const page = renderDocument(req, indexHtml());
     reply.code(page.status).header('Cache-Control', 'no-store').type('text/html; charset=utf-8').send(page.html);
   });
 }

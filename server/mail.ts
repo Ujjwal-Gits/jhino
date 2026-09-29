@@ -110,8 +110,8 @@ export function sendMail(to: string, kind: string, m: Mail) {
     .catch((e: Error) => { db.prepare("UPDATE email_outbox SET status='failed', error=? WHERE id=?").run(e.message.slice(0, 300), id); console.error('[mail]', kind, e.message); });
 }
 
-// Links in logged emails are only useful for a few days; keep the log, drop old bodies.
-setInterval(() => db.prepare("UPDATE email_outbox SET body='' WHERE created_at < ? AND body <> ''").run(new Date(Date.now() - 14 * 864e5).toISOString()), 6 * 3600_000).unref();
+// Links in logged emails are only useful for a few days: the janitor (janitor.ts) empties bodies after
+// 14 days and removes the log line after 30.
 
 /* ---------------- the emails ---------------- */
 const CODE_NOTE = 'It works for 5 minutes. Asked again within that time, you get this same code.';

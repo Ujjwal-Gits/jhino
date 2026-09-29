@@ -431,6 +431,7 @@ async function dnsProvider(base: string) {
   const m = PROVIDERS.find(([re]) => ns.some((n) => re.test(n)));
   const np = /\.np$/.test(base);
   const v = { provider: m?.[1] ?? null, nameservers: ns, root: (m?.[2] ?? (np ? 'move' : 'unknown')) as RootWay };
+  if (provCache.size >= 2000) provCache.clear(); // an hour-long cache, bounded
   provCache.set(base, { at: Date.now(), v });
   return v;
 }

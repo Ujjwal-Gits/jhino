@@ -176,8 +176,16 @@ async function downloadImage(src: string): Promise<{ type: string; data: Buffer 
   }
   return null;
 }
-/** The picture made smaller: at most 640 px wide, JPEG (about 30 to 80 KB). Null when ffmpeg cannot. */
-function shrinkImage(data: Buffer): Promise<Buffer | null> {
+/** The picture made smaller: at most 640 px wide, JPEG (about 30 to 80 KB). Null when ffmpeg cannot.
+ * At most two ffmpeg runs at once, so a burst of new videos never floods the server. */
+let shrinking = 0;
+const shrinkQueue: (() => void)[] = [];
+async function shrinkImage(data: Buffer): Promise<Buffer | null> {
+  if (shrinking >= 2) await new Promise<void>((go) => shrinkQueue.push(go));
+  shrinking++;
+  try { return await shrinkOnce(data); } finally { shrinking--; shrinkQueue.shift()?.(); }
+}
+function shrinkOnce(data: Buffer): Promise<Buffer | null> {
   const bin = ffmpegPath();
   if (!bin) return Promise.resolve(null);
   return new Promise((resolve) => {
@@ -226,7 +234,7 @@ function storeThumb(itemId: string, url: string, src?: string | null): Promise<v
     } catch { data = null; }
     // The item may have gone, or changed its link, while this ran: only keep it for the link it still has.
     if (!db.prepare("SELECT 1 FROM profile_items WHERE id=? AND url=? AND type='video'").get(itemId, url)) return;
-    if (!data) { thumbFailed.set(itemId, Date.now()); return; }
+    if (!data) { if (thumbFailed.size > 5000) thumbFailed.clear(); thumbFailed.set(itemId, Date.now()); return; }
     removeThumb(itemId);
     fs.mkdirSync(THUMB_DIR, { recursive: true });
     const file = path.join(THUMB_DIR, `${itemId}.${THUMB_EXT[type]}`);
@@ -406,7 +414,7 @@ function countView(req: FastifyRequest, userId: string, ref: unknown) {
     }
   })();
 }
-setInterval(() => db.prepare('DELETE FROM page_seen WHERE day < ?').run(new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10)), 6 * 3600e3).unref();
+// Old page_seen rows are removed by the janitor (server/janitor.ts).
 
 /* ---------------- the owner's own HTML page (Pro), sandboxed ---------------- */
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));

@@ -5,10 +5,41 @@ import { config } from './config.js';
 
 export const db = new Database(path.join(config.dataDir, 'jhino.db'));
 db.pragma('journal_mode = WAL');
-// FULL: a write is on disk before we answer "Saved".
-db.pragma('synchronous = FULL');
+/*
+ * NORMAL, not FULL. With WAL, NORMAL never corrupts the database and never loses a write when the
+ * process crashes or is restarted (every commit is in the WAL file before we answer "Saved"). What it
+ * gives up: after a power cut or kernel crash of the VPS itself, the last commits since the previous
+ * WAL sync can be rolled back. In exchange each commit skips an fsync, which on a small VPS is most of
+ * the cost of a write (page views, clicks, saves). SQLITE_SYNC=full restores the old behaviour.
+ */
+db.pragma(process.env.SQLITE_SYNC === 'full' ? 'synchronous = FULL' : 'synchronous = NORMAL');
 db.pragma('foreign_keys = ON');
 db.pragma('busy_timeout = 5000');
+// 32 MB of page cache (the default is 2 MB), temp tables in memory, and a WAL file that shrinks back to
+// 64 MB after each checkpoint instead of staying as large as its biggest burst.
+db.pragma('cache_size = -32000');
+db.pragma('temp_store = MEMORY');
+db.pragma('journal_size_limit = 67108864');
+
+/*
+ * Prepared statements are reused: better-sqlite3 compiles the SQL on every db.prepare() call, and the
+ * code prepares inline on hot paths (sign-in check, lookups on every request). No code here switches a
+ * statement's mode (pluck/raw/expand) or iterates one, so a shared statement is safe. Bounded: SQL built
+ * with a variable number of "?" is cached too, and the whole cache is dropped if it ever grows past 2,000.
+ */
+{
+  const compile = db.prepare.bind(db);
+  const statements = new Map<string, ReturnType<typeof compile>>();
+  (db as { prepare: typeof compile }).prepare = ((sql: string) => {
+    let s = statements.get(sql);
+    if (!s) {
+      if (statements.size >= 2000) statements.clear();
+      s = compile(sql);
+      statements.set(sql, s);
+    }
+    return s;
+  }) as typeof compile;
+}
 
 const MIGRATIONS: string[] = [
   `
@@ -643,6 +674,25 @@ function ensureSchema() {
     db.exec('CREATE INDEX IF NOT EXISTS custom_domains_app ON custom_domains(app_id)');
     db.exec('CREATE INDEX IF NOT EXISTS custom_domains_owner ON custom_domains(owner_id)');
     db.exec('CREATE INDEX IF NOT EXISTS custom_domains_next ON custom_domains(next_check_at)');
+
+    // Indexes for lookups that ran as full table scans (checked with EXPLAIN QUERY PLAN):
+    // - every GET of /<name> looks for a short link by code (links.ts), including every public page view;
+    db.exec('CREATE INDEX IF NOT EXISTS short_links_code_any ON short_links(code COLLATE NOCASE)');
+    // - every activity line first looks for the same person's last line on that thing (logActivity);
+    db.exec('CREATE INDEX IF NOT EXISTS activity_recent ON activity(app_id, user_id, action, id)');
+    // - Trash counts an item's comments; payment history reads the audit log by payment;
+    db.exec('CREATE INDEX IF NOT EXISTS trash_parent ON trash(parent) WHERE parent IS NOT NULL');
+    db.exec('CREATE INDEX IF NOT EXISTS audit_log_target ON audit_log(target_type, target_id)');
+    // - deleting an account or an app (foreign keys) and the account pages;
+    db.exec('CREATE INDEX IF NOT EXISTS subscriptions_user ON subscriptions(user_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS identities_user ON identities(user_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS support_tickets_user ON support_tickets(user_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS runs_app ON runs(app_id, n)');
+    db.exec('CREATE INDEX IF NOT EXISTS runs_user ON runs(user_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS pub_sessions_app ON pub_sessions(app_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS app_keys_app ON app_keys(app_id)');
+    // - the janitor (janitor.ts) removing expired sessions every hour.
+    db.exec('CREATE INDEX IF NOT EXISTS sessions_expires ON sessions(expires_at)');
   })();
 }
 ensureSchema();

@@ -5,7 +5,16 @@ import { HttpError } from './errors.js';
 /* ---------------- rate limits ---------------- */
 // Fixed windows in memory: enough for one server; counters reset on restart.
 const hits = new Map<string, { n: number; reset: number }>();
-setInterval(() => { const t = Date.now(); for (const [k, v] of hits) if (v.reset < t) hits.delete(k); }, 60_000).unref();
+const pruneHits = () => { const t = Date.now(); for (const [k, v] of hits) if (v.reset < t) hits.delete(k); };
+setInterval(pruneHits, 60_000).unref();
+/** A new counter. Many addresses inside one minute (a flood from a botnet) cannot grow the map without end. */
+const MAX_COUNTERS = 200_000;
+function counter(key: string, t: number, windowMs: number) {
+  if (hits.size >= MAX_COUNTERS) { pruneHits(); if (hits.size >= MAX_COUNTERS) hits.clear(); }
+  const h = { n: 0, reset: t + windowMs };
+  hits.set(key, h);
+  return h;
+}
 
 // Automated tests sign in hundreds of times from one address; they raise this. Never set it in production.
 const SCALE = Math.max(1, Number(process.env.RATE_LIMIT_SCALE) || 1);
@@ -14,7 +23,7 @@ export function limit(req: FastifyRequest, bucket: string, max: number, windowMs
   const key = `${bucket}|${req.ip}|${extra}`;
   const t = Date.now();
   let h = hits.get(key);
-  if (!h || h.reset < t) { h = { n: 0, reset: t + windowMs }; hits.set(key, h); }
+  if (!h || h.reset < t) h = counter(key, t, windowMs);
   h.n++;
   if (h.n > max * SCALE) {
     const wait = Math.ceil((h.reset - t) / 1000);
@@ -30,7 +39,7 @@ export function limitKey(bucket: string, key: string, max: number, windowMs: num
   const k = `${bucket}|#${key.toLowerCase()}`;
   const t = Date.now();
   let h = hits.get(k);
-  if (!h || h.reset < t) { h = { n: 0, reset: t + windowMs }; hits.set(k, h); }
+  if (!h || h.reset < t) h = counter(k, t, windowMs);
   h.n++;
   if (h.n > max * SCALE) {
     const wait = Math.ceil((h.reset - t) / 1000);

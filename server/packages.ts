@@ -29,8 +29,27 @@ const JUNK = /(^|\/)(__MACOSX\/|\.DS_Store$|Thumbs\.db$|desktop\.ini$)/i;
 
 export const appDir = (appId: string, n: number) => path.join(config.dataDir, 'apps', appId, `v${n}`);
 
+/*
+ * Unpacking is disk- and CPU-heavy (up to 250 MB and 3,000 files per ZIP). At most two run at once; more
+ * uploads at the same moment wait their turn instead of all competing with every other request.
+ */
+const MAX_INSTALLS = Math.max(1, Number(process.env.MAX_INSTALLS) || 2);
+let installing = 0;
+const waiting: (() => void)[] = [];
+async function installSlot<T>(work: () => Promise<T>): Promise<T> {
+  if (installing >= MAX_INSTALLS) await new Promise<void>((ok) => waiting.push(ok));
+  installing++;
+  try { return await work(); } finally {
+    installing--;
+    waiting.shift()?.();
+  }
+}
+
 /** Unpack an upload into a staging folder, then move it into place in one rename. */
-export async function installPackage(buf: Buffer, fileName: string, appId: string, n: number): Promise<PackageResult> {
+export function installPackage(buf: Buffer, fileName: string, appId: string, n: number): Promise<PackageResult> {
+  return installSlot(() => install(buf, fileName, appId, n));
+}
+async function install(buf: Buffer, fileName: string, appId: string, n: number): Promise<PackageResult> {
   const staging = path.join(config.dataDir, 'staging', crypto.randomBytes(8).toString('hex'));
   fs.mkdirSync(staging, { recursive: true });
   try {
@@ -43,7 +62,7 @@ export async function installPackage(buf: Buffer, fileName: string, appId: strin
     const entry = findEntry(root);
     const files = listFiles(root);
     const size = files.reduce((s, f) => s + fs.statSync(path.join(root, f)).size, 0);
-    const features = scan(root, files);
+    const features = await scan(root, files);
     // Only the start of the page is read for its title and manifest (a huge or hostile file cannot stall the server).
     const html = readStart(path.join(root, entry), 4 * 1024 * 1024);
     const t = html.slice(0, 512 * 1024).match(/<title[^>]{0,200}>([^<]{1,80})<\/title>/i);
@@ -158,13 +177,14 @@ function listFiles(root: string, rel = ''): string[] {
 }
 
 /** Look at the code (never run it) to tell people honestly how data will behave. */
-function scan(root: string, files: string[]): Features {
+async function scan(root: string, files: string[]): Promise<Features> {
   const f: Features = { localStorage: false, claudeStorage: false, jhinoSdk: false, indexedDB: false, network: false };
   for (const file of files) {
     if (!/\.(html?|m?js|jsx|tsx?)$/i.test(file)) continue;
-    const st = fs.statSync(path.join(root, file));
+    const st = await fs.promises.stat(path.join(root, file));
     if (st.size > 8 * 1024 * 1024) continue;
-    const src = fs.readFileSync(path.join(root, file), 'utf8');
+    // Read without blocking, and let other requests run between files.
+    const src = await fs.promises.readFile(path.join(root, file), 'utf8');
     if (/\blocalStorage\b/.test(src)) f.localStorage = true;
     if (/\bwindow\.storage\b|\bstorage\.(get|set|list|delete)\s*\(/.test(src)) f.claudeStorage = true;
     if (/\bjhino\.(data|kv|me|ready|onChange)\b/.test(src)) f.jhinoSdk = true;

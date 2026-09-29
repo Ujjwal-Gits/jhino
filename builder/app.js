@@ -1613,7 +1613,7 @@
   }
 
   /* ================= Trash: everything deleted, restorable ================= */
-  const TRASH = { id: 'trash', title: 'Trash', short: 'Trash', icon: 'trash', engine: 'trash', description: 'Everything deleted in this app waits here: items, comments, files and links. Restore anything deleted by mistake, or delete it for good.' };
+  const TRASH = { id: 'trash', title: 'Trash', short: 'Trash', icon: 'trash', engine: 'trash', description: 'Everything deleted in this app waits here for 30 days: items, comments, files and links. Restore anything deleted by mistake, or delete it for good. After 30 days it is deleted for good by itself.' };
   function loadTrash() {
     if (!API.trash) return Promise.resolve();
     if (!S.trash.subscribed) { S.trash.subscribed = true; API.trash.subscribe(() => { clearTimeout(timers.__trash); timers.__trash = setTimeout(loadTrash, 150); }); }
@@ -1715,7 +1715,7 @@
     return [
       head(TRASH, S.trash.canPurge && all.length ? h('button', { class: 'btn danger', onClick: async () => { await purgeEntries(all.filter(canPurgeE)); } }, 'Empty Trash') : null),
       h('div', { class: 'body' },
-        !all.length ? h('div', { class: 'empty' }, h('b', { text: 'Trash is empty' }), 'When anyone deletes an item, a comment, a file or a link, it waits here so it can be brought back.') : [
+        !all.length ? h('div', { class: 'empty' }, h('b', { text: 'Trash is empty' }), 'When anyone deletes an item, a comment, a file or a link, it waits here for 30 days so it can be brought back.') : [
           h('div', { class: 'toolbar' },
             h('label', { class: 'switch' }, h('input', { type: 'checkbox', checked: !!allOn, onChange: (ev) => { items.forEach((e) => (ev.target.checked ? sel.add(e.key) : sel.delete(e.key))); renderMain(); } }), 'Select all'),
             h('label', { class: 'search' }, icon('search'), h('input', { class: 'input', placeholder: 'Search Trash', value: S.trash.q || '', 'data-keep': 'q-trash', onInput: (ev) => { S.trash.q = ev.target.value; renderMain(); } })),

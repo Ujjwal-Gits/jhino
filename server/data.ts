@@ -23,6 +23,7 @@ export function snapshotFor(appId: string, userId: string): Record<Ns, Scoped> {
 }
 
 const COLLECTION = /^[A-Za-z0-9_-]{1,64}$/;
+const PAGE_BYTES = 8 * 1024 * 1024;
 const bad = (msg: string, extra: Record<string, unknown> = {}) => new HttpError(400, 'VALIDATION_FAILED', msg, extra);
 
 function checkNs(ns: unknown): Ns {
@@ -121,8 +122,15 @@ export function registerData(app: FastifyInstance) {
       rows = db.prepare(`SELECT * FROM records WHERE app_id=@app AND collection=@col${ownSql} ORDER BY created_at, id LIMIT @lim`)
         .all({ app: id, col: c, me: user.id, lim: limit + 1 }) as RecordRow[];
     }
-    const more = rows.length > limit;
+    let more = rows.length > limit;
     const items = rows.slice(0, limit);
+    // A page holds at most about 8 MB of record data (500 records can be up to 256 KB each); the rest
+    // comes with the next page, so one request never builds a response of 100 MB and more.
+    let bytes = 0;
+    for (let i = 0; i < items.length; i++) {
+      bytes += items[i].data.length;
+      if (bytes > PAGE_BYTES && i > 0) { items.length = i; more = true; break; }
+    }
     const last = items[items.length - 1];
     return { items: items.map(toRecord), next: more && last ? Buffer.from(`${last.created_at}|${last.id}`).toString('base64url') : null };
   });
@@ -225,7 +233,11 @@ export function liveManifest(appId: string): Manifest | null {
   const v = db.prepare('SELECT v.n, v.manifest FROM app_versions v JOIN apps a ON a.id=v.app_id AND v.n=a.live_version WHERE a.id=?').get(appId) as { n: number; manifest: string | null } | undefined;
   if (!v) return null;
   const key = `${appId}:${v.n}`;
-  if (!manifestCache.has(key)) manifestCache.set(key, v.manifest ? (JSON.parse(v.manifest) as Manifest) : null);
+  if (!manifestCache.has(key)) {
+    // One entry per app version ever opened: bounded, it is only a cache.
+    if (manifestCache.size >= 5000) manifestCache.clear();
+    manifestCache.set(key, v.manifest ? (JSON.parse(v.manifest) as Manifest) : null);
+  }
   return manifestCache.get(key)!;
 }
 export function collectionDef(appId: string, c: string): { def: CollectionDef | null; strict: boolean } {

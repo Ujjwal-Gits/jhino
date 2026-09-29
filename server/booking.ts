@@ -89,6 +89,5 @@ export function startBookingReminders() {
   const tick = () => { try { sendDueReminders(); } catch (e) { console.error('[booking]', (e as Error).message); } };
   setTimeout(tick, 5000).unref();
   setInterval(tick, every).unref();
-  // Old "already sent" marks are not needed after a few weeks.
-  setInterval(() => db.prepare('DELETE FROM booking_reminders WHERE fire_at < ?').run(new Date(Date.now() - 30 * 864e5).toISOString()), 6 * 3600e3).unref();
+  // Old "already sent" marks (30 days after their time) are removed by the janitor (janitor.ts).
 }
