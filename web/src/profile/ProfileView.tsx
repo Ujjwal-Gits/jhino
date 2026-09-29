@@ -5,7 +5,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ProfileData, ProfileItem, SocialKind } from './types';
 import { AvatarViewerModal } from '../AvatarModal';
-import { VideoCard } from './VideoCard';
+import { VideoCard, VideoRow } from './VideoCard';
 import './profile.css';
 import './themes.css';
 
@@ -23,6 +23,21 @@ function initialsOf(name: string, username: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   const letters = words.length > 1 ? words[0][0] + words[1][0] : (words[0] || username || '?').slice(0, 1);
   return letters.toUpperCase();
+}
+
+type Placed<T> = { item: T; index: number };
+type VideoItem = Extract<ProfileItem, { type: 'video' }>;
+/** Items in page order, with each run of two or more videos in a row gathered into one group. */
+function groupVideos(items: ProfileItem[]): (Placed<ProfileItem> | Placed<VideoItem>[])[] {
+  const out: (Placed<ProfileItem> | Placed<VideoItem>[])[] = [];
+  let run: Placed<VideoItem>[] = [];
+  const flush = () => { if (run.length > 1) out.push(run); else out.push(...run); run = []; };
+  items.forEach((item, index) => {
+    if (item.type === 'video') run.push({ item, index });
+    else { flush(); out.push({ item, index }); }
+  });
+  flush();
+  return out;
 }
 
 export function ProfileView({ data, preview = false }: { data: ProfileData; preview?: boolean }) {
@@ -84,9 +99,12 @@ export function ProfileView({ data, preview = false }: { data: ProfileData; prev
         </header>
 
         <section className="pf-items" aria-label="Links">
-          {data.items.map((item, i) => {
+          {groupVideos(data.items).map((g) => {
+            // Videos next to each other share one row that swipes sideways; a single video stays full width.
+            if (Array.isArray(g)) return <VideoRow key={g[0].item.id} videos={g.map((v) => v.item)} style={{ '--i': g[0].index } as CSSProperties} />;
+            const { item, index } = g;
             if (item.type === 'link' || item.type === 'app') linkNo++;
-            return <Item key={item.id} item={item} index={i} no={linkNo} preview={preview} />;
+            return <Item key={item.id} item={item} index={index} no={linkNo} preview={preview} />;
           })}
         </section>
 

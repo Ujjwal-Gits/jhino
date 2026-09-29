@@ -330,6 +330,63 @@
   text-transform: uppercase;
 }
 
+/* Videos next to each other: one row that swipes sideways, card by card, with a peek of the next one.
+ * The track bleeds a little past the row so theme rings and shadows on the cards are not clipped. */
+.pf-video-row { --pf-row-bleed: 12px; position: relative; min-width: 0; container: pfrow / inline-size; }
+.pf-video-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 85%;
+  gap: var(--pf-gap);
+  align-items: start;
+  margin: calc(var(--pf-row-bleed) * -1);
+  padding: var(--pf-row-bleed);
+  scroll-padding-inline: var(--pf-row-bleed);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--pf-fg) 22%, transparent) transparent;
+}
+.pf-video-track > .pf-video { min-width: 0; scroll-snap-align: start; }
+@container pfrow (min-width: 620px) { .pf-video-track { grid-auto-columns: calc((100% - var(--pf-gap)) / 2.25); } }
+@container pfrow (min-width: 900px) { .pf-video-track { grid-auto-columns: calc((100% - 2 * var(--pf-gap)) / 3.25); } }
+/* Touch: no scrollbar (the peek says there is more). */
+@media (hover: none) {
+  .pf-video-track { scrollbar-width: none; }
+  .pf-video-track::-webkit-scrollbar { display: none; }
+}
+/* Mouse and trackpad: small previous/next buttons over the row's edges. */
+.pf-video-nav { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .pf-video-nav {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin-top: -4px;
+    padding: 0;
+    border: 1px solid var(--pf-line);
+    border-radius: 50%;
+    background: var(--pf-card);
+    color: var(--pf-card-fg);
+    box-shadow: 0 4px 14px -6px rgb(0 0 0 / 0.35);
+    cursor: pointer;
+    transition: opacity 160ms var(--pf-ease), transform 160ms var(--pf-ease);
+  }
+  .pf-video-nav[data-dir='prev'] { left: 0; transform: translate(-40%, -50%); }
+  .pf-video-nav[data-dir='next'] { right: 0; transform: translate(40%, -50%); }
+  .pf-video-nav:active { transform: translate(var(--pf-nav-x, 40%), -50%) scale(0.94); }
+  .pf-video-nav[data-dir='prev']:active { --pf-nav-x: -40%; }
+  .pf-video-nav:disabled { opacity: 0; pointer-events: none; }
+  .pf .pf-video-nav:focus-visible { outline: 2px solid var(--pf-fg); outline-offset: 2px; }
+}
+
 /* The upright player (Instagram, TikTok) over the page. */
 .pf-vo {
   position: fixed;
@@ -470,9 +527,9 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: calc(var(--pf-gap) + 8px);
   }
-  /* Videos are cards like the links: two to a row, so a page of videos stays short. */
-  .pf[data-layout='profile'] .pf-items > :is(.pf-section, .pf-text) { grid-column: 1 / -1; }
+  .pf[data-layout='profile'] .pf-items > :is(.pf-section, .pf-text, .pf-video, .pf-video-row) { grid-column: 1 / -1; }
   .pf[data-layout='profile'] .pf-items > .pf-text { max-width: 68ch; }
+  .pf[data-layout='profile'] .pf-items > .pf-video { max-width: 820px; }
 }
 
 /* ---------- Jhino promo (free pages), theme-independent ---------- */

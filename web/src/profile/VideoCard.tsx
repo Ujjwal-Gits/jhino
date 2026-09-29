@@ -94,6 +94,63 @@ export function VideoCard({ title, embed, thumb, style, hidden }: { title: strin
 }
 
 /**
+ * Videos next to each other on the page: one row that swipes sideways (snapping card by card), with a
+ * peek of the next card. Pointers that can hover get small previous/next buttons. A swipe or drag
+ * never counts as a tap on a card.
+ */
+export function VideoRow({ videos, style }: { videos: { id: string; title: string; embed: string; thumb?: string | null; hidden?: boolean }[]; style?: CSSProperties }) {
+  const track = useRef<HTMLDivElement>(null);
+  const id = useId();
+  const [edge, setEdge] = useState({ start: true, end: false });
+  const press = useRef<{ x: number; y: number; left: number } | null>(null);
+
+  useEffect(() => {
+    const t = track.current;
+    if (!t) return;
+    const update = () => {
+      const start = t.scrollLeft <= 2;
+      const end = t.scrollLeft + t.clientWidth >= t.scrollWidth - 2;
+      setEdge((e) => (e.start === start && e.end === end ? e : { start, end }));
+    };
+    update();
+    t.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(t);
+    return () => { t.removeEventListener('scroll', update); ro.disconnect(); };
+  }, [videos.length]);
+
+  const step = (dir: 1 | -1) => {
+    const t = track.current;
+    const card = t?.querySelector<HTMLElement>(':scope > .pf-video');
+    if (!t || !card) return;
+    const gap = parseFloat(getComputedStyle(t).columnGap) || 0;
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    t.scrollBy({ left: dir * (card.offsetWidth + gap), behavior: still ? 'auto' : 'smooth' });
+  };
+
+  return (
+    <div className="pf-video-row" style={style}>
+      <div ref={track} id={id} className="pf-video-track" role="group" aria-label={`${videos.length} videos`}
+        onPointerDownCapture={(e) => { press.current = { x: e.clientX, y: e.clientY, left: track.current?.scrollLeft ?? 0 }; }}
+        onClickCapture={(e) => {
+          // A drag or swipe that ends on a card is not a tap on it.
+          const p = press.current;
+          press.current = null;
+          if (p && (Math.hypot(e.clientX - p.x, e.clientY - p.y) > 8 || Math.abs((track.current?.scrollLeft ?? 0) - p.left) > 8)) { e.preventDefault(); e.stopPropagation(); }
+        }}>
+        {videos.map((v) => <VideoCard key={v.id} title={v.title} embed={v.embed} thumb={v.thumb} hidden={v.hidden} />)}
+      </div>
+      <button type="button" className="pf-video-nav" data-dir="prev" aria-controls={id} aria-label="Previous video" disabled={edge.start} onClick={() => step(-1)}>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M14.5 6 8.5 12l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>
+      </button>
+      <button type="button" className="pf-video-nav" data-dir="next" aria-controls={id} aria-label="Next video" disabled={edge.end} onClick={() => step(1)}>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m9.5 6 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>
+      </button>
+    </div>
+  );
+}
+
+/**
  * The upright player over the page: a modal dialog (the page behind is inert, so focus stays inside),
  * closed by Esc, the close button or a tap outside the player. The page does not scroll behind it.
  */
