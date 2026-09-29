@@ -1,0 +1,291 @@
+{
+  "id": "ngo",
+  "name": "Pahal Nepal Foundation",
+  "category": "NGO and nonprofit",
+  "description": "A nonprofit site that reads like a report: the work, where money goes, a timeline, and a form for volunteers and donors.",
+  "site": {
+    "name": "Pahal Nepal Foundation",
+    "theme": {
+      "preset": "newsprint"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/pahalnepal"
+        },
+        {
+          "network": "youtube",
+          "url": "https://www.youtube.com/@pahalnepal"
+        }
+      ],
+      "tagline": "School meals and libraries in Sindhupalchok and Dolakha",
+      "phone": "01-4358821",
+      "email": "info@pahalnepal.org.np",
+      "address": "Baluwatar, Kathmandu 44600"
+    },
+    "header": {
+      "type": "header",
+      "variant": "bar",
+      "props": {
+        "cta": {
+          "label": "Give or volunteer",
+          "href": "page:involved"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "columns",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "Registered with the Social Welfare Council and the District Administration Office, Kathmandu. Audited accounts are published every Ashwin."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Pahal Nepal Foundation: school meals and libraries in Sindhupalchok",
+        "seoDescription": "A Kathmandu nonprofit serving daily school meals and running libraries in Sindhupalchok and Dolakha since 2073. Audited accounts published every year.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "split",
+            "props": {
+              "eyebrow": "Sindhupalchok and Dolakha · Since 2073",
+              "title": "A hot meal at ten, so the afternoon class is not lost",
+              "text": "We pay local cooks to serve dal-bhat at eleven government schools in the hills above Melamchi, and we run a library room in each one.",
+              "primary": {
+                "label": "Give or volunteer",
+                "href": "page:involved"
+              },
+              "secondary": {
+                "label": "Where the money goes",
+                "href": "page:accounts"
+              },
+              "image": {
+                "src": "lib:himal-trek",
+                "alt": "A person looking towards snow peaks",
+                "focal": [
+                  50,
+                  40
+                ]
+              }
+            }
+          },
+          {
+            "type": "richtext",
+            "variant": "wide",
+            "props": {
+              "heading": "Why meals, why there",
+              "body": "<p>In the schools we work with, children walk one to two hours each way. Many arrive without eating and leave by two to reach home before dark. A meal at ten keeps them in the classroom until the last bell.</p><p>We buy rice, lentils and vegetables from farmers within the same ward, so the meal also pays a neighbour.</p>"
+            }
+          },
+          {
+            "type": "features",
+            "variant": "rows",
+            "props": {
+              "heading": "What we do",
+              "items": [
+                {
+                  "title": "Daily school meals",
+                  "text": "A cook hired from the ward, a menu that changes with the season, and parents on a rota to help.",
+                  "detail": "Rs 28 per child per day"
+                },
+                {
+                  "title": "Library rooms",
+                  "text": "A shelf of Nepali storybooks, low tables and a trained volunteer teacher, in each school.",
+                  "detail": "Rs 90,000 to set up"
+                },
+                {
+                  "title": "Teacher training",
+                  "text": "Two-day sessions in Melamchi Bazaar on reading in the early grades.",
+                  "detail": "Twice a year"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "timeline",
+            "variant": "list",
+            "props": {
+              "heading": "How the work grew",
+              "items": [
+                {
+                  "date": "2073",
+                  "title": "Started with one school in Helambu",
+                  "text": "Two cooks and 41 children, after the 2072 earthquake."
+                },
+                {
+                  "date": "2076",
+                  "title": "First library room",
+                  "text": "Opened in Melamchi, with books donated by a Patan school."
+                },
+                {
+                  "date": "2079",
+                  "title": "Dolakha added",
+                  "text": "Three schools near Charikot."
+                },
+                {
+                  "date": "2081",
+                  "title": "Eleven schools",
+                  "text": "Meals in all, libraries in nine."
+                }
+              ]
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "band",
+            "props": {
+              "title": "Rs 28 feeds one child for one school day",
+              "text": "Rs 5,000 feeds a class of thirty for six days.",
+              "primary": {
+                "label": "Give or volunteer",
+                "href": "page:involved"
+              },
+              "secondary": {
+                "label": "",
+                "href": ""
+              }
+            },
+            "style": {
+              "bg": "accent"
+            }
+          }
+        ]
+      },
+      {
+        "id": "accounts",
+        "title": "Where the money goes",
+        "nav": true,
+        "seoTitle": "Where the money goes: Pahal Nepal Foundation accounts",
+        "seoDescription": "How Pahal Nepal Foundation spends donations: food, cooks, books and office costs. Audited accounts published every Ashwin.",
+        "blocks": [
+          {
+            "type": "richtext",
+            "variant": "narrow",
+            "props": {
+              "heading": "Where each rupee goes",
+              "body": "<p>Last year, of every Rs 100 donated: Rs 71 went to food and cooks' pay, Rs 14 to library books and teacher training, Rs 9 to transport to the schools, and Rs 6 to the Kathmandu office.</p><p>These numbers come from our audited accounts, which are signed by an auditor registered with the Institute of Chartered Accountants of Nepal.</p>"
+            }
+          },
+          {
+            "type": "downloads",
+            "variant": "list",
+            "props": {
+              "heading": "Reports",
+              "items": [
+                {
+                  "label": "Audited accounts, 2080/81",
+                  "url": "",
+                  "note": "PDF, 14 pages"
+                },
+                {
+                  "label": "Annual report, 2080/81",
+                  "url": "",
+                  "note": "PDF, 28 pages"
+                },
+                {
+                  "label": "Registration certificate, Social Welfare Council",
+                  "url": "",
+                  "note": "PDF, 1 page"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "team",
+            "variant": "list",
+            "props": {
+              "heading": "Board and staff",
+              "people": [
+                {
+                  "name": "Sabina Pradhan",
+                  "role": "Founder and executive director",
+                  "bio": "Taught in Sindhupalchok for six years before starting Pahal.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                },
+                {
+                  "name": "Dr. Hari Neupane",
+                  "role": "Chair of the board",
+                  "bio": "Paediatrician at Kanti Children's Hospital.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                },
+                {
+                  "name": "Nirmala Tamang",
+                  "role": "Field coordinator, Melamchi",
+                  "bio": "Visits every school every week.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "involved",
+        "title": "Give or volunteer",
+        "nav": true,
+        "seoTitle": "Give, volunteer or partner with Pahal Nepal Foundation",
+        "seoDescription": "Donate to school meals in Sindhupalchok, volunteer as a library teacher, or ask us to visit your school or company.",
+        "blocks": [
+          {
+            "type": "richtext",
+            "variant": "split",
+            "props": {
+              "heading": "Ways to help",
+              "body": "<h3>Give</h3><p>eSewa and Fonepay to the Pahal QR, or a bank transfer to Pahal Nepal Foundation, Nabil Bank, Baluwatar branch. You get a receipt, and it is tax-deductible in Nepal.</p><h3>Volunteer</h3><p>Library teachers spend two weeks in a school in Helambu. Food and a bed at the school are provided.</p><h3>Bring us to your company</h3><p>We visit offices in Kathmandu to talk about workplace giving.</p>"
+            }
+          },
+          {
+            "type": "contact",
+            "variant": "split",
+            "props": {
+              "heading": "Write to us",
+              "text": "Tell us if you would like to give, volunteer, or invite us to talk. Anyone on the team can answer you.",
+              "askPhone": true,
+              "button": "Send message",
+              "success": "Thank you. Someone from the team will reply within three working days."
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "newsletter",
+            "variant": "inline",
+            "props": {
+              "heading": "One letter after each term",
+              "text": "What we served, what we read, and what it cost. Nothing else.",
+              "button": "Sign up",
+              "success": "Thank you. You are on the list."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

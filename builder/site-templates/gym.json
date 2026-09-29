@@ -1,0 +1,406 @@
+{
+  "id": "gym",
+  "name": "Iron Yak Fitness",
+  "category": "Gym and fitness",
+  "description": "A loud, simple gym site: memberships in rupees, class timetable, coaches and a free trial pass form.",
+  "site": {
+    "name": "Iron Yak Fitness",
+    "theme": {
+      "preset": "workshop"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "instagram",
+          "url": "https://www.instagram.com/ironyakfitness"
+        },
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/ironyakfitness"
+        }
+      ],
+      "tagline": "Strength training and classes in Baneshwor",
+      "phone": "01-5912345",
+      "email": "join@ironyak.com.np",
+      "address": "Second floor, Sunrise Complex, Baneshwor Chowk, Kathmandu 44600"
+    },
+    "header": {
+      "type": "header",
+      "variant": "bar",
+      "props": {
+        "cta": {
+          "label": "Free trial day",
+          "href": "page:join"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "big",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "Barbells, dumbbells to 50 kg, two squat racks and a small cardio floor. Open from 5:30 am so you can train before the office."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Iron Yak Fitness, Baneshwor: strength gym, classes and coaches",
+        "seoDescription": "Strength gym in Baneshwor, Kathmandu. Monthly from Rs 3,000, morning batch from 5:30 am. Free trial day, no card needed.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "image",
+            "props": {
+              "eyebrow": "Baneshwor Chowk · 5:30 am to 9 pm",
+              "title": "Lift heavy. Go to work.",
+              "text": "Two squat racks, real plates, a coach on the floor from 6 to 9 in the morning and 5 to 8 in the evening.",
+              "primary": {
+                "label": "Free trial day",
+                "href": "page:join"
+              },
+              "secondary": {
+                "label": "Memberships",
+                "href": "page:plans"
+              },
+              "image": {
+                "src": "lib:gym-kettlebells",
+                "alt": "A wall of black kettlebells in a dark gym",
+                "focal": [
+                  50,
+                  55
+                ]
+              }
+            }
+          },
+          {
+            "type": "stats",
+            "variant": "big",
+            "props": {
+              "heading": "",
+              "text": "",
+              "items": [
+                {
+                  "value": "2",
+                  "label": "Squat racks, so no queue at 6 pm"
+                },
+                {
+                  "value": "50 kg",
+                  "label": "Heaviest dumbbell"
+                },
+                {
+                  "value": "5:30",
+                  "label": "Doors open, every day but Saturday"
+                }
+              ]
+            },
+            "style": {
+              "bg": "ink"
+            }
+          },
+          {
+            "type": "features",
+            "variant": "rows",
+            "props": {
+              "heading": "What is on the floor",
+              "items": [
+                {
+                  "title": "Strength floor",
+                  "text": "Racks, benches, deadlift platforms, chalk allowed. Programmes on paper if you want one.",
+                  "detail": "All plans"
+                },
+                {
+                  "title": "Conditioning class",
+                  "text": "Forty minutes, kettlebells and sleds, Sunday to Friday at 6:30 am and 6 pm.",
+                  "detail": "Fee-inclusive"
+                },
+                {
+                  "title": "Beginner basics",
+                  "text": "Four sessions with a coach on squat, hinge, press and pull before you are left alone with a barbell.",
+                  "detail": "Rs 2,000"
+                },
+                {
+                  "title": "Personal training",
+                  "text": "One-to-one, twelve sessions, with a written plan and a food chart that fits dal-bhat.",
+                  "detail": "Rs 900 a session"
+                }
+              ]
+            }
+          },
+          {
+            "type": "gallery",
+            "variant": "grid",
+            "props": {
+              "heading": "On the floor",
+              "intro": "",
+              "images": [
+                {
+                  "image": {
+                    "src": "lib:gym-barbell",
+                    "alt": "A barbell loaded with plates beside a squat rack"
+                  },
+                  "caption": "Squat rack, plates to 25 kg"
+                },
+                {
+                  "image": {
+                    "src": "lib:gym-lift",
+                    "alt": "A lifter gripping a barbell overhead"
+                  },
+                  "caption": "Overhead press"
+                },
+                {
+                  "image": {
+                    "src": "lib:gym-dumbbells",
+                    "alt": "Rows of black dumbbells on a rack"
+                  },
+                  "caption": "Dumbbells to 50 kg"
+                }
+              ]
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "right",
+            "props": {
+              "image": {
+                "src": "lib:portrait-man",
+                "alt": "A smiling man"
+              },
+              "eyebrow": "Head coach",
+              "heading": "Bikash Gurung, 11 years on the floor",
+              "body": "<p>Bikash lifted at the national powerlifting meet in Pokhara and now runs the beginner sessions himself. He will tell you when you are ready to add weight, and when you are not.</p>",
+              "link": {
+                "label": "See the coaches",
+                "href": "page:coaches"
+              }
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "split",
+            "props": {
+              "title": "Come once, no forms, no card",
+              "text": "Your first day is free. Bring shoes and a towel.",
+              "primary": {
+                "label": "Claim the trial day",
+                "href": "page:join"
+              },
+              "secondary": {
+                "label": "",
+                "href": ""
+              }
+            },
+            "style": {
+              "bg": "accent"
+            }
+          }
+        ]
+      },
+      {
+        "id": "plans",
+        "title": "Memberships",
+        "nav": true,
+        "seoTitle": "Gym memberships in Baneshwor from Rs 3,000 a month, Iron Yak Fitness",
+        "seoDescription": "Monthly Rs 3,000, quarterly Rs 8,000, yearly Rs 28,000. Student rate Rs 2,500 with ID. Iron Yak Fitness, Baneshwor.",
+        "blocks": [
+          {
+            "type": "pricing",
+            "variant": "columns",
+            "props": {
+              "heading": "Memberships",
+              "intro": "One joining fee of Rs 1,000, waived if you sign up for three months or more. Pay by cash, eSewa or Fonepay.",
+              "currency": "NPR",
+              "plans": [
+                {
+                  "name": "Monthly",
+                  "price": "3000",
+                  "period": "a month",
+                  "note": "Students with ID: Rs 2,500",
+                  "features": "Full floor access\nAll classes\nLocker on the day",
+                  "cta": {
+                    "label": "Try a day first",
+                    "href": "page:join"
+                  },
+                  "featured": false
+                },
+                {
+                  "name": "Quarterly",
+                  "price": "8000",
+                  "period": "3 months",
+                  "note": "About Rs 2,670 a month",
+                  "features": "Everything in monthly\nJoining fee waived\nOne body-fat check a month",
+                  "cta": {
+                    "label": "Try a day first",
+                    "href": "page:join"
+                  },
+                  "featured": true
+                },
+                {
+                  "name": "Yearly",
+                  "price": "28000",
+                  "period": "12 months",
+                  "note": "About Rs 2,330 a month",
+                  "features": "Everything in quarterly\nFreeze for up to 30 days\nBeginner basics free",
+                  "cta": {
+                    "label": "Try a day first",
+                    "href": "page:join"
+                  },
+                  "featured": false
+                }
+              ]
+            }
+          },
+          {
+            "type": "faq",
+            "variant": "plain",
+            "props": {
+              "heading": "Asked at the front desk",
+              "items": [
+                {
+                  "q": "Is there a ladies' hour?",
+                  "a": "Yes, Sunday to Friday 10 am to 12 noon, with Sarita didi on the floor."
+                },
+                {
+                  "q": "Can I freeze my membership for Dashain?",
+                  "a": "Quarterly and yearly members can freeze up to 30 days. Monthly members can pay for the days they use."
+                },
+                {
+                  "q": "Is there a shower?",
+                  "a": "Two, with hot water from the solar heater. Bring your own towel."
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "id": "coaches",
+        "title": "Coaches",
+        "nav": true,
+        "seoTitle": "Coaches at Iron Yak Fitness, Baneshwor",
+        "seoDescription": "Meet the coaches at Iron Yak Fitness: strength, conditioning and beginner basics.",
+        "blocks": [
+          {
+            "type": "team",
+            "variant": "list",
+            "props": {
+              "heading": "Who is on the floor",
+              "intro": "Morning 6 to 9 and evening 5 to 8, every day the gym is open.",
+              "people": [
+                {
+                  "name": "Bikash Gurung",
+                  "role": "Head coach, strength",
+                  "bio": "Powerlifting, 11 years. Runs the beginner basics.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                },
+                {
+                  "name": "Sarita Rai",
+                  "role": "Conditioning and ladies' hour",
+                  "bio": "Kettlebell instructor. Takes the 6:30 am class.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                },
+                {
+                  "name": "Prabin Thapa",
+                  "role": "Evening coach",
+                  "bio": "Former Army PT instructor, good with people coming back from injury.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "hours",
+            "variant": "table",
+            "props": {
+              "heading": "Gym hours",
+              "note": "",
+              "days": [
+                {
+                  "day": "Sunday",
+                  "hours": "05:30 – 21:00"
+                },
+                {
+                  "day": "Monday",
+                  "hours": "05:30 – 21:00"
+                },
+                {
+                  "day": "Tuesday",
+                  "hours": "05:30 – 21:00"
+                },
+                {
+                  "day": "Wednesday",
+                  "hours": "05:30 – 21:00"
+                },
+                {
+                  "day": "Thursday",
+                  "hours": "05:30 – 21:00"
+                },
+                {
+                  "day": "Friday",
+                  "hours": "05:30 – 21:00"
+                },
+                {
+                  "day": "Saturday",
+                  "hours": "06:00 – 12:00"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "id": "join",
+        "title": "Free trial",
+        "nav": true,
+        "seoTitle": "Free trial day at Iron Yak Fitness, Baneshwor",
+        "seoDescription": "Ask for a free trial day at Iron Yak Fitness. Leave your number and preferred time and a coach will call you.",
+        "blocks": [
+          {
+            "type": "booking",
+            "variant": "split",
+            "props": {
+              "heading": "Claim your free day",
+              "text": "Pick a day and a time. A coach meets you at the front desk and walks you through the floor. No card, no contract.",
+              "services": "Morning strength (6 to 9 am)\nConditioning class\nEvening strength (5 to 8 pm)\nI am a complete beginner",
+              "askTime": true,
+              "button": "Send trial request",
+              "success": "Thank you. A coach will call you to confirm."
+            }
+          },
+          {
+            "type": "map",
+            "variant": "card",
+            "props": {
+              "heading": "Where we are",
+              "address": "Second floor, Sunrise Complex, Baneshwor Chowk, Kathmandu",
+              "query": "Baneshwor Chowk, Kathmandu",
+              "link": ""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,313 @@
+{
+  "id": "homestay",
+  "name": "Nagarkot Sunrise Homestay",
+  "category": "Hotel and homestay",
+  "description": "A hill homestay site: rooms with prices, food, things to do around Nagarkot, and a booking request that asks for dates.",
+  "site": {
+    "name": "Nagarkot Sunrise Homestay",
+    "theme": {
+      "preset": "teagarden"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/nagarkotsunrisehomestay"
+        },
+        {
+          "network": "whatsapp",
+          "url": "https://wa.me/9779801667788"
+        },
+        {
+          "network": "instagram",
+          "url": "https://www.instagram.com/nagarkotsunrise"
+        }
+      ],
+      "tagline": "Four rooms and a family kitchen above Nagarkot",
+      "phone": "980-1667788",
+      "email": "stay@nagarkotsunrise.com.np",
+      "address": "Ward 5, Nagarkot, Bhaktapur 44800"
+    },
+    "header": {
+      "type": "header",
+      "variant": "centered",
+      "props": {
+        "cta": {
+          "label": "Ask for dates",
+          "href": "page:stay"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "columns",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "A family-run homestay ten minutes' walk below the Nagarkot viewing tower. Prices include breakfast and a hot-water bucket."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Nagarkot Sunrise Homestay: four rooms above Nagarkot, Bhaktapur",
+        "seoDescription": "A family homestay in Nagarkot with four rooms from Rs 3,200 a night, home-cooked meals and a terrace facing the Himalaya.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "image",
+            "props": {
+              "eyebrow": "Nagarkot, Bhaktapur · 2,000 metres",
+              "title": "Wake up on the ridge, breakfast is already cooking",
+              "text": "Four rooms, a terrace facing Ganesh Himal and Langtang, and Shanti didi's kitchen. Rooms from Rs 3,200 a night with breakfast.",
+              "primary": {
+                "label": "Ask for dates",
+                "href": "page:stay"
+              },
+              "secondary": {
+                "label": "The rooms",
+                "href": "page:rooms"
+              },
+              "image": {
+                "src": "lib:night-peaks",
+                "alt": "Snow peaks under a starry sky",
+                "focal": [
+                  50,
+                  40
+                ]
+              }
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "left",
+            "props": {
+              "image": {
+                "src": "lib:long-table",
+                "alt": "A long table set with glasses and flowers"
+              },
+              "eyebrow": "Food",
+              "heading": "Dal-bhat from the family kitchen, and Newari samay baji on Saturdays",
+              "body": "<p>Vegetables come from the terrace beds below the house, and the milk tea from the neighbours' buffalo. Dinner is at seven and we ask you in the morning what you would like.</p>",
+              "link": {
+                "label": "",
+                "href": ""
+              }
+            }
+          },
+          {
+            "type": "features",
+            "variant": "grid",
+            "props": {
+              "heading": "What is around",
+              "items": [
+                {
+                  "title": "Sunrise at the tower",
+                  "text": "A ten-minute walk up in the dark. We wake you with tea at 5:15.",
+                  "detail": "Free"
+                },
+                {
+                  "title": "Nagarkot to Changu Narayan walk",
+                  "text": "Four hours downhill through pine and terrace fields, ending at the temple.",
+                  "detail": "Guide Rs 2,500"
+                },
+                {
+                  "title": "Bhaktapur day trip",
+                  "text": "Taxi to Durbar Square and back with lunch in between.",
+                  "detail": "Taxi Rs 4,500"
+                },
+                {
+                  "title": "Village cooking class",
+                  "text": "Make momo and achar with Shanti didi in her kitchen.",
+                  "detail": "Rs 1,200 each"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "split",
+            "props": {
+              "title": "Weekends in Kartik and Mangsir book out a month early",
+              "text": "Send us your dates and we will tell you which rooms are free.",
+              "primary": {
+                "label": "Ask for dates",
+                "href": "page:stay"
+              },
+              "secondary": {
+                "label": "WhatsApp us",
+                "href": "https://wa.me/9779801667788"
+              }
+            },
+            "style": {
+              "bg": "accent"
+            }
+          }
+        ]
+      },
+      {
+        "id": "rooms",
+        "title": "Rooms",
+        "nav": true,
+        "seoTitle": "Rooms at Nagarkot Sunrise Homestay from Rs 3,200 a night",
+        "seoDescription": "Double room Rs 3,200, Himalaya-view double Rs 4,000, family room Rs 5,500 a night, all with breakfast and hot water.",
+        "blocks": [
+          {
+            "type": "pricing",
+            "variant": "list",
+            "props": {
+              "heading": "Four rooms",
+              "intro": "All rooms include breakfast, hot water in a bucket or the shared solar bathroom, and free wifi on the terrace.",
+              "currency": "NPR",
+              "plans": [
+                {
+                  "name": "Garden double",
+                  "price": "3200",
+                  "period": "a night",
+                  "note": "Double bed, shared bathroom, faces the terrace garden.",
+                  "features": "",
+                  "cta": {
+                    "label": "Ask for dates",
+                    "href": "page:stay"
+                  },
+                  "featured": false
+                },
+                {
+                  "name": "Himalaya-view double",
+                  "price": "4000",
+                  "period": "a night",
+                  "note": "Double bed, attached bathroom, window facing Ganesh Himal.",
+                  "features": "",
+                  "cta": {
+                    "label": "Ask for dates",
+                    "href": "page:stay"
+                  },
+                  "featured": true
+                },
+                {
+                  "name": "Family room",
+                  "price": "5500",
+                  "period": "a night",
+                  "note": "One double and two single beds, attached bathroom. Sleeps four.",
+                  "features": "",
+                  "cta": {
+                    "label": "Ask for dates",
+                    "href": "page:stay"
+                  },
+                  "featured": false
+                },
+                {
+                  "name": "Attic twin",
+                  "price": "3500",
+                  "period": "a night",
+                  "note": "Two single beds under the roof, shared bathroom, coldest and quietest.",
+                  "features": "",
+                  "cta": {
+                    "label": "Ask for dates",
+                    "href": "page:stay"
+                  },
+                  "featured": false
+                }
+              ]
+            }
+          },
+          {
+            "type": "gallery",
+            "variant": "masonry",
+            "props": {
+              "heading": "",
+              "intro": "",
+              "images": [
+                {
+                  "image": {
+                    "src": "lib:cafe-hall",
+                    "alt": "A bright room with long tables and hanging lamps"
+                  },
+                  "caption": "The dining room"
+                },
+                {
+                  "image": {
+                    "src": "lib:dining-room",
+                    "alt": "A dark room with wooden chairs"
+                  },
+                  "caption": "Winter evening by the stove"
+                },
+                {
+                  "image": {
+                    "src": "lib:boudha",
+                    "alt": "Boudhanath stupa from above"
+                  },
+                  "caption": "Boudha, on your way back"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "faq",
+            "variant": "plain",
+            "props": {
+              "heading": "Good to know",
+              "items": [
+                {
+                  "q": "How do we get there?",
+                  "a": "A taxi from Bhaktapur bus park to Nagarkot takes about 50 minutes and costs around Rs 2,500. The local bus runs from Ratnapark, morning and afternoon."
+                },
+                {
+                  "q": "Is it cold?",
+                  "a": "From Mangsir to Falgun, yes. We give you hot-water bottles and thick blankets."
+                },
+                {
+                  "q": "Do you take cards?",
+                  "a": "Cash, eSewa and Fonepay. There is no card machine."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "stay",
+        "title": "Ask for dates",
+        "nav": true,
+        "seoTitle": "Ask for dates at Nagarkot Sunrise Homestay",
+        "seoDescription": "Send your dates and the room you would like. We reply the same day and hold the room for two days.",
+        "blocks": [
+          {
+            "type": "booking",
+            "variant": "split",
+            "props": {
+              "heading": "Ask for dates",
+              "text": "Tell us the day you would arrive and how many nights. We reply the same day, and hold the room for two days without an advance.",
+              "services": "Garden double\nHimalaya-view double\nFamily room\nAttic twin\nNot sure yet",
+              "askTime": false,
+              "button": "Ask for these dates",
+              "success": "Thank you. We will reply the same day on phone or WhatsApp."
+            }
+          },
+          {
+            "type": "map",
+            "variant": "split",
+            "props": {
+              "heading": "Finding us",
+              "address": "Ward 5, Nagarkot, Bhaktapur. Ten minutes' walk below the viewing tower.",
+              "query": "Nagarkot Tower, Bhaktapur",
+              "link": ""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

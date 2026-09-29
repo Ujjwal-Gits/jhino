@@ -1,0 +1,356 @@
+{
+  "id": "boutique",
+  "name": "Kasturi Cloth House",
+  "category": "Shop and boutique",
+  "description": "A clothes and textile shop: what is in stock with prices, a gallery, and an order-or-visit form.",
+  "site": {
+    "name": "Kasturi Cloth House",
+    "theme": {
+      "preset": "rhododendron",
+      "display": "bricolage",
+      "body": "hanken",
+      "colors": {
+        "bg": "#f2efe7",
+        "surface": "#e5e1d3",
+        "text": "#1d2419",
+        "muted": "#565d4e",
+        "accent": "#26472e",
+        "onAccent": "#f7f5ee",
+        "line": "#cfcabb"
+      },
+      "radius": 0,
+      "button": "outline",
+      "rhythm": "tight"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "instagram",
+          "url": "https://www.instagram.com/kasturiclothhouse"
+        },
+        {
+          "network": "viber",
+          "url": "https://invite.viber.com/?g=kasturi-cloth"
+        },
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/kasturiclothhouse"
+        }
+      ],
+      "tagline": "Dhaka topi, pashmina and handloom cloth in Asan",
+      "phone": "01-4222908",
+      "email": "orders@kasturicloth.com.np",
+      "address": "Asan Tole, Kathmandu 44600, opposite the Annapurna temple"
+    },
+    "header": {
+      "type": "header",
+      "variant": "centered",
+      "props": {
+        "cta": {
+          "label": "Order on Viber",
+          "href": "page:visit"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "columns",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "A family shop in Asan since 2041. We stock cloth by the metre, ready-made topis and shawls, and stitch to measure in five days."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Kasturi Cloth House, Asan: dhaka topi, pashmina, handloom cloth",
+        "seoDescription": "Cloth shop in Asan, Kathmandu. Dhaka topi from Rs 850, pashmina shawls from Rs 4,200, cloth by the metre. Stitching in five days.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "split",
+            "props": {
+              "eyebrow": "Asan Tole · Since 2041",
+              "title": "Cloth you can hold before you buy",
+              "text": "Dhaka topi woven in Palpa, pure and blended pashmina, cotton and handloom by the metre. Bring the occasion, we bring out the rolls.",
+              "primary": {
+                "label": "Visit or order",
+                "href": "page:visit"
+              },
+              "secondary": {
+                "label": "What is in stock",
+                "href": "page:stock"
+              },
+              "image": {
+                "src": "lib:shop-fabric-shelf",
+                "alt": "Shelves of folded cloth rolls in a small shop with bunting",
+                "focal": [
+                  50,
+                  45
+                ]
+              }
+            }
+          },
+          {
+            "type": "features",
+            "variant": "rows",
+            "props": {
+              "heading": "Three things people come for",
+              "items": [
+                {
+                  "title": "Dhaka topi and daura suruwal cloth",
+                  "text": "Palpa dhaka in traditional and plain patterns. Topi sized on the spot, daura suruwal stitched in five working days.",
+                  "detail": "Topi from Rs 850"
+                },
+                {
+                  "title": "Pashmina and wool",
+                  "text": "Blended shawls and pure pashmina, with a burn test at the counter if you want to see it done.",
+                  "detail": "From Rs 4,200"
+                },
+                {
+                  "title": "Cloth by the metre",
+                  "text": "Cotton, khadi, silk-cotton and handloom for kurta, saree blouse and curtains.",
+                  "detail": "From Rs 320 a metre"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "gallery",
+            "variant": "masonry",
+            "props": {
+              "heading": "Recently in",
+              "intro": "",
+              "images": [
+                {
+                  "image": {
+                    "src": "lib:shop-fabric-rolls",
+                    "alt": "Stacked folded fabric in blue, teal, cream and magenta"
+                  },
+                  "caption": "Cotton and silk-cotton, by the metre"
+                },
+                {
+                  "image": {
+                    "src": "lib:shop-rack",
+                    "alt": "A rail of ready-made clothes in a shop"
+                  },
+                  "caption": "Ready-made kurta and shawls"
+                }
+              ]
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "split",
+            "props": {
+              "title": "Send a photo, we will find a match",
+              "text": "Have a saree and need a blouse piece? Send a photo on Viber and we will match the shade.",
+              "primary": {
+                "label": "Order on Viber",
+                "href": "page:visit"
+              },
+              "secondary": {
+                "label": "Call 01-4222908",
+                "href": "tel:014222908"
+              }
+            },
+            "style": {
+              "bg": "accent"
+            }
+          }
+        ]
+      },
+      {
+        "id": "stock",
+        "title": "In stock",
+        "nav": true,
+        "seoTitle": "What is in stock at Kasturi Cloth House, Asan: prices",
+        "seoDescription": "Dhaka topi Rs 850 to 2,400, pashmina Rs 4,200 upward, cloth by the metre Rs 320 upward. Price board, Asan, Kathmandu.",
+        "blocks": [
+          {
+            "type": "menu",
+            "variant": "compact",
+            "props": {
+              "heading": "Price board",
+              "intro": "Prices are marked on the shelf too. Stitching is charged extra and quoted before you leave.",
+              "currency": "NPR",
+              "sections": [
+                {
+                  "title": "Ready-made",
+                  "note": "",
+                  "items": [
+                    {
+                      "name": "Dhaka topi, plain",
+                      "desc": "Palpa, cotton",
+                      "price": "850",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Dhaka topi, traditional pattern",
+                      "desc": "",
+                      "price": "1600",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Dhaka topi, silk-cotton",
+                      "desc": "Wedding weight",
+                      "price": "2400",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Blended pashmina shawl",
+                      "desc": "Plain or striped",
+                      "price": "4200",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Pure pashmina shawl",
+                      "desc": "Ask for the certificate",
+                      "price": "From 12,500",
+                      "tag": ""
+                    }
+                  ]
+                },
+                {
+                  "title": "By the metre",
+                  "note": "Minimum 1.5 metres.",
+                  "items": [
+                    {
+                      "name": "Cotton",
+                      "desc": "",
+                      "price": "320",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Khadi",
+                      "desc": "",
+                      "price": "480",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Silk-cotton",
+                      "desc": "",
+                      "price": "1150",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Dhaka fabric",
+                      "desc": "",
+                      "price": "2800",
+                      "tag": ""
+                    }
+                  ]
+                },
+                {
+                  "title": "Stitching",
+                  "note": "",
+                  "items": [
+                    {
+                      "name": "Daura suruwal",
+                      "desc": "Five working days",
+                      "price": "3800",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Kurta",
+                      "desc": "",
+                      "price": "1400",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Blouse",
+                      "desc": "",
+                      "price": "600",
+                      "tag": ""
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "visit",
+        "title": "Visit or order",
+        "nav": true,
+        "seoTitle": "Visit or order from Kasturi Cloth House, Asan",
+        "seoDescription": "Send an order or ask to see something. Address, hours, and a form that reaches the shop owner.",
+        "blocks": [
+          {
+            "type": "contact",
+            "variant": "stacked",
+            "props": {
+              "heading": "Ask, order or reserve",
+              "text": "Tell us what you are after, and a size or metre count if you know it. We reply on Viber or call before noon.",
+              "askPhone": true,
+              "button": "Send to the shop",
+              "success": "Thank you. We will call or message you on Viber."
+            }
+          },
+          {
+            "type": "hours",
+            "variant": "split",
+            "props": {
+              "heading": "Shop hours",
+              "note": "Closed on Tihar day two.",
+              "days": [
+                {
+                  "day": "Sunday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Monday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Tuesday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Wednesday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Thursday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Friday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Saturday",
+                  "hours": "10:00 – 13:00"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "map",
+            "variant": "embed",
+            "props": {
+              "heading": "",
+              "address": "",
+              "query": "Asan Tole, Kathmandu",
+              "link": ""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

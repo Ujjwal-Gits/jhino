@@ -18,3 +18,21 @@ swayambhu           photo-1558799401-1dcba79834c2
 himal-trek          photo-1526772662000-3f88f10405ff
 night-peaks         photo-1519681393784-d120267933ba
 cut-pour-over, shoot-* : the same photographs as web/public/img (see its CREDITS.txt); one size only.
+
+Added for the website templates (Unsplash License; ids are the unsplash.com/photos/<id> page ids). Two sizes each (640, 1400 wide, WebP).
+salon-chairs        ZkNxY2zErck
+salon-mirrors       jsuWg7IXx1k
+salon-facial        u93nTfWqR9w
+gym-barbell         AzX5iNFYBMY
+gym-kettlebells     UrJ-fn2iRUM
+gym-lift            Xb1d-N04Quc
+gym-dumbbells       7ltjONcH_mI
+school-class        MWdcDtDTq9E
+school-lecture      r_UZcR2VFqE
+school-board        NpHSRakEYPM
+shop-fabric-shelf   C78C6diQeao
+shop-fabric-rolls   rEb9iHOF638
+shop-rack           O8lxsc1RwCQ
+home-modern         eWOgoFHlE8g
+home-garden         hPu2n_SfV7Q
+home-living         6japTIjUQoI

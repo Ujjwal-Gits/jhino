@@ -1,0 +1,294 @@
+{
+  "id": "realestate",
+  "name": "Bagmati Homes and Land",
+  "category": "Real estate",
+  "description": "A property dealer site: listings with prices in lakhs and crores, how a purchase works, and a viewing request form.",
+  "site": {
+    "name": "Bagmati Homes and Land",
+    "theme": {
+      "preset": "ledger",
+      "display": "newsreader",
+      "body": "hanken",
+      "colors": {
+        "bg": "#f5f2ec",
+        "surface": "#e9e4d8",
+        "text": "#13233a",
+        "muted": "#4f5b6d",
+        "accent": "#13233a",
+        "onAccent": "#f5f2ec",
+        "line": "#d3ccbb"
+      },
+      "radius": 2,
+      "button": "solid",
+      "rhythm": "even"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/bagmatihomes"
+        },
+        {
+          "network": "whatsapp",
+          "url": "https://wa.me/9779851055412"
+        }
+      ],
+      "tagline": "Houses, flats and land in Lalitpur and Bhaktapur",
+      "phone": "01-5541126",
+      "email": "deals@bagmatihomes.com.np",
+      "address": "Kupondole Height, Lalitpur 44700, opposite the Himalayan Bank branch"
+    },
+    "header": {
+      "type": "header",
+      "variant": "bar",
+      "props": {
+        "cta": {
+          "label": "Ask for a viewing",
+          "href": "page:viewing"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "columns",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "A three-person dealership registered with the Land Revenue Office, Lalitpur. We tell you what is wrong with a plot before we tell you what is right with it."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Bagmati Homes and Land, Kupondole: houses, flats and land in Lalitpur",
+        "seoDescription": "Property dealers in Kupondole, Lalitpur. Houses and flats for sale, plots in Bhaisepati and Harisiddhi, and honest paperwork help.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "image",
+            "props": {
+              "eyebrow": "Kupondole, Lalitpur · Registered dealer",
+              "title": "A home you can walk to school from",
+              "text": "Flats in Jawalakhel and Kupondole, houses in Bhaisepati, and plots in Harisiddhi and Godawari. Every listing has been visited by one of us.",
+              "primary": {
+                "label": "See current listings",
+                "href": "page:listings"
+              },
+              "secondary": {
+                "label": "Ask for a viewing",
+                "href": "page:viewing"
+              },
+              "image": {
+                "src": "lib:home-modern",
+                "alt": "A modern house with tall glass doors and a garden",
+                "focal": [
+                  50,
+                  50
+                ]
+              }
+            }
+          },
+          {
+            "type": "richtext",
+            "variant": "split",
+            "props": {
+              "heading": "What we check before we list",
+              "body": "<ul><li>Lalpurja in the seller's name, and no loan pledged against it</li><li>Road width on the ground, not only on the map</li><li>Whether the plot sits on the mapped fault or river buffer</li><li>Completion certificate, for any house built after 2072</li></ul><p>If a property fails, we do not list it.</p>"
+            }
+          },
+          {
+            "type": "features",
+            "variant": "rows",
+            "props": {
+              "heading": "How we can help",
+              "items": [
+                {
+                  "title": "Buying a house or flat",
+                  "text": "We take you to at most three properties that fit your budget, then negotiate.",
+                  "detail": "1% commission"
+                },
+                {
+                  "title": "Buying land",
+                  "text": "Site visit with an amin, boundary check, and the Malpot office paperwork.",
+                  "detail": "1% commission"
+                },
+                {
+                  "title": "Renting out",
+                  "text": "Tenants found, agreement drawn up, and rent collected if you live abroad.",
+                  "detail": "One month's rent"
+                },
+                {
+                  "title": "Valuation",
+                  "text": "A written note on what a property will fetch, for a loan or for a family settlement.",
+                  "detail": "Rs 5,000"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "right",
+            "props": {
+              "image": {
+                "src": "lib:home-living",
+                "alt": "A bright living room with a sofa, coffee table and large windows"
+              },
+              "eyebrow": "Our rule",
+              "heading": "You will never hear \"the owner is abroad, decide today\"",
+              "body": "<p>Registration in Nepal is not a fast decision. We give you the seller's documents to read at home, and we are happy for your lawyer to see them first.</p>",
+              "link": {
+                "label": "",
+                "href": ""
+              }
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "band",
+            "props": {
+              "title": "Tell us your budget and the ward you like",
+              "text": "We will send three listings on Viber within two days.",
+              "primary": {
+                "label": "Ask for a viewing",
+                "href": "page:viewing"
+              },
+              "secondary": {
+                "label": "Call 01-5541126",
+                "href": "tel:015541126"
+              }
+            },
+            "style": {
+              "bg": "ink"
+            }
+          }
+        ]
+      },
+      {
+        "id": "listings",
+        "title": "Listings",
+        "nav": true,
+        "seoTitle": "Properties for sale in Lalitpur and Bhaisepati, Bagmati Homes and Land",
+        "seoDescription": "Current listings: 3-storey house in Bhaisepati Rs 4.2 crore, flat in Jawalakhel Rs 1.65 crore, 6 aana plot in Harisiddhi Rs 2.4 crore.",
+        "blocks": [
+          {
+            "type": "features",
+            "variant": "rows",
+            "props": {
+              "heading": "Current listings",
+              "intro": "Prices are asking prices. Ask for the seller's documents before you visit.",
+              "items": [
+                {
+                  "title": "Three-storey house, Bhaisepati",
+                  "text": "5 aana plot, 2,100 sq ft built up, 4 bedrooms, parking for two cars, 16 ft road. Built 2076.",
+                  "detail": "Rs 4.2 crore"
+                },
+                {
+                  "title": "Third-floor flat, Jawalakhel",
+                  "text": "3 bedrooms, 1,320 sq ft, lift, backup power, 10 minutes to Patan Dhoka on foot.",
+                  "detail": "Rs 1.65 crore"
+                },
+                {
+                  "title": "Plot with road on two sides, Harisiddhi",
+                  "text": "6 aana, corner, 20 ft road, drinking water line already at the gate.",
+                  "detail": "Rs 2.4 crore"
+                },
+                {
+                  "title": "Small house on 3 aana, Nakhipot",
+                  "text": "Old two-storey, sound structure, ideal for rebuild. Clear lalpurja, no loan.",
+                  "detail": "Rs 1.9 crore"
+                },
+                {
+                  "title": "Ground floor to rent, Kupondole",
+                  "text": "2 bedrooms, kitchen, separate meter and water. Suits a small family or an office.",
+                  "detail": "Rs 42,000 a month"
+                }
+              ]
+            }
+          },
+          {
+            "type": "gallery",
+            "variant": "grid",
+            "props": {
+              "heading": "From the current listings",
+              "intro": "",
+              "images": [
+                {
+                  "image": {
+                    "src": "lib:home-garden",
+                    "alt": "A two-storey house with a timber and stone facade and a lawn"
+                  },
+                  "caption": "Bhaisepati, three storeys"
+                },
+                {
+                  "image": {
+                    "src": "lib:home-living",
+                    "alt": "A furnished living room in a flat"
+                  },
+                  "caption": "Jawalakhel, third floor"
+                },
+                {
+                  "image": {
+                    "src": "lib:home-modern",
+                    "alt": "A modern house with a glass entrance"
+                  },
+                  "caption": "Harisiddhi, plot with new build"
+                }
+              ]
+            }
+          },
+          {
+            "type": "richtext",
+            "variant": "narrow",
+            "props": {
+              "heading": "How a purchase works",
+              "body": "<p>We visit together, you choose, and we agree the price in writing. Both sides then sign an <em>ekhin</em>, an advance agreement, with a token of about 5 percent. The seller clears tax at the Malpot office, and you register the sale and pay the transfer tax on the same day.</p><p>Most purchases finish in three to five weeks.</p>"
+            },
+            "style": {
+              "bg": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "id": "viewing",
+        "title": "Viewing",
+        "nav": true,
+        "seoTitle": "Ask for a viewing with Bagmati Homes and Land, Kupondole",
+        "seoDescription": "Request a viewing of a house, flat or plot in Lalitpur. We call you the same day.",
+        "blocks": [
+          {
+            "type": "booking",
+            "variant": "split",
+            "props": {
+              "heading": "Ask for a viewing",
+              "text": "Tell us which listing, or what you are looking for. We reply the same day and fix a time that suits you, including weekends.",
+              "services": "Three-storey house, Bhaisepati\nFlat, Jawalakhel\nPlot, Harisiddhi\nHouse, Nakhipot\nGround floor to rent, Kupondole\nI am looking for something else",
+              "askTime": true,
+              "button": "Ask for a viewing",
+              "success": "Thank you. One of us will call you today or tomorrow morning."
+            }
+          },
+          {
+            "type": "map",
+            "variant": "split",
+            "props": {
+              "heading": "Our office",
+              "address": "Kupondole Height, Lalitpur, opposite the Himalayan Bank branch",
+              "query": "Kupondole Height, Lalitpur",
+              "link": ""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

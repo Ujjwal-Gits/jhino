@@ -1,0 +1,330 @@
+{
+  "id": "portfolio",
+  "name": "Anish Karki",
+  "category": "Portfolio and resume",
+  "description": "A personal portfolio and resume for a freelance web developer: projects, experience timeline, skills and a message form.",
+  "site": {
+    "name": "Anish Karki",
+    "theme": {
+      "preset": "darkroom",
+      "display": "fraunces",
+      "body": "hanken",
+      "colors": {
+        "bg": "#12171a",
+        "surface": "#1a2226",
+        "text": "#e9ede6",
+        "muted": "#98a59f",
+        "accent": "#9ad8bd",
+        "onAccent": "#0f1a16",
+        "line": "#2b373b"
+      },
+      "radius": 6,
+      "button": "solid",
+      "rhythm": "even"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "linkedin",
+          "url": "https://www.linkedin.com/in/anishkarki"
+        },
+        {
+          "network": "website",
+          "url": "https://github.com/anishkarki"
+        },
+        {
+          "network": "x",
+          "url": "https://x.com/anishkarki"
+        }
+      ],
+      "tagline": "Freelance web developer, Kathmandu",
+      "phone": "980-1445566",
+      "email": "anish@anishkarki.com.np",
+      "address": "Chabahil, Kathmandu"
+    },
+    "header": {
+      "type": "header",
+      "variant": "bar",
+      "props": {
+        "cta": {
+          "label": "Say hello",
+          "href": "page:contact"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "simple",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "Available for two new projects from Magh."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Anish Karki: freelance web developer in Kathmandu",
+        "seoDescription": "Freelance web developer in Kathmandu. Websites and web apps for shops, schools and clinics, built to load fast on Nepali mobile data.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "split",
+            "props": {
+              "eyebrow": "Freelance · Kathmandu",
+              "title": "I build websites that load on a 4G bar in Dhading",
+              "text": "Six years building sites and small web apps for shops, schools and clinics. I design a little, write the copy with you, and hand over something you can edit.",
+              "primary": {
+                "label": "See projects",
+                "href": "page:projects"
+              },
+              "secondary": {
+                "label": "Say hello",
+                "href": "page:contact"
+              },
+              "image": {
+                "src": "lib:portrait-man",
+                "alt": "A smiling man",
+                "focal": [
+                  50,
+                  30
+                ]
+              }
+            }
+          },
+          {
+            "type": "features",
+            "variant": "grid",
+            "props": {
+              "heading": "What I can take off your plate",
+              "items": [
+                {
+                  "title": "Business websites",
+                  "text": "Five to eight pages, Nepali and English, booking or enquiry form, Google Business set up.",
+                  "detail": "From Rs 60,000"
+                },
+                {
+                  "title": "Small web apps",
+                  "text": "Order books, class attendance, appointment lists. Built to use on a phone at the counter.",
+                  "detail": "From Rs 1.2 lakh"
+                },
+                {
+                  "title": "Fixing what exists",
+                  "text": "Slow WordPress, hacked contact form, a site the last developer disappeared from.",
+                  "detail": "Rs 2,500 an hour"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "logos",
+            "variant": "row",
+            "props": {
+              "heading": "Tools I reach for",
+              "items": [
+                {
+                  "name": "TypeScript",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  },
+                  "url": ""
+                },
+                {
+                  "name": "React",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  },
+                  "url": ""
+                },
+                {
+                  "name": "Node",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  },
+                  "url": ""
+                },
+                {
+                  "name": "PostgreSQL",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  },
+                  "url": ""
+                },
+                {
+                  "name": "eSewa and Khalti",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  },
+                  "url": ""
+                }
+              ]
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "split",
+            "props": {
+              "title": "Two project slots open from Magh",
+              "text": "Tell me what you need and I will reply the same day with a rough price.",
+              "primary": {
+                "label": "Say hello",
+                "href": "page:contact"
+              },
+              "secondary": {
+                "label": "",
+                "href": ""
+              }
+            },
+            "style": {
+              "bg": "accent"
+            }
+          }
+        ]
+      },
+      {
+        "id": "projects",
+        "title": "Projects",
+        "nav": true,
+        "seoTitle": "Projects by Anish Karki, freelance web developer",
+        "seoDescription": "Selected projects: a school fee portal in Bhaktapur, an appointment system for a Baneshwor clinic, and a shop site with Khalti payments.",
+        "blocks": [
+          {
+            "type": "imagetext",
+            "variant": "left",
+            "props": {
+              "image": {
+                "src": "lib:doctor-visit",
+                "alt": "A doctor talking with a patient"
+              },
+              "eyebrow": "Web app · 2080",
+              "heading": "Appointment list for a Baneshwor clinic",
+              "body": "<p>Replaced a paper register. Reception books visits from a phone, and patients get an SMS the evening before. The no-show rate at the clinic fell from about one in five to one in twelve.</p>",
+              "link": {
+                "label": "",
+                "href": ""
+              }
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "right",
+            "props": {
+              "image": {
+                "src": "lib:cafe-hall",
+                "alt": "A bright café with long tables"
+              },
+              "eyebrow": "Website · 2079",
+              "heading": "Menu and table requests for a Jhamsikhel café",
+              "body": "<p>A menu the owner edits herself, a Nepali and English switch, and a form for groups of eight or more. Google Business photos and hours brought in with it.</p>",
+              "link": {
+                "label": "",
+                "href": ""
+              }
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "left",
+            "props": {
+              "image": {
+                "src": "lib:school-class",
+                "alt": "Students at desks in a classroom"
+              },
+              "eyebrow": "Web app · 2078",
+              "heading": "Fee reminders for a Bhaktapur school",
+              "body": "<p>Parents pay through Khalti or eSewa and the accountant no longer chases a paper ledger. It handles 620 students across nine classes.</p>",
+              "link": {
+                "label": "",
+                "href": ""
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "resume",
+        "title": "Resume",
+        "nav": true,
+        "seoTitle": "Resume of Anish Karki, freelance web developer",
+        "seoDescription": "Experience and education: freelance since 2077, three years at a Lalitpur software company, BSc CSIT from Tribhuvan University.",
+        "blocks": [
+          {
+            "type": "timeline",
+            "variant": "list",
+            "props": {
+              "heading": "Experience",
+              "items": [
+                {
+                  "date": "2077 to now",
+                  "title": "Freelance web developer",
+                  "text": "Twenty-odd sites and apps for small businesses across the valley and in Pokhara."
+                },
+                {
+                  "date": "2074 to 2077",
+                  "title": "Web developer, Lalitpur",
+                  "text": "Built the customer portal for a hydropower construction firm."
+                },
+                {
+                  "date": "2070 to 2074",
+                  "title": "BSc CSIT, Tribhuvan University",
+                  "text": "Padma Kanya Campus, Bagbazar."
+                }
+              ]
+            }
+          },
+          {
+            "type": "downloads",
+            "variant": "list",
+            "props": {
+              "heading": "",
+              "items": [
+                {
+                  "label": "Resume as PDF",
+                  "url": "",
+                  "note": "PDF, 2 pages"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "Contact",
+        "nav": true,
+        "seoTitle": "Contact Anish Karki, freelance web developer in Kathmandu",
+        "seoDescription": "Send a message about a website or web app. Anish replies the same day, Sunday to Friday.",
+        "blocks": [
+          {
+            "type": "contact",
+            "variant": "form",
+            "props": {
+              "heading": "Say hello",
+              "text": "Tell me about the business, and roughly what you need. If you have a budget in mind, say it. It saves us both time.",
+              "askPhone": true,
+              "button": "Send message",
+              "success": "Thank you. I will reply today or tomorrow."
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,478 @@
+{
+  "id": "salon",
+  "name": "Sunakhari Beauty Studio",
+  "category": "Salon and beauty",
+  "description": "A warm salon site with a priced service list, stylists, and an appointment form that asks which service you want.",
+  "site": {
+    "name": "Sunakhari Beauty Studio",
+    "theme": {
+      "preset": "rhododendron"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "instagram",
+          "url": "https://www.instagram.com/sunakharibeautystudio"
+        },
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/sunakharibeautystudio"
+        },
+        {
+          "network": "whatsapp",
+          "url": "https://wa.me/9779801234567"
+        }
+      ],
+      "tagline": "Hair, skin and bridal make-up in Pulchowk",
+      "phone": "01-5010877",
+      "email": "book@sunakharibeauty.com.np",
+      "address": "Pulchowk Road, near the Engineering Campus gate, Lalitpur 44700"
+    },
+    "header": {
+      "type": "header",
+      "variant": "bar",
+      "props": {
+        "cta": {
+          "label": "Book a seat",
+          "href": "page:book"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "columns",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "A twelve-seat studio on the first floor above Bhat-Bhateni Pulchowk. Walk-ins are welcome on weekday afternoons; weekends fill up by Wednesday."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Sunakhari Beauty Studio, Pulchowk: haircuts, colour, facials, bridal make-up",
+        "seoDescription": "Hair, skin and bridal make-up in Pulchowk, Lalitpur. Haircut Rs 800, facials from Rs 1,800, bridal trials booked a month ahead.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "split",
+            "props": {
+              "eyebrow": "Pulchowk, Lalitpur · Open six days",
+              "title": "Hair that still looks good on the third day",
+              "text": "Cuts, colour and keratin by stylists who ask what your mornings look like before they pick up the scissors. Facials and bridal make-up in the back room.",
+              "primary": {
+                "label": "Book a seat",
+                "href": "page:book"
+              },
+              "secondary": {
+                "label": "See prices",
+                "href": "page:services"
+              },
+              "image": {
+                "src": "lib:portrait-woman",
+                "alt": "A woman in a striped shirt with a soft smile",
+                "focal": [
+                  50,
+                  30
+                ]
+              }
+            }
+          },
+          {
+            "type": "features",
+            "variant": "compact",
+            "props": {
+              "heading": "The most booked, with prices",
+              "intro": "The full list, with colour and treatments, is on the Services page.",
+              "items": [
+                {
+                  "title": "Haircut and blow-dry",
+                  "text": "",
+                  "detail": "Rs 800"
+                },
+                {
+                  "title": "Global colour, shoulder length",
+                  "text": "",
+                  "detail": "From Rs 4,500"
+                },
+                {
+                  "title": "Keratin smoothing",
+                  "text": "",
+                  "detail": "From Rs 6,500"
+                },
+                {
+                  "title": "Deep-clean facial",
+                  "text": "",
+                  "detail": "Rs 1,800"
+                },
+                {
+                  "title": "Bridal make-up with trial",
+                  "text": "",
+                  "detail": "From Rs 18,000"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "right",
+            "props": {
+              "image": {
+                "src": "lib:salon-facial",
+                "alt": "A therapist giving a facial to a woman lying back on a treatment bed"
+              },
+              "eyebrow": "Skin",
+              "heading": "Facials in the back room, with the door closed",
+              "body": "<p>Steam, extraction and a mask, done slowly. Rojina asks about your skin and what you already use before she opens a single bottle, and she books a patch test if you have reacted to anything before.</p>",
+              "link": {
+                "label": "",
+                "href": ""
+              }
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "left",
+            "props": {
+              "image": {
+                "src": "lib:wedding-bouquet",
+                "alt": "A bride holding a bouquet in warm light"
+              },
+              "eyebrow": "Bridal",
+              "heading": "A trial a month before, not a rush on the morning",
+              "body": "<p>We book one bride per morning. You come for a trial with your jewellery and dupatta, we photograph three looks, and on the day two of us arrive at your home in Patan, Bhaisepati or Thimi at the time you fix.</p><p>Wedding-day bookings need a Rs 5,000 advance to hold the date.</p>",
+              "link": {
+                "label": "Ask about a date",
+                "href": "page:book"
+              }
+            }
+          },
+          {
+            "type": "faq",
+            "variant": "split",
+            "props": {
+              "heading": "Before you come",
+              "items": [
+                {
+                  "q": "Do I need to book a haircut?",
+                  "a": "Not on weekday afternoons, Sunday to Thursday after 1 pm. Mornings and all of Friday are by booking."
+                },
+                {
+                  "q": "Do you use branded colour?",
+                  "a": "Yes, Schwarzkopf and L'Oréal. Ask us to show you the tube, and we patch-test the day before if you have never coloured."
+                },
+                {
+                  "q": "How long does keratin take?",
+                  "a": "Three to four hours for shoulder-length hair. Do not tie or wet your hair for the next two days."
+                }
+              ]
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "band",
+            "props": {
+              "title": "Fridays before Dashain fill first",
+              "text": "Ask for your seat early in Ashwin.",
+              "primary": {
+                "label": "Book a seat",
+                "href": "page:book"
+              },
+              "secondary": {
+                "label": "Call 01-5010877",
+                "href": "tel:015010877"
+              }
+            },
+            "style": {
+              "bg": "accent"
+            }
+          }
+        ]
+      },
+      {
+        "id": "services",
+        "title": "Services",
+        "nav": true,
+        "seoTitle": "Salon prices in Pulchowk: hair, colour, facials, nails, bridal",
+        "seoDescription": "Haircut Rs 800, colour from Rs 4,500, facials from Rs 1,800, manicure Rs 700. Full price list, Sunakhari Beauty Studio, Pulchowk.",
+        "blocks": [
+          {
+            "type": "menu",
+            "variant": "columns",
+            "props": {
+              "heading": "Price list",
+              "intro": "Hair prices are for shoulder length. Long or thick hair is quoted at the chair, never after.",
+              "currency": "NPR",
+              "sections": [
+                {
+                  "title": "Hair",
+                  "note": "",
+                  "items": [
+                    {
+                      "name": "Haircut and blow-dry",
+                      "desc": "",
+                      "price": "800",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Fringe or trim only",
+                      "desc": "",
+                      "price": "300",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Global colour",
+                      "desc": "Root to tip, one shade",
+                      "price": "4500",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Highlights, half head",
+                      "desc": "Foils, toner included",
+                      "price": "5500",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Keratin smoothing",
+                      "desc": "3 to 4 hours",
+                      "price": "6500",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Hair spa",
+                      "desc": "Wash, mask, steam, head massage",
+                      "price": "1500",
+                      "tag": ""
+                    }
+                  ]
+                },
+                {
+                  "title": "Skin",
+                  "note": "",
+                  "items": [
+                    {
+                      "name": "Deep-clean facial",
+                      "desc": "Steam, extraction, mask",
+                      "price": "1800",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Brightening facial",
+                      "desc": "Vitamin C, 75 minutes",
+                      "price": "2800",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Threading, eyebrows",
+                      "desc": "",
+                      "price": "80",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Waxing, full arms",
+                      "desc": "",
+                      "price": "600",
+                      "tag": ""
+                    }
+                  ]
+                },
+                {
+                  "title": "Hands and feet",
+                  "note": "",
+                  "items": [
+                    {
+                      "name": "Manicure",
+                      "desc": "",
+                      "price": "700",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Pedicure",
+                      "desc": "With foot scrub",
+                      "price": "1100",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Gel polish",
+                      "desc": "Per set",
+                      "price": "1500",
+                      "tag": ""
+                    }
+                  ]
+                },
+                {
+                  "title": "Bridal",
+                  "note": "A trial is needed before the wedding-day booking.",
+                  "items": [
+                    {
+                      "name": "Bridal trial",
+                      "desc": "Two looks, photographed",
+                      "price": "3500",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Bridal make-up and hair",
+                      "desc": "At home or in the studio",
+                      "price": "From 18,000",
+                      "tag": ""
+                    },
+                    {
+                      "name": "Guest party make-up",
+                      "desc": "Per person, groups of 3 or more",
+                      "price": "3500",
+                      "tag": ""
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "type": "team",
+            "variant": "monogram",
+            "props": {
+              "heading": "Who will be holding the scissors",
+              "people": [
+                {
+                  "name": "Sunita Shrestha",
+                  "role": "Owner, senior stylist and colour",
+                  "bio": "Fifteen years in Kathmandu salons. Takes the wedding bookings herself.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                },
+                {
+                  "name": "Rojina Tamang",
+                  "role": "Skin and facials",
+                  "bio": "Trained in Bangkok. Books a patch test for anyone with sensitive skin.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                },
+                {
+                  "name": "Anisha Maharjan",
+                  "role": "Nails and waxing",
+                  "bio": "",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "gallery",
+            "variant": "masonry",
+            "props": {
+              "heading": "The studio",
+              "intro": "",
+              "images": [
+                {
+                  "image": {
+                    "src": "lib:salon-chairs",
+                    "alt": "A bright hair salon with styling chairs and a long mirror"
+                  },
+                  "caption": "Styling chairs, first floor"
+                },
+                {
+                  "image": {
+                    "src": "lib:salon-mirrors",
+                    "alt": "Salon chairs facing round mirrors on a dark wall"
+                  },
+                  "caption": "The colour and cut stations"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "id": "book",
+        "title": "Book",
+        "nav": true,
+        "seoTitle": "Book a seat at Sunakhari Beauty Studio, Pulchowk",
+        "seoDescription": "Ask for a date and time for a haircut, colour, facial or bridal trial. We confirm by phone the same day.",
+        "blocks": [
+          {
+            "type": "booking",
+            "variant": "split",
+            "props": {
+              "heading": "Ask for a seat",
+              "text": "Tell us the service and a day. We call to confirm within a few hours, and message you the day before. Colour and bridal need a call first for a proper quote.",
+              "services": "Haircut and blow-dry\nColour or highlights\nKeratin or hair spa\nFacial\nManicure or pedicure\nBridal trial\nBridal booking",
+              "askTime": true,
+              "button": "Ask for this seat",
+              "success": "Thank you. We will call you to confirm the time."
+            }
+          },
+          {
+            "type": "hours",
+            "variant": "compact",
+            "props": {
+              "heading": "Studio hours",
+              "note": "Closed on Saturdays.",
+              "days": [
+                {
+                  "day": "Sunday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Monday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Tuesday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Wednesday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Thursday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Friday",
+                  "hours": "10:00 – 19:00"
+                },
+                {
+                  "day": "Saturday",
+                  "hours": "Closed"
+                }
+              ]
+            }
+          },
+          {
+            "type": "map",
+            "variant": "split",
+            "props": {
+              "heading": "Find us",
+              "address": "First floor, above Bhat-Bhateni, Pulchowk Road, Lalitpur",
+              "query": "Pulchowk Road, Lalitpur",
+              "link": ""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

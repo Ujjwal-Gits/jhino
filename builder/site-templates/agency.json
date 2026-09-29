@@ -1,0 +1,282 @@
+{
+  "id": "agency",
+  "name": "Chautari Creative",
+  "category": "Creative agency",
+  "description": "A sharp, white creative-studio site: selected work, services, how a project runs, and a brief form.",
+  "site": {
+    "name": "Chautari Creative",
+    "theme": {
+      "preset": "gallery"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "instagram",
+          "url": "https://www.instagram.com/chautaricreative"
+        },
+        {
+          "network": "behance",
+          "url": "https://www.behance.net/chautaricreative"
+        },
+        {
+          "network": "linkedin",
+          "url": "https://www.linkedin.com/company/chautari-creative"
+        }
+      ],
+      "tagline": "Brand identity, web and film for Nepali companies",
+      "phone": "01-5551907",
+      "email": "studio@chautari.com.np",
+      "address": "Jhamsikhel, Lalitpur 44600"
+    },
+    "header": {
+      "type": "header",
+      "variant": "minimal",
+      "props": {
+        "cta": {
+          "label": "Send a brief",
+          "href": "page:brief"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "big",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "A studio of seven in Jhamsikhel. We take about eight projects a year."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Chautari Creative, Jhamsikhel: brand, web and film for Nepali companies",
+        "seoDescription": "Creative studio in Jhamsikhel, Lalitpur. Brand identity from Rs 3.5 lakh, websites from Rs 2 lakh, brand films. About eight projects a year.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "text",
+            "props": {
+              "eyebrow": "Studio · Jhamsikhel, Lalitpur",
+              "title": "We make Nepali companies look like they mean it",
+              "text": "Identity, websites and short films for hotels, banks, cooperatives and the people who supply them. Seven of us, eight projects a year, no juniors on your account.",
+              "primary": {
+                "label": "Send a brief",
+                "href": "page:brief"
+              },
+              "secondary": {
+                "label": "See work",
+                "href": "page:work"
+              }
+            }
+          },
+          {
+            "type": "image",
+            "variant": "full",
+            "props": {
+              "image": {
+                "src": "lib:camera-kit",
+                "alt": "A camera body and two lenses on a dark table",
+                "focal": [
+                  50,
+                  50
+                ]
+              },
+              "caption": "Camera kit in the studio, Jhamsikhel"
+            }
+          },
+          {
+            "type": "features",
+            "variant": "compact",
+            "props": {
+              "heading": "What we do",
+              "items": [
+                {
+                  "title": "Brand identity",
+                  "text": "Name, logo, colours, type, a usable guideline. Signage and packaging follow.",
+                  "detail": "From Rs 3.5 lakh"
+                },
+                {
+                  "title": "Websites",
+                  "text": "Designed, written and built. You can edit it yourself afterwards.",
+                  "detail": "From Rs 2 lakh"
+                },
+                {
+                  "title": "Brand film",
+                  "text": "Two to four minutes, shot in Nepal with Nepali crew. Subtitled in English.",
+                  "detail": "From Rs 4 lakh"
+                },
+                {
+                  "title": "Campaign design",
+                  "text": "Print, hoardings and social for a Dashain or Tihar season.",
+                  "detail": "Quoted per campaign"
+                }
+              ]
+            }
+          },
+          {
+            "type": "stats",
+            "variant": "split",
+            "props": {
+              "heading": "The shape of the studio",
+              "text": "Small on purpose. We would rather do eight projects properly than twenty in a hurry.",
+              "items": [
+                {
+                  "value": "7",
+                  "label": "People in the studio"
+                },
+                {
+                  "value": "8",
+                  "label": "Projects a year, at most"
+                },
+                {
+                  "value": "2071",
+                  "label": "The year we started"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "split",
+            "props": {
+              "title": "Have a brief? Send it as it is.",
+              "text": "One paragraph is enough. We reply in two working days.",
+              "primary": {
+                "label": "Send a brief",
+                "href": "page:brief"
+              },
+              "secondary": {
+                "label": "",
+                "href": ""
+              }
+            },
+            "style": {
+              "bg": "ink"
+            }
+          }
+        ]
+      },
+      {
+        "id": "work",
+        "title": "Work",
+        "nav": true,
+        "seoTitle": "Selected work by Chautari Creative, Jhamsikhel",
+        "seoDescription": "Selected brand, web and film projects by Chautari Creative for Nepali hotels, cooperatives and food companies.",
+        "blocks": [
+          {
+            "type": "timeline",
+            "variant": "list",
+            "props": {
+              "heading": "Selected work",
+              "items": [
+                {
+                  "date": "2080",
+                  "title": "Thakali Kitchen, Thamel",
+                  "text": "A restaurant identity built on the Thakali tarkari set: menu, signage, and a QR ordering page."
+                },
+                {
+                  "date": "2080",
+                  "title": "Rara Cooperative",
+                  "text": "Rebrand and website for a savings and credit cooperative in Jumla, with a Nepali-first interface."
+                },
+                {
+                  "date": "2079",
+                  "title": "Kavre Dairy",
+                  "text": "Packaging for six cheeses and curd, shot in the farm at Panauti."
+                },
+                {
+                  "date": "2079",
+                  "title": "Bhaktapur Guest House",
+                  "text": "A two-minute film and a website with online booking requests."
+                },
+                {
+                  "date": "2078",
+                  "title": "Everest Hardware",
+                  "text": "Catalogue design, 96 pages, in Nepali and English."
+                }
+              ]
+            }
+          },
+          {
+            "type": "gallery",
+            "variant": "grid",
+            "props": {
+              "heading": "",
+              "intro": "",
+              "images": [
+                {
+                  "image": {
+                    "src": "lib:camera-kit",
+                    "alt": "A camera and lenses on a table"
+                  },
+                  "caption": "On set"
+                },
+                {
+                  "image": {
+                    "src": "lib:cafe-hall",
+                    "alt": "A bright café with long tables and hanging lamps"
+                  },
+                  "caption": "Thakali Kitchen, dining room"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "id": "brief",
+        "title": "Brief",
+        "nav": true,
+        "seoTitle": "Send a brief to Chautari Creative, Jhamsikhel",
+        "seoDescription": "Tell Chautari Creative about your project, timeline and budget. We reply within two working days.",
+        "blocks": [
+          {
+            "type": "contact",
+            "variant": "split",
+            "props": {
+              "heading": "Send a brief",
+              "text": "What is the company, what do you need, and by when? A rough budget helps us say yes or no honestly.",
+              "askPhone": true,
+              "button": "Send the brief",
+              "success": "Thank you. We will reply within two working days."
+            }
+          },
+          {
+            "type": "social",
+            "variant": "big",
+            "props": {
+              "heading": "Elsewhere",
+              "links": [
+                {
+                  "network": "instagram",
+                  "url": "https://www.instagram.com/chautaricreative"
+                },
+                {
+                  "network": "behance",
+                  "url": "https://www.behance.net/chautaricreative"
+                },
+                {
+                  "network": "linkedin",
+                  "url": "https://www.linkedin.com/company/chautari-creative"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

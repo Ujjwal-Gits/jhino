@@ -1,0 +1,349 @@
+{
+  "id": "trek",
+  "name": "Sherpa Trail Nepal",
+  "category": "Travel and trekking",
+  "description": "A trekking agency site: three treks with days, cost and season, how a trip is arranged, and an enquiry form.",
+  "site": {
+    "name": "Sherpa Trail Nepal",
+    "theme": {
+      "preset": "clinic",
+      "display": "gloock",
+      "body": "bricolage",
+      "colors": {
+        "bg": "#eef2f2",
+        "surface": "#dde6e7",
+        "text": "#0d2a36",
+        "muted": "#4a6068",
+        "accent": "#b8400f",
+        "onAccent": "#ffffff",
+        "line": "#c5d3d5"
+      },
+      "radius": 6,
+      "button": "solid",
+      "rhythm": "even"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "instagram",
+          "url": "https://www.instagram.com/sherpatrailnepal"
+        },
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/sherpatrailnepal"
+        },
+        {
+          "network": "whatsapp",
+          "url": "https://wa.me/9779801889900"
+        }
+      ],
+      "tagline": "Small-group treks in Langtang, Annapurna and Mustang",
+      "phone": "980-1889900",
+      "email": "trips@sherpatrail.com.np",
+      "address": "Thamel Marg, Kathmandu 44600, above Himalayan Java"
+    },
+    "header": {
+      "type": "header",
+      "variant": "bar",
+      "props": {
+        "cta": {
+          "label": "Plan a trek",
+          "href": "page:plan"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "columns",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "Registered with the Nepal Tourism Board and TAAN. Our guides are licensed, first-aid trained, and are paid and insured whatever the weather does."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Sherpa Trail Nepal, Thamel: small-group treks in Langtang, Annapurna, Mustang",
+        "seoDescription": "Licensed trekking agency in Thamel. Langtang 8 days from USD 780, Annapurna Base Camp 11 days, Upper Mustang. Groups of six or fewer.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "image",
+            "props": {
+              "eyebrow": "Thamel, Kathmandu · Licensed and insured",
+              "title": "Six people, one guide, one porter for every two",
+              "text": "Trips run by guides who grew up on the trails they lead. We keep groups to six so the teahouse is not full before you get there.",
+              "primary": {
+                "label": "See the treks",
+                "href": "page:treks"
+              },
+              "secondary": {
+                "label": "Plan a trek",
+                "href": "page:plan"
+              },
+              "image": {
+                "src": "lib:himal-trek",
+                "alt": "A trekker looking at snow peaks",
+                "focal": [
+                  50,
+                  35
+                ]
+              }
+            }
+          },
+          {
+            "type": "features",
+            "variant": "rows",
+            "props": {
+              "heading": "Three treks we run most",
+              "items": [
+                {
+                  "title": "Langtang Valley",
+                  "text": "Syabrubesi to Kyanjin Gompa and back, through rebuilt villages and rhododendron forest.",
+                  "detail": "8 days · USD 780"
+                },
+                {
+                  "title": "Annapurna Base Camp",
+                  "text": "From Pokhara via Ghandruk and Chomrong, with a sunrise at the sanctuary.",
+                  "detail": "11 days · USD 1,050"
+                },
+                {
+                  "title": "Upper Mustang",
+                  "text": "Kagbeni to Lo Manthang. A restricted-area permit is arranged for you.",
+                  "detail": "14 days · USD 2,950"
+                }
+              ]
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "right",
+            "props": {
+              "image": {
+                "src": "lib:ridge-photographer",
+                "alt": "A person on a rocky ridge above the clouds"
+              },
+              "eyebrow": "On the trail",
+              "heading": "You will always know how high you are and how you are doing",
+              "body": "<p>Guides check oxygen saturation every evening above 3,000 metres, and every group carries a Gamow bag and a satellite phone. Turning back is always the guide's call, and never costs you extra.</p>",
+              "link": {
+                "label": "",
+                "href": ""
+              }
+            }
+          },
+          {
+            "type": "gallery",
+            "variant": "carousel",
+            "props": {
+              "heading": "From recent trips",
+              "intro": "",
+              "images": [
+                {
+                  "image": {
+                    "src": "lib:night-peaks",
+                    "alt": "Snow peaks under a starry sky"
+                  },
+                  "caption": "Kyanjin Ri, before dawn"
+                },
+                {
+                  "image": {
+                    "src": "lib:swayambhu",
+                    "alt": "Swayambhu stupa with prayer flags"
+                  },
+                  "caption": "Day one, Kathmandu"
+                },
+                {
+                  "image": {
+                    "src": "lib:boudha",
+                    "alt": "Boudhanath stupa from above"
+                  },
+                  "caption": "The evening before the flight"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "band",
+            "props": {
+              "title": "Best months are Kartik, Mangsir and Chaitra",
+              "text": "Groups fill six weeks ahead in October and November.",
+              "primary": {
+                "label": "Plan a trek",
+                "href": "page:plan"
+              },
+              "secondary": {
+                "label": "WhatsApp us",
+                "href": "https://wa.me/9779801889900"
+              }
+            },
+            "style": {
+              "bg": "ink"
+            }
+          }
+        ]
+      },
+      {
+        "id": "treks",
+        "title": "Treks",
+        "nav": true,
+        "seoTitle": "Trek itineraries and prices: Langtang, Annapurna, Mustang with Sherpa Trail",
+        "seoDescription": "Langtang 8 days USD 780, Annapurna Base Camp 11 days USD 1,050, Upper Mustang 14 days USD 2,950. What is included and when to go.",
+        "blocks": [
+          {
+            "type": "pricing",
+            "variant": "table",
+            "props": {
+              "heading": "Treks and prices",
+              "intro": "Per person, sharing a room, in a group of four to six. Prices include permits, guide, porter, teahouse rooms and three meals a day. International flights and insurance are not included.",
+              "currency": "USD",
+              "plans": [
+                {
+                  "name": "Langtang Valley",
+                  "price": "780",
+                  "period": "8 days",
+                  "note": "Best: Kartik, Mangsir, Chaitra",
+                  "features": "Bus from Kathmandu to Syabrubesi\nTIMS and national park permit\nLicensed guide and porter",
+                  "cta": {
+                    "label": "Plan this trek",
+                    "href": "page:plan"
+                  },
+                  "featured": false
+                },
+                {
+                  "name": "Annapurna Base Camp",
+                  "price": "1050",
+                  "period": "11 days",
+                  "note": "Best: Kartik, Chaitra, Baisakh",
+                  "features": "Tourist bus to Pokhara\nACAP and TIMS permits\nLicensed guide and porter",
+                  "cta": {
+                    "label": "Plan this trek",
+                    "href": "page:plan"
+                  },
+                  "featured": true
+                },
+                {
+                  "name": "Upper Mustang",
+                  "price": "2950",
+                  "period": "14 days",
+                  "note": "Best: Jestha to Bhadau, in the rain shadow",
+                  "features": "Restricted-area permit (USD 500 for 10 days)\nFlight Pokhara to Jomsom\nLicensed guide and porter",
+                  "cta": {
+                    "label": "Plan this trek",
+                    "href": "page:plan"
+                  },
+                  "featured": false
+                }
+              ]
+            }
+          },
+          {
+            "type": "timeline",
+            "variant": "vertical",
+            "props": {
+              "heading": "Langtang Valley, day by day",
+              "items": [
+                {
+                  "date": "Day 1",
+                  "title": "Kathmandu to Syabrubesi",
+                  "text": "Seven-hour bus ride. Night in a teahouse."
+                },
+                {
+                  "date": "Day 2",
+                  "title": "To Lama Hotel",
+                  "text": "Six hours through oak and rhododendron forest."
+                },
+                {
+                  "date": "Day 3",
+                  "title": "To Langtang village",
+                  "text": "Rebuilt after the 2015 earthquake. Yak cheese for lunch."
+                },
+                {
+                  "date": "Day 4",
+                  "title": "Kyanjin Gompa",
+                  "text": "A short day to help you acclimatise."
+                },
+                {
+                  "date": "Day 5",
+                  "title": "Kyanjin Ri or rest",
+                  "text": "The 4,773 metre viewpoint, if you feel well."
+                },
+                {
+                  "date": "Day 6 to 8",
+                  "title": "Back to Syabrubesi, then Kathmandu",
+                  "text": "Downhill in two days and a bus on the third."
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "faq",
+            "variant": "split",
+            "props": {
+              "heading": "What people ask",
+              "items": [
+                {
+                  "q": "Do I need to be very fit?",
+                  "a": "For Langtang, no. If you can walk six hours on hilly ground with a small pack, you are ready."
+                },
+                {
+                  "q": "What about altitude sickness?",
+                  "a": "We build in rest days, and your guide watches every person. If you are unwell, we descend."
+                },
+                {
+                  "q": "How do I pay?",
+                  "a": "A 30 percent deposit by bank transfer or card, the rest in Kathmandu before you leave."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "plan",
+        "title": "Plan a trek",
+        "nav": true,
+        "seoTitle": "Plan a trek with Sherpa Trail Nepal, Thamel",
+        "seoDescription": "Tell us the trek, dates and group size. We reply within a day with the exact price and a suggested itinerary.",
+        "blocks": [
+          {
+            "type": "booking",
+            "variant": "split",
+            "props": {
+              "heading": "Plan a trek",
+              "text": "Tell us which trek, roughly when, and how many of you. Any dietary needs or health conditions, mention them in the notes.",
+              "services": "Langtang Valley, 8 days\nAnnapurna Base Camp, 11 days\nUpper Mustang, 14 days\nSomething shorter\nI would like your advice",
+              "askTime": false,
+              "button": "Send trek request",
+              "success": "Thank you. We will reply within a day with a price and itinerary."
+            }
+          },
+          {
+            "type": "map",
+            "variant": "card",
+            "props": {
+              "heading": "Come and see us",
+              "address": "Thamel Marg, above Himalayan Java, Kathmandu",
+              "query": "Himalayan Java, Thamel, Kathmandu",
+              "link": ""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

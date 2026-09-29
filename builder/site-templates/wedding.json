@@ -1,0 +1,312 @@
+{
+  "id": "wedding",
+  "name": "Utsav Wedding Planners",
+  "category": "Wedding and events",
+  "description": "A wedding planner site with a story, packages priced in rupees, a wedding-week timeline and an enquiry form asking for a date and guest count.",
+  "site": {
+    "name": "Utsav Wedding Planners",
+    "theme": {
+      "preset": "teagarden",
+      "display": "fraunces",
+      "body": "schibsted",
+      "colors": {
+        "bg": "#fbf6ee",
+        "surface": "#f2e6d6",
+        "text": "#2d1622",
+        "muted": "#6f5560",
+        "accent": "#6e2145",
+        "onAccent": "#fff8f2",
+        "line": "#e5d5c1"
+      },
+      "radius": 24,
+      "button": "pill",
+      "rhythm": "airy"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "instagram",
+          "url": "https://www.instagram.com/utsavweddingplanners"
+        },
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/utsavweddingplanners"
+        },
+        {
+          "network": "whatsapp",
+          "url": "https://wa.me/9779801112233"
+        }
+      ],
+      "tagline": "Weddings in the valley, planned so the family can be guests",
+      "phone": "980-1112233",
+      "email": "hello@utsavweddings.com.np",
+      "address": "Sanepa Chowk, Lalitpur 44700"
+    },
+    "header": {
+      "type": "header",
+      "variant": "centered",
+      "props": {
+        "cta": {
+          "label": "Check a date",
+          "href": "page:enquire"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "simple",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "We plan Newari, Brahmin, Chhetri and mixed weddings for 100 to 600 guests across Kathmandu, Lalitpur, Bhaktapur and Nagarkot."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Utsav Wedding Planners, Lalitpur: weddings planned around your family",
+        "seoDescription": "Wedding planners in Lalitpur for 100 to 600 guests. Full planning from Rs 2.5 lakh. Newari, Brahmin, Chhetri and mixed ceremonies.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "image",
+            "props": {
+              "eyebrow": "Sanepa, Lalitpur · Weddings across the valley",
+              "title": "The mother of the bride should get to sit down",
+              "text": "Venue, catering, decoration, photographers and the priest's timings, handled by one team that stays until the last guest has gone home.",
+              "primary": {
+                "label": "Check a date",
+                "href": "page:enquire"
+              },
+              "secondary": {
+                "label": "Packages",
+                "href": "page:packages"
+              },
+              "image": {
+                "src": "lib:wedding-bouquet",
+                "alt": "A bride holding a bouquet in warm light",
+                "focal": [
+                  50,
+                  45
+                ]
+              }
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "stacked",
+            "props": {
+              "image": {
+                "src": "lib:long-table",
+                "alt": "A long table set with glasses and flowers"
+              },
+              "eyebrow": "Our way",
+              "heading": "One planner on the phone from the first visit to the bidaai",
+              "body": "<p>Nepali weddings run over several days, with a lot of hands. We draw up a plan for each ceremony (<em>swayambar</em>, <em>mehendi</em>, <em>bratabandha</em> or <em>pasni</em> if it falls in the same week), assign a person to each, and give your family one number to call.</p>",
+              "link": {
+                "label": "",
+                "href": ""
+              }
+            }
+          },
+          {
+            "type": "timeline",
+            "variant": "vertical",
+            "props": {
+              "heading": "How the last three months go",
+              "items": [
+                {
+                  "date": "90 days",
+                  "title": "Venue and date locked",
+                  "text": "We visit two or three venues with you, and check the muhurat with your pandit before paying an advance."
+                },
+                {
+                  "date": "60 days",
+                  "title": "Menu tasting",
+                  "text": "Catering tasting for the family, including a plate for those who eat no onion or garlic."
+                },
+                {
+                  "date": "30 days",
+                  "title": "Decoration and photos",
+                  "text": "Mock-up of the stage and mandap. Photographers walk the venue in the same light as the ceremony."
+                },
+                {
+                  "date": "7 days",
+                  "title": "Run sheet to every family member",
+                  "text": "A one-page plan in Nepali, with names and phone numbers for each ceremony."
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "gallery",
+            "variant": "carousel",
+            "props": {
+              "heading": "Tables and flowers from recent weddings",
+              "intro": "",
+              "images": [
+                {
+                  "image": {
+                    "src": "lib:long-table",
+                    "alt": "A long table with glasses and flowers"
+                  },
+                  "caption": "Reception, Godawari"
+                },
+                {
+                  "image": {
+                    "src": "lib:food-spread",
+                    "alt": "A spread of grilled meat, greens and dips"
+                  },
+                  "caption": "Sunday lunch for 180"
+                },
+                {
+                  "image": {
+                    "src": "lib:dinner-plate",
+                    "alt": "A plated dish on a dinner table"
+                  },
+                  "caption": "Sit-down dinner, Bhaktapur"
+                }
+              ]
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "boxed",
+            "props": {
+              "title": "Which date are you thinking about?",
+              "text": "Tell us the date and the number of guests. We will say honestly whether we can do it well.",
+              "primary": {
+                "label": "Check a date",
+                "href": "page:enquire"
+              },
+              "secondary": {
+                "label": "Call 980-1112233",
+                "href": "tel:9801112233"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "packages",
+        "title": "Packages",
+        "nav": true,
+        "seoTitle": "Wedding planning packages from Rs 2.5 lakh, Utsav Wedding Planners",
+        "seoDescription": "Day-of coordination Rs 60,000, full planning from Rs 2.5 lakh. Packages for weddings of 100 to 600 guests in Kathmandu Valley.",
+        "blocks": [
+          {
+            "type": "pricing",
+            "variant": "columns",
+            "props": {
+              "heading": "Three ways to work with us",
+              "intro": "Venue, food and decoration are billed at cost, with no markup. Our fee covers planning and people.",
+              "currency": "NPR",
+              "plans": [
+                {
+                  "name": "Day-of",
+                  "price": "60000",
+                  "period": "fee",
+                  "note": "You planned it, we run it",
+                  "features": "One meeting, one venue visit\nRun sheet in Nepali\nFour coordinators on the day",
+                  "cta": {
+                    "label": "Check a date",
+                    "href": "page:enquire"
+                  },
+                  "featured": false
+                },
+                {
+                  "name": "Full planning",
+                  "price": "250000",
+                  "period": "from",
+                  "note": "For 150 to 350 guests",
+                  "features": "Everything in Day-of\nVenue, caterer, decoration and photo quotes\nTasting and mock-up\nTwo days of coordinators",
+                  "cta": {
+                    "label": "Check a date",
+                    "href": "page:enquire"
+                  },
+                  "featured": true
+                },
+                {
+                  "name": "Multi-day",
+                  "price": "450000",
+                  "period": "from",
+                  "note": "Mehendi, swayambar and reception",
+                  "features": "Everything in Full planning\nGuest transport and rooms\nLive Viber updates to the family",
+                  "cta": {
+                    "label": "Check a date",
+                    "href": "page:enquire"
+                  },
+                  "featured": false
+                }
+              ]
+            }
+          },
+          {
+            "type": "faq",
+            "variant": "split",
+            "props": {
+              "heading": "Asked before booking",
+              "items": [
+                {
+                  "q": "Do you work with our own pandit?",
+                  "a": "Always. We only ask for the muhurat and the timings for each ritual."
+                },
+                {
+                  "q": "Can you plan outside the valley?",
+                  "a": "Yes, Pokhara and Chitwan. Travel and rooms for the team are added at cost."
+                },
+                {
+                  "q": "How much advance do we pay?",
+                  "a": "Rs 25,000 to hold the date, taken from the fee."
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "id": "enquire",
+        "title": "Check a date",
+        "nav": true,
+        "seoTitle": "Check a wedding date with Utsav Wedding Planners",
+        "seoDescription": "Ask whether we are free on your wedding date. Tell us the date, the guest count and the venue you have in mind.",
+        "blocks": [
+          {
+            "type": "booking",
+            "variant": "split",
+            "props": {
+              "heading": "Check a date",
+              "text": "Give us the date you have in mind and the rough number of guests. We reply within a day, and we say honestly if the date is taken.",
+              "services": "Full planning\nDay-of coordination\nMulti-day wedding\nEngagement or bratabandha\nNot sure yet",
+              "askTime": false,
+              "button": "Check this date",
+              "success": "Thank you. We will call you within a day."
+            }
+          },
+          {
+            "type": "map",
+            "variant": "card",
+            "props": {
+              "heading": "Come to the office",
+              "address": "Sanepa Chowk, Lalitpur, behind the Nabil Bank ATM",
+              "query": "Sanepa Chowk, Lalitpur",
+              "link": ""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

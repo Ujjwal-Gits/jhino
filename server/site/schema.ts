@@ -353,6 +353,22 @@ export const FORM_TYPES = BLOCKS.filter((b) => b.form).map((b) => b.type);
 /* ---------------- library photos (runtime/site-img) ---------------- */
 /** name → widths available (files are <name>-<width>.webp). */
 export const LIBRARY: Record<string, { widths: number[]; alt: string }> = {
+  'salon-chairs': { widths: [640, 1400], alt: 'A bright hair salon with styling chairs and a long mirror' },
+  'salon-mirrors': { widths: [640, 1400], alt: 'Salon chairs facing round mirrors on a dark wall' },
+  'salon-facial': { widths: [640, 1400], alt: 'A therapist giving a facial to a woman lying back' },
+  'gym-barbell': { widths: [640, 1400], alt: 'A loaded barbell beside a squat rack' },
+  'gym-kettlebells': { widths: [640, 1400], alt: 'A wall of black kettlebells in a dark gym' },
+  'gym-lift': { widths: [640, 1400], alt: 'A lifter gripping a barbell overhead' },
+  'gym-dumbbells': { widths: [640, 1400], alt: 'Rows of black dumbbells on a rack' },
+  'school-class': { widths: [640, 1400], alt: 'Students at desks listening to a teacher' },
+  'school-lecture': { widths: [640, 1400], alt: 'A teacher speaking to students while a student raises a hand' },
+  'school-board': { widths: [640, 1400], alt: 'A hand writing an equation on a chalkboard' },
+  'shop-fabric-shelf': { widths: [640, 1400], alt: 'Shelves of folded cloth rolls in a small shop' },
+  'shop-fabric-rolls': { widths: [640, 1400], alt: 'Stacked folded fabric in blue, teal, cream and magenta' },
+  'shop-rack': { widths: [640, 1400], alt: 'A rail of ready-made clothes in a shop' },
+  'home-modern': { widths: [640, 1400], alt: 'A modern house with tall glass doors and a garden' },
+  'home-garden': { widths: [640, 1400], alt: 'A two-storey house with a timber and stone facade and a lawn' },
+  'home-living': { widths: [640, 1400], alt: 'A bright living room with a sofa and large windows' },
   'food-spread': { widths: [640, 1400], alt: 'Plates of grilled meat, greens and dipping sauce on a wooden table' },
   'dinner-plate': { widths: [640, 1400], alt: 'A plated dish on a busy dinner table' },
   'cafe-hall': { widths: [640, 1400], alt: 'A bright café with long tables and hanging lamps' },

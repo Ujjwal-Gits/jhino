@@ -1,0 +1,442 @@
+{
+  "id": "tuition",
+  "name": "Himal Learning Centre",
+  "category": "School and tuition",
+  "description": "A trustworthy tuition centre site: courses with fees, a term timeline, teachers, FAQs and an enquiry form.",
+  "site": {
+    "name": "Himal Learning Centre",
+    "theme": {
+      "preset": "clinic",
+      "display": "newsreader",
+      "body": "schibsted",
+      "colors": {
+        "bg": "#fdfaf3",
+        "surface": "#f1ecdd",
+        "text": "#14213a",
+        "muted": "#54607a",
+        "accent": "#1c3f8a",
+        "onAccent": "#ffffff",
+        "line": "#ddd5bf"
+      },
+      "radius": 6,
+      "button": "solid",
+      "rhythm": "even"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/himallearningcentre"
+        },
+        {
+          "network": "viber",
+          "url": "https://invite.viber.com/?g=himal-learning"
+        }
+      ],
+      "tagline": "SEE and Class 11–12 preparation in Lazimpat",
+      "phone": "01-4410256",
+      "email": "office@himallearning.edu.np",
+      "address": "Lazimpat, behind Hotel Radisson, Kathmandu 44600"
+    },
+    "header": {
+      "type": "header",
+      "variant": "bar",
+      "props": {
+        "cta": {
+          "label": "Ask about a seat",
+          "href": "page:enquire"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "columns",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "A tuition centre for students of Class 9 to 12, with batches of no more than 18 and a monthly report to parents."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Himal Learning Centre, Lazimpat: SEE, Class 11 and 12 tuition",
+        "seoDescription": "Small-batch tuition in Lazimpat, Kathmandu. SEE preparation, Class 11 and 12 Science and Management. Batches of 18, monthly parent reports.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "text",
+            "props": {
+              "eyebrow": "Lazimpat, Kathmandu · Admissions open for Baisakh",
+              "title": "Eighteen students in a room, and a teacher who knows every name",
+              "text": "Tuition for SEE, and for Class 11 and 12 Science and Management under NEB. We test every Friday and send you the marks on Viber on Sunday.",
+              "primary": {
+                "label": "Ask about a seat",
+                "href": "page:enquire"
+              },
+              "secondary": {
+                "label": "See the courses",
+                "href": "page:courses"
+              }
+            }
+          },
+          {
+            "type": "features",
+            "variant": "grid",
+            "props": {
+              "heading": "What we teach",
+              "items": [
+                {
+                  "title": "SEE preparation",
+                  "text": "Maths, science, English, Nepali and social. Model questions from the last ten years of SEE papers.",
+                  "detail": "Rs 3,500 a month"
+                },
+                {
+                  "title": "Class 11 and 12 Science",
+                  "text": "Physics, chemistry, maths and biology, with a lab session every second Saturday.",
+                  "detail": "Rs 6,000 a month"
+                },
+                {
+                  "title": "Class 11 and 12 Management",
+                  "text": "Accountancy, economics, business studies and English.",
+                  "detail": "Rs 5,000 a month"
+                },
+                {
+                  "title": "IOE and CEE crash course",
+                  "text": "Sixteen weeks, Sunday to Friday evenings, with mock tests in the exam format.",
+                  "detail": "Rs 18,000 total"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "left",
+            "props": {
+              "image": {
+                "src": "lib:school-class",
+                "alt": "Students sitting at desks listening to a teacher standing at the front"
+              },
+              "eyebrow": "How we work",
+              "heading": "A Friday test, a Sunday message",
+              "body": "<p>Every student sits a forty-minute test each Friday. Sunday morning, parents get the marks, the class average and one line from the teacher on what to fix.</p><p>Students below 50 in a subject get a free Saturday doubt class until they are not.</p>",
+              "link": {
+                "label": "Meet the teachers",
+                "href": "page:teachers"
+              }
+            }
+          },
+          {
+            "type": "timeline",
+            "variant": "horizontal",
+            "props": {
+              "heading": "The year at a glance",
+              "items": [
+                {
+                  "date": "Baisakh",
+                  "title": "New batches begin",
+                  "text": "After SEE results and the Class 11 admission lists."
+                },
+                {
+                  "date": "Shrawan",
+                  "title": "First terminal tests",
+                  "text": "Marks meeting with every parent."
+                },
+                {
+                  "date": "Ashwin",
+                  "title": "Dashain break",
+                  "text": "Ten days off, revision sheet sent home."
+                },
+                {
+                  "date": "Poush",
+                  "title": "Second terminal",
+                  "text": "Mock papers begin."
+                },
+                {
+                  "date": "Falgun",
+                  "title": "Final revision",
+                  "text": "Extra evening classes, no extra fee."
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "boxed",
+            "props": {
+              "title": "Visit a class before you decide",
+              "text": "Sit in on one session, free, any weekday at 4 pm.",
+              "primary": {
+                "label": "Ask about a seat",
+                "href": "page:enquire"
+              },
+              "secondary": {
+                "label": "Call 01-4410256",
+                "href": "tel:014410256"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "courses",
+        "title": "Courses",
+        "nav": true,
+        "seoTitle": "Courses and fees at Himal Learning Centre, Lazimpat",
+        "seoDescription": "SEE Rs 3,500, Class 11 and 12 Science Rs 6,000, Management Rs 5,000 a month. Batch timings and what is included.",
+        "blocks": [
+          {
+            "type": "image",
+            "variant": "contained",
+            "props": {
+              "image": {
+                "src": "lib:school-board",
+                "alt": "A hand writing an equation on a green chalkboard"
+              },
+              "caption": "Maths, Class 12, morning batch"
+            }
+          },
+          {
+            "type": "pricing",
+            "variant": "table",
+            "props": {
+              "heading": "Courses and monthly fees",
+              "intro": "Admission fee Rs 1,500, once. Sibling discount of 10 percent.",
+              "currency": "NPR",
+              "plans": [
+                {
+                  "name": "SEE preparation",
+                  "price": "3500",
+                  "period": "a month",
+                  "note": "Class 10, 4 pm to 6 pm, Sunday to Friday",
+                  "features": "Five subjects\nFriday test\nSaturday doubt class",
+                  "cta": {
+                    "label": "Ask about a seat",
+                    "href": "page:enquire"
+                  },
+                  "featured": false
+                },
+                {
+                  "name": "Class 11–12 Science",
+                  "price": "6000",
+                  "period": "a month",
+                  "note": "6:30 am and 4 pm batches",
+                  "features": "Physics, chemistry, maths, biology\nLab every second Saturday\nNEB model papers",
+                  "cta": {
+                    "label": "Ask about a seat",
+                    "href": "page:enquire"
+                  },
+                  "featured": true
+                },
+                {
+                  "name": "Class 11–12 Management",
+                  "price": "5000",
+                  "period": "a month",
+                  "note": "7 am and 4 pm batches",
+                  "features": "Accountancy, economics, business studies\nEnglish\nCase-study sessions",
+                  "cta": {
+                    "label": "Ask about a seat",
+                    "href": "page:enquire"
+                  },
+                  "featured": false
+                },
+                {
+                  "name": "IOE and CEE crash course",
+                  "price": "18000",
+                  "period": "16 weeks",
+                  "note": "Evenings, 5 pm to 8 pm",
+                  "features": "Weekly mock in exam format\nOMR practice\nPast-question booklets",
+                  "cta": {
+                    "label": "Ask about a seat",
+                    "href": "page:enquire"
+                  },
+                  "featured": false
+                }
+              ]
+            }
+          },
+          {
+            "type": "faq",
+            "variant": "accordion",
+            "props": {
+              "heading": "Parents ask",
+              "items": [
+                {
+                  "q": "How many students are in a batch?",
+                  "a": "Eighteen at most. When a batch is full we open the next timing, we do not add chairs."
+                },
+                {
+                  "q": "Can my child join in the middle of the year?",
+                  "a": "Yes. We do a short placement test on the first day and send you a catch-up plan."
+                },
+                {
+                  "q": "Do you provide notes?",
+                  "a": "Printed notes for every chapter, included in the fee. Textbooks are not included."
+                },
+                {
+                  "q": "How do I pay?",
+                  "a": "Cash at the office, or eSewa and Fonepay to the centre QR, by the 7th of each month."
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "id": "teachers",
+        "title": "Teachers",
+        "nav": true,
+        "seoTitle": "Teachers at Himal Learning Centre, Lazimpat",
+        "seoDescription": "Meet the teachers of Himal Learning Centre: maths, physics, chemistry, accountancy and English.",
+        "blocks": [
+          {
+            "type": "team",
+            "variant": "list",
+            "props": {
+              "heading": "Teachers",
+              "intro": "Every teacher here teaches. None of them only manages.",
+              "people": [
+                {
+                  "name": "Ramesh Adhikari",
+                  "role": "Maths, 14 years",
+                  "bio": "M.Sc. from Tribhuvan University. Writes the Friday tests himself.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                },
+                {
+                  "name": "Kabita Poudel",
+                  "role": "Physics and chemistry",
+                  "bio": "Taught Class 12 at a college in Bagbazar before starting here.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                },
+                {
+                  "name": "Suresh Bhandari",
+                  "role": "Accountancy and economics",
+                  "bio": "Chartered accountant, teaches on weekday evenings.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                },
+                {
+                  "name": "Mina Joshi",
+                  "role": "English and Nepali",
+                  "bio": "Runs the writing class every Saturday.",
+                  "image": {
+                    "src": "",
+                    "alt": ""
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "type": "image",
+            "variant": "framed",
+            "props": {
+              "image": {
+                "src": "lib:school-lecture",
+                "alt": "A teacher speaking to students at wooden desks while a student raises a hand"
+              },
+              "caption": "A Saturday doubt class. Hands go up, and the teacher answers at the desk."
+            }
+          }
+        ]
+      },
+      {
+        "id": "enquire",
+        "title": "Enquire",
+        "nav": true,
+        "seoTitle": "Ask about a seat at Himal Learning Centre, Lazimpat",
+        "seoDescription": "Send an enquiry about a batch, fees or a visit. The office replies the same day, Sunday to Friday.",
+        "blocks": [
+          {
+            "type": "contact",
+            "variant": "split",
+            "props": {
+              "heading": "Ask about a seat",
+              "text": "Tell us your child's class and school, and which batch time suits. The office replies the same day.",
+              "address": "",
+              "phone": "",
+              "email": "",
+              "askPhone": true,
+              "button": "Send enquiry",
+              "success": "Thank you. The office will call you by tomorrow morning."
+            }
+          },
+          {
+            "type": "hours",
+            "variant": "compact",
+            "props": {
+              "heading": "Office hours",
+              "note": "",
+              "days": [
+                {
+                  "day": "Sunday",
+                  "hours": "07:00 – 18:00"
+                },
+                {
+                  "day": "Monday",
+                  "hours": "07:00 – 18:00"
+                },
+                {
+                  "day": "Tuesday",
+                  "hours": "07:00 – 18:00"
+                },
+                {
+                  "day": "Wednesday",
+                  "hours": "07:00 – 18:00"
+                },
+                {
+                  "day": "Thursday",
+                  "hours": "07:00 – 18:00"
+                },
+                {
+                  "day": "Friday",
+                  "hours": "07:00 – 18:00"
+                },
+                {
+                  "day": "Saturday",
+                  "hours": "Closed"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "map",
+            "variant": "embed",
+            "props": {
+              "heading": "",
+              "address": "Lazimpat, behind Hotel Radisson, Kathmandu",
+              "query": "Lazimpat, Kathmandu",
+              "link": ""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

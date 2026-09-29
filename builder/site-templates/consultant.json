@@ -1,0 +1,329 @@
+{
+  "id": "consultant",
+  "name": "Acharya and Associates",
+  "category": "Consultant and professional office",
+  "description": "A chartered accountant and tax consultant office: services with fees, what to bring, FAQs and a consultation request.",
+  "site": {
+    "name": "Acharya and Associates",
+    "theme": {
+      "preset": "ledger"
+    },
+    "settings": {
+      "lang": "en",
+      "social": [
+        {
+          "network": "linkedin",
+          "url": "https://www.linkedin.com/company/acharya-and-associates"
+        },
+        {
+          "network": "facebook",
+          "url": "https://www.facebook.com/acharyaassociates"
+        }
+      ],
+      "tagline": "Chartered accountants and tax consultants in Putalisadak",
+      "phone": "01-4168420",
+      "email": "office@acharyaassociates.com.np",
+      "address": "3rd floor, Kamal Pokhari Plaza, Putalisadak, Kathmandu 44600"
+    },
+    "header": {
+      "type": "header",
+      "variant": "bar",
+      "props": {
+        "cta": {
+          "label": "Book a consultation",
+          "href": "page:consult"
+        },
+        "sticky": true
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "variant": "columns",
+      "props": {
+        "note": "",
+        "showPages": true,
+        "showContact": true,
+        "showSocial": true,
+        "about": "Chartered accountants registered with the Institute of Chartered Accountants of Nepal. Tax filings are made through the Inland Revenue Department portal."
+      }
+    },
+    "pages": [
+      {
+        "id": "home",
+        "title": "Home",
+        "nav": true,
+        "seoTitle": "Acharya and Associates, Putalisadak: chartered accountants and tax consultants",
+        "seoDescription": "Chartered accountants in Putalisadak, Kathmandu. Company registration, VAT and income tax filing, audit and bookkeeping. First consultation Rs 1,000.",
+        "blocks": [
+          {
+            "type": "hero",
+            "variant": "text",
+            "props": {
+              "eyebrow": "Putalisadak, Kathmandu · Chartered accountants",
+              "title": "Your books, in order, before the 30th of Ashwin",
+              "text": "We register companies, keep the books, file VAT and income tax, and sit with you when the Inland Revenue Department sends a letter.",
+              "primary": {
+                "label": "Book a consultation",
+                "href": "page:consult"
+              },
+              "secondary": {
+                "label": "Services and fees",
+                "href": "page:services"
+              }
+            }
+          },
+          {
+            "type": "features",
+            "variant": "rows",
+            "props": {
+              "heading": "Where people come to us",
+              "items": [
+                {
+                  "title": "Company and PAN registration",
+                  "text": "Private limited, partnership and sole proprietorship, from name approval to PAN and VAT certificate.",
+                  "detail": "From Rs 18,000"
+                },
+                {
+                  "title": "Monthly bookkeeping and VAT",
+                  "text": "Your bills in, your VAT return filed by the 25th, and a plain-language summary each month.",
+                  "detail": "From Rs 6,000 a month"
+                },
+                {
+                  "title": "Income tax returns",
+                  "text": "For individuals, freelancers and companies, with advance tax planned for the year.",
+                  "detail": "From Rs 5,000"
+                },
+                {
+                  "title": "Audit",
+                  "text": "Statutory audit for private companies and NGOs, with the audit report signed by a partner.",
+                  "detail": "Quoted"
+                }
+              ]
+            }
+          },
+          {
+            "type": "imagetext",
+            "variant": "left",
+            "props": {
+              "image": {
+                "src": "lib:portrait-man",
+                "alt": "A smiling man",
+                "focal": [
+                  50,
+                  30
+                ]
+              },
+              "eyebrow": "Partner",
+              "heading": "CA Rajan Acharya",
+              "body": "<p>Rajan qualified in 2066 and worked at an audit firm in Kathmandu before opening this office. He takes the first consultation himself and tells you honestly whether you need us at all.</p>",
+              "link": {
+                "label": "",
+                "href": ""
+              }
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "timeline",
+            "variant": "vertical",
+            "props": {
+              "heading": "A year on the tax calendar",
+              "items": [
+                {
+                  "date": "Monthly, by the 25th",
+                  "title": "VAT return",
+                  "text": "For the previous Nepali month."
+                },
+                {
+                  "date": "Poush end",
+                  "title": "Second advance tax instalment",
+                  "text": "For companies and self-employed."
+                },
+                {
+                  "date": "Chaitra end",
+                  "title": "Third advance tax instalment",
+                  "text": "Also the last day to clear the year's TDS deposits."
+                },
+                {
+                  "date": "Ashwin end",
+                  "title": "Annual income tax return",
+                  "text": "For the year ending Ashadh."
+                }
+              ]
+            }
+          },
+          {
+            "type": "cta",
+            "variant": "boxed",
+            "props": {
+              "title": "A first consultation is Rs 1,000, and it counts towards any work you engage us for",
+              "text": "Bring whatever you have, even if it is a shoebox of bills.",
+              "primary": {
+                "label": "Book a consultation",
+                "href": "page:consult"
+              },
+              "secondary": {
+                "label": "Call 01-4168420",
+                "href": "tel:014168420"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": "services",
+        "title": "Services",
+        "nav": true,
+        "seoTitle": "Services and fees at Acharya and Associates, Putalisadak",
+        "seoDescription": "Company registration from Rs 18,000, monthly VAT and bookkeeping from Rs 6,000, income tax returns from Rs 5,000. Fees quoted in writing.",
+        "blocks": [
+          {
+            "type": "pricing",
+            "variant": "table",
+            "props": {
+              "heading": "Services and fees",
+              "intro": "Fees are quoted in writing before we start, and do not include government fees or stamp duty.",
+              "currency": "NPR",
+              "plans": [
+                {
+                  "name": "Company registration",
+                  "price": "18000",
+                  "period": "once",
+                  "note": "Private limited company",
+                  "features": "Name approval\nMOA and AOA drafted\nPAN and VAT registration",
+                  "cta": {
+                    "label": "Book a consultation",
+                    "href": "page:consult"
+                  },
+                  "featured": false
+                },
+                {
+                  "name": "Monthly bookkeeping and VAT",
+                  "price": "6000",
+                  "period": "a month",
+                  "note": "Up to 60 bills a month",
+                  "features": "Books kept in Tally\nMonthly VAT return\nMonthly summary",
+                  "cta": {
+                    "label": "Book a consultation",
+                    "href": "page:consult"
+                  },
+                  "featured": true
+                },
+                {
+                  "name": "Income tax return",
+                  "price": "5000",
+                  "period": "a year",
+                  "note": "Individual or sole proprietor",
+                  "features": "Return filed online\nAdvance tax schedule\nCopy of everything",
+                  "cta": {
+                    "label": "Book a consultation",
+                    "href": "page:consult"
+                  },
+                  "featured": false
+                }
+              ]
+            }
+          },
+          {
+            "type": "faq",
+            "variant": "accordion",
+            "props": {
+              "heading": "What to bring to the first meeting",
+              "items": [
+                {
+                  "q": "For a new company?",
+                  "a": "Citizenship copies and passport photos of every director, the proposed name, the registered address with a rent agreement, and the share split."
+                },
+                {
+                  "q": "For bookkeeping?",
+                  "a": "Bank statements, sales and purchase bills for the last three months, and your PAN and VAT certificates."
+                },
+                {
+                  "q": "For a tax notice?",
+                  "a": "The letter itself, and the returns filed for the years it mentions. Bring it as soon as it arrives, replies are time-bound."
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          }
+        ]
+      },
+      {
+        "id": "consult",
+        "title": "Consultation",
+        "nav": true,
+        "seoTitle": "Book a consultation with Acharya and Associates, Putalisadak",
+        "seoDescription": "Send a request for a first consultation, in person at Putalisadak or by phone. Rs 1,000, counted towards any work.",
+        "blocks": [
+          {
+            "type": "booking",
+            "variant": "split",
+            "props": {
+              "heading": "Book a consultation",
+              "text": "Thirty minutes with a partner, in the office or by phone. Tell us briefly what it is about, and we will say what to bring.",
+              "services": "Company registration\nVAT and bookkeeping\nIncome tax\nAudit\nA notice from the tax office\nSomething else",
+              "askTime": true,
+              "button": "Request a time",
+              "success": "Thank you. Our office will call you to confirm a time."
+            }
+          },
+          {
+            "type": "hours",
+            "variant": "compact",
+            "props": {
+              "heading": "Office hours",
+              "note": "Closed on Saturdays and public holidays.",
+              "days": [
+                {
+                  "day": "Sunday",
+                  "hours": "09:30 – 17:30"
+                },
+                {
+                  "day": "Monday",
+                  "hours": "09:30 – 17:30"
+                },
+                {
+                  "day": "Tuesday",
+                  "hours": "09:30 – 17:30"
+                },
+                {
+                  "day": "Wednesday",
+                  "hours": "09:30 – 17:30"
+                },
+                {
+                  "day": "Thursday",
+                  "hours": "09:30 – 17:30"
+                },
+                {
+                  "day": "Friday",
+                  "hours": "09:30 – 17:30"
+                },
+                {
+                  "day": "Saturday",
+                  "hours": "Closed"
+                }
+              ]
+            },
+            "style": {
+              "bg": "surface"
+            }
+          },
+          {
+            "type": "map",
+            "variant": "split",
+            "props": {
+              "heading": "Find the office",
+              "address": "3rd floor, Kamal Pokhari Plaza, Putalisadak, Kathmandu",
+              "query": "Putalisadak, Kathmandu",
+              "link": ""
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
