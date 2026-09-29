@@ -111,13 +111,13 @@ form.qt-add > .input:first-child { flex-basis: 100%; }
   .qt-btn::after { display: none; }
 }
 @media (max-width: 760px) {
-  .adm.has-qt, body.has-qt { padding-right: 0; padding-bottom: 0; }
-  .qt-rail { display: none; }
+  .adm.has-qt, body.has-qt { padding-right: 0; padding-bottom: 60px; }
+  .qt-rail { top: auto; left: 0; width: auto; height: 60px; flex-direction: row; justify-content: space-between; gap: 0; padding: 0 8px; border-left: 0; border-top: 1px solid var(--rule); overflow-x: auto; overflow-y: hidden; }
   .qt-btn { width: 36px; height: 36px; }
   .qt-btn::before { left: 9px; top: -12px; width: 18px; height: 2px; border-radius: 0 0 2px 2px; transform: scaleX(.4); }
   .qt-btn::after { display: none; }
   .qt-sep { width: 0; height: 24px; border-top: 0; border-left: 1px solid var(--rule-strong); margin: 0 4px; }
-  .qt-panel, .qt-panel.wide { top: 0; right: 0; left: 0; bottom: 0; width: 100%; border-left: 0; box-shadow: none; }
+  .qt-panel, .qt-panel.wide { top: 0; right: 0; left: 0; bottom: 60px; width: auto; border-left: 0; box-shadow: none; }
   .qt-focus { grid-template-columns: 1fr; }
 }
 @media (hover: none) { .qt-btn::after { display: none; } }
@@ -149,10 +149,6 @@ form.qt-add > .input:first-child { flex-basis: 100%; }
 .dsh-group { margin: 16px 10px 6px; font-size: 12px; color: var(--ink-3); font-weight: 550; }
 .dsh-group:first-child { margin-top: 6px; }
 .dsh-nav a { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: var(--r); color: var(--ink-2); text-decoration: none; font-size: 14.5px; }
-.dsh-tools-m { display: none; }
-@media (max-width: 760px) { .dsh-tools-m { display: block; } }
-.dsh-tools-m button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 10px; border-radius: var(--r); color: var(--ink-2); font-size: 14.5px; text-align: left; background: none; }
-.dsh-tools-m button:hover { background: var(--paper-3); color: var(--ink); }
 .dsh-nav a:hover { background: var(--paper-3); color: var(--ink); }
 .dsh-nav a[aria-current="page"] { background: var(--paper); color: var(--ink); font-weight: 600; box-shadow: 0 0 0 1px var(--rule); }
 .dsh-count { margin-left: auto; font-size: 11.5px; background: var(--paper-3); border-radius: 999px; padding: 0 8px; line-height: 20px; }

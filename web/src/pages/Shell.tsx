@@ -1,5 +1,5 @@
 import { Wordmark } from '../Logo';
-import { QuickTools, TOOLS, P, type ToolKey } from '../QuickTools';
+import { QuickTools } from '../QuickTools';
 import { PanelLoader } from '../Loader';
 import { QuickSearch, type Hit } from '../Search';
 import { bsToday } from '../bs';
@@ -174,10 +174,6 @@ export function Shell({ children }: { children: ReactNode }) {
   const [drawer, setDrawer] = useState(false);
   const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark');
   useEffect(() => { setDrawer(false); }, [path]);
-  const railKeys: ToolKey[] = (() => {
-    try { const v = JSON.parse(localStorage.getItem('jhino-qt-rail') ?? 'null'); if (Array.isArray(v)) return v.filter((k: ToolKey) => TOOLS.some((t) => t.key === k && !t.admin)); } catch { /* private mode */ }
-    return ['focus', 'calendar', 'tasks', 'notes', 'contacts', 'subs', 'links', 'qr', 'text'];
-  })();
   const nav = (to: string, label: string, icon: ReactNode, badge?: number) => (
     <Link to={to} aria-current={path === to || (to === '/home/all' && path.startsWith('/home/')) ? 'page' : undefined}>{icon}<span>{label}</span>{!!badge && <span className="dsh-count mono">{badge}</span>}</Link>
   );
@@ -218,13 +214,6 @@ export function Shell({ children }: { children: ReactNode }) {
             {accountSections.map((s) => (
               <Link key={s.key} to={`/account/${s.key}`} aria-current={accountKey === s.key ? 'page' : undefined}><Icon name={s.icon} size={18} /><span>{s.label}</span></Link>
             ))}
-            {user.canCreate && <div className="dsh-tools-m">
-              <p className="dsh-group">Tools</p>
-              {[...railKeys, 'more' as ToolKey].map((k) => {
-                const label = k === 'more' ? 'More tools' : TOOLS.find((t) => t.key === k)?.label;
-                return <button key={k} type="button" onClick={() => { setDrawer(false); window.dispatchEvent(new CustomEvent('jhino-tool', { detail: k })); }}>{I(P[k] ?? 'M5 12h.01M12 12h.01M19 12h.01')}<span>{label}</span></button>;
-              })}
-            </div>}
             {user.isAdmin && <><p className="dsh-group">Admin</p>{nav('/admin', 'Super Admin', <Icon name="lock" size={18} />)}</>}
           </nav>
         </aside>
