@@ -35,17 +35,22 @@ const embed = (m: Media, rest: string[] = []) => {
   return `${base}${m.id}?autoplay=1&rel=0${rest.length ? `&playlist=${rest.join(',')}` : ''}`;
 };
 
+const HISTORY_KEY = 'jhino-focus-recent';
 function useLibrary() {
   const toast = useToast();
   const [lib, setLib] = useState<Library | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => { get<Library>('/api/focus/library').then(setLib, () => setLib({ playlists: [], favs: [], history: [] })); }, []);
+  // Recent plays stay on this device (localStorage); only playlists and favourites are saved to the account.
+  const localHistory = () => { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]') as Media[]; } catch { return []; } };
+  useEffect(() => { get<Library>('/api/focus/library').then((r) => setLib({ ...r, history: localHistory() }), () => setLib({ playlists: [], favs: [], history: localHistory() })); }, []);
   const update = useCallback((f: (l: Library) => Library) => {
     setLib((cur) => {
       if (!cur) return cur;
       const next = f(cur);
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(next.history.slice(0, 60))); } catch { /* private mode */ }
+      if (next.playlists === cur.playlists && next.favs === cur.favs) return next;
       clearTimeout(timer.current);
-      timer.current = setTimeout(() => { api('PUT', '/api/focus/library', next).catch((e) => toast(msg(e, 'Could not save your music.'), true)); }, 600);
+      timer.current = setTimeout(() => { api('PUT', '/api/focus/library', { playlists: next.playlists, favs: next.favs }).catch((e) => toast(msg(e, 'Could not save your music.'), true)); }, 600);
       return next;
     });
   }, [toast]);

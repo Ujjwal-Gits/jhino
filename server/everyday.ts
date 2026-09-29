@@ -11,12 +11,15 @@ import { limit } from './security.js';
  *   Saved domains are looked up again every week, so a renewal shows up by itself.
  * - Renewals roll forward: a monthly, yearly or weekly subscription whose date has passed moves to its next
  *   date, with a fresh reminder.
- * - Focus music: a person's playlists, favourites and history (one small JSON document), and video titles
+ * - Focus music: a person's playlists and favourites (one small JSON document; recent plays stay in the
+ *   browser, not here), and video titles
  *   from YouTube's oEmbed.
  * - YouTube thumbnails, fetched here so the browser can save them as a file.
  */
 
 db.exec(`CREATE TABLE IF NOT EXISTS focus_library (user_id TEXT PRIMARY KEY, data TEXT NOT NULL, updated_at TEXT NOT NULL);`);
+// Recent plays used to be saved here; they now stay in the browser. Drop the old copies once.
+db.exec(`UPDATE focus_library SET data=json_remove(data,'$.history') WHERE json_extract(data,'$.history') IS NOT NULL;`);
 
 const UA = { 'user-agent': 'Jhino/1.0 (+https://jhino.com)' };
 async function fetchJson(url: string, ms = 9000): Promise<any> {
@@ -184,14 +187,14 @@ export function registerEveryday(app: FastifyInstance) {
   app.get('/api/focus/library', async (req) => {
     const u = requireUser(req);
     const r = db.prepare('SELECT data FROM focus_library WHERE user_id=?').get(u.id) as { data: string } | undefined;
-    return r ? JSON.parse(r.data) : { playlists: [], favs: [], history: [] };
+    return r ? { ...JSON.parse(r.data), history: [] } : { playlists: [], favs: [], history: [] };
   });
   app.put('/api/focus/library', async (req) => {
     const u = requireUser(req);
     limit(req, 'focus-lib', 600, 3600_000, u.id);
-    const b = (req.body ?? {}) as { playlists?: unknown; favs?: unknown; history?: unknown };
+    const b = (req.body ?? {}) as { playlists?: unknown; favs?: unknown };
     const lists = Array.isArray(b.playlists) ? b.playlists.slice(0, 50).map((p: any) => ({ id: s(p?.id, 20) || Math.random().toString(36).slice(2, 10), name: s(p?.name, 80).trim() || 'Playlist', items: items(p?.items, 200) })) : [];
-    const data = { playlists: lists, favs: items(b.favs, 300), history: items(b.history, 60) };
+    const data = { playlists: lists, favs: items(b.favs, 300) };
     const json = JSON.stringify(data);
     if (json.length > 300_000) throw new HttpError(413, 'TOO_LARGE', 'Your library is too big. Remove some videos.');
     db.prepare('INSERT INTO focus_library(user_id,data,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET data=excluded.data, updated_at=excluded.updated_at').run(u.id, json, now());
