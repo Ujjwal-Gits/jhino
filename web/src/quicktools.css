@@ -157,9 +157,11 @@ form.qt-add > .input:first-child { flex-basis: 100%; }
 .dsh-search { display: flex; align-items: center; gap: 8px; width: min(420px, 40vw); height: 38px; padding: 0 12px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--paper); color: var(--ink-3); }
 .dsh-search:focus-within { border-color: var(--rule-strong); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink) 8%, transparent); }
 .dsh-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: 14px; color: var(--ink); }
+.dsh-top .spacer { flex: 1; }
 .dsh-date { font-size: 13.5px; color: var(--ink-2); white-space: nowrap; }
 .dsh-scrim { position: fixed; inset: 0; background: rgb(0 0 0 / .3); z-index: 39; }
-.dsh-main > .page { width: 100%; }
+.dsh-main > .page { width: 100%; max-width: 1600px; margin: 0; padding: 32px 36px 72px; }
+@media (max-width: 900px) { .dsh-main > .page { padding: 22px 16px 64px; } }
 @media (max-width: 900px) {
   .dsh { grid-template-columns: minmax(0, 1fr); }
   .dsh-side { position: fixed; left: 0; top: 0; bottom: 0; height: auto; width: min(280px, 86vw); transform: translateX(-102%); transition: transform 240ms var(--ease); box-shadow: var(--lift); }
@@ -173,7 +175,7 @@ form.qt-add > .input:first-child { flex-basis: 100%; }
 @media (prefers-reduced-motion: reduce) { .dsh-side { transition: none; } }
 
 /* ---------- Home (pages/Home.tsx) ---------- */
-.hm { max-width: 1240px; }
+.hm { max-width: 1600px; }
 .hm-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; margin-bottom: 24px; }
 .hm-head h1 { font-size: 28px; letter-spacing: -.025em; }
 .hm-head p { margin: 4px 0 0; color: var(--ink-3); font-size: 15px; }
