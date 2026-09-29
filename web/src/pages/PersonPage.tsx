@@ -4,6 +4,7 @@ import { Link, useSession } from '../context';
 import { Icon, Select, copyText, useToast } from '../ui';
 import { AvatarViewerModal, AvatarPositionModal, validatePhotoFile, ACCEPT_PHOTO_TYPES } from '../AvatarModal';
 import { Shell } from './Shell';
+import { PanelLoader } from '../Loader';
 import { PublicApp } from './PublicApp';
 import { PlanTag } from './Address';
 import { SerpPreview } from './Share';
@@ -29,7 +30,8 @@ export function PersonPage({ name, user }: { name: string; user: User | null }) 
       () => setD('none')
     );
   }, [name]);
-  if (d === null) return <main className="state-card" aria-busy="true"><span className="spin" /></main>;
+  // Your own page: keep the dashboard frame on screen while it loads.
+  if (d === null) return user?.username && user.username.toLowerCase() === name.toLowerCase() ? <Shell><PanelLoader /></Shell> : <main className="state-card" aria-busy="true"><span className="spin" /></main>;
   // Not a person: a top-level address (made by a super admin, or before usernames).
   if (d === 'none') return <PublicApp refId={name} signedInUser={user} />;
   if (d.owner && user) return <Shell><MyPage /></Shell>;

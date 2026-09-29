@@ -59,6 +59,14 @@ function App() {
     if (user) live.start(); else live.stop();
   }, [user]);
 
+  // Signed in: fetch the other dashboard sections' code while idle, so moving between them is instant.
+  const signedIn = !!user;
+  useEffect(() => {
+    if (!signedIn) return;
+    const t = setTimeout(() => { void import('./pages/Home'); void import('./pages/Account'); void import('./pages/Links'); }, 1500);
+    return () => clearTimeout(t);
+  }, [signedIn]);
+
   // Signed in: the sign-in pages lead home.
   useEffect(() => {
     // Home is their own page (jhino.com/<username>); client accounts go to the apps shared with them.

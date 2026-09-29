@@ -1,5 +1,6 @@
 import { Wordmark } from '../Logo';
 import { QuickTools } from '../QuickTools';
+import { PanelLoader } from '../Loader';
 import { QuickSearch, type Hit } from '../Search';
 import { bsToday } from '../bs';
 import { appPathOf } from './Apps';
@@ -14,7 +15,7 @@ const searchApps = async (q: string): Promise<Hit[]> => {
   return apps.filter((a) => `${a.name} ${a.brand?.client ?? ''}`.toLowerCase().includes(s)).slice(0, 8)
     .map((a) => ({ group: 'Apps', label: a.name, sub: a.role === 'owner' ? 'Yours' : 'Shared with you', to: appPathOf(a as never) }));
 };
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, Suspense } from 'react';
 import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
 import { Link, useRoute, useSession, applyTheme } from '../context';
 import { live } from '../live';
@@ -240,7 +241,8 @@ export function Shell({ children }: { children: ReactNode }) {
               <Avatar name={user.name} src={avatarUrl(user)} />
             </button>
           </header>
-          {children}
+          {/* Sections that load on demand show a loader here; the sidebar and top bar stay. */}
+          <Suspense fallback={<PanelLoader />}>{children}</Suspense>
         </div>
       </div>
       {menuFor && (
