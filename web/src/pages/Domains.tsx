@@ -230,6 +230,7 @@ function DomainCard({ d, canHideBacklink, onChange }: { d: DomainT; canHideBackl
       ) : (
         <div className="cd-dns">
           <p className="cd-dns-lede">{live ? 'These records keep it working. Leave them in place.' : <>At the company where you manage <b>{base}</b> (your registrar or DNS provider), add {required.length === 1 ? 'this record' : `these ${required.length} records`}:</>}</p>
+          {!live && d.records.some((r) => r.host === '@' && r.type === 'CNAME') && <RootHelp id={d.id} />}
           <ul className="cd-records">
             {required.map((r) => <RecordRow key={`${r.type}-${r.name}`} r={r} />)}
           </ul>
@@ -259,6 +260,34 @@ function DomainCard({ d, canHideBacklink, onChange }: { d: DomainT; canHideBackl
       </div>
       {error && <p className="error-text" role="alert">{error}</p>}
     </article>
+  );
+}
+
+/* ---------------- a root domain (ujjwal.com): what to do at their DNS provider ---------------- */
+interface Prov { base: string; target: string; aRecord: string | null; provider: string | null; nameservers: string[]; root: 'cname' | 'alias' | 'aname' | 'a' | 'move' | 'unknown' }
+function RootHelp({ id }: { id: string }) {
+  const [p, setP] = useState<Prov | null>(null);
+  useEffect(() => { get<Prov>(`/api/domains/${id}/provider`).then(setP, () => {}); }, [id]);
+  if (!p || p.root === 'a') return null;
+  const at = p.provider ?? 'your DNS provider';
+  const rec = <><b>Name</b> <span className="mono">@</span>, <b>value</b> <span className="mono">{p.target}</span></>;
+  return (
+    <div className="cd-root">
+      <p className="cd-root-h"><Icon name="info" size={15} /><b>{p.provider ? `${p.base} uses ${p.provider} for DNS` : `Pointing ${p.base} itself (no www)`}</b></p>
+      {p.root === 'cname' && <ol><li>In Cloudflare, open <b>{p.base}</b> → <b>DNS</b> → <b>Add record</b>.</li><li>Type <b>CNAME</b>, {rec}. Cloudflare allows this at the root by itself.</li><li>Set <b>Proxy status</b> to <b>DNS only</b> (grey cloud), then save.</li></ol>}
+      {p.root === 'alias' && <ol><li>In {at}, open the DNS settings for <b>{p.base}</b>{p.provider === 'Namecheap' ? <> (Domain List → Manage → <b>Advanced DNS</b>)</> : null}.</li><li>Delete any old <b>A</b> or <b>CNAME</b> record with the name <span className="mono">@</span>.</li><li>Add an <b>ALIAS</b> record: {rec}.</li></ol>}
+      {p.root === 'aname' && <ol><li>In {at}, open the DNS records for <b>{p.base}</b>.</li><li>Delete any old <b>A</b> record for the root.</li><li>Add an <b>ANAME</b> record: {rec}.</li></ol>}
+      {p.root === 'move' && <>
+        <p>{p.provider ?? 'Your provider'} can’t point the root of a domain at another service with a CNAME{/\.np$/.test(p.base) ? ', like most .np registrars' : ''}. The fix is free and takes about 10 minutes: let Cloudflare run your DNS. Your email and other records are copied across and keep working.</p>
+        <ol>
+          <li>Make a free account at <a className="link" href="https://dash.cloudflare.com/sign-up" target="_blank" rel="noopener noreferrer">cloudflare.com</a>, choose <b>Add a domain</b>, type <b>{p.base}</b> and pick the <b>Free</b> plan.</li>
+          <li>Cloudflare shows two <b>nameservers</b>. In {at}, replace the current nameservers{p.nameservers.length ? <> (<span className="mono">{p.nameservers.slice(0, 2).join(', ')}</span>)</> : null} with those two.</li>
+          <li>In Cloudflare → <b>DNS</b>, add a <b>CNAME</b> record: {rec}, with <b>Proxy status: DNS only</b>.</li>
+          <li>Come back here and press <b>Check now</b>. Nameserver changes can take a few hours.</li>
+        </ol>
+      </>}
+      {p.root === 'unknown' && <p>Most providers don’t allow a plain CNAME at the root (<span className="mono">@</span>). Look for an <b>ALIAS</b>, <b>ANAME</b> or <b>CNAME flattening</b> record and point it at <span className="mono">{p.target}</span>. If your provider has none of these, move your DNS to Cloudflare (free): add {p.base} there, switch the nameservers at your registrar, then add the CNAME in Cloudflare.</p>}
+    </div>
   );
 }
 

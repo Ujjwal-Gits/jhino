@@ -402,6 +402,39 @@ function startJob() {
   setInterval(() => { void tick(); }, 60_000).unref();
 }
 
+
+/* ---------------- whose DNS is it: exact steps for a root domain (ujjwal.com) ---------------- */
+// A root domain can't hold a plain CNAME. Some DNS providers flatten it for you (ALIAS, ANAME), some can't at all.
+type RootWay = 'cname' | 'alias' | 'aname' | 'a' | 'move' | 'unknown';
+const PROVIDERS: [RegExp, string, RootWay][] = [
+  [/\.ns\.cloudflare\.com$/, 'Cloudflare', 'cname'],
+  [/registrar-servers\.com$/, 'Namecheap', 'alias'],
+  [/porkbun\.com$/, 'Porkbun', 'alias'],
+  [/dnsimple\.com$|dnsimple-edge/, 'DNSimple', 'alias'],
+  [/vercel-dns\.com$/, 'Vercel', 'alias'],
+  [/name\.com$/, 'Name.com', 'aname'],
+  [/domaincontrol\.com$/, 'GoDaddy', 'move'],
+  [/awsdns/, 'Amazon Route 53', 'move'],
+  [/googledomains\.com$|squarespacedns|google\.com$/, 'Squarespace (Google Domains)', 'move'],
+  [/digitalocean\.com$/, 'DigitalOcean', 'move'],
+  [/hostinger|dns-parking\.com$/, 'Hostinger', 'move'],
+  [/bluehost\.com$/, 'Bluehost', 'move'],
+  [/hostgator/, 'HostGator', 'move'],
+  [/wixdns\.net$/, 'Wix', 'move'],
+];
+const provCache = new Map<string, { at: number; v: { provider: string | null; nameservers: string[]; root: RootWay } }>();
+async function dnsProvider(base: string) {
+  const hit = provCache.get(base);
+  if (hit && Date.now() - hit.at < 3600_000) return hit.v;
+  let ns: string[] = [];
+  try { ns = (await resolver.resolveNs(base)).map((x) => x.toLowerCase().replace(/\.$/, '')); } catch { /* not delegated yet */ }
+  const m = PROVIDERS.find(([re]) => ns.some((n) => re.test(n)));
+  const np = /\.np$/.test(base);
+  const v = { provider: m?.[1] ?? null, nameservers: ns, root: (m?.[2] ?? (np ? 'move' : 'unknown')) as RootWay };
+  provCache.set(base, { at: Date.now(), v });
+  return v;
+}
+
 /* ---------------- what the owner sees ---------------- */
 interface RecordOut { type: 'CNAME' | 'A' | 'TXT'; name: string; host: string; value: string; purpose: string; required: boolean; ok: boolean | null; note?: string }
 function recordsFor(d: DomainRow): RecordOut[] {
@@ -901,6 +934,15 @@ export function registerCustomDomains(app: FastifyInstance) {
   app.get('/api/domains/:id', async (req) => {
     const { d } = ownedDomain(req, (req.params as { id: string }).id);
     return { domain: view(d) };
+  });
+
+  app.get('/api/domains/:id/provider', async (req) => {
+    const { u, d } = ownedDomain(req, (req.params as { id: string }).id);
+    limit(req, 'domain-provider', 60, 60_000, u.id);
+    const base = registrable(d.hostname.replace(/^www\./, ''));
+    const p = await dnsProvider(base);
+    // With an A record set up (self-managed mode), every provider can point the root.
+    return { base, target: TARGET, aRecord: !cfMode() && A_RECORD ? A_RECORD : null, ...p, root: !cfMode() && A_RECORD ? 'a' : p.root };
   });
 
   app.post('/api/domains/:id/check', async (req) => {

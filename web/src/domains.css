@@ -82,3 +82,9 @@
   .cd-foot .actions-row > .dd { width: 100% !important; order: 3; }
   .cd-admin-acts { flex-wrap: wrap; justify-content: flex-start; }
 }
+
+/* A root domain: steps for the customer's own DNS provider. */
+.cd-root { border: 1px solid var(--rule); border-radius: var(--r); background: var(--paper-2); padding: 12px 14px; display: grid; gap: 8px; font-size: 13.5px; color: var(--ink-2); margin-bottom: 10px; }
+.cd-root-h { display: flex; align-items: center; gap: 8px; color: var(--ink); }
+.cd-root ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.cd-root .mono { font-size: 12.5px; overflow-wrap: anywhere; }
