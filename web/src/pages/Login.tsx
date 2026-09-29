@@ -167,7 +167,7 @@ export function Signup({ onDone }: { onDone: () => Promise<void> }) {
   const [code, setCode] = useState<CodeInfo | null>(null);
   const [taken, setTaken] = useState(false);
   const plan = new URLSearchParams(location.search).get('plan');
-  const next = () => (plan === 'plus' || plan === 'pro' ? `/account/plan?choose=${plan}&period=${new URLSearchParams(location.search).get('period') === 'year' ? 'year' : 'month'}` : `/${form.username}`);
+  const next = () => (plan === 'plus' || plan === 'pro' ? `/account/plan?choose=${plan}&period=${new URLSearchParams(location.search).get('period') === 'year' ? 'year' : 'month'}` : '/home');
   // Suggest a username from the email until they type their own.
   const setEmail = (email: string) => setForm((f) => ({ ...f, email, username: touched ? f.username : suggestFrom(email) }));
   const submit = async (e: FormEvent) => {
