@@ -31,6 +31,8 @@ const drop = (m: Map<string, Set<Conn>>, k: string, c: Conn) => { const s = m.ge
 /** A tab that stops reading (a phone that went to sleep with the socket still open) is let go before its unread events use up memory. */
 const MAX_BUFFERED = 1024 * 1024;
 function write(c: Conn, event: string, data: unknown) {
+  // A stream already ended (closeUser) stays listed until its 'close' event: writing to it would throw.
+  if (c.res.writableEnded || c.res.destroyed) return;
   if (c.res.writableLength > MAX_BUFFERED) { c.res.destroy(); return; }
   c.res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }

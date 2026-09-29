@@ -463,7 +463,6 @@ export function registerApps(app: FastifyInstance) {
     db.prepare('UPDATE users SET password_hash=? WHERE id=?').run(await hashPassword(password), userId);
     db.prepare('DELETE FROM sessions WHERE user_id=?').run(userId);
     db.prepare('DELETE FROM app_keys WHERE user_id=?').run(userId);
-    db.prepare('DELETE FROM domain_sessions WHERE user_id=?').run(userId);
     logActivity(id, user.id, `gave ${u.name} a new password`);
     return { password, login: u.email };
   });

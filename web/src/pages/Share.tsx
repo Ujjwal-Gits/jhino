@@ -40,22 +40,6 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
   const [secret, setSecret] = useState<{ name: string; login: string; password: string } | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  // The app's own domain, when one is live: sign-in details point there.
-  const [site, setSite] = useState<string | null>(null);
-  const createForm = useRef<HTMLFormElement>(null);
-  useEffect(() => {
-    get<{ domains: { hostname: string; status: string; disabled: boolean }[] }>(`/api/apps/${app.id}/domains`)
-      .then((r) => { const d = r.domains.find((x) => x.status === 'active' && !x.disabled); setSite(d ? `https://${d.hostname}` : null); }, () => {});
-  }, [app.id]);
-  /** From Custom domain → Add a person: the same "Create a sign-in" form below. */
-  const addPerson = () => {
-    setSecret(null); setMode('create'); setError('');
-    requestAnimationFrame(() => {
-      const f = createForm.current;
-      f?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
-      f?.querySelector('input')?.focus({ preventScroll: true });
-    });
-  };
 
   const reload = useCallback(async () => {
     const [a, i] = await Promise.all([get<{ app: AppDetail }>(`/api/apps/${app.id}`), get<{ invites: InviteRow[] }>(`/api/apps/${app.id}/invites`)]);
@@ -67,9 +51,8 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
   const fail = (e: unknown) => setError(e instanceof ApiError ? e.message : 'Something went wrong.');
   const appPath = app.rootSlug ? `/${app.rootSlug}` : (app.slug && app.ownerUsername ? `/${app.ownerUsername}/${app.slug}` : `/apps/${app.id}`);
   const appUrl = `${location.origin}${appPath}`;
-  const credText = (s: { name: string; login: string; password: string }) => site
-    ? `${app.name}\nOpen: ${site}\nSign-in ID: ${s.login}\nPassword: ${s.password}\n\nSign in there with these. It also opens at ${appUrl}, where you can change the password (Account).`
-    : `${app.name}\nOpen: ${appUrl}\nSign-in ID: ${s.login}\nPassword: ${s.password}\n\nYou can change the password after signing in.`;
+  const credText = (s: { name: string; login: string; password: string }) =>
+    `${app.name}\nOpen: ${appUrl}\nSign-in ID: ${s.login}\nPassword: ${s.password}\n\nYou can change the password after signing in.`;
 
   const create = async () => {
     setBusy(true); setError('');
@@ -121,8 +104,7 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
     <Modal title={`Share ${app.name}`} onClose={onClose} wide>
       <div className="modal-body" style={{ gap: 22 }}>
         <p className="callout"><Icon name="key" size={15} /> Only people on this list can open this app, and each signs in with their own ID and password. A copied link alone never gives access.</p>
-        <LinkSharing appId={app.id} appName={app.name} onAddPerson={addPerson}
-          people={members.filter((m) => m.role !== 'owner' && !m.guest).map((m) => ({ id: m.id, name: m.name, role: m.role }))} />
+        <LinkSharing appId={app.id} appName={app.name} />
         <div className="share-file">
           <div>
             <b>Send it as an HTML file {!user.features?.download && <PlanTag />}</b>
@@ -150,7 +132,7 @@ export function ShareDialog({ app, onClose }: { app: AppDetail; onClose: () => v
             </div>
 
             {mode === 'create' && (
-              <form className="share-form" ref={createForm} onSubmit={(e) => { e.preventDefault(); create(); }}>
+              <form className="share-form" onSubmit={(e) => { e.preventDefault(); create(); }}>
                 <div className="grid2">
                   <label className="field"><span>Name</span><input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Sita Sharma" /></label>
                   <label className="field"><span>Sign-in ID</span><input className="input" value={form.login} onChange={(e) => setForm({ ...form, login: e.target.value })} placeholder="sita or sita@company.com" autoComplete="off" /></label>
@@ -498,7 +480,7 @@ interface SharingT {
   rootSlug?: string | null;
   rootUrl?: string | null;
 }
-function LinkSharing({ appId, appName, onAddPerson, people }: { appId: string; appName: string; onAddPerson?: () => void; people?: { id: string; name: string; role: Role }[] }) {
+function LinkSharing({ appId, appName }: { appId: string; appName: string }) {
   const toast = useToast();
   const { user } = useSession();
   const f = user.features;
@@ -554,8 +536,7 @@ function LinkSharing({ appId, appName, onAddPerson, people }: { appId: string; a
       <label className="check-row"><input type="checkbox" checked={s.showBar} disabled={s.showBar && !f?.hideBar} onChange={(e) => save({ showBar: e.target.checked })} /><span>Show the Jhino top bar (hide it to open like a standalone app){s.showBar && !f?.hideBar && <PlanTag />}</span></label>
       {error && <p className="error-text" role="alert">{error}</p>}
       <SeoSection appId={appId} appName={appName} onShared={() => { get<SharingT>(`/api/apps/${appId}/sharing`).then(setS, () => {}); }} />
-      <CustomDomainSection appId={appId} access={s.access} people={people} onAddPerson={onAddPerson}
-        onRequireSignIn={() => { if (confirm('Require a sign-in? Only people you added can open the app, on your domain and on Jhino. The public link stops working.')) choose('private'); }} />
+      <CustomDomainSection appId={appId} access={s.access} />
     </section>
   );
 }

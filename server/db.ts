@@ -689,6 +689,33 @@ function ensureSchema() {
     )`);
     db.exec('CREATE INDEX IF NOT EXISTS domain_sessions_expires ON domain_sessions(expires_at)');
     db.exec('CREATE INDEX IF NOT EXISTS domain_sessions_user ON domain_sessions(user_id)');
+    // Email and password logins the owner makes for one custom domain (customdomains.ts). They are not Jhino
+    // accounts: each has its own light identity (a kind='visitor' user) so what it adds carries its name.
+    db.exec(`CREATE TABLE IF NOT EXISTS domain_logins(
+      id TEXT PRIMARY KEY,
+      domain_id TEXT NOT NULL,
+      email TEXT NOT NULL,
+      name TEXT,
+      role TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      last_login_at TEXT,
+      UNIQUE(domain_id, email)
+    )`);
+    // Sessions now belong to one of those logins; sessions from the earlier member sign-in end.
+    if (!has('domain_sessions', 'login_id')) {
+      add('domain_sessions', 'login_id', 'TEXT');
+      db.exec('DELETE FROM domain_sessions WHERE login_id IS NULL');
+    }
+    db.exec('CREATE INDEX IF NOT EXISTS domain_sessions_login ON domain_sessions(login_id)');
+    // "Require email and password" per domain. Domains of apps that were private (so the domain asked for a
+    // sign-in) start with it on and no logins: closed until the owner adds one.
+    if (!has('custom_domains', 'require_login')) {
+      add('custom_domains', 'require_login', 'INTEGER NOT NULL DEFAULT 0');
+      db.exec("UPDATE custom_domains SET require_login=1 WHERE app_id IN (SELECT id FROM apps WHERE COALESCE(access,'private')='private')");
+    }
 
     // Indexes for lookups that ran as full table scans (checked with EXPLAIN QUERY PLAN):
     // - every GET of /<name> looks for a short link by code (links.ts), including every public page view;

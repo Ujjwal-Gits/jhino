@@ -8,15 +8,13 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { hash, verify } from '@node-rs/argon2';
 import { config, makePassword } from './config.js';
 import { db, newId, now, sha256, roleOf, logActivity, type AppRow, type Role, type UserRow } from './db.js';
-import { HttpError, COOKIE, afterLogin, createUser, requireAdmin, requireUser } from './auth.js';
-import { audit, limit, limitKey, securityEvent, uploadsOn } from './security.js';
-import { issueCode, mustVerifyToSignIn } from './codes.js';
-import { mails, sendMail } from './mail.js';
-import { startTicket, twoFactorOn, useTicket } from './twofactor.js';
+import { HttpError, COOKIE, createUser, hashPassword, requireAdmin, requireUser } from './auth.js';
+import { audit, limit, limitKey, uploadsOn } from './security.js';
+import { closeUser, publish, revoke } from './realtime.js';
 import { featuresOf, notify } from './plans.js';
 import { collaborative, ensureVisitor } from './publicshare.js';
 import { appDir } from './packages.js';
-import { findAccount, inject, openTag, TYPES, versionRow } from './apps.js';
+import { inject, openTag, TYPES, versionRow } from './apps.js';
 import { snapshotFor } from './data.js';
 import { canReadFile, loadFile, sendFile } from './files.js';
 import { withCurrentBuilder } from './builder.js';
@@ -68,7 +66,7 @@ export type DomainStatus = 'pending' | 'verifying' | 'active' | 'error';
 export interface DomainRow {
   id: string; owner_id: string; app_id: string; hostname: string; alt_hostname: string | null; www_mode: 'off' | 'apex' | 'www';
   status: DomainStatus; verify_token: string; cf_hostname_id: string | null; cf_alt_id: string | null; ssl_status: string | null;
-  records: string | null; backlink: number; granted: number; disabled_at: string | null; error: string | null; fails: number; checks: number;
+  records: string | null; backlink: number; granted: number; require_login: number; disabled_at: string | null; error: string | null; fails: number; checks: number;
   last_checked_at: string | null; next_check_at: string | null; activated_at: string | null; created_at: string; updated_at: string;
 }
 interface Found { cf?: { ownership?: { name: string; value: string } | null; validation?: { name: string; value: string }[]; status?: string; ssl?: string; errors?: string[] }; dns?: Record<string, { pointing: boolean | null; seen?: string }>; txt?: boolean | null; tls?: boolean | null }
@@ -384,6 +382,8 @@ const within = (p: Promise<unknown>, ms: number) => Promise.race([p.catch(() => 
 /** Disconnect a domain: Cloudflare first (so no hostname is left behind), then the row. */
 async function removeDomain(d: DomainRow) {
   if (cfMode()) { await cfDelete(d.cf_hostname_id); await cfDelete(d.cf_alt_id); }
+  // Its logins go with it: sessions, their place in the app, the logins themselves.
+  for (const l of db.prepare('SELECT * FROM domain_logins WHERE domain_id=?').all(d.id) as LoginRow[]) dropLogin(l, d.app_id);
   db.prepare('DELETE FROM custom_domains WHERE id=?').run(d.id);
   forgetHosts();
 }
@@ -478,6 +478,8 @@ function view(d: DomainRow) {
     status: d.status, sslStatus: d.ssl_status, error: d.error, backlink: d.backlink !== 0, disabled: !!d.disabled_at, granted: !!d.granted,
     url: `https://${d.hostname}`, lastCheckedAt: d.last_checked_at, nextCheckAt: d.next_check_at, activatedAt: d.activated_at, createdAt: d.created_at,
     records: recordsFor(d), seen: Object.fromEntries(Object.entries(f.dns ?? {}).map(([k, v]) => [k, v.seen ?? null])),
+    requireLogin: !!d.require_login,
+    logins: (db.prepare('SELECT COUNT(*) n FROM domain_logins WHERE domain_id=?').get(d.id) as { n: number }).n,
   };
 }
 function setupInfo() {
@@ -545,6 +547,8 @@ button{font:inherit;font-weight:600;height:42px;width:100%;border:0;border-radiu
 }
 
 /* ---------------- visitors on a custom domain ---------------- */
+// The domain decides who opens it, not the app's jhino.com sharing: with "Require email and password" off,
+// anyone with the address opens it; with it on, only the email and password logins the owner made for it.
 const VISIT_DAYS = 30;
 const visitCookie = (appId: string) => `jp_${appId}`;
 const CSRF_COOKIE = 'jd_csrf';
@@ -562,41 +566,41 @@ function startVisit(req: FastifyRequest, reply: FastifyReply, a: AppRow, userId:
   db.prepare('INSERT INTO pub_sessions(token_hash,app_id,ip,created_at,expires_at,user_id) VALUES(?,?,?,?,?,?)').run(sha256(token), a.id, req.ip, now(), expires.toISOString(), userId);
   reply.setCookie(visitCookie(a.id), token, { path: '/', httpOnly: true, sameSite: 'lax', secure: secureSite(req), expires });
 }
-/** The app's shared visitor account (made once; two first visits at the same moment both end up with it). */
-async function sharedVisitor(appId: string): Promise<string> {
-  const fresh = () => db.prepare('SELECT * FROM apps WHERE id=?').get(appId) as AppRow;
+/** What anyone may do on an open domain: what the app's link allows when it is shared by link, otherwise view. */
+const openRole = (a: AppRow): Role => (a.access && a.access !== 'private' ? ((a.public_role ?? 'viewer') as Role) : 'viewer');
+/** The app's shared visitor account (made once; two first visits at the same moment both end up with it), a member so it can read. */
+async function sharedVisitor(a0: AppRow): Promise<string> {
+  const fresh = () => db.prepare('SELECT * FROM apps WHERE id=?').get(a0.id) as AppRow;
   let vid: string;
   try { vid = await ensureVisitor(fresh()); } catch (e) {
     const v = e instanceof HttpError && e.code === 'EMAIL_TAKEN' ? fresh().visitor_id : null;
     if (!v) throw e;
     vid = v;
   }
-  // As setSharing does: an app open by link has its visitor as a member with the visitors' role.
-  const a = fresh();
-  if (a.access && a.access !== 'private') db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?) ON CONFLICT(app_id,user_id) DO NOTHING').run(appId, vid, a.public_role ?? 'viewer', now());
+  db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?) ON CONFLICT(app_id,user_id) DO NOTHING').run(a0.id, vid, openRole(fresh()), now());
   return vid;
 }
 const BOTS = /bot|crawl|spider|slurp|facebookexternalhit|embedly|preview|whatsapp|telegram|discord|curl|wget|python|headless|lighthouse/i;
-type Visit = { userId: string; role: Role; member?: MemberSession } | { gate: 'signin' | 'password' | 'name'; expired?: boolean };
+type Visit = { userId: string; role: Role; login?: LoginSession } | { gate: 'signin' | 'name'; expired?: boolean };
 async function visitFor(req: FastifyRequest, reply: FastifyReply, a: AppRow, d: DomainRow): Promise<Visit> {
-  // Someone who signed in on this domain is themselves, whatever the link allows.
-  const m = memberSession(req, reply, d, a);
-  if (m) return { userId: m.user.id, role: m.role, member: m };
-  const stale = !!req.cookies?.[MEMBER_COOKIE];
-  if (stale) reply.clearCookie(MEMBER_COOKIE, { path: '/' });
-  // "Only people added" in Share: on the domain, they sign in with their own ID and password.
-  if (!a.access || a.access === 'private') return { gate: 'signin', expired: stale };
-  const role = (a.public_role ?? 'viewer') as Role;
+  if (d.require_login) {
+    const s = loginSession(req, reply, d, a);
+    if (s) return { userId: s.userId, role: s.role, login: s };
+    const stale = !!req.cookies?.[LOGIN_COOKIE];
+    if (stale) reply.clearCookie(LOGIN_COOKIE, { path: '/' });
+    return { gate: 'signin', expired: stale };
+  }
+  const role = openRole(a);
   const me = visitingAs(req, a);
   if (me) return { userId: me, role: roleOf(a.id, me) ?? role };
-  if (a.access === 'password') return { gate: 'password' };
-  if (collaborative(a.public_role)) return { gate: 'name' };
-  // Open to view: everyone is the app's shared visitor. Crawlers read the page without a stored visit.
-  const vid = await sharedVisitor(a.id);
+  // Visitors who may add or edit give their name once, so what they add carries it.
+  if (collaborative(role)) return { gate: 'name' };
+  // Everyone else is the app's shared visitor. Crawlers read the page without a stored visit.
+  const vid = await sharedVisitor(a);
   if (!BOTS.test(String(req.headers['user-agent'] ?? ''))) {
     try { limit(req, 'domain-visit', 120, 60_000); startVisit(req, reply, a, vid); } catch { /* many new visits from one address: the page still opens */ }
   }
-  return { userId: vid, role };
+  return { userId: vid, role: roleOf(a.id, vid) ?? role };
 }
 function csrfFor(req: FastifyRequest, reply: FastifyReply) {
   let t = req.cookies?.[CSRF_COOKIE];
@@ -613,40 +617,54 @@ function csrfOk(req: FastifyRequest, formToken: unknown) {
 const same = (x: string, y: string) => !!x && x.length === y.length && crypto.timingSafeEqual(Buffer.from(x), Buffer.from(y));
 const safeNext = (v: unknown) => (typeof v === 'string' && /^\/(?!\/)[^\s\\]{0,300}$/.test(v) && !v.startsWith('/__jhino/') ? v : '/');
 
-/* ---------------- people signed in on a custom domain ---------------- */
-// Members of the app (clients the owner made a sign-in for, people added from Share) sign in on the domain itself.
-// The session is bound to that hostname and that app, in a host-only cookie; Jhino's own session never is.
-const MEMBER_COOKIE = 'jd_sid';
-const MEMBER_DAYS = 30;
-interface SessionRow { token_hash: string; hostname: string; app_id: string; user_id: string; csrf: string; expires_at: string; last_seen_at: string | null }
-export interface MemberSession { hash: string; user: UserRow; role: Role; csrf: string }
-/** The person this browser is signed in as on this domain, or null (expired, removed from the app, suspended). */
-function memberSession(req: FastifyRequest, reply: FastifyReply | null, d: DomainRow, a: AppRow): MemberSession | null {
-  const tok = req.cookies?.[MEMBER_COOKIE];
+/* ---------------- email and password logins for a domain ---------------- */
+// Made by the owner on the domain card. Exactly that email and password opens the site; Jhino accounts and the
+// app's members do not. Each login is also a light identity in the app (a kind='visitor' user with its name), so
+// what it adds shows that name and "Can edit" / "Can view" works like everywhere else.
+const LOGIN_COOKIE = 'jd_sid';
+const LOGIN_DAYS = 30;
+export const MAX_LOGINS = 50;
+interface LoginRow { id: string; domain_id: string; email: string; name: string | null; role: 'viewer' | 'editor'; password_hash: string; user_id: string; created_at: string; updated_at: string; last_login_at: string | null }
+interface SessionRow { token_hash: string; hostname: string; app_id: string; user_id: string; login_id: string | null; csrf: string; expires_at: string; last_seen_at: string | null }
+export interface LoginSession { hash: string; userId: string; loginId: string; role: Role; csrf: string }
+/** Who this browser is signed in as on this domain, or null (expired, login removed, domain changed). */
+function loginSession(req: FastifyRequest, reply: FastifyReply | null, d: DomainRow, a: AppRow): LoginSession | null {
+  const tok = req.cookies?.[LOGIN_COOKIE];
   if (!tok || tok.length > 100) return null;
   const h = sha256(tok);
   const s = db.prepare('SELECT * FROM domain_sessions WHERE token_hash=?').get(h) as SessionRow | undefined;
-  if (!s || s.hostname !== d.hostname || s.app_id !== a.id || s.expires_at < now()) return null;
-  const u = db.prepare("SELECT * FROM users WHERE id=? AND kind='person'").get(s.user_id) as UserRow | undefined;
-  const role = u && !u.disabled ? roleOf(a.id, u.id) : null;
-  if (!u || !role) return null;
+  if (!s || !s.login_id || s.hostname !== d.hostname || s.app_id !== a.id || s.expires_at < now()) return null;
+  const l = db.prepare('SELECT id, user_id FROM domain_logins WHERE id=? AND domain_id=?').get(s.login_id, d.id) as { id: string; user_id: string } | undefined;
+  const role = l && l.user_id === s.user_id ? roleOf(a.id, l.user_id) : null;
+  if (!l || !role) return null;
   if (!s.last_seen_at || Date.parse(s.last_seen_at) < Date.now() - 5 * 60_000) db.prepare('UPDATE domain_sessions SET last_seen_at=?, ip=? WHERE token_hash=?').run(now(), req.ip, h);
-  // Used: keep it going (30 days from now), like sessions on jhino.com.
+  // Used: keep it going (30 days from now).
   if (reply && Date.parse(s.expires_at) - Date.now() < 20 * DAY) {
-    const expires = new Date(Date.now() + MEMBER_DAYS * DAY);
+    const expires = new Date(Date.now() + LOGIN_DAYS * DAY);
     db.prepare('UPDATE domain_sessions SET expires_at=? WHERE token_hash=?').run(expires.toISOString(), h);
-    reply.setCookie(MEMBER_COOKIE, tok, { path: '/', httpOnly: true, sameSite: 'lax', secure: secureSite(req), expires });
+    reply.setCookie(LOGIN_COOKIE, tok, { path: '/', httpOnly: true, sameSite: 'lax', secure: secureSite(req), expires });
   }
-  return { hash: h, user: u, role, csrf: s.csrf };
+  return { hash: h, userId: l.user_id, loginId: l.id, role, csrf: s.csrf };
 }
-function startMemberSession(req: FastifyRequest, reply: FastifyReply, d: DomainRow, a: AppRow, u: UserRow) {
+function startLoginSession(req: FastifyRequest, reply: FastifyReply, d: DomainRow, a: AppRow, l: LoginRow) {
   const token = crypto.randomBytes(32).toString('base64url');
-  const expires = new Date(Date.now() + MEMBER_DAYS * DAY);
-  db.prepare('INSERT INTO domain_sessions(token_hash,hostname,app_id,user_id,csrf,ip,ua,created_at,expires_at,last_seen_at) VALUES(?,?,?,?,?,?,?,?,?,?)')
-    .run(sha256(token), d.hostname, a.id, u.id, crypto.randomBytes(24).toString('base64url'), req.ip, String(req.headers['user-agent'] ?? '').slice(0, 300), now(), expires.toISOString(), now());
-  reply.setCookie(MEMBER_COOKIE, token, { path: '/', httpOnly: true, sameSite: 'lax', secure: secureSite(req), expires });
-  // A visit cookie from before (a public link) would stand for someone else: this person is themselves now.
+  const expires = new Date(Date.now() + LOGIN_DAYS * DAY);
+  db.prepare('INSERT INTO domain_sessions(token_hash,hostname,app_id,user_id,login_id,csrf,ip,ua,created_at,expires_at,last_seen_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)')
+    .run(sha256(token), d.hostname, a.id, l.user_id, l.id, crypto.randomBytes(24).toString('base64url'), req.ip, String(req.headers['user-agent'] ?? '').slice(0, 300), now(), expires.toISOString(), now());
+  reply.setCookie(LOGIN_COOKIE, token, { path: '/', httpOnly: true, sameSite: 'lax', secure: secureSite(req), expires });
   reply.clearCookie(visitCookie(a.id), { path: '/' });
+}
+/** End every session of a login, and its open live streams. */
+function endLoginSessions(l: Pick<LoginRow, 'id' | 'user_id'>) {
+  db.prepare('DELETE FROM domain_sessions WHERE login_id=?').run(l.id);
+  closeUser(l.user_id);
+}
+/** Remove a login: its sessions, its place in the app (the identity stays, so what it added keeps its name). */
+function dropLogin(l: LoginRow, appId: string) {
+  db.prepare('DELETE FROM memberships WHERE app_id=? AND user_id=?').run(appId, l.user_id);
+  db.prepare('DELETE FROM domain_logins WHERE id=?').run(l.id);
+  revoke(appId, l.user_id);
+  endLoginSessions(l);
 }
 /** Built apps with their own logo show it; others their letter icon. */
 function builtLogo(a: AppRow): { type: string; buf: Buffer } | null {
@@ -658,57 +676,37 @@ function builtLogo(a: AppRow): { type: string; buf: Buffer } | null {
 }
 const logoFor = (a: AppRow) => (builtLogo(a) ? '/__jhino/logo' : installInfo(a, '/').appleIcon);
 let dummyHash: Promise<string> | null = null;
-/** A hash to check against when there is no such account, so every answer takes as long. */
+/** A hash to check against when there is no such login, so every answer takes as long. */
 const dummy = () => (dummyHash ??= hash(crypto.randomBytes(16).toString('hex')));
-const GENERIC = 'That ID or email and password do not match an account for this site.';
+const GENERIC = 'That email and password do not match a login for this site.';
 
-function signinPage(req: FastifyRequest, reply: FastifyReply, c: Ctx, o: { error?: string; status?: number; expired?: boolean; login?: string; next?: string } = {}) {
+function signinPage(req: FastifyRequest, reply: FastifyReply, c: Ctx, o: { error?: string; status?: number; expired?: boolean; email?: string; next?: string } = {}) {
   const a = c.h!.a!;
   c.csp = PAGE_CSP;
   const next = safeNext(o.next ?? req.url.split('?')[0]);
-  const login = o.login ?? '';
+  const email = o.email ?? '';
   const form = `<form method="post" action="/__jhino/signin">
 <input type="hidden" name="csrf" value="${esc(csrfFor(req, reply))}"><input type="hidden" name="next" value="${esc(next)}">
-<label>Email or ID<input name="login" required maxlength="200" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" value="${esc(login)}"${login ? '' : ' autofocus'}></label>
-<label>Password<input name="password" type="password" required maxlength="200" autocomplete="current-password"${login ? ' autofocus' : ''}></label>
+<label>Email<input name="email" type="email" required maxlength="200" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" value="${esc(email)}"${email ? '' : ' autofocus'}></label>
+<label>Password<input name="password" type="password" required maxlength="200" autocomplete="current-password"${email ? ' autofocus' : ''}></label>
 ${o.error ? `<p class="err" role="alert">${esc(o.error)}</p>` : ''}<button type="submit">Sign in</button></form>`;
-  const text = o.expired ? 'Your session ended. Sign in again to carry on.' : 'Sign in with the ID or email and the password you were given.';
-  const back = a.access && a.access !== 'private' ? ' · <a href="/">Back to the site</a>' : '';
+  const text = o.expired ? 'Your session ended. Sign in again to carry on.' : 'Sign in with the email and password the site owner gave you.';
   reply.header('X-Robots-Tag', 'noindex');
-  return page(reply, o.status ?? 200, { title: `Sign in · ${a.name}`, heading: a.name, text: esc(text), host: c.host, logo: logoFor(a), form, foot: `<a href="/__jhino/forgot">Forgot your password?</a>${back}` });
+  return page(reply, o.status ?? 200, { title: `Sign in · ${a.name}`, heading: a.name, text: esc(text), host: c.host, logo: logoFor(a), form, foot: '<a href="/__jhino/forgot">Forgot your password?</a>' });
 }
-function forgotPage(req: FastifyRequest, reply: FastifyReply, c: Ctx, error = '', status = 200) {
+function forgotPage(reply: FastifyReply, c: Ctx) {
   const a = c.h!.a!;
   c.csp = PAGE_CSP;
-  const form = `<form method="post" action="/__jhino/forgot"><input type="hidden" name="csrf" value="${esc(csrfFor(req, reply))}">
-<label>Email or ID<input name="login" required maxlength="200" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" autofocus></label>
-${error ? `<p class="err" role="alert">${esc(error)}</p>` : ''}<button type="submit">Send a reset link</button></form>`;
-  return page(reply, status, { title: `Forgot password · ${a.name}`, heading: 'Forgot your password?', text: 'Enter the ID or email you sign in with. If it has an email address, we send it a link to choose a new password.', host: c.host, logo: logoFor(a), form, foot: '<a href="/__jhino/signin">Back to sign in</a>' });
+  return page(reply, 200, { title: `Forgot password · ${a.name}`, heading: 'Forgot your password?', text: 'Ask the site owner for a new password. They can set one for you in a minute.', host: c.host, logo: logoFor(a), foot: '<a href="/__jhino/signin">Back to sign in</a>' });
 }
-function codePage(req: FastifyRequest, reply: FastifyReply, c: Ctx, ticket: string, next: string, error = '', status = 200) {
-  const a = c.h!.a!;
-  c.csp = PAGE_CSP;
-  const form = `<form method="post" action="/__jhino/signin/code">
-<input type="hidden" name="csrf" value="${esc(csrfFor(req, reply))}"><input type="hidden" name="next" value="${esc(safeNext(next))}"><input type="hidden" name="ticket" value="${esc(ticket)}">
-<label>Code<input class="code" name="code" required maxlength="40" inputmode="numeric" autocomplete="one-time-code" autofocus></label>
-${error ? `<p class="err" role="alert">${esc(error)}</p>` : ''}<button type="submit">Continue</button></form>`;
-  return page(reply, status, { title: `Sign in · ${a.name}`, heading: 'Two-step sign-in', text: 'Enter the 6-digit code from your authenticator app, or one of your recovery codes.', host: c.host, logo: logoFor(a), form, foot: '<a href="/__jhino/signin">Start again</a>' });
-}
-
-function gatePage(req: FastifyRequest, reply: FastifyReply, host: string, a: AppRow, gate: 'password' | 'name', error = '', status = 200) {
-  const askName = collaborative(a.public_role);
-  const askPw = a.access === 'password';
+function gatePage(req: FastifyRequest, reply: FastifyReply, host: string, a: AppRow, error = '', status = 200) {
   const next = (req.url.split('?')[0] || '/').slice(0, 300);
   const form = `<form method="post" action="/__jhino/unlock">
 <input type="hidden" name="csrf" value="${esc(csrfFor(req, reply))}"><input type="hidden" name="next" value="${esc(next)}">
-${askName ? '<label>Your full name<input name="name" required minlength="2" maxlength="60" autocomplete="name" placeholder="Sita Sharma"' + (askPw ? '' : ' autofocus') + '></label>' : ''}
-${askPw ? '<label>Password<input name="password" type="password" required autocomplete="current-password" autofocus></label>' : ''}
+<label>Your full name<input name="name" required minlength="2" maxlength="60" autocomplete="name" placeholder="Sita Sharma" autofocus></label>
 ${error ? `<p class="err" role="alert">${esc(error)}</p>` : ''}<button type="submit">Open</button></form>`;
-  const text = gate === 'password'
-    ? (askName ? 'This site is protected. Enter the password you were given and your name; it shows next to what you add.' : 'This site is protected. Enter the password you were given.')
-    : 'Tell the others who you are. Your name shows next to everything you add here.';
   reply.header('X-Robots-Tag', 'noindex');
-  return page(reply, status, { title: a.name, heading: a.name, text: esc(text), host, form });
+  return page(reply, status, { title: a.name, heading: a.name, text: 'Tell the others who you are. Your name shows next to everything you add here.', host, form });
 }
 
 /* ---------------- serving the app at the top of the domain ---------------- */
@@ -720,7 +718,8 @@ function apiAllowed(appId: string, method: string, url: string) {
   const pre = `/api/apps/${appId}/`;
   return p.startsWith(pre) && APP_API.test(p.slice(pre.length));
 }
-const indexable = (a: AppRow) => a.access === 'public' && !collaborative(a.public_role);
+/** Search engines may list a domain anyone opens to view. */
+const indexable = (a: AppRow, d: DomainRow) => !d.require_login && !collaborative(openRole(a));
 function listPages(root: string) {
   const out: string[] = [];
   const walk = (dir: string, rel: string, depth: number) => {
@@ -770,10 +769,10 @@ async function serveSite(req: FastifyRequest, reply: FastifyReply, h: Hosted, ho
   const own = (name: string) => fs.existsSync(path.join(root, name));
   if (rel === 'robots.txt' && !own('robots.txt')) {
     return reply.type('text/plain; charset=utf-8').header('Cache-Control', 'public, max-age=3600')
-      .send(indexable(a) && !h.paused ? `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n` : 'User-agent: *\nDisallow: /\n');
+      .send(indexable(a, d) && !h.paused ? `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n` : 'User-agent: *\nDisallow: /\n');
   }
   if (rel === 'sitemap.xml' && !own('sitemap.xml')) {
-    if (!indexable(a)) return reply.code(404).type('text/plain').send('Not found');
+    if (!indexable(a, d)) return reply.code(404).type('text/plain').send('Not found');
     const lastmod = String(a.updated_at).slice(0, 10);
     const urls = listPages(root).map((p) => (p === v.entry || p === 'index.html' ? '/' : p.replace(/(^|\/)index\.html?$/i, '$1'))).filter((p, i, arr) => arr.indexOf(p) === i);
     if (!urls.includes('/')) urls.unshift('/');
@@ -791,19 +790,18 @@ async function serveSite(req: FastifyRequest, reply: FastifyReply, h: Hosted, ho
     c.csp = FILE_CSP;
     return reply.type(l.type).header('Cache-Control', 'public, max-age=3600').send(l.buf);
   }
-  // Sign-in pages: any site can have them (members sign in as themselves); a private one requires them.
-  if (rel === '__jhino/signin') {
+  // The sign-in pages, on domains that ask for an email and password.
+  if (rel === '__jhino/signin' || rel === '__jhino/forgot' || rel === '__jhino/signout') {
+    if (!d.require_login) return reply.redirect('/', 303);
     const q = req.query as { next?: string; expired?: string };
-    if (memberSession(req, null, d, a)) return reply.redirect(safeNext(q.next), 303);
-    return signinPage(req, reply, c, { next: q.next, expired: q.expired === '1' });
-  }
-  if (rel === '__jhino/forgot') return forgotPage(req, reply, c);
-  if (rel === '__jhino/signout') {
-    const m = memberSession(req, null, d, a);
-    if (!m) return reply.redirect('/', 303);
+    const s = loginSession(req, null, d, a);
+    if (rel === '__jhino/forgot') return forgotPage(reply, c);
+    if (rel === '__jhino/signin') return s ? reply.redirect(safeNext(q.next), 303) : signinPage(req, reply, c, { next: q.next, expired: q.expired === '1' });
+    if (!s) return reply.redirect('/__jhino/signin', 303);
     sys();
+    const who = (db.prepare('SELECT name FROM users WHERE id=?').get(s.userId) as { name: string } | undefined)?.name ?? '';
     const form = `<form method="post" action="/__jhino/signout"><input type="hidden" name="csrf" value="${esc(csrfFor(req, reply))}"><button type="submit">Sign out</button></form>`;
-    return page(reply, 200, { title: `Sign out · ${a.name}`, heading: 'Sign out?', text: `You are signed in as <b>${esc(m.user.name)}</b>.`, host, logo: logoFor(a), form, foot: '<a href="/">Stay signed in</a>' });
+    return page(reply, 200, { title: `Sign out · ${a.name}`, heading: 'Sign out?', text: `You are signed in as <b>${esc(who)}</b>.`, host, logo: logoFor(a), form, foot: '<a href="/">Stay signed in</a>' });
   }
 
   const visit = await visitFor(req, reply, a, d);
@@ -812,7 +810,7 @@ async function serveSite(req: FastifyRequest, reply: FastifyReply, h: Hosted, ho
     if (!isHtmlish) return reply.code(403).type('text/plain').send('This site is not open.');
     sys();
     if (visit.gate === 'signin') return signinPage(req, reply, c, { expired: visit.expired, status: 401 });
-    return gatePage(req, reply, host, a, visit.gate);
+    return gatePage(req, reply, host, a);
   }
   const role = visit.role;
 
@@ -845,18 +843,18 @@ async function serveSite(req: FastifyRequest, reply: FastifyReply, h: Hosted, ho
   }
   const ext = path.extname(file).toLowerCase();
   reply.type(TYPES[ext] || 'application/octet-stream');
-  const privateSite = a.access !== 'public';
+  const privateSite = !!d.require_login;
   if (ext === '.html' || ext === '.htm') {
     const u = db.prepare('SELECT id, name, username, kind FROM users WHERE id=?').get(visit.userId) as { id: string; name: string; username: string | null; kind: string } | undefined;
     const boot = {
       v: 1, nonce: crypto.randomBytes(12).toString('base64url'), appId: a.id, version: a.live_version,
       // The email stays private even from the site's own code; the name and username are what people see.
-      user: { id: visit.userId, name: u?.name ?? 'Visitor', email: '', username: u?.kind === 'visitor' ? null : u?.username ?? null, role, signedIn: !!visit.member },
+      user: { id: visit.userId, name: u?.name ?? 'Visitor', email: '', username: u?.kind === 'visitor' ? null : u?.username ?? null, role, signedIn: !!visit.login },
       privateKeys: JSON.parse(a.private_keys),
       data: snapshotFor(a.id, visit.userId),
       uploads: uploadsOn(),
       // No Jhino page around it: the shim talks to this server itself (same origin, the visit cookie).
-      direct: { app: a.id, member: !!visit.member, csrf: visit.member?.csrf ?? null },
+      direct: { app: a.id, member: !!visit.login, csrf: visit.login?.csrf ?? null },
     };
     let usesIdb = false;
     try { usesIdb = !!JSON.parse(v.features).indexedDB; } catch { /* old version row */ }
@@ -869,7 +867,7 @@ async function serveSite(req: FastifyRequest, reply: FastifyReply, h: Hosted, ho
     const showCredit = !(d.backlink === 0 && h.owner?.is_admin && h.owner.id === d.owner_id);
     if (showCredit) html = withCredit(html, d.hostname);
     reply.header('Cache-Control', 'no-store');
-    if (!indexable(a)) reply.header('X-Robots-Tag', 'noindex');
+    if (!indexable(a, d)) reply.header('X-Robots-Tag', 'noindex');
     return reply.send(html);
   }
   reply.header('Cache-Control', privateSite ? 'private, max-age=600' : 'public, max-age=600');
@@ -880,7 +878,7 @@ async function serveSite(req: FastifyRequest, reply: FastifyReply, h: Hosted, ho
 /* ---------------- routes and hooks ---------------- */
 interface Ctx { host: string; h: Hosted | null; csp?: string | null }
 const ctxOf = new WeakMap<FastifyRequest, Ctx>();
-const POST_PAGES = new Set(['/__jhino/unlock', '/__jhino/signin', '/__jhino/signin/code', '/__jhino/signout', '/__jhino/forgot']);
+const POST_PAGES = new Set(['/__jhino/unlock', '/__jhino/signin', '/__jhino/signout']);
 const FILE_CSP = "sandbox; default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'";
 const APP_CSP = (secure: boolean) => `frame-ancestors 'self'; base-uri 'self'; object-src 'none'${secure ? '; upgrade-insecure-requests' : ''}`;
 
@@ -926,16 +924,28 @@ export function registerCustomDomains(app: FastifyInstance) {
 
     if (pathname.startsWith('/api/')) {
       if (!apiAllowed(a.id, req.method, req.url)) return reply.code(404).send({ error: 'NOT_FOUND', message: 'Not found.' });
-      // Signed in on this domain: the app's data as that person, for this app only (a one-app key, like a downloaded file).
-      const m = memberSession(req, reply, d, a);
-      if (m) {
-        if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !same(m.csrf, String(req.headers['x-csrf-token'] ?? ''))) {
-          return reply.code(403).send({ error: 'CSRF', message: 'Your session changed. Reload the page.' });
+      // Who is asking is decided here, by the domain's own rules; jhino.com's link rules (publicshare.ts) never apply.
+      const visit = req.cookies?.[visitCookie(a.id)];
+      if (req.cookies) delete req.cookies[visitCookie(a.id)];
+      if (d.require_login) {
+        // Signed in with one of the domain's logins: the app's data as that login, for this app only.
+        const s = loginSession(req, reply, d, a);
+        if (s) {
+          if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && !same(s.csrf, String(req.headers['x-csrf-token'] ?? ''))) {
+            return reply.code(403).send({ error: 'CSRF', message: 'Your session changed. Reload the page.' });
+          }
+          const u = db.prepare('SELECT * FROM users WHERE id=?').get(s.userId) as UserRow | undefined;
+          if (u) { req.user = u; req.desk = a.id; req.pub = null; req.csrf = null; req.sessionHash = null; }
         }
-        if (req.cookies) delete req.cookies[visitCookie(a.id)];
-        req.user = m.user; req.desk = a.id; req.pub = null; req.csrf = null; req.sessionHash = null;
+        return;
       }
-      return; // on to the app's data routes, as this person or as the link's visitor
+      // An open domain: the visitor or named guest from the visit cookie.
+      if (visit) {
+        const r = db.prepare('SELECT user_id FROM pub_sessions WHERE token_hash=? AND app_id=? AND expires_at > ?').get(sha256(visit), a.id, now()) as { user_id: string | null } | undefined;
+        const u = r?.user_id && roleOf(a.id, r.user_id) ? db.prepare("SELECT * FROM users WHERE id=? AND kind='visitor'").get(r.user_id) as UserRow | undefined : undefined;
+        if (u) { req.user = u; req.pub = a.id; req.desk = null; req.csrf = null; req.sessionHash = null; }
+      }
+      return; // on to the app's data routes
     }
     if (req.method === 'GET' || req.method === 'HEAD') {
       if (/^\/_jhino\/(shim\.js|idb\.js|fonts\/[\w-]+\.woff2|icon\/[\w-]+\.png)$/.test(pathname)) return; // the runtime and icons
@@ -962,158 +972,87 @@ export function registerCustomDomains(app: FastifyInstance) {
     return payload;
   });
 
-  /* The gate on a custom domain: a password and/or a name, then a host-only visit cookie. */
-  app.post('/__jhino/unlock', async (req, reply) => {
-    const c = ctxOf.get(req);
-    const a = c?.h?.a;
-    if (!c || !a || c.h!.d.status !== 'active') return reply.code(404).send({ error: 'NOT_FOUND', message: 'Not found.' });
-    c.csp = PAGE_CSP;
-    const b = (req.body ?? {}) as Record<string, unknown>;
-    const next = safeNext(b.next);
-    if (!csrfOk(req, b.csrf)) {
-      return gatePage(req, reply, c.host, a, a.access === 'password' ? 'password' : 'name', 'The form expired. Try again.', 403);
-    }
-    if (!a.access || a.access === 'private') return reply.redirect('/', 303);
-    try {
-      limit(req, 'domain-unlock', 10, 15 * 60_000, a.id);
-      if (a.access === 'password') {
-        if (!a.share_password_hash || !await verify(a.share_password_hash, String(b.password ?? '').slice(0, 200))) {
-          return gatePage(req, reply, c.host, a, 'password', 'That password is not right.', 401);
-        }
-      }
-      if (!collaborative(a.public_role)) {
-        startVisit(req, reply, a, await sharedVisitor(a.id));
-        return reply.redirect(next, 303);
-      }
-      const name = String(b.name ?? '').replace(/\s+/g, ' ').trim();
-      if (name.length < 2 || name.length > 60) return gatePage(req, reply, c.host, a, a.access === 'password' ? 'password' : 'name', 'Write your name (2 to 60 characters).', 400);
-      limit(req, 'public-guest', 30, 60 * 60_000);
-      const guest = await createUser(`guest.${crypto.randomBytes(9).toString('hex')}@visitors.invalid`, name, makePassword(24), false, { createdBy: a.owner_id, kind: 'visitor' });
-      db.prepare('UPDATE users SET password_set=0 WHERE id=?').run(guest.id);
-      const r = db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at,via_link) VALUES(?,?,?,?,1) ON CONFLICT(app_id,user_id) DO NOTHING').run(a.id, guest.id, a.public_role ?? 'viewer', now());
-      if (r.changes) logActivity(a.id, guest.id, 'joined as a guest', `on ${c.host}`);
-      startVisit(req, reply, a, guest.id);
-      return reply.redirect(next, 303);
-    } catch (e) {
-      if (e instanceof HttpError && e.status === 429) return gatePage(req, reply, c.host, a, a.access === 'password' ? 'password' : 'name', e.message, 429);
-      throw e;
-    }
-  });
-
   /** The site for a POST on a custom domain (null elsewhere: these paths do nothing on jhino.com). */
   const siteOf = (req: FastifyRequest) => {
     const c = ctxOf.get(req);
     return c?.h?.a && c.h.d.status === 'active' && !c.h.a.deleted_at && !c.h.paused && !c.h.d.disabled_at ? { c, a: c.h.a, d: c.h.d } : null;
   };
 
-  /* Sign in on the domain: the app's members only, with their own ID or email and password. */
+  /* An open domain where visitors can add or edit: a name once, then a host-only visit cookie. */
+  app.post('/__jhino/unlock', async (req, reply) => {
+    const s = siteOf(req);
+    if (!s) return reply.code(404).send({ error: 'NOT_FOUND', message: 'Not found.' });
+    const { c, a, d } = s;
+    c.csp = PAGE_CSP;
+    if (d.require_login) return reply.redirect('/__jhino/signin', 303);
+    const b = (req.body ?? {}) as Record<string, unknown>;
+    const next = safeNext(b.next);
+    if (!csrfOk(req, b.csrf)) return gatePage(req, reply, c.host, a, 'The form expired. Try again.', 403);
+    const role = openRole(a);
+    try {
+      limit(req, 'domain-unlock', 10, 15 * 60_000, a.id);
+      if (!collaborative(role)) {
+        startVisit(req, reply, a, await sharedVisitor(a));
+        return reply.redirect(next, 303);
+      }
+      const name = String(b.name ?? '').replace(/\s+/g, ' ').trim();
+      if (name.length < 2 || name.length > 60) return gatePage(req, reply, c.host, a, 'Write your name (2 to 60 characters).', 400);
+      limit(req, 'public-guest', 30, 60 * 60_000);
+      const guest = await createUser(`guest.${crypto.randomBytes(9).toString('hex')}@visitors.invalid`, name, makePassword(24), false, { createdBy: a.owner_id, kind: 'visitor' });
+      db.prepare('UPDATE users SET password_set=0 WHERE id=?').run(guest.id);
+      const r = db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at,via_link) VALUES(?,?,?,?,1) ON CONFLICT(app_id,user_id) DO NOTHING').run(a.id, guest.id, role, now());
+      if (r.changes) logActivity(a.id, guest.id, 'joined as a guest', `on ${c.host}`);
+      startVisit(req, reply, a, guest.id);
+      return reply.redirect(next, 303);
+    } catch (e) {
+      if (e instanceof HttpError && e.status === 429) return gatePage(req, reply, c.host, a, e.message, 429);
+      throw e;
+    }
+  });
+
+  /* Sign in on the domain with one of its email and password logins. Nothing else opens it. */
   app.post('/__jhino/signin', async (req, reply) => {
     const s = siteOf(req);
     if (!s) return reply.code(404).send({ error: 'NOT_FOUND', message: 'Not found.' });
     const { c, a, d } = s;
+    if (!d.require_login) return reply.redirect('/', 303);
     const b = (req.body ?? {}) as Record<string, unknown>;
     const next = safeNext(b.next);
-    const login = String(b.login ?? '').trim().slice(0, 200);
+    const email = String(b.email ?? '').trim().toLowerCase().slice(0, 200);
     const pw = String(b.password ?? '').slice(0, 200);
-    if (!csrfOk(req, b.csrf)) return signinPage(req, reply, c, { error: 'The form expired. Try again.', status: 403, login, next });
+    if (!csrfOk(req, b.csrf)) return signinPage(req, reply, c, { error: 'The form expired. Try again.', status: 403, email, next });
     try {
       limit(req, 'domain-signin', 30, 15 * 60_000);
-      if (login) limitKey('domain-signin', `${a.id}:${login.toLowerCase()}`, 8, 15 * 60_000, 'Too many tries. Wait 15 minutes and try again.');
+      if (email) limitKey('domain-signin', `${d.id}:${email}`, 8, 15 * 60_000, 'Too many tries. Wait 15 minutes and try again.');
     } catch (e) {
-      if (e instanceof HttpError && e.status === 429) return signinPage(req, reply, c, { error: e.message, status: 429, login, next });
+      if (e instanceof HttpError && e.status === 429) return signinPage(req, reply, c, { error: e.message, status: 429, email, next });
       throw e;
     }
-    if (!login || !pw) return signinPage(req, reply, c, { error: 'Enter your ID or email and your password.', status: 400, login, next });
-    const u = findAccount(login);
-    // One password check whether or not the account exists, and one answer for every miss: nothing tells who has an account here.
-    const ok = u && u.password_set !== 0 ? await verify(u.password_hash, pw).catch(() => false) : (await verify(await dummy(), pw).catch(() => false), false);
-    const role = ok && u ? roleOf(a.id, u.id) : null;
-    if (!ok || !u || !role) {
-      if (u && !ok) securityEvent(u.id, 'login_failed', req, `on ${d.hostname}`);
-      return signinPage(req, reply, c, { error: GENERIC, status: 401, login, next });
-    }
-    // The password was right from here on, so these can say what is wrong.
-    if (u.disabled) return signinPage(req, reply, c, { error: 'This account is suspended. Contact the site owner.', status: 403, login, next });
-    if (mustVerifyToSignIn(u)) return signinPage(req, reply, c, { error: `Confirm your email first: sign in once at ${BRAND.replace(/^https?:\/\//, '')} and enter the code we send you.`, status: 403, login, next });
-    if (twoFactorOn(u)) return codePage(req, reply, c, startTicket(u.id, `domain:${a.id}:${d.hostname}`), next);
-    startMemberSession(req, reply, d, a, u);
-    afterLogin(req, u, `site ${d.hostname}`);
+    if (!email || !pw) return signinPage(req, reply, c, { error: 'Enter your email and your password.', status: 400, email, next });
+    const l = db.prepare('SELECT * FROM domain_logins WHERE domain_id=? AND email=?').get(d.id, email) as LoginRow | undefined;
+    // One password check whether or not the login exists, and one answer for every miss: nothing tells which emails have a login.
+    const ok = l ? await verify(l.password_hash, pw).catch(() => false) : (await verify(await dummy(), pw).catch(() => false), false);
+    if (!ok || !l || !roleOf(a.id, l.user_id)) return signinPage(req, reply, c, { error: GENERIC, status: 401, email, next });
+    db.prepare('UPDATE domain_logins SET last_login_at=? WHERE id=?').run(now(), l.id);
+    startLoginSession(req, reply, d, a, l);
     return reply.redirect(next, 303);
   });
 
-  /* The second step for accounts with two-step sign-in (the same codes as on jhino.com). */
-  app.post('/__jhino/signin/code', async (req, reply) => {
-    const s = siteOf(req);
-    if (!s) return reply.code(404).send({ error: 'NOT_FOUND', message: 'Not found.' });
-    const { c, a, d } = s;
-    const b = (req.body ?? {}) as Record<string, unknown>;
-    const next = safeNext(b.next);
-    const ticket = String(b.ticket ?? '').slice(0, 100);
-    if (!csrfOk(req, b.csrf)) return signinPage(req, reply, c, { error: 'The form expired. Sign in again.', status: 403, next });
-    try {
-      limit(req, 'domain-2fa', 20, 15 * 60_000);
-      const t = useTicket(ticket, b.code);
-      const u = db.prepare("SELECT * FROM users WHERE id=? AND kind='person'").get(t.userId) as UserRow | undefined;
-      if (t.how !== `domain:${a.id}:${d.hostname}` || !u || u.disabled || !roleOf(a.id, u.id)) return signinPage(req, reply, c, { error: GENERIC, status: 401, next });
-      startMemberSession(req, reply, d, a, u);
-      afterLogin(req, u, `site ${d.hostname}+2fa`);
-      if (t.via === 'recovery') securityEvent(u.id, '2fa_recovery_used', req);
-      return reply.redirect(next, 303);
-    } catch (e) {
-      if (!(e instanceof HttpError)) throw e;
-      if (e.code === 'TICKET_EXPIRED') return signinPage(req, reply, c, { error: e.message, status: 400, next });
-      return codePage(req, reply, c, ticket, next, e.message, e.status);
-    }
-  });
-
-  /* Sign out on the domain: the form (double-submit token) or the site's own code (jhino.signOut, the session's token). */
+  /* Sign out: the form (double-submit token) or the site's own code (jhino.signOut, with the session's token). */
   app.post('/__jhino/signout', async (req, reply) => {
     const s = siteOf(req);
     if (!s) return reply.code(404).send({ error: 'NOT_FOUND', message: 'Not found.' });
     const { c, a, d } = s;
     c.csp = PAGE_CSP;
-    const m = memberSession(req, null, d, a);
+    const m = loginSession(req, null, d, a);
     const fromScript = req.headers['x-jhino'] === '1';
     const b = (req.body ?? {}) as Record<string, unknown>;
     const allowed = fromScript ? !!m && same(m.csrf, String(req.headers['x-csrf-token'] ?? '')) : csrfOk(req, b.csrf);
     if (!allowed) return fromScript ? reply.code(403).send({ error: 'CSRF', message: 'Reload the page and try again.' }) : reply.redirect('/__jhino/signout', 303);
     if (m) db.prepare('DELETE FROM domain_sessions WHERE token_hash=?').run(m.hash);
-    reply.clearCookie(MEMBER_COOKIE, { path: '/' });
+    reply.clearCookie(LOGIN_COOKIE, { path: '/' });
     if (fromScript) return { ok: true };
-    return reply.redirect(!a.access || a.access === 'private' ? '/__jhino/signin' : '/', 303);
-  });
-
-  /* Forgot password: the usual email link for accounts with an email; the same answer for everyone. */
-  app.post('/__jhino/forgot', async (req, reply) => {
-    const s = siteOf(req);
-    if (!s) return reply.code(404).send({ error: 'NOT_FOUND', message: 'Not found.' });
-    const { c, a } = s;
-    const b = (req.body ?? {}) as Record<string, unknown>;
-    if (!csrfOk(req, b.csrf)) return forgotPage(req, reply, c, 'The form expired. Try again.', 403);
-    const login = String(b.login ?? '').trim().slice(0, 200);
-    try { limit(req, 'domain-forgot', 10, 15 * 60_000); } catch (e) {
-      if (e instanceof HttpError && e.status === 429) return forgotPage(req, reply, c, e.message, 429);
-      throw e;
-    }
-    if (!login) return forgotPage(req, reply, c, 'Enter your ID or email.', 400);
-    const u = findAccount(login);
-    if (u && !u.disabled && roleOf(a.id, u.id) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u.email)) {
-      try {
-        limitKey('domain-forgot', u.id, 3, 3600_000);
-        const { token, code } = issueCode(u.id, 'reset');
-        sendMail(u.email, 'reset', mails.reset(u.name, `${BRAND}/reset?token=${token}`, code));
-        securityEvent(u.id, 'reset_requested', req, `on ${c.host}`);
-      } catch (e) {
-        // Asked too often: say nothing different, or the answer would tell who has an account.
-        if (!(e instanceof HttpError && e.status === 429)) throw e;
-      }
-    }
-    c.csp = PAGE_CSP;
-    return page(reply, 200, {
-      title: `Forgot password · ${a.name}`, heading: 'Check your email', host: c.host, logo: logoFor(a),
-      text: 'If your account has an email address, we have sent it a link to choose a new password. If you sign in with an ID instead of an email, ask the site owner to reset your password.',
-      foot: '<a href="/__jhino/signin">Back to sign in</a>',
-    });
+    return reply.redirect(d.require_login ? '/__jhino/signin' : '/', 303);
   });
 
   /* Caddy on_demand_tls "ask" (or a Traefik plugin): 200 only for domains that proved ownership. */
@@ -1141,7 +1080,7 @@ export function registerCustomDomains(app: FastifyInstance) {
     const { u, a, owner } = manageable(req, (req.params as { id: string }).id);
     limit(req, 'domain-add', 20, 60 * 60_000, u.id);
     if (a.deleted_at) throw new HttpError(409, 'IN_TRASH', 'Restore this app from Trash first.');
-    const b = (req.body ?? {}) as { hostname?: unknown; www?: unknown };
+    const b = (req.body ?? {}) as { hostname?: unknown; www?: unknown; requireLogin?: unknown };
     const host = normalizeHostname(b.hostname);
     const mode = readWww(b.www, host);
     const pair = pairFor(host, mode);
@@ -1156,8 +1095,8 @@ export function registerCustomDomains(app: FastifyInstance) {
     db.transaction(() => {
       if (nameTaken([pair.primary, pair.alt])) throw new HttpError(409, 'DOMAIN_TAKEN', `${pair.primary}${pair.alt ? ` or ${pair.alt}` : ''} is already connected to a site on Jhino. Remove it there first, or contact support if it is yours.`);
       if (lim !== null && domainsUsed(owner.id) >= lim) throw new HttpError(403, 'LIMIT_REACHED', 'Your plan’s custom domains are all in use.');
-      db.prepare(`INSERT INTO custom_domains(id,owner_id,app_id,hostname,alt_hostname,www_mode,status,verify_token,granted,created_at,updated_at,next_check_at)
-        VALUES(?,?,?,?,?,?,'pending',?,?,?,?,?)`).run(id, owner.id, a.id, pair.primary, pair.alt, mode, `jhino-verify=${crypto.randomBytes(16).toString('hex')}`, byAdminForOther ? 1 : 0, t, t, t);
+      db.prepare(`INSERT INTO custom_domains(id,owner_id,app_id,hostname,alt_hostname,www_mode,status,verify_token,granted,require_login,created_at,updated_at,next_check_at)
+        VALUES(?,?,?,?,?,?,'pending',?,?,?,?,?,?)`).run(id, owner.id, a.id, pair.primary, pair.alt, mode, `jhino-verify=${crypto.randomBytes(16).toString('hex')}`, byAdminForOther ? 1 : 0, b.requireLogin === true ? 1 : 0, t, t, t);
     })();
     if (cfMode()) {
       try {
@@ -1205,7 +1144,15 @@ export function registerCustomDomains(app: FastifyInstance) {
   app.patch('/api/domains/:id', async (req) => {
     const { u, d, owner, a } = ownedDomain(req, (req.params as { id: string }).id);
     limit(req, 'domain-edit', 30, 60_000, u.id);
-    const b = (req.body ?? {}) as { www?: unknown; backlink?: unknown };
+    const b = (req.body ?? {}) as { www?: unknown; backlink?: unknown; requireLogin?: unknown };
+    if (b.requireLogin !== undefined) {
+      const on = b.requireLogin === true;
+      if (on !== !!d.require_login) {
+        db.prepare('UPDATE custom_domains SET require_login=?, updated_at=? WHERE id=?').run(on ? 1 : 0, now(), d.id);
+        logActivity(a.id, u.id, on ? 'required an email and password on' : 'opened to everyone', d.hostname);
+        if (u.id !== d.owner_id) audit(req, on ? 'domain.login_on' : 'domain.login_off', 'domain', d.id, d.hostname);
+      }
+    }
     if (b.backlink !== undefined) {
       const on = !!b.backlink;
       if (!on && !(u.is_admin && owner.is_admin && owner.id === u.id && d.owner_id === u.id)) {
@@ -1242,6 +1189,103 @@ export function registerCustomDomains(app: FastifyInstance) {
     try { await removeDomain(d); } catch (e) { throw new HttpError(502, 'CLOUDFLARE', `Could not remove it at Cloudflare: ${(e as Error).message} Try again.`); }
     logActivity(a.id, u.id, 'disconnected the domain', d.hostname);
     if (u.id !== d.owner_id) audit(req, 'domain.remove', 'domain', d.id, d.hostname);
+    return { ok: true };
+  });
+
+  /* ---------- the domain's email and password logins (Share → Custom domain) ---------- */
+  const loginView = (l: LoginRow) => ({ id: l.id, email: l.email, name: l.name, role: l.role, createdAt: l.created_at, lastLoginAt: l.last_login_at });
+  const readEmail = (v: unknown) => {
+    const e = String(v ?? '').trim().toLowerCase();
+    if (!/^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/.test(e)) throw bad('Enter an email address, like asha@example.com.');
+    return e;
+  };
+  const readRole = (v: unknown): 'viewer' | 'editor' => { if (v !== 'viewer' && v !== 'editor') throw bad('Choose Can view or Can edit.'); return v; };
+  const readName = (v: unknown) => { const n = String(v ?? '').replace(/\s+/g, ' ').trim(); if (n.length > 80) throw bad('Use a name up to 80 characters.'); return n || null; };
+  /** A password typed by the owner (8 to 200 characters), or one made here. */
+  const readPassword = (v: unknown) => {
+    if (v === undefined || v === null || v === '') return makePassword(12);
+    const p = String(v);
+    if (p.length < 8 || p.length > 200) throw bad('Use a password of 8 to 200 characters, or press Generate.');
+    return p;
+  };
+  const loginOf = (d: DomainRow, loginId: string) => {
+    const l = db.prepare('SELECT * FROM domain_logins WHERE id=? AND domain_id=?').get(loginId, d.id) as LoginRow | undefined;
+    if (!l) throw new HttpError(404, 'NOT_FOUND', 'That login does not exist.');
+    return l;
+  };
+  const setRole = (appId: string, userId: string, role: Role) => {
+    db.prepare('INSERT INTO memberships(app_id,user_id,role,added_at) VALUES(?,?,?,?) ON CONFLICT(app_id,user_id) DO UPDATE SET role=excluded.role').run(appId, userId, role, now());
+  };
+
+  app.get('/api/domains/:id/logins', async (req) => {
+    const { d } = ownedDomain(req, (req.params as { id: string }).id);
+    const rows = db.prepare('SELECT * FROM domain_logins WHERE domain_id=? ORDER BY created_at').all(d.id) as LoginRow[];
+    return { logins: rows.map(loginView), limit: MAX_LOGINS, requireLogin: !!d.require_login };
+  });
+
+  app.post('/api/domains/:id/logins', async (req) => {
+    const { u, d, a } = ownedDomain(req, (req.params as { id: string }).id);
+    limit(req, 'domain-logins', 60, 60_000, u.id);
+    const b = (req.body ?? {}) as { email?: unknown; name?: unknown; password?: unknown; role?: unknown };
+    const email = readEmail(b.email);
+    const name = readName(b.name);
+    const role = readRole(b.role ?? 'editor');
+    const password = readPassword(b.password);
+    const count = (db.prepare('SELECT COUNT(*) n FROM domain_logins WHERE domain_id=?').get(d.id) as { n: number }).n;
+    if (count >= MAX_LOGINS) throw new HttpError(403, 'LIMIT_REACHED', `A domain can have up to ${MAX_LOGINS} logins. Remove one first.`);
+    if (db.prepare('SELECT 1 FROM domain_logins WHERE domain_id=? AND email=?').get(d.id, email)) throw new HttpError(409, 'LOGIN_TAKEN', `${email} already has a login here. Set a new password for it instead.`);
+    const passwordHash = await hashPassword(password);
+    // Its identity in the app: what this login adds shows its name (or email).
+    const who = await createUser(`login.${crypto.randomBytes(9).toString('hex')}@visitors.invalid`, name ?? email, makePassword(24), false, { createdBy: a.owner_id, kind: 'visitor' });
+    const id = newId('dl');
+    const t = now();
+    db.transaction(() => {
+      db.prepare('UPDATE users SET password_set=0 WHERE id=?').run(who.id);
+      setRole(a.id, who.id, role);
+      db.prepare('INSERT INTO domain_logins(id,domain_id,email,name,role,password_hash,user_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)').run(id, d.id, email, name, role, passwordHash, who.id, t, t);
+    })();
+    logActivity(a.id, u.id, `made a login for ${d.hostname}`, `${name ?? email} · ${role === 'editor' ? 'can edit' : 'can view'}`);
+    if (u.id !== d.owner_id) audit(req, 'domain.login_add', 'domain', d.id, `${d.hostname}: ${email}`);
+    // The password is shown this once; only its hash is kept.
+    return { login: loginView(loginOf(d, id)), password };
+  });
+
+  app.patch('/api/domains/:id/logins/:loginId', async (req) => {
+    const p = req.params as { id: string; loginId: string };
+    const { u, d, a } = ownedDomain(req, p.id);
+    limit(req, 'domain-logins', 60, 60_000, u.id);
+    const l = loginOf(d, p.loginId);
+    const b = (req.body ?? {}) as { name?: unknown; role?: unknown; password?: unknown; newPassword?: unknown };
+    let password: string | undefined;
+    if (b.name !== undefined) {
+      const name = readName(b.name);
+      db.prepare('UPDATE domain_logins SET name=?, updated_at=? WHERE id=?').run(name, now(), l.id);
+      db.prepare("UPDATE users SET name=? WHERE id=? AND kind='visitor'").run(name ?? l.email, l.user_id);
+    }
+    if (b.role !== undefined) {
+      const role = readRole(b.role);
+      db.prepare('UPDATE domain_logins SET role=?, updated_at=? WHERE id=?').run(role, now(), l.id);
+      setRole(a.id, l.user_id, role);
+      publish(a.id, 'role-changed', { userId: l.user_id, role }, l.user_id);
+    }
+    if (b.newPassword === true || (typeof b.password === 'string' && b.password !== '')) {
+      password = readPassword(b.password);
+      db.prepare('UPDATE domain_logins SET password_hash=?, updated_at=? WHERE id=?').run(await hashPassword(password), now(), l.id);
+      // A new password signs this login out everywhere.
+      endLoginSessions(l);
+      if (u.id !== d.owner_id) audit(req, 'domain.login_password', 'domain', d.id, `${d.hostname}: ${l.email}`);
+    }
+    return { login: loginView(loginOf(d, l.id)), ...(password ? { password } : {}) };
+  });
+
+  app.delete('/api/domains/:id/logins/:loginId', async (req) => {
+    const p = req.params as { id: string; loginId: string };
+    const { u, d, a } = ownedDomain(req, p.id);
+    limit(req, 'domain-logins', 60, 60_000, u.id);
+    const l = loginOf(d, p.loginId);
+    dropLogin(l, a.id);
+    logActivity(a.id, u.id, `removed a login for ${d.hostname}`, l.name ?? l.email);
+    if (u.id !== d.owner_id) audit(req, 'domain.login_remove', 'domain', d.id, `${d.hostname}: ${l.email}`);
     return { ok: true };
   });
 

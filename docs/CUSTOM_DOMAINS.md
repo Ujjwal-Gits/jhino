@@ -27,13 +27,12 @@ files, live updates, password links and guests all work the same as on jhino.com
 3. When a request arrives with `Host: shop.com` and the domain is live, Jhino serves the app's files at `/`.
    The runtime shim runs in **direct mode**: it calls `/api/apps/<id>/…` and `/api/events` on `shop.com` itself.
    That host accepts only those API calls, for that one app.
-4. Access follows the app's Share settings:
-   - **Private ("Only people added below"):** the domain shows its own sign-in page. Each person signs in with
-     the ID or email and password the owner made for them in Share, and uses the app as themselves (see
-     "Sign-in on a custom domain" below).
-   - **Public, view only:** the site opens straight away.
-   - **Password:** a password page is shown first.
-   - **Visitors can add or edit:** the visitor gives a name first and becomes a guest in that app.
+4. Each domain decides who opens it, whatever the app's sharing on jhino.com:
+   - **"Require email and password" off (the default):** anyone with the address opens the site. They can do
+     what the app's link allows when it is shared by link (and view only when it is not). When visitors may add
+     or edit, they give a name first and become a guest in that app.
+   - **"Require email and password" on:** the domain shows its own sign-in page. Only the email and password
+     logins the owner made for that domain open it (see "Email and password logins" below).
 5. Security:
    - Jhino's session cookie (`jhino_sid`) and app keys are never accepted on a custom domain.
    - The visit cookie set there (`jp_<app>`) is host-only, `HttpOnly`, `Secure` and `SameSite=Lax`.
@@ -56,60 +55,49 @@ files, live updates, password links and guests all work the same as on jhino.com
    connected for someone else are not counted against that person's plan.
 9. When an app is deleted for good, its domains are removed, at Cloudflare as well.
 
-## Sign-in on a custom domain
+## Email and password logins
 
-When the app is shared with **Only people added below**, the custom domain asks for a sign-in instead of
-opening for everyone. The owner does not need to write any login code.
+The owner can close a domain so that only chosen people open it. On the domain's card in Share → Custom domain
+they tick **Require email and password to open this site**. The same tick is also offered, optionally, while
+connecting a domain. Then they add logins. The logins belong to that one site and are not Jhino accounts:
+exactly that email and password open the site, and nothing else does. Jhino accounts, app members and the
+app's share link do not open it.
 
-- **Who can sign in:** only people who are members of that app. That includes the sign-ins the owner made in
-  Share → Create a sign-in, people added from their existing Jhino account, and people who joined through an
-  invite. Anyone else is refused with the same message as a wrong password, even with a valid Jhino account.
-- **The sign-in page:** `https://<domain>/__jhino/signin` is served by Jhino on the customer's domain. It shows
-  the app's name and logo (the letter icon for uploaded apps), a field for the ID or email (a `@username` works
-  too) and a password field. The only Jhino mark on it is the "Built with Jhino" line. It works on phones and
-  computers, and in light and dark mode.
+- **A login:**
+  - An email and a password. The owner types the password or presses Generate.
+  - An optional name.
+  - **Can edit** (tick, add and change everything) or **Can view** (reads; changes are refused with a short
+    note on the page).
+  - A domain can have up to 50 logins.
+  - The password is shown once, right after it is made or reset, with a **Copy details** button
+    ("Site / Email / Password"). Only its argon2 hash is kept.
+  - **New password** and **Remove** sign that login out everywhere at once.
+- **In the app:** each login is its own person there, a light identity with its name (or its email when it has
+  no name). What it adds shows that name, its role works like any member's, and live updates reach everyone.
+  - Removing a login keeps what it added.
+  - These identities also appear in the app's people list on jhino.com, as guests.
+- **Closed with no logins:** a domain with the tick on and no logins stays closed. The card says "Add a login to
+  let people in." Domains of apps that were private when this was introduced start this way.
+- **The sign-in page** is `https://<domain>/__jhino/signin`. It is served on the customer's domain, with the
+  app's name and logo and no Jhino chrome except the "Built with Jhino" line. It works on phones and computers.
+  "Forgot your password?" says to ask the site owner, who makes a new one on the card.
 - **Security:**
-  - Passwords are checked with argon2. Accounts that do not exist cost the same time as wrong passwords, so
-    the page cannot be used to find out who has an account.
-  - Attempts are limited per IP address (30 in 15 minutes) and per account on that site (8 in 15 minutes).
+  - Every attempt runs one argon2 check, against a dummy hash when the email has no login. The answer is always
+    the same "do not match", so the page cannot tell which emails have a login.
+  - Attempts are limited per IP address (30 in 15 minutes) and per email on that domain (8 in 15 minutes).
   - The form carries a CSRF token.
-  - Accounts with two-step sign-in must enter their authenticator code (or a recovery code) as a second step.
-  - An account whose email is not confirmed yet is sent to jhino.com first.
-  - Every sign-in is recorded in the person's security activity. Sign-ins from a new device trigger the usual
-    "new sign-in" email.
 - **The session:**
-  - It is stored in `domain_sessions` and bound to that hostname and that app.
+  - It is stored in `domain_sessions` and bound to that hostname, app and login.
   - The cookie (`jd_sid`) is host-only, `HttpOnly`, `Secure` and `SameSite=Lax`.
   - It lasts 30 days and renews while used. The janitor deletes expired sessions.
-  - It ends when the person changes their password, when the owner makes them a new password, or when they
-    are suspended. It stops working at once when they are removed from the app.
   - When a session ends, the page returns to the sign-in page ("Your session ended") and then back to where
     the person was.
   - Jhino's own session cookie is never accepted or set on a custom domain.
-- **Using the app:** the app runs as that person, with their role:
-  - View-only people cannot change anything. The server refuses, and the page shows a short note.
-  - Editors can tick, add and edit.
-  - Activity shows their name.
-  - Live updates reach everyone who has the app open, on jhino.com and on the domain.
   - The live stream on a domain carries only that app's events.
 - **For the app's own code:**
   - `window.jhino.user` gives `{ name, username, role, signedIn }`, so the page can say "Hi, Asha".
-  - `jhino.signOut()` signs the person out.
+  - `jhino.signOut()` signs out.
   - `/__jhino/signout` is a plain sign-out page.
-- **Forgot password:** `/__jhino/forgot` sends the usual reset email (the reset happens on jhino.com) to members
-  with an email address. It gives the same answer for everyone: people who sign in with a plain ID are told to
-  ask the site owner, who makes a new password in Share.
-- **Public sites:** members can also sign in at `/__jhino/signin` on a public or password site to use it as
-  themselves instead of as a visitor.
-
-**The owner's side:** Share → Custom domain shows who can open the site on the domain. From there:
-
-- **Add a person** opens the usual "Create a sign-in" form.
-- **Copy sign-in link** copies the link to the sign-in page.
-- **Require a sign-in** switches the app to "Only people added below".
-
-When the domain is live, the sign-in details that Share makes for someone ("Copy sign-in details") point at
-the custom domain.
 
 ## Option A (recommended): Cloudflare for SaaS
 

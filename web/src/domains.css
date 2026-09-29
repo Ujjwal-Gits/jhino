@@ -11,18 +11,6 @@
 .cd-warn .svg { margin-top: 2px; }
 .cd-note { font-size: 13px; color: var(--ink-2); }
 
-/* who opens it on the domain */
-.cd-access { display: grid; gap: 12px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper-2); }
-.cd-access-head { display: flex; gap: 12px; align-items: flex-start; }
-.cd-access-head > div { display: grid; gap: 3px; min-width: 0; }
-.cd-access-head b { font-weight: 600; }
-.cd-access-head .mono { font-size: 12.5px; overflow-wrap: anywhere; }
-.cd-access-icon { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: var(--r); background: var(--paper); border: 1px solid var(--rule); color: var(--ink); }
-.cd-people { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.cd-people li { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 10px; border: 1px solid var(--rule); border-radius: 999px; background: var(--paper); font-size: 13px; }
-.cd-people small { color: var(--ink-3); font-size: 12px; }
-.cd-people li.more { color: var(--ink-3); border-style: dashed; }
-
 /* one connected domain */
 .cd-card { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); min-width: 0; }
 .cd-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
@@ -67,6 +55,24 @@
 .cd-more summary:hover { color: var(--ink); }
 
 .cd-live { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+/* who opens the site: anyone, or the email and password logins made for it */
+.cd-logins { display: grid; gap: 12px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.cd-lock > span { display: grid; gap: 2px; }
+.cd-lock b { font-weight: 600; color: var(--ink); }
+.cd-lock small { font-size: 12.5px; color: var(--ink-3); }
+.cd-secret { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--rule-strong); border-radius: var(--r-lg); }
+.cd-secret .section-title { margin: 0; }
+.cd-login-list { display: grid; margin: 0; padding: 0; list-style: none; border: 1px solid var(--rule); border-radius: var(--r-lg); overflow: hidden; }
+.cd-login-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; flex-wrap: wrap; }
+.cd-login-list li + li { border-top: 1px solid var(--rule); }
+.cd-login-who { display: grid; gap: 2px; min-width: 0; flex: 1 1 200px; }
+.cd-login-who b { font-weight: 600; overflow-wrap: anywhere; }
+.cd-login-who small { font-size: 12.5px; color: var(--ink-3); overflow-wrap: anywhere; }
+.cd-login-who .mono { font-size: 12px; }
+.cd-login-acts { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.cd-login-form { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--rule-strong); border-radius: var(--r-lg); }
+.cd-pw { display: flex; gap: 6px; }
+.cd-pw .input { flex: 1; min-width: 0; }
 .cd-foot { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--rule); }
 .cd-foot .spacer { flex: 1; }
 .cd-checked { font-size: 12px; }

@@ -48,7 +48,8 @@ Rules
 - IndexedDB works and is saved and synced too (each record is saved on the server). Do not use cookies or sessionStorage for data that must be shared.
 - Viewers can read but not change shared data; show a friendly message on FORBIDDEN.
 - Do not build your own login or put any ID or password in the code. Jhino signs people in (on
-  jhino.com, and on the app's own domain when the owner connects one) and the app runs as that person.
+  jhino.com, and on the app's own domain with the email and password logins the owner makes there) and the
+  app runs as that person.
   Greet them and adapt to their access with the signed-in person:
       const u = jhino.user;   // { name, username, role, signedIn }  role: owner, editor, contributor, viewer
       hello.textContent = 'Hi, ' + u.name;

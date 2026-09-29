@@ -36,7 +36,7 @@ export const RULES = {
   sessions: 'deleted when expired (web sessions last 60 days and renew while used)',
   runs: 'app launch tokens: deleted when expired',
   pub_sessions: 'link-visitor sessions: deleted when expired',
-  domain_sessions: 'sign-ins on custom domains: deleted when expired (30 days, renewed while used)',
+  domain_sessions: 'sign-ins with a custom domain\'s email and password logins: deleted when expired (30 days, renewed while used)',
   oauth_states: 'Google/Apple sign-in states: deleted after 15 minutes',
   auth_tokens: 'email codes and links: deleted 7 days after they expire',
   code_usage: 'daily code counters: 3 days',

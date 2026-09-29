@@ -19,6 +19,8 @@ export interface DomainT {
   status: Status; sslStatus: string | null; error: string | null; backlink: boolean; disabled: boolean; granted: boolean;
   url: string; lastCheckedAt: string | null; nextCheckAt: string | null; activatedAt: string | null; createdAt: string;
   records: DnsRecord[]; seen: Record<string, string | null>;
+  /** "Require email and password to open this site", and how many logins it has. */
+  requireLogin: boolean; logins: number;
 }
 interface DomainsInfo {
   mode: 'cloudflare' | 'self'; target: string; aRecord: string | null; limit: number | null; used: number; canAdd: boolean;
@@ -54,16 +56,14 @@ export function StatusPill({ d }: { d: Pick<DomainT, 'status' | 'disabled'> }) {
 }
 
 /* ---------------- Share → Custom domain ---------------- */
-type Access = 'private' | 'public' | 'password';
-interface Person { id: string; name: string; role: string }
-export function CustomDomainSection({ appId, access, people, onAddPerson, onRequireSignIn }: {
-  appId: string; access: Access; people?: Person[]; onAddPerson?: () => void; onRequireSignIn?: () => void;
-}) {
+/** `access` (the app's jhino.com sharing) is not used here: each domain decides who opens it. */
+export function CustomDomainSection({ appId }: { appId: string; access?: string }) {
   const toast = useToast();
   const [info, setInfo] = useState<DomainsInfo | null>(null);
   const [adding, setAdding] = useState(false);
   const [host, setHost] = useState('');
   const [www, setWww] = useState<WwwMode>('apex');
+  const [lock, setLock] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const load = useCallback(() => get<DomainsInfo>(`/api/apps/${appId}/domains`).then(setInfo, () => {}), [appId]);
@@ -89,9 +89,9 @@ export function CustomDomainSection({ appId, access, people, onAddPerson, onRequ
     e.preventDefault();
     setBusy(true); setError('');
     try {
-      await post(`/api/apps/${appId}/domains`, { hostname: clean, www: showWww ? www : 'off' });
-      setAdding(false); setHost('');
-      toast('Domain added. Now add the DNS records below.');
+      await post(`/api/apps/${appId}/domains`, { hostname: clean, www: showWww ? www : 'off', requireLogin: lock });
+      setAdding(false); setHost(''); setLock(false);
+      toast(lock ? 'Domain added. Add the DNS records, then a login for each person.' : 'Domain added. Now add the DNS records below.');
       await load();
     } catch (err) { setError(errText(err, 'Could not add the domain.')); }
     setBusy(false);
@@ -136,6 +136,10 @@ export function CustomDomainSection({ appId, access, people, onAddPerson, onRequ
                 </div>
               )}
               <p className="hint" id="cd-add-hint">A domain you own. You add two or three DNS records where you bought it; the next step shows exactly which.</p>
+              <label className="check-row cd-lock">
+                <input type="checkbox" checked={lock} onChange={(e) => setLock(e.target.checked)} />
+                <span><b>Require email and password to open this site</b><small>Optional. You add the logins after connecting. Leave it off and anyone with the address can open it.</small></span>
+              </label>
               {error && <p className="error-text" role="alert">{error}</p>}
               <div className="actions-row">
                 <button className="btn sm primary" disabled={busy || clean.length < 4 || !clean.includes('.')}>{busy && <span className="spin" />}Connect domain</button>
@@ -150,53 +154,143 @@ export function CustomDomainSection({ appId, access, people, onAddPerson, onRequ
           ) : !info.domains.length ? null : (
             <p className="hint">Your plan’s custom domain{info.limit === 1 ? ' is' : 's are'} in use{info.limit !== null ? ` (${info.used} of ${info.limit})` : ''}.</p>
           )}
-          {info.domains.length > 0 && (
-            <DomainAccess host={(info.domains.find((d) => d.status === 'active' && !d.disabled) ?? info.domains[0]).hostname}
-              access={access} people={people ?? []} onAddPerson={onAddPerson} onRequireSignIn={onRequireSignIn} />
-          )}
         </>
       )}
     </div>
   );
 }
 
-const ROLE_WORD: Record<string, string> = { editor: 'can edit', contributor: 'can add', viewer: 'can view' };
-/**
- * Who opens the site on the domain. It follows "Share by link" above: "Only people added below" means each person
- * signs in on the domain itself with the ID and password made for them in Share, and uses the app as themselves.
- */
-function DomainAccess({ host, access, people, onAddPerson, onRequireSignIn }: { host: string; access: Access; people: Person[]; onAddPerson?: () => void; onRequireSignIn?: () => void }) {
+/* ---------------- who opens the site: anyone, or only the email and password logins made here ---------------- */
+type LoginRole = 'viewer' | 'editor';
+interface LoginT { id: string; email: string; name: string | null; role: LoginRole; createdAt: string; lastLoginAt: string | null }
+const LOGIN_ROLES: { value: LoginRole; label: string }[] = [{ value: 'editor', label: 'Can edit' }, { value: 'viewer', label: 'Can view' }];
+/** Easy to read out loud: no look-alike characters, in groups of four. */
+function genPassword() {
+  const abc = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const r = new Uint32Array(12);
+  crypto.getRandomValues(r);
+  return Array.from(r, (n) => abc[n % abc.length]).join('').replace(/(.{4})(?=.)/g, '$1-');
+}
+function SiteLogins({ d, onChange }: { d: DomainT; onChange: (d: DomainT | null, removedId?: string) => void }) {
   const toast = useToast();
-  const signin = `https://${host}/__jhino/signin`;
-  const shown = people.slice(0, 6);
+  const [list, setList] = useState<LoginT[] | null>(null);
+  const [max, setMax] = useState(50);
+  const [secret, setSecret] = useState<{ email: string; password: string } | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [f, setF] = useState({ email: '', name: '', password: '', role: 'editor' as LoginRole });
+  const [busy, setBusy] = useState('');
+  const [error, setError] = useState('');
+  const load = useCallback(() => get<{ logins: LoginT[]; limit: number }>(`/api/domains/${d.id}/logins`).then((r) => { setList(r.logins); setMax(r.limit); }, () => {}), [d.id]);
+  useEffect(() => { if (d.requireLogin) load(); }, [d.requireLogin, load]);
+  const run = async (key: string, fn: () => Promise<void>) => { setBusy(key); setError(''); try { await fn(); } catch (e) { setError(errText(e, 'Something went wrong.')); } setBusy(''); };
+  const toggle = (on: boolean) => {
+    if (!on && !confirm(`Open ${d.hostname} to everyone? Anyone with the address can use it. The logins are kept for when you turn this on again.`)) return;
+    run('toggle', async () => {
+      const r = await api<{ domain: DomainT }>('PATCH', `/api/domains/${d.id}`, { requireLogin: on });
+      onChange(r.domain);
+      toast(on ? 'Only the logins you add here can open it now.' : 'Anyone with the address can open it now.');
+    });
+  };
+  const add = (e: FormEvent) => {
+    e.preventDefault();
+    run('add', async () => {
+      const r = await post<{ login: LoginT; password: string }>(`/api/domains/${d.id}/logins`, { email: f.email.trim(), name: f.name.trim() || undefined, password: f.password || undefined, role: f.role });
+      setList((l) => [...(l ?? []), r.login]);
+      setSecret({ email: r.login.email, password: r.password });
+      setF({ email: '', name: '', password: '', role: f.role });
+      setAdding(false);
+      onChange({ ...d, logins: d.logins + 1 });
+    });
+  };
+  const newPassword = (l: LoginT) => {
+    if (!confirm(`Make a new password for ${l.email}? The old one stops working and they are signed out.`)) return;
+    run(l.id, async () => {
+      const r = await api<{ login: LoginT; password: string }>('PATCH', `/api/domains/${d.id}/logins/${l.id}`, { newPassword: true });
+      setSecret({ email: l.email, password: r.password });
+    });
+  };
+  const setRole = (l: LoginT, role: LoginRole) => run(l.id, async () => {
+    const r = await api<{ login: LoginT }>('PATCH', `/api/domains/${d.id}/logins/${l.id}`, { role });
+    setList((x) => (x ?? []).map((y) => (y.id === l.id ? r.login : y)));
+    toast(role === 'editor' ? `${l.email} can edit now` : `${l.email} can view only now`);
+  });
+  const remove = (l: LoginT) => {
+    if (!confirm(`Remove the login for ${l.email}? They are signed out at once. What they added stays, with their name.`)) return;
+    run(l.id, async () => {
+      await api('DELETE', `/api/domains/${d.id}/logins/${l.id}`);
+      setList((x) => (x ?? []).filter((y) => y.id !== l.id));
+      if (secret?.email === l.email) setSecret(null);
+      onChange({ ...d, logins: Math.max(0, d.logins - 1) });
+    });
+  };
+  const details = secret ? `Site: ${d.url}\nEmail: ${secret.email}\nPassword: ${secret.password}` : '';
+
   return (
-    <div className="cd-access" aria-label="Who can open it on the domain">
-      <div className="cd-access-head">
-        <span className="cd-access-icon" aria-hidden="true"><Icon name={access === 'private' ? 'lock' : access === 'password' ? 'key' : 'globe'} size={16} /></span>
-        <div>
-          <b>{access === 'private' ? 'Only people with a sign-in' : access === 'password' ? 'Anyone with the password' : 'Anyone with the address'}</b>
-          <span className="hint">{access === 'private'
-            ? <>People open <span className="mono">{host}</span>, sign in with the ID and password you gave them, and use the app as themselves. What they can do follows their access below.</>
-            : <>As chosen in Share by link above. People you added can still sign in at <span className="mono">{host}/__jhino/signin</span> to use it as themselves.</>}</span>
-        </div>
-      </div>
-      {access === 'private' && (
-        people.length ? (
-          <ul className="cd-people" aria-label="People who can sign in">
-            {shown.map((p) => <li key={p.id}><span>{p.name}</span><small>{ROLE_WORD[p.role] ?? p.role}</small></li>)}
-            {people.length > shown.length && <li className="more">+{people.length - shown.length} more below</li>}
-          </ul>
-        ) : <p className="hint">Nobody but you yet. Add a person: they get an ID and password to sign in with.</p>
+    <section className="cd-logins" aria-label="Who can open this site">
+      <label className="check-row cd-lock">
+        <input type="checkbox" checked={d.requireLogin} disabled={busy === 'toggle'} onChange={(e) => toggle(e.target.checked)} />
+        <span>
+          <b>Require email and password to open this site</b>
+          <small>{d.requireLogin ? 'Only the logins below open it. They are for this site only, not Jhino accounts.' : 'Off: anyone with the address can open it.'}</small>
+        </span>
+      </label>
+      {d.requireLogin && (
+        <>
+          {secret && (
+            <div className="cd-secret" aria-live="polite">
+              <p className="section-title">Sign-in details for {secret.email}</p>
+              <div className="code">{details}</div>
+              <div className="actions-row">
+                <button type="button" className="btn sm primary" onClick={() => copyText(details).then(() => toast('Copied. Send it privately.'))}><Icon name="copy" size={14} />Copy details</button>
+                <button type="button" className="btn sm quiet" onClick={() => setSecret(null)}>Done</button>
+              </div>
+              <p className="hint">The password is shown only now. Jhino keeps only a scrambled copy, so it cannot be shown again; make a new one if it is lost.</p>
+            </div>
+          )}
+          {list === null ? <span className="spin" aria-label="Loading logins" /> : list.length > 0 ? (
+            <ul className="cd-login-list" aria-label="Logins">
+              {list.map((l) => (
+                <li key={l.id}>
+                  <span className="cd-login-who">
+                    <b>{l.name || l.email}</b>
+                    <small>{l.name && <span className="mono">{l.email} · </span>}{l.lastLoginAt ? `signed in ${ago(l.lastLoginAt)}` : 'not signed in yet'}</small>
+                  </span>
+                  <span className="cd-login-acts">
+                    <Select<LoginRole> size="sm" width={112} label={`Access for ${l.email}`} value={l.role} options={LOGIN_ROLES} disabled={busy === l.id} onChange={(v) => setRole(l, v)} />
+                    <button type="button" className="btn sm quiet" disabled={busy === l.id} onClick={() => newPassword(l)}>New password</button>
+                    <button type="button" className="btn sm quiet danger" disabled={busy === l.id} onClick={() => remove(l)} aria-label={`Remove the login for ${l.email}`}>Remove</button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : !adding && <p className="cd-warn"><Icon name="info" size={14} />Nobody can open the site yet. Add a login to let people in.</p>}
+          {adding ? (
+            <form className="cd-login-form" onSubmit={add}>
+              <div className="grid2">
+                <label className="field"><span>Email</span><input className="input" type="email" required autoFocus autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={200} placeholder="asha@example.com" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></label>
+                <label className="field"><span>Name <em>optional</em></span><input className="input" maxLength={80} placeholder="Asha Rai" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
+                <div className="field">
+                  <span>Password</span>
+                  <div className="cd-pw">
+                    <input className="input mono" type="text" autoComplete="new-password" spellCheck={false} maxLength={200} placeholder="Empty: one is made for you" aria-label="Password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
+                    <button type="button" className="btn sm" onClick={() => setF({ ...f, password: genPassword() })}>Generate</button>
+                  </div>
+                </div>
+                <div className="field"><span>Access</span><Select<LoginRole> label="Access" value={f.role} options={LOGIN_ROLES} onChange={(v) => setF({ ...f, role: v })} /></div>
+              </div>
+              <p className="hint">{f.role === 'editor' ? 'Can edit: tick, add and change everything in the app.' : 'Can view: reads the site; changes are refused.'} At least 8 characters for a password you type.</p>
+              <div className="actions-row">
+                <button className="btn sm primary" disabled={busy === 'add' || !/.+@.+\..+/.test(f.email) || (!!f.password && f.password.length < 8)}>{busy === 'add' && <span className="spin" />}Add login</button>
+                <button type="button" className="btn sm quiet" onClick={() => { setAdding(false); setError(''); }}>Cancel</button>
+              </div>
+            </form>
+          ) : list && list.length < max ? (
+            <div><button type="button" className="btn sm" onClick={() => { setAdding(true); setSecret(null); setError(''); }}><Icon name="plus" size={14} />Add a login</button></div>
+          ) : list && <p className="hint">This site has the most logins it can have ({max}). Remove one to add another.</p>}
+        </>
       )}
-      <div className="actions-row">
-        {access === 'private'
-          ? <>
-            {onAddPerson && <button type="button" className="btn sm" onClick={onAddPerson}><Icon name="plus" size={14} />Add a person</button>}
-            <button type="button" className="btn sm quiet" onClick={() => copyText(signin).then(() => toast('Sign-in link copied'))}><Icon name="copy" size={14} />Copy sign-in link</button>
-          </>
-          : onRequireSignIn && <button type="button" className="btn sm" onClick={onRequireSignIn}><Icon name="lock" size={14} />Require a sign-in</button>}
-      </div>
-    </div>
+      {error && <p className="error-text" role="alert">{error}</p>}
+    </section>
   );
 }
 
@@ -288,6 +382,8 @@ function DomainCard({ d, canHideBacklink, onChange }: { d: DomainT; canHideBackl
           <p className="hint">DNS changes usually show within minutes, sometimes a few hours. We keep checking and tell you when it is live. {live && <button type="button" className="link" onClick={() => setShowDns(false)}>Hide</button>}</p>
         </div>
       )}
+
+      <SiteLogins d={d} onChange={onChange} />
 
       <div className="cd-foot">
         <div className="actions-row">
