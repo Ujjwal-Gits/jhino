@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { get } from './api';
 import { BS_MONTHS, adToBs, bsDays, bsRange, bsToAd, bsToday, localIso } from './bs';
 import { Link } from './context';
-import { copyText, useToast } from './ui';
+import { Select, copyText, useToast } from './ui';
+import { DateField } from './DateField';
 
 /*
  * The extra tools behind the rail's +. They all run in the browser (nothing typed here is sent anywhere),
@@ -76,13 +77,13 @@ export function NepaliDate() {
     <>
       <p className="qt-big">Today is <b>{bsToday()}</b><small>{long(localIso(new Date()))}</small></p>
       <h3 className="qt-sub">AD to BS</h3>
-      <input className="input" type="date" value={ad} onChange={(e) => setAd(e.target.value)} aria-label="AD date" />
+      <DateField label="AD date" value={ad} onChange={setAd} />
       <p className="qt-res">{bs ? <><b>{bs.d} {BS_MONTHS[bs.m]} {bs.y}</b><Copy text={`${bs.d} ${BS_MONTHS[bs.m]} ${bs.y}`} /></> : `Pick a date between ${bsRange.from - 57} and ${bsRange.to - 57}.`}</p>
       <h3 className="qt-sub">BS to AD</h3>
       <div className="qt-row">
-        <select className="input" aria-label="BS year" value={b.y} onChange={(e) => setB({ ...b, y: +e.target.value, d: Math.min(b.d, bsDays(+e.target.value, b.m)) })}>{years.map((y) => <option key={y}>{y}</option>)}</select>
-        <select className="input" aria-label="BS month" value={b.m} onChange={(e) => setB({ ...b, m: +e.target.value, d: Math.min(b.d, bsDays(b.y, +e.target.value)) })}>{BS_MONTHS.map((m, i) => <option key={m} value={i}>{m}</option>)}</select>
-        <select className="input" aria-label="BS day" value={b.d} onChange={(e) => setB({ ...b, d: +e.target.value })}>{Array.from({ length: bsDays(b.y, b.m) }, (_, n) => <option key={n}>{n + 1}</option>)}</select>
+        <Select size="sm" label="BS year" value={String(b.y)} options={years.map((y) => ({ value: String(y), label: String(y) }))} onChange={(v) => setB({ ...b, y: +v, d: Math.min(b.d, bsDays(+v, b.m)) })} />
+        <Select size="sm" label="BS month" value={String(b.m)} options={BS_MONTHS.map((m, i) => ({ value: String(i), label: m }))} onChange={(v) => setB({ ...b, m: +v, d: Math.min(b.d, bsDays(b.y, +v)) })} />
+        <Select size="sm" label="BS day" value={String(b.d)} options={Array.from({ length: bsDays(b.y, b.m) }, (_, n) => ({ value: String(n + 1), label: String(n + 1) }))} onChange={(v) => setB({ ...b, d: +v })} />
       </div>
       <p className="qt-res">{adOut ? <><b>{long(adOut)}</b><Copy text={adOut} /></> : 'Not in the calendar table.'}</p>
       <p className="qt-hint">Covers {bsRange.from} to {bsRange.to} BS, the same calendar the apps use.</p>

@@ -3,6 +3,7 @@ import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent, typ
 import { ApiError, api, avatarUrl, get, post } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
+import { DateField } from '../DateField';
 import { refreshPlans } from '../plans';
 import { QuickTools, YourDay } from '../QuickTools';
 import { PanelLoader } from '../Loader';
@@ -545,7 +546,7 @@ function UserDetail({ id }: { id: string }) {
             <summary>Set an exact end date, or give extra apps</summary>
             <div className="adm-plan">
               <div className="field"><span>Plan</span><Select label="Plan" value={edit.plan} options={PLAN_OPTS} onChange={(v) => setEdit({ ...edit, plan: v })} /></div>
-              <label className="field"><span>Ends <em>optional</em></span><input className="input" type="date" value={edit.expires} onChange={(e) => setEdit({ ...edit, expires: e.target.value })} /></label>
+              <div className="field"><span>Ends <em>optional</em></span><DateField label="Ends" value={edit.expires} onChange={(v) => setEdit({ ...edit, expires: v })} /></div>
               {edit.plan !== u.usage.plan && edit.plan !== 'free' && <label className="field"><span>Why it is free <em>kept in the audit log</em></span><input className="input" maxLength={200} placeholder="e.g. Partner studio, 3-month trial" value={edit.why ?? ''} onChange={(e) => setEdit({ ...edit, why: e.target.value })} /></label>}
               <label className="field"><span>Extra apps</span><input className="input mono" inputMode="numeric" value={edit.extra} onChange={(e) => setEdit({ ...edit, extra: e.target.value.replace(/[^\d-]/g, '') })} /></label>
             </div>

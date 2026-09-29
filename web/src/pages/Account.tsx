@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { ApiError, api, avatarUrl, get, post, type PlanFeatures } from '../api';
 import { Link, applyTheme, readTheme, useRoute, useSession, type Theme } from '../context';
 import { Avatar, Icon, Select, ago, copyText, useToast } from '../ui';
+import { DateField } from '../DateField';
 import { Qr } from '../Qr';
 import { CodeBoxes } from './CodeEntry';
 import { bestFreeMonths, freeMonthsText, nprAmount, priceFor, usePlans, type Period, type PlanCard } from '../plans';
@@ -587,7 +588,7 @@ function Checkout({ card, period, setPeriod, renewing, methods, onCancel, onDone
             <p className="step-label mono">After paying, tell us about it</p>
             <div className="grid2">
               <label className="field"><span>Amount paid (NPR)</span><input className="input mono" inputMode="numeric" required value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value.replace(/[^\d]/g, '') })} /></label>
-              <label className="field"><span>Payment date</span><input className="input" type="date" required max={new Date(Date.now() + 864e5).toISOString().slice(0, 10)} value={f.paidOn} onChange={(e) => setF({ ...f, paidOn: e.target.value })} /></label>
+              <div className="field"><span>Payment date</span><DateField label="Payment date" required max={new Date(Date.now() + 864e5).toISOString().slice(0, 10)} value={f.paidOn} onChange={(v) => setF({ ...f, paidOn: v })} /></div>
             </div>
             {Number(f.amount) > 0 && Number(f.amount) !== price && <p className="hint warn-text">The {period === 'year' ? 'yearly' : 'monthly'} price is NPR {nprAmount(price)}. If you paid a different amount, add a note.</p>}
             <label className="field"><span>Transaction or reference ID <em>optional</em></span><input className="input mono" maxLength={80} value={f.reference} onChange={(e) => setF({ ...f, reference: e.target.value })} /></label>

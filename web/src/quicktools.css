@@ -288,3 +288,23 @@ form.qt-add > .input:first-child { flex-basis: 100%; }
 .qt-ringing small { color: var(--ink-3); font-size: 12.5px; }
 @keyframes qt-ring-in { from { opacity: 0; transform: translate(-50%, -8px); } }
 @media (prefers-reduced-motion: reduce) { .qt-ringing { animation: none; } }
+
+/* Notes / Archived: a real two-part switch that fills the panel. */
+.qt-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--paper-2); }
+.qt-seg button { height: 32px; border: 0; border-radius: var(--r-sm); background: none; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--ink-2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background-color 150ms var(--ease), color 150ms var(--ease); }
+.qt-seg button small { font-size: 11.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.qt-seg button[aria-selected='true'] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px rgba(20, 20, 20, 0.1); }
+.qt-seg button:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+/* Designed pickers inside the narrow panel. */
+.qt-body { overflow-x: hidden; }
+.qt-add > .dtf { flex: 1 1 100%; order: 2; }
+.qt-add > .btn { order: 1; }
+.qt-add > .dtf ~ .btn { order: 1; }
+.qt-row > .df, .qt-row > .dtf, .qt-row > .dd { flex: 1; min-width: 0; }
+.qt-add > .input { order: 0; }
+.qt-body .dtf { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+.qt-body .df-btn { height: 36px; font-size: 13.5px; }
+.qt-add:has(> .dtf) { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.qt-add:has(> .dtf) > .input { min-width: 0; }
+.qt-add:has(> .dtf) > .dtf { grid-column: 1 / -1; }

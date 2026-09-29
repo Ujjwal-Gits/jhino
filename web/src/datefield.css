@@ -1,0 +1,34 @@
+/* Designed date and time pickers (DateField.tsx), used across the dashboard. */
+
+.df { position: relative; }
+.df-btn { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer; color: var(--ink); }
+.df-btn svg { color: var(--ink-3); flex: none; }
+.df-btn span { display: flex; align-items: baseline; gap: 8px; min-width: 0; overflow: hidden; white-space: nowrap; }
+.df-btn small { color: var(--ink-3); font-size: 12px; }
+.df-btn.empty span { color: var(--ink-3); }
+.df-req { position: absolute; left: 12px; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.df-pop { position: fixed; z-index: 200; width: 292px; padding: 10px; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r-lg); box-shadow: var(--lift); animation: df-in 160ms var(--ease) both; }
+@keyframes df-in { from { opacity: 0; transform: translateY(-4px); } }
+.df-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.df-head b { font-size: 14px; }
+.df-next svg { transform: scaleX(-1); }
+.df-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.df-wk { text-align: center; font-size: 11.5px; color: var(--ink-3); padding: 4px 0; }
+.df-day { height: 34px; border: 0; border-radius: var(--r-sm); background: none; font: inherit; font-size: 13.5px; color: var(--ink); cursor: pointer; font-variant-numeric: tabular-nums; }
+.df-day:hover { background: var(--paper-2); }
+.df-day.today { box-shadow: inset 0 0 0 1px var(--rule-strong); }
+.df-day.on { background: var(--ink); color: var(--paper); box-shadow: none; }
+.df-foot { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--rule); margin-top: 8px; padding-top: 8px; }
+.df-quick { display: flex; }
+@media (prefers-reduced-motion: reduce) { .df-pop { animation: none; } }
+
+.df-btn > span { flex: 1; }
+.df-btn > svg:last-child { color: var(--ink-3); }
+.df-btn.compact { padding-left: 10px; padding-right: 8px; gap: 6px; }
+.df-day:disabled { opacity: 0.3; cursor: default; }
+.df-time { width: 200px; padding: 8px; display: grid; gap: 6px; }
+.df-times { max-height: 236px; overflow-y: auto; display: grid; gap: 1px; overscroll-behavior: contain; }
+.df-times button { text-align: left; padding: 7px 10px; border: 0; border-radius: var(--r-sm); background: none; font: inherit; font-size: 13.5px; color: var(--ink); cursor: pointer; font-variant-numeric: tabular-nums; }
+.df-times button:hover { background: var(--paper-2); }
+.df-times button.on { background: var(--ink); color: var(--paper); }
+.dtf { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 6px; }

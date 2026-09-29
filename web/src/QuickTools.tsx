@@ -2,7 +2,8 @@ import qrcode from 'qrcode-generator';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { ApiError, api, get, post } from './api';
 import { Link } from './context';
-import { Icon, ago, copyText, useToast } from './ui';
+import { Icon, Select, ago, copyText, useToast } from './ui';
+import { DateField, DateTimeField, TimeField } from './DateField';
 import './quicktools.css';
 import { PanelLoader } from './Loader';
 import { ringAlarm, stopAlarm, useSounds } from './alarm';
@@ -268,7 +269,7 @@ export function Tasks() {
     <>
       <form className="qt-add" onSubmit={async (e) => { e.preventDefault(); if (!title.trim()) return; if (await add({ title: title.trim(), dueAt: due || null })) { setTitle(''); setDue(''); } }}>
         <input className="input" placeholder="Add a task" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <input className="input" type="datetime-local" aria-label="Due" value={due} onChange={(e) => setDue(e.target.value)} />
+        <DateTimeField label="Due" compact value={due} onChange={setDue} />
         <button className="btn primary">Add</button>
       </form>
       {!open.length ? <Empty>No open tasks.</Empty> : <ul className="qt-list">{open.map(row)}</ul>}
@@ -280,20 +281,19 @@ export function Tasks() {
 function TaskEdit({ i, notes, contacts, events, save, remove, nameOf, close }: { i: Item; notes: Item[] | null; contacts: Item[] | null; events: Item[] | null; save: (id: string, b: Record<string, unknown>) => Promise<Item | null>; remove: (id: string) => void; nameOf: (l: Item[] | null, id: string) => Item | undefined; close: () => void }) {
   const [f, setF] = useState({ title: i.title as string, due: localInput(i.dueAt), remind: '', links: (i.links ?? []) as string[] });
   const pick = (list: Item[] | null, label: string, k: string) => (
-    <label className="field sm"><span>{label}</span>
-      <select className="input" value="" onChange={(e) => e.target.value && setF({ ...f, links: [...new Set([...f.links, e.target.value])] })}>
-        <option value="">Link a {label.toLowerCase()}…</option>
-        {(list ?? []).map((x) => <option key={x.id} value={`${k}:${x.id}`}>{x.title || x.name || '(untitled)'}</option>)}
-      </select>
-    </label>
+    <div className="field sm"><span>{label}</span>
+      <Select size="sm" label={`Link a ${label.toLowerCase()}`} value="" disabled={!(list ?? []).length}
+        options={[{ value: '', label: (list ?? []).length ? `Link a ${label.toLowerCase()}` : `No ${label.toLowerCase()}s yet` }, ...(list ?? []).map((x) => ({ value: `${k}:${x.id}`, label: String(x.title || x.name || '(untitled)') }))]}
+        onChange={(v) => v && setF({ ...f, links: [...new Set([...f.links, v])] })} />
+    </div>
   );
   const label = (l: string) => { const [k, id] = l.split(':'); const x = nameOf(k === 'note' ? notes : k === 'contact' ? contacts : events, id); return x ? `${k === 'note' ? 'Note' : k === 'contact' ? 'Contact' : 'Event'}: ${x.title || x.name}` : null; };
   return (
     <div className="qt-edit">
       <input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
       <div className="qt-row">
-        <label className="field sm"><span>Due</span><input className="input" type="datetime-local" value={f.due} onChange={(e) => setF({ ...f, due: e.target.value })} /></label>
-        <label className="field sm"><span>Remind me</span><select className="input" value={f.remind} onChange={(e) => setF({ ...f, remind: e.target.value })}>{REMIND.map((r) => <option key={r.v} value={r.v}>{r.l}</option>)}</select></label>
+        <div className="field sm"><span>Due</span><DateTimeField label="Due" compact value={f.due} onChange={(v) => setF({ ...f, due: v })} /></div>
+        <div className="field sm"><span>Remind me</span><Select size="sm" label="Remind me" value={f.remind} options={REMIND.map((r) => ({ value: r.v, label: r.l }))} onChange={(v) => setF({ ...f, remind: v })} /></div>
       </div>
       <div className="qt-row">{pick(notes, 'Note', 'note')}{pick(contacts, 'Contact', 'contact')}{pick(events, 'Event', 'event')}</div>
       {f.links.length > 0 && <div className="qt-chips">{f.links.map((l) => label(l) && <span key={l} className="qt-chip">{label(l)}<button aria-label="Remove link" onClick={() => setF({ ...f, links: f.links.filter((x) => x !== l) })}>×</button></span>)}</div>}
@@ -330,7 +330,7 @@ export function Notes() {
   return (
     <>
       <div className="qt-add"><input className="input" placeholder="Search notes" value={q} onChange={(e) => setQ(e.target.value)} /><button className="btn primary" onClick={() => setEdit('new')}>New</button></div>
-      <div className="seg sm"><button aria-pressed={!archived} onClick={() => setArchived(false)}>Notes</button><button aria-pressed={archived} onClick={() => setArchived(true)}>Archived</button></div>
+      <div className="qt-seg" role="tablist" aria-label="Show"><button role="tab" aria-selected={!archived} onClick={() => setArchived(false)}>Notes <small>{items.filter((i) => !i.archived).length}</small></button><button role="tab" aria-selected={archived} onClick={() => setArchived(true)}>Archived <small>{items.filter((i) => i.archived).length}</small></button></div>
       {!list.length ? <Empty>{q ? 'Nothing matches.' : archived ? 'No archived notes.' : 'No notes yet.'}</Empty> : (
         <ul className="qt-cards">{list.map((i) => (
           <li key={i.id}>
@@ -434,8 +434,8 @@ export function Calendar() {
       <form className="qt-edit flat" onSubmit={async (e) => { e.preventDefault(); if (!f.title.trim()) return; const due = new Date(`${sel}T${f.time || '09:00'}`).toISOString(); if (await add({ title: f.title.trim(), dueAt: due, remindAt: remindFrom(due, f.remind) })) setF({ ...f, title: '' }); }}>
         <input className="input" placeholder={`Add an event on ${new Date(sel + 'T12:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}`} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} />
         <div className="qt-row">
-          <input className="input" type="time" aria-label="Time" value={f.time} onChange={(e) => setF({ ...f, time: e.target.value })} />
-          <select className="input" aria-label="Reminder" value={f.remind} onChange={(e) => setF({ ...f, remind: e.target.value })}>{REMIND.map((r) => <option key={r.v} value={r.v}>{r.l}</option>)}</select>
+          <TimeField label="Time" compact value={f.time} onChange={(v) => setF({ ...f, time: v })} />
+          <Select size="sm" label="Reminder" value={f.remind} options={REMIND.map((r) => ({ value: r.v, label: r.l }))} onChange={(v) => setF({ ...f, remind: v })} />
           <button className="btn primary">Add</button>
         </div>
       </form>
@@ -457,11 +457,11 @@ export function Subs() {
       <label className="field sm"><span>Service</span><input className="input" placeholder="e.g. Netflix, Canva Pro trial" value={f.service} onChange={(e) => setF({ ...f, service: e.target.value })} /></label>
       <div className="qt-row">
         <label className="field sm"><span>Price</span><input className="input mono" placeholder="NPR 1,200" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></label>
-        <label className="field sm"><span>Schedule</span><select className="input" value={f.cycle} onChange={(e) => setF({ ...f, cycle: e.target.value })}><option value="monthly">Monthly</option><option value="yearly">Yearly</option><option value="weekly">Weekly</option><option value="trial">Free trial</option><option value="once">One time</option></select></label>
+        <div className="field sm"><span>Schedule</span><Select size="sm" label="Schedule" value={f.cycle} options={[{ value: 'monthly', label: 'Monthly' }, { value: 'yearly', label: 'Yearly' }, { value: 'weekly', label: 'Weekly' }, { value: 'trial', label: 'Free trial' }, { value: 'once', label: 'One time' }]} onChange={(v) => setF({ ...f, cycle: v })} /></div>
       </div>
       <div className="qt-row">
-        <label className="field sm"><span>{f.cycle === 'trial' ? 'Trial ends' : 'Next renewal'}</span><input className="input" type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></label>
-        <label className="field sm"><span>Remind me</span><select className="input" value={f.remind} onChange={(e) => setF({ ...f, remind: e.target.value })}><option value="0">On the day</option><option value="1">1 day before</option><option value="3">3 days before</option><option value="7">A week before</option></select></label>
+        <div className="field sm"><span>{f.cycle === 'trial' ? 'Trial ends' : 'Next renewal'}</span><DateField compact label={f.cycle === 'trial' ? 'Trial ends' : 'Next renewal'} value={f.date} onChange={(v) => setF({ ...f, date: v })} /></div>
+        <div className="field sm"><span>Remind me</span><Select size="sm" label="Remind me" value={f.remind} options={[{ value: '0', label: 'On the day' }, { value: '1', label: '1 day before' }, { value: '3', label: '3 days before' }, { value: '7', label: 'A week before' }]} onChange={(v) => setF({ ...f, remind: v })} /></div>
       </div>
       <label className="field sm"><span>Cancellation link</span><input className="input" type="url" value={f.cancelUrl} onChange={(e) => setF({ ...f, cancelUrl: e.target.value })} /></label>
       <label className="field sm"><span>Notes</span><input className="input" value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></label>
