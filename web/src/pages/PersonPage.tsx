@@ -88,8 +88,12 @@ function MyPage() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => { document.title = 'My page · Jhino'; }, []);
   /** Save, then show what the server now has (the preview here and in the live preview tab follow at once). */
-  const run = useCallback(async (p: Promise<EditorT>, ok?: string) => {
-    try { const v = await p; setD(v); tellPreview(v); if (ok) toast(ok); return true; } catch (e) { toast(e instanceof ApiError ? e.message : 'Could not save.', true); return false; }
+  const run = useCallback(async (p: Promise<EditorT>, ok?: string, onErr?: (message: string) => void) => {
+    try { const v = await p; setD(v); tellPreview(v); if (ok) toast(ok); return true; } catch (e) {
+      const message = e instanceof ApiError ? e.message : 'Could not save.';
+      if (onErr) onErr(message); else toast(message, true);
+      return false;
+    }
   }, [toast]);
   if (!d) return <main className="page"><div className="acc-skel" /></main>;
   const url = `${location.origin}/${d.username}`;
@@ -134,7 +138,7 @@ function MyPage() {
     </main>
   );
 }
-type Run = (p: Promise<EditorT>, ok?: string) => Promise<boolean>;
+type Run = (p: Promise<EditorT>, ok?: string, onErr?: (message: string) => void) => Promise<boolean>;
 
 /* ---------- links ---------- */
 const ADDERS: [ItemT['type'], string, string][] = [['link', 'Link', 'link'], ['header', 'Heading', 'list'], ['text', 'Text', 'receipt'], ['video', 'Video', 'play'], ['app', 'Jhino app', 'grid']];
@@ -187,11 +191,14 @@ const hostOf = (u: string) => { try { return new URL(u).hostname.replace(/^www\.
 function ItemForm({ type, d, item, onDone, run }: { type: ItemT['type']; d: EditorT; item?: ItemT; onDone: () => void; run: Run }) {
   const [f, setF] = useState({ title: item?.title ?? '', subtitle: item?.subtitle ?? '', url: item?.url ?? '', text: item?.text ?? '', appId: item?.appId ?? d.apps[0]?.id ?? '' });
   const [busy, setBusy] = useState(false);
+  // Why a video link cannot play (Instagram or TikTok said no), shown under the link rather than in a passing toast.
+  const [err, setErr] = useState('');
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    setErr('');
     const body = { type, ...f, appId: f.appId || undefined };
-    const ok = await run(item ? api<EditorT>('PATCH', `/api/me/page/items/${item.id}`, body) : post<EditorT>('/api/me/page/items', body), item ? 'Saved' : 'Added to your page');
+    const ok = await run(item ? api<EditorT>('PATCH', `/api/me/page/items/${item.id}`, body) : post<EditorT>('/api/me/page/items', body), item ? 'Saved' : 'Added to your page', type === 'video' ? setErr : undefined);
     setBusy(false);
     if (ok) onDone();
   };
@@ -206,7 +213,8 @@ function ItemForm({ type, d, item, onDone, run }: { type: ItemT['type']; d: Edit
         </div>
       </>}
       {type === 'video' && <>
-        <label className="field"><span>YouTube, Vimeo, TikTok or Instagram link</span><input className="input" inputMode="url" required value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} placeholder="https://www.tiktok.com/@you/video/… or youtu.be/…" autoFocus={!item} /></label>
+        <label className="field"><span>YouTube, Vimeo, TikTok or Instagram link</span><input className="input" inputMode="url" required value={f.url} onChange={(e) => { setF({ ...f, url: e.target.value }); setErr(''); }} placeholder="https://www.tiktok.com/@you/video/… or youtu.be/…" autoFocus={!item} aria-invalid={err ? true : undefined} aria-describedby={err ? 'mp-video-err' : undefined} /></label>
+        {err && <p className="hint warn-text" id="mp-video-err" role="alert">{err}</p>}
         <label className="field"><span>Title</span><input className="input" maxLength={120} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Showreel 2026" /></label>
         <p className="hint">It plays on your page. Visitors watch it right here, with no redirect. Nothing is uploaded: it stays on YouTube, Vimeo, TikTok or Instagram.</p>
       </>}

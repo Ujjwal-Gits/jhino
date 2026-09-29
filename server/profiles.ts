@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import https from 'node:https';
 import path from 'node:path';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { config } from './config.js';
@@ -56,11 +57,82 @@ export function embedOf(url: string): string | null {
   const vm = /vimeo\.com\/(?:video\/)?(\d{6,12})/.exec(url);
   if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
   // TikTok and Instagram posts play on the page too (their own players; nothing is copied here).
-  const tt = /tiktok\.com\/(?:@[\w.-]+\/(?:video|photo)\/|embed\/(?:v2\/)?|player\/v1\/)(\d{8,25})/.exec(url);
+  const tt = /tiktok\.com\/(?:@[\w.-]+\/(?:video|photo)\/|embed\/(?:v2\/)?|player\/v1\/|v\/)(\d{8,25})/.exec(url);
   if (tt) return `https://www.tiktok.com/player/v1/${tt[1]}?description=1&music_info=1`;
-  const ig = /instagram\.com\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]{5,40})/.exec(url);
+  // instagram.com/p/<code>, /reel(s)/<code>, /tv/<code>, optionally after the username (instagram.com/<name>/p/<code>).
+  // Share links (instagram.com/share/reel/<token>) carry a token, not the post's code: resolveVideoUrl turns them
+  // into the post's own link first. Read as a code, the token makes Instagram say the link "may be broken".
+  const ig = /(?:instagram\.com|instagr\.am)\/(?:(?!share\/)[\w.]+\/)?(p|reels?|tv)\/([\w-]{5,40})/.exec(url);
   if (ig) return `https://www.instagram.com/${ig[1] === 'p' ? 'p' : 'reel'}/${ig[2]}/embed/`;
   return null;
+}
+
+/* Short and share links: Instagram's share sheet gives instagram.com/share/…, TikTok's gives vm.tiktok.com/…,
+ * vt.tiktok.com/… or tiktok.com/t/…. They only redirect to the post, so follow them (on those hosts only). */
+const SHORT_VIDEO_LINK = /^https:\/\/(?:(?:www\.)?instagram\.com\/share\/|(?:vm|vt)\.tiktok\.com\/|(?:www\.|m\.)?tiktok\.com\/t\/)/i;
+const SHORT_VIDEO_HOSTS = /^(?:www\.|m\.)?instagram\.com$|^instagr\.am$|^(?:www\.|m\.|vm\.|vt\.)?tiktok\.com$/i;
+async function resolveVideoUrl(url: string): Promise<string> {
+  if (!SHORT_VIDEO_LINK.test(url.replace(/^http:/i, 'https:'))) return url;
+  let at = url;
+  try {
+    for (let hop = 0; hop < 5; hop++) {
+      const r = await fetch(at, { redirect: 'manual', headers: { accept: 'text/html' }, signal: AbortSignal.timeout(8000) });
+      await r.body?.cancel();
+      const next = r.status >= 300 && r.status < 400 ? r.headers.get('location') : null;
+      if (!next) break;
+      const u = new URL(next, at);
+      if (u.protocol !== 'https:' || !SHORT_VIDEO_HOSTS.test(u.hostname)) break;
+      at = u.toString();
+      if (embedOf(at)) return at;
+    }
+  } catch { /* offline or slow: said below */ }
+  const ig = /instagram/i.test(url);
+  throw new HttpError(400, 'VALIDATION_FAILED', ig
+    ? 'That Instagram share link did not lead to a post. Open the post, tap ⋯ then Copy link, and paste that link (instagram.com/reel/… or instagram.com/p/…).'
+    : 'That TikTok short link did not lead to a video. Open the video, tap Share then Copy link, and paste it here, or use its full link (tiktok.com/@name/video/…).');
+}
+
+/**
+ * Asks Instagram or TikTok whether they will play this post on another site. False only on a clear no
+ * (removed, private, or embedding turned off); null when they could not be asked, so saving is never
+ * blocked by a slow network.
+ */
+async function embeddable(embed: string): Promise<boolean | null> {
+  try {
+    if (embed.startsWith('https://www.instagram.com/')) {
+      // Instagram answers an iframe request with the post, or with "The link to this photo or video may be
+      // broken". It only does so for a request that says it is an iframe (Sec-Fetch-Dest), a header fetch()
+      // will not send, hence https.get.
+      const html = await getText(embed, { accept: 'text/html', 'user-agent': 'Mozilla/5.0 (compatible; Jhino/1.0; +https://jhino.com)',
+        'sec-fetch-dest': 'iframe', 'sec-fetch-mode': 'navigate', 'sec-fetch-site': 'cross-site' });
+      if (html === null) return null;
+      if (html.includes('EmbeddedMedia')) return true;
+      return /may be broken|may have been removed/.test(html) ? false : null;
+    }
+    const tt = /tiktok\.com\/player\/v1\/(\d+)/.exec(embed);
+    if (tt) {
+      const r = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(`https://www.tiktok.com/@_/video/${tt[1]}`)}`, { signal: AbortSignal.timeout(8000) });
+      await r.body?.cancel();
+      if (r.ok) return true;
+      return r.status === 400 || r.status === 404 ? false : null;
+    }
+  } catch { /* offline or slow */ }
+  return null;
+}
+/** A page's text (up to 2 MB), or null when it did not answer 200 in time. */
+function getText(url: string, headers: Record<string, string>): Promise<string | null> {
+  return new Promise((resolve) => {
+    const req = https.get(url, { headers, timeout: 8000 }, (res) => {
+      if (res.statusCode !== 200) { res.resume(); resolve(null); return; }
+      let body = '';
+      res.setEncoding('utf8');
+      res.on('data', (d: string) => { body += d; if (body.length > 2_000_000) { req.destroy(); resolve(null); } });
+      res.on('end', () => resolve(body));
+      res.on('error', () => resolve(null));
+    });
+    req.on('timeout', () => req.destroy());
+    req.on('error', () => resolve(null));
+  });
 }
 const HANDLE_URL: Partial<Record<SocialKind, (h: string) => string>> = {
   instagram: (h) => `https://instagram.com/${h}`, facebook: (h) => `https://facebook.com/${h}`, tiktok: (h) => `https://www.tiktok.com/@${h}`,
@@ -389,7 +461,7 @@ export function registerProfiles(app: FastifyInstance) {
     return editorView(u);
   });
 
-  function readItem(u: UserRow, b: Record<string, unknown>, cur?: ItemRow) {
+  async function readItem(u: UserRow, b: Record<string, unknown>, cur?: ItemRow) {
     const type = (cur?.type ?? String(b.type)) as ItemType;
     if (!ITEM_TYPES.includes(type)) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose what to add.');
     const str = (k: string, max: number, fallback = '') => (b[k] === undefined ? (cur ? String((cur as unknown as Record<string, unknown>)[k] ?? '') : fallback) : String(b[k] ?? '').trim().slice(0, max));
@@ -400,7 +472,16 @@ export function registerProfiles(app: FastifyInstance) {
       visible: b.visible === undefined ? cur?.visible ?? 1 : b.visible ? 1 : 0,
     };
     if ((type === 'link' || type === 'video') && (b.url !== undefined || !cur)) out.url = httpUrl(b.url, type === 'video' ? 'video link' : 'address');
-    if (type === 'video' && out.url && !embedOf(out.url) && b.url !== undefined) throw new HttpError(400, 'VALIDATION_FAILED', 'Paste a YouTube, Vimeo, TikTok or Instagram post link to play it on the page. For TikTok, open the video and copy its full link (tiktok.com/@name/video/…).');
+    if (type === 'video' && out.url && b.url !== undefined) {
+      out.url = await resolveVideoUrl(out.url);
+      const embed = embedOf(out.url);
+      if (!embed) throw new HttpError(400, 'VALIDATION_FAILED', 'Paste a YouTube, Vimeo, TikTok or Instagram post link to play it on the page, like tiktok.com/@name/video/… or instagram.com/reel/….');
+      if (await embeddable(embed) === false) {
+        throw new HttpError(400, 'VALIDATION_FAILED', /instagram/.test(embed)
+          ? 'Instagram will not show this post on other sites. It may be private, removed, or its owner turned off embedding. Check that it opens when you are signed out of Instagram, then copy its link again.'
+          : 'TikTok will not play this video on other sites. It may be private, removed, or its owner turned off embedding.');
+      }
+    }
     if (type === 'text' && (b.text !== undefined || !cur)) { out.text = String(b.text ?? '').trim().slice(0, 1000); if (!out.text) throw new HttpError(400, 'VALIDATION_FAILED', 'Write the text.'); }
     if (type === 'header' && !out.title) throw new HttpError(400, 'VALIDATION_FAILED', 'Write the heading.');
     if (type === 'app' && (b.appId !== undefined || !cur)) {
@@ -417,7 +498,7 @@ export function registerProfiles(app: FastifyInstance) {
     const u = me(req);
     limit(req, 'page-items', 240, 60_000, u.id);
     if ((db.prepare('SELECT COUNT(*) n FROM profile_items WHERE user_id=?').get(u.id) as { n: number }).n >= 100) throw new HttpError(400, 'VALIDATION_FAILED', 'A page can hold up to 100 items.');
-    const v = readItem(u, (req.body ?? {}) as Record<string, unknown>);
+    const v = await readItem(u, (req.body ?? {}) as Record<string, unknown>);
     const pos = (db.prepare('SELECT COALESCE(MIN(position),0)-1 n FROM profile_items WHERE user_id=?').get(u.id) as { n: number }).n;
     const t = now();
     const first = (req.body as { position?: string })?.position !== 'end';
@@ -431,7 +512,7 @@ export function registerProfiles(app: FastifyInstance) {
     const u = me(req);
     const cur = db.prepare('SELECT * FROM profile_items WHERE id=? AND user_id=?').get((req.params as { id: string }).id, u.id) as ItemRow | undefined;
     if (!cur) throw new HttpError(404, 'NOT_FOUND', 'That item is not on your page.');
-    const v = readItem(u, (req.body ?? {}) as Record<string, unknown>, cur);
+    const v = await readItem(u, (req.body ?? {}) as Record<string, unknown>, cur);
     db.prepare('UPDATE profile_items SET title=?, subtitle=?, url=?, text=?, app_id=?, highlight=?, visible=?, updated_at=? WHERE id=?')
       .run(v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, now(), cur.id);
     touchPage(u.id);
