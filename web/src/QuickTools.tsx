@@ -1,5 +1,5 @@
 import qrcode from 'qrcode-generator';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { ApiError, api, get, post } from './api';
 import { Link } from './context';
 import { Icon, ago, copyText, useToast } from './ui';
@@ -14,8 +14,8 @@ import { Calculator, ColourTool, Encoder, JsonTool, NepaliDate, Passwords, UserL
  * (server/tools.ts); the timer, QR maker and text tools run only in the browser (text never leaves it).
  */
 
-type ToolKey = 'focus' | 'calendar' | 'tasks' | 'notes' | 'contacts' | 'subs' | 'links' | 'qr' | 'text' | 'calc' | 'date' | 'password' | 'clock' | 'json' | 'encode' | 'colour' | 'users' | 'more';
-const P: Record<string, string> = {
+export type ToolKey = 'focus' | 'calendar' | 'tasks' | 'notes' | 'contacts' | 'subs' | 'links' | 'qr' | 'text' | 'calc' | 'date' | 'password' | 'clock' | 'json' | 'encode' | 'colour' | 'users' | 'more';
+export const P: Record<string, string> = {
   focus: 'M12 7v5l3 2M9 2h6M12 22a9 9 0 1 0 0-18 9 9 0 0 0 0 18z',
   calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h2M12 14h2M16 14h0',
   tasks: 'M4 6l2 2 3-3M12 7h8M4 13l2 2 3-3M12 14h8M12 20h8M5 20h2',
@@ -35,7 +35,7 @@ const P: Record<string, string> = {
   users: 'M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3.5 20a6.5 6.5 0 0 1 11.3-4.4M17 18a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM19 17.5l2.5 2.5',
 };
 /** Every tool. `admin` tools show only in Super Admin. The first nine sit on the rail until you change it. */
-const TOOLS: { key: ToolKey; label: string; desc: string; admin?: boolean }[] = [
+export const TOOLS: { key: ToolKey; label: string; desc: string; admin?: boolean }[] = [
   { key: 'focus', label: 'Focus timer', desc: 'Work and break timer, with lo-fi music.' },
   { key: 'calendar', label: 'Calendar', desc: 'Events and reminders by month.' },
   { key: 'tasks', label: 'Tasks', desc: 'To-dos with due dates, linked to notes and contacts.' },
@@ -161,33 +161,55 @@ export function QuickTools({ admin = false }: { admin?: boolean }) {
 }
 
 /* ---------------- focus timer + lo-fi ---------------- */
-function useTimer() {
-  const [work, setWork] = useState(25), [rest, setRest] = useState(5);
-  const [mode, setMode] = useState<'work' | 'rest'>('work');
-  const [left, setLeft] = useState(25 * 60);
-  const [running, setRunning] = useState(false);
-  const endAt = useRef(0);
-  useEffect(() => {
-    if (!running) return;
-    endAt.current = Date.now() + left * 1000;
-    const id = setInterval(() => {
-      const s = Math.max(0, Math.round((endAt.current - Date.now()) / 1000));
-      setLeft(s);
-      if (s === 0) {
-        const next = mode === 'work' ? 'rest' : 'work';
-        try { new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=').play().catch(() => {}); } catch { /* no sound */ }
-        if ('Notification' in window && Notification.permission === 'granted') new Notification(next === 'rest' ? 'Time for a break' : 'Back to work');
-        setMode(next); const n = (next === 'work' ? work : rest) * 60; setLeft(n); endAt.current = Date.now() + n * 1000;
-      }
-    }, 500);
-    return () => clearInterval(id);
-  }, [running, mode]); // eslint-disable-line react-hooks/exhaustive-deps
-  const reset = () => { setRunning(false); setMode('work'); setLeft(work * 60); };
-  return { work, rest, mode, left, running, setRunning, reset, setWork: (n: number) => { setWork(n); if (!running && mode === 'work') setLeft(n * 60); }, setRest: (n: number) => { setRest(n); if (!running && mode === 'rest') setLeft(n * 60); } };
+/** One timer for the whole dashboard: the rail and the full Focus page show the same clock, and it survives a reload. */
+type TimerState = { work: number; rest: number; mode: 'work' | 'rest'; left: number; running: boolean; endAt: number; rounds: number };
+const TIMER_KEY = 'jhino-focus';
+const T: TimerState = (() => {
+  const d: TimerState = { work: 25, rest: 5, mode: 'work', left: 1500, running: false, endAt: 0, rounds: 0 };
+  try { const v = JSON.parse(localStorage.getItem(TIMER_KEY) ?? 'null'); if (v && typeof v.work === 'number') Object.assign(d, v); } catch { /* private mode */ }
+  if (d.running) d.left = Math.max(0, Math.round((d.endAt - Date.now()) / 1000));
+  return d;
+})();
+let snap = { ...T };
+const timerSubs = new Set<() => void>();
+let ticker: ReturnType<typeof setInterval> | undefined;
+const emit = () => { snap = { ...T }; try { localStorage.setItem(TIMER_KEY, JSON.stringify(T)); } catch { /* private mode */ } timerSubs.forEach((f) => f()); };
+const chime = () => {
+  try {
+    const ctx = new AudioContext(); const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = 880; g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.9);
+    o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 1);
+  } catch { /* no sound */ }
+};
+const tick = () => {
+  if (!T.running) return;
+  T.left = Math.max(0, Math.round((T.endAt - Date.now()) / 1000));
+  if (T.left === 0) {
+    const next = T.mode === 'work' ? 'rest' : 'work';
+    if (T.mode === 'work') T.rounds += 1;
+    chime();
+    if ('Notification' in window && Notification.permission === 'granted') new Notification(next === 'rest' ? 'Time for a break' : 'Back to work');
+    T.mode = next; T.left = (next === 'work' ? T.work : T.rest) * 60; T.endAt = Date.now() + T.left * 1000;
+  }
+  emit();
+};
+const run = () => { clearInterval(ticker); if (T.running) ticker = setInterval(tick, 500); };
+run();
+export const focusTimer = {
+  start() { if (T.running) return; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); T.running = true; T.endAt = Date.now() + T.left * 1000; run(); emit(); },
+  pause() { tick(); T.running = false; run(); emit(); },
+  reset() { T.running = false; T.mode = 'work'; T.left = T.work * 60; run(); emit(); },
+  skip() { T.mode = T.mode === 'work' ? 'rest' : 'work'; T.left = (T.mode === 'work' ? T.work : T.rest) * 60; T.endAt = Date.now() + T.left * 1000; emit(); },
+  set(work: number, rest: number) { T.work = work; T.rest = rest; if (!T.running) T.left = (T.mode === 'work' ? work : rest) * 60; emit(); },
+  clearRounds() { T.rounds = 0; emit(); },
+};
+export function useTimer() {
+  const s = useSyncExternalStore((f) => { timerSubs.add(f); return () => timerSubs.delete(f); }, () => snap);
+  return { ...s, setRunning: (b: boolean) => (b ? focusTimer.start() : focusTimer.pause()), reset: focusTimer.reset, setWork: (n: number) => focusTimer.set(n, s.rest), setRest: (n: number) => focusTimer.set(s.work, n) };
 }
-const LOFI = 'jfKfPfyJRdk';
-const ytId = (s: string) => /(?:youtu\.be\/|v=|embed\/|live\/)([\w-]{11})/.exec(s)?.[1] ?? (/^[\w-]{11}$/.test(s) ? s : null);
-function Focus({ t }: { t: ReturnType<typeof useTimer> }) {
+export const LOFI = 'jfKfPfyJRdk';
+export const ytId = (s: string) => /(?:youtu\.be\/|v=|embed\/|live\/)([\w-]{11})/.exec(s)?.[1] ?? (/^[\w-]{11}$/.test(s) ? s : null);
+export function Focus({ t }: { t: ReturnType<typeof useTimer> }) {
   const [video, setVideo] = useState<string | null>(null);
   const [custom, setCustom] = useState('');
   const total = (t.mode === 'work' ? t.work : t.rest) * 60;
@@ -197,7 +219,7 @@ function Focus({ t }: { t: ReturnType<typeof useTimer> }) {
         <p className="qt-mode">{t.mode === 'work' ? 'Focus' : 'Break'}</p>
         <div className="qt-ring" style={{ ['--p' as string]: `${(1 - t.left / total) * 360}deg` }}><span className="mono">{pad(Math.floor(t.left / 60))}:{pad(t.left % 60)}</span></div>
         <div className="qt-row">
-          <button className="btn primary" onClick={() => { if (!t.running && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission(); t.setRunning(!t.running); }}>{t.running ? 'Pause' : 'Start'}</button>
+          <button className="btn primary" onClick={() => t.setRunning(!t.running)}>{t.running ? 'Pause' : 'Start'}</button>
           <button className="btn" onClick={t.reset}>Reset</button>
         </div>
         <div className="qt-row">
@@ -221,7 +243,7 @@ function Focus({ t }: { t: ReturnType<typeof useTimer> }) {
 }
 
 /* ---------------- tasks ---------------- */
-function Tasks() {
+export function Tasks() {
   const { items, add, save, remove } = useItems('task');
   const notes = useItems('note').items, contacts = useItems('contact').items, events = useItems('event').items;
   const [title, setTitle] = useState(''), [due, setDue] = useState('');
@@ -283,7 +305,7 @@ function TaskEdit({ i, notes, contacts, events, save, remove, nameOf, close }: {
 }
 
 /* ---------------- notes ---------------- */
-function Notes() {
+export function Notes() {
   const { items, add, save, remove } = useItems('note');
   const [q, setQ] = useState(''), [archived, setArchived] = useState(false);
   const [edit, setEdit] = useState<Item | 'new' | null>(null);
@@ -324,7 +346,7 @@ function Notes() {
 
 /* ---------------- contacts ---------------- */
 const CONTACT = { name: '', phone: '', email: '', company: '', link: '', notes: '' };
-function Contacts() {
+export function Contacts() {
   const { items, add, save, remove } = useItems('contact');
   const [q, setQ] = useState('');
   const [edit, setEdit] = useState<Item | 'new' | null>(null);
@@ -367,7 +389,7 @@ function Contacts() {
 }
 
 /* ---------------- calendar ---------------- */
-function Calendar() {
+export function Calendar() {
   const { items, add, remove } = useItems('event');
   const taskList = useItems('task');
   const tasks = taskList.items;
@@ -421,7 +443,7 @@ function Calendar() {
 
 /* ---------------- subscriptions and trials ---------------- */
 const SUB = { service: '', price: '', cycle: 'monthly', date: '', remind: '3', cancelUrl: '', notes: '' };
-function Subs() {
+export function Subs() {
   const { items, add, save, remove } = useItems('sub');
   const [edit, setEdit] = useState<Item | 'new' | null>(null);
   const [f, setF] = useState(SUB);
@@ -470,7 +492,7 @@ function Subs() {
 }
 
 /* ---------------- short links ---------------- */
-function ShortLinks() {
+export function ShortLinks() {
   const toast = useToast();
   const [url, setUrl] = useState(''), [code, setCode] = useState('');
   const [made, setMade] = useState<string | null>(null);
@@ -494,11 +516,11 @@ function ShortLinks() {
 }
 
 /* ---------------- QR maker ---------------- */
-function QrSvg({ text, fg, bg, size }: { text: string; fg: string; bg: string; size: number }) {
+export function QrSvg({ text, fg, bg, size }: { text: string; fg: string; bg: string; size: number }) {
   const { n, d } = useMemo(() => { const q = qrcode(0, 'M'); q.addData(text || ' '); q.make(); const c = q.getModuleCount(); let d = ''; for (let r = 0; r < c; r++) for (let x = 0; x < c; x++) if (q.isDark(r, x)) d += `M${x + 4} ${r + 4}h1v1h-1z`; return { n: c + 8, d }; }, [text]);
   return <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${n} ${n}`} width={size} height={size} shapeRendering="crispEdges" role="img" aria-label="QR code"><rect width={n} height={n} fill={bg} /><path d={d} fill={fg} /></svg>;
 }
-function QrMaker() {
+export function QrMaker() {
   const [text, setText] = useState('https://jhino.com');
   const [fg, setFg] = useState('#141414'), [bg, setBg] = useState('#ffffff');
   const wrap = useRef<HTMLDivElement>(null);
@@ -528,7 +550,7 @@ function QrMaker() {
 /* ---------------- text tools (in the browser only) ---------------- */
 const sentence = (s: string) => s.toLowerCase().replace(/(^\s*\p{L}|[.!?]\s+\p{L})/gu, (m) => m.toUpperCase());
 const titleCase = (s: string) => s.toLowerCase().replace(/(^|[\s\-_/(])(\p{L})/gu, (_m, a, b) => a + b.toUpperCase());
-function TextTools() {
+export function TextTools() {
   const toast = useToast();
   const [t, setT] = useState('');
   const words = t.trim() ? t.trim().split(/\s+/).length : 0;

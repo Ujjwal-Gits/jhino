@@ -5,6 +5,7 @@ import { live } from '../live';
 import { PanelLoader } from '../Loader';
 import { Icon, ago, useToast } from '../ui';
 import { Brand, appPathOf } from './Apps';
+import { HomeApps } from './Tools';
 
 /*
  * Home: a simple dashboard. A greeting, one notice when something needs you, and two cards: your apps
@@ -89,6 +90,8 @@ export function HomePage() {
           <div><b>{notice.title}</b><p>{notice.text}</p></div>
         </section>
       )}
+
+      {user.canCreate && <HomeApps />}
 
       <div className="hm-grid">
         <section className="hm-card" aria-labelledby="hm-apps">

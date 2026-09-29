@@ -175,7 +175,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark');
   useEffect(() => { setDrawer(false); }, [path]);
   const nav = (to: string, label: string, icon: ReactNode, badge?: number) => (
-    <Link to={to} aria-current={path === to ? 'page' : undefined}>{icon}<span>{label}</span>{!!badge && <span className="dsh-count mono">{badge}</span>}</Link>
+    <Link to={to} aria-current={path === to || (to === '/home/all' && path.startsWith('/home/')) ? 'page' : undefined}>{icon}<span>{label}</span>{!!badge && <span className="dsh-count mono">{badge}</span>}</Link>
   );
   // On /account/<section>: which one is showing (the Account page falls back to Profile; a receipt belongs to Billing).
   const accountSections = ACCOUNT_SECTIONS.filter((s) => !s.creators || user.canCreate);
@@ -185,7 +185,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const now = new Date();
   const today = `${now.toLocaleDateString(undefined, { weekday: 'long' })}, ${bsToday(now) || now.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}`;
   const pages: Hit[] = [
-    ...(user.canCreate ? [['Home', '/home'], ['My apps', '/apps'], ['Shared with me', '/shared'], ['Links', '/links'], ...(user.username ? [['My page', `/${user.username}`]] : []), ['Trash', '/trash'], ['Create an app', '/build']] : [['Your apps', '/apps']]),
+    ...(user.canCreate ? [['Home', '/home'], ['Tools', '/home/all'], ['My apps', '/apps'], ['Shared with me', '/shared'], ['Links', '/links'], ...(user.username ? [['My page', `/${user.username}`]] : []), ['Trash', '/trash'], ['Create an app', '/build']] : [['Your apps', '/apps']]),
     ...accountSections.map((s) => [s.label, `/account/${s.key}`]),
     ...(user.isAdmin ? [['Super Admin', '/admin']] : []),
   ].map(([label, to]) => ({ group: 'Pages', label, to }));
@@ -203,6 +203,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <p className="dsh-group">Workspace</p>
             {user.canCreate ? <>
               {nav('/home', 'Home', I('M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z'))}
+              {nav('/home/all', 'Tools', I('M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM17 14v6M14 17h6'))}
               {nav('/apps', 'My apps', <Icon name="grid" size={18} />)}
               {nav('/shared', 'Shared with me', <Icon name="users" size={18} />)}
               {nav('/links', 'Links', <Icon name="link" size={18} />)}

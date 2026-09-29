@@ -26,7 +26,7 @@ import { RouteCtx, SessionCtx, applyTheme, readTheme, useRoute } from './context
 
 applyTheme(readTheme());
 
-const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'sitemap', 'home']);
+const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'sitemap', 'home', 'l']);
 
 function App() {
   const [path, setPath] = useState(location.pathname);
@@ -63,7 +63,7 @@ function App() {
   const signedIn = !!user;
   useEffect(() => {
     if (!signedIn) return;
-    const t = setTimeout(() => { void import('./pages/Home'); void import('./pages/Account'); void import('./pages/Links'); }, 1500);
+    const t = setTimeout(() => { void import('./pages/Home'); void import('./pages/Tools'); void import('./pages/Account'); void import('./pages/Links'); }, 1500);
     return () => clearTimeout(t);
   }, [signedIn]);
 
@@ -102,6 +102,9 @@ function App() {
   const under = seg.length === 2 && !KNOWN.has(seg[0]) && /^[a-z0-9][a-z0-9_-]{1,49}$/i.test(seg[0]) && /^[a-z0-9][a-z0-9-]{1,49}$/i.test(seg[1]) ? `${seg[0]}/${seg[1]}` : null;
   // jhino.com/<username>/preview: the owner's own page in a tab of its own (anyone else gets whatever is at that address).
   const previewOf = under && seg[1].toLowerCase() === 'preview' ? seg[0].toLowerCase() : null;
+  // jhino.com/<username>/ask: anonymous questions for that person.
+  const askOf = under && seg[1].toLowerCase() === 'ask' ? seg[0] : null;
+  const homeMatch = path.match(/^\/home\/([a-z]{2,16})\/?$/);
   if (user === undefined) page = <PageLoader />;
   else if (invite) page = <Invite token={invite[1]} user={user} onJoined={refresh} />;
   else if (path === '/verify') page = <Verify signedIn={!!user} onDone={refresh} />;
@@ -113,6 +116,7 @@ function App() {
   else if (path === '/privacy') page = <PrivacyPage signedIn={!!user} />;
   else if (previewOf && !user) page = <Login onDone={refresh} />;
   else if (previewOf && user?.username?.toLowerCase() === previewOf) page = <PagePreview />;
+  else if (askOf) page = <AskPage name={askOf} user={user} />;
   else if (shareMatch || under) page = <PublicApp refId={shareMatch ? shareMatch[1] : under!} signedInUser={user} />;
   // Your own page sits in the same dashboard frame as every other section, so the frame is not rebuilt on the way in or out.
   else if (person && user?.username && user.username.toLowerCase() === person.toLowerCase()) page = <Shell><PersonPage name={person} user={user} framed /></Shell>;
@@ -133,6 +137,7 @@ function App() {
   else if (accountMatch) page = <Shell><AccountPage section={accountMatch[1] ?? 'profile'} /></Shell>;
   else if (adminMatch && user.isAdmin) page = <AdminPage section={adminMatch[1] ?? 'overview'} sub={adminMatch[2]} />;
   else if (path === '/home') page = user.canCreate ? <Shell><HomePage /></Shell> : <GoTo to="/apps" />;
+  else if (homeMatch) page = user.canCreate ? <Shell><ToolsPage k={homeMatch[1]} /></Shell> : <GoTo to="/apps" />;
   else if (path === '/links' && user.canCreate) page = <Shell><LinksPage /></Shell>;
   else if (path === '/build') page = <Builder />;
   else if (blocksMatch) page = <Builder appId={blocksMatch[1]} />;
@@ -164,6 +169,8 @@ const ReceiptPage = lazy(() => import('./pages/Account').then((m) => ({ default:
 const AdminPage = lazy(() => import('./pages/Admin').then((m) => ({ default: m.AdminPage })));
 const Builder = lazy(() => import('./pages/Builder').then((m) => ({ default: m.Builder })));
 const LinksPage = lazy(() => import('./pages/Links').then((m) => ({ default: m.LinksPage })));
+const ToolsPage = lazy(() => import('./pages/Tools').then((m) => ({ default: m.ToolsPage })));
+const AskPage = lazy(() => import('./pages/Ask').then((m) => ({ default: m.AskPage })));
 const HomePage = lazy(() => import('./pages/Home').then((m) => ({ default: m.HomePage })));
 const ThemeGallery = lazy(() => import('./profile/Gallery').then((m) => ({ default: m.ProfileGallery })));
 

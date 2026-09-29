@@ -386,6 +386,7 @@ function resolveDoc(pathname: string, b: string): Doc {
     const u = findUser(seg[0]);
     if (!u) return NOT_FOUND(p);
     if (seg[1].toLowerCase() === 'preview') return NOINDEX_DOC(p);
+    if (seg[1].toLowerCase() === 'ask') return { status: 200, index: false, path: p, title: `Ask ${u.display_name || u.name} anything` + SUFFIX, description: `Send ${u.display_name || u.name} an anonymous question on Jhino.` };
     const a = /^[\w-]{2,64}$/.test(seg[1]) ? db.prepare('SELECT * FROM apps WHERE owner_id=? AND slug=? COLLATE NOCASE AND deleted_at IS NULL').get(u.id, seg[1]) as SeoApp | undefined : undefined;
     return a ? appDoc(a, p, b) : NOT_FOUND(p);
   }

@@ -479,3 +479,5 @@
 
 /* ---------- the owner's preview: items switched off stay visible, faded ---------- */
 .pf[data-preview] [data-hidden] { opacity: 0.4; }
+/* TikTok and Instagram posts are upright. */
+.pf-video-box.tall { aspect-ratio: 9 / 16; max-width: 340px; margin-inline: auto; background: #fff; }

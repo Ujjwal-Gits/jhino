@@ -206,9 +206,9 @@ function ItemForm({ type, d, item, onDone, run }: { type: ItemT['type']; d: Edit
         </div>
       </>}
       {type === 'video' && <>
-        <label className="field"><span>YouTube or Vimeo link</span><input className="input" inputMode="url" required value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} placeholder="https://youtu.be/…" autoFocus={!item} /></label>
+        <label className="field"><span>YouTube, Vimeo, TikTok or Instagram link</span><input className="input" inputMode="url" required value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} placeholder="https://www.tiktok.com/@you/video/… or youtu.be/…" autoFocus={!item} /></label>
         <label className="field"><span>Title</span><input className="input" maxLength={120} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Showreel 2026" /></label>
-        <p className="hint">It plays on your page. Videos are never uploaded here: they stay on YouTube or Vimeo.</p>
+        <p className="hint">It plays on your page. Visitors watch it right here, with no redirect. Nothing is uploaded: it stays on YouTube, Vimeo, TikTok or Instagram.</p>
       </>}
       {type === 'header' && <label className="field"><span>Heading</span><input className="input" required maxLength={120} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Work" autoFocus={!item} /></label>}
       {type === 'text' && <label className="field"><span>Text</span><textarea className="textarea" rows={3} required maxLength={1000} value={f.text} onChange={(e) => setF({ ...f, text: e.target.value })} autoFocus={!item} /></label>}

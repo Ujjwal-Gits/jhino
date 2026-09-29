@@ -37,14 +37,14 @@ export const RESERVED = new Set(['api', 'run', 'apps', 'app', 'build', 'shared',
 export const SYSTEM_PATHS = new Set([
   // web pages
   'home', '_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash',
-  'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing',
+  'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'l',
   // server routes and files
   '_jhino', 'preview', 'health', 'robots.txt', 'sitemap.xml', 'sitemap', 'sitemap.xsl', 'llms.txt', 'favicon.svg', 'assets', 'img', 'favicon.ico', 'index.html', 'manifest.json',
   // Cloudflare answers these itself
   'cdn-cgi',
 ]);
 /** Names Jhino keeps under a username (jhino.com/<username>/<name>). */
-const SUB_RESERVED = new Set(['edit', 'settings', 'analytics', 'apps', 'links', 'link', 'go', 'api', 's', 'p', 'admin', 'profile', 'page', 'design', 'custom', 'new', 'www', 'avatar', 'preview']);
+const SUB_RESERVED = new Set(['edit', 'settings', 'analytics', 'apps', 'links', 'link', 'go', 'api', 's', 'p', 'admin', 'profile', 'page', 'design', 'custom', 'new', 'www', 'avatar', 'preview', 'ask']);
 /** An address name. `top` = a top-level address (jhino.com/<name>), which only super admins give out. */
 export function validSlug(s: unknown, top = false): string {
   const v = String(s ?? '').trim().toLowerCase();

@@ -116,9 +116,9 @@ function Item({ item, index, no, preview }: { item: ProfileItem; index: number; 
       return (
         <div className="pf-video" style={style} data-hidden={off}>
           <b>{item.title}</b>
-          <div className="pf-video-box">
+          <div className={`pf-video-box${/tiktok\.com|instagram\.com/.test(item.embed) ? ' tall' : ''}`}>
             <iframe src={item.embed} title={item.title} loading="lazy"
-              allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
           </div>
         </div>
       );

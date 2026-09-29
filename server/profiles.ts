@@ -49,12 +49,17 @@ function httpUrl(raw: unknown, what = 'address') {
   if (!['http:', 'https:'].includes(u.protocol) || u.username || u.password || s.length > 2000) throw new HttpError(400, 'VALIDATION_FAILED', `Enter a web ${what}, like https://example.com.`);
   return u.toString();
 }
-/** The player address for a YouTube or Vimeo link, or null. */
+/** The player address for a YouTube, Vimeo, TikTok or Instagram link, or null. */
 export function embedOf(url: string): string | null {
   const yt = /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([\w-]{11})/.exec(url);
   if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}`;
   const vm = /vimeo\.com\/(?:video\/)?(\d{6,12})/.exec(url);
   if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
+  // TikTok and Instagram posts play on the page too (their own players; nothing is copied here).
+  const tt = /tiktok\.com\/(?:@[\w.-]+\/(?:video|photo)\/|embed\/(?:v2\/)?|player\/v1\/)(\d{8,25})/.exec(url);
+  if (tt) return `https://www.tiktok.com/player/v1/${tt[1]}?description=1&music_info=1`;
+  const ig = /instagram\.com\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]{5,40})/.exec(url);
+  if (ig) return `https://www.instagram.com/${ig[1] === 'p' ? 'p' : 'reel'}/${ig[2]}/embed/`;
   return null;
 }
 const HANDLE_URL: Partial<Record<SocialKind, (h: string) => string>> = {
@@ -395,7 +400,7 @@ export function registerProfiles(app: FastifyInstance) {
       visible: b.visible === undefined ? cur?.visible ?? 1 : b.visible ? 1 : 0,
     };
     if ((type === 'link' || type === 'video') && (b.url !== undefined || !cur)) out.url = httpUrl(b.url, type === 'video' ? 'video link' : 'address');
-    if (type === 'video' && out.url && !embedOf(out.url) && b.url !== undefined) throw new HttpError(400, 'VALIDATION_FAILED', 'Paste a YouTube or Vimeo link to play it on the page. For other videos, add a link instead.');
+    if (type === 'video' && out.url && !embedOf(out.url) && b.url !== undefined) throw new HttpError(400, 'VALIDATION_FAILED', 'Paste a YouTube, Vimeo, TikTok or Instagram post link to play it on the page. For TikTok, open the video and copy its full link (tiktok.com/@name/video/…).');
     if (type === 'text' && (b.text !== undefined || !cur)) { out.text = String(b.text ?? '').trim().slice(0, 1000); if (!out.text) throw new HttpError(400, 'VALIDATION_FAILED', 'Write the text.'); }
     if (type === 'header' && !out.title) throw new HttpError(400, 'VALIDATION_FAILED', 'Write the heading.');
     if (type === 'app' && (b.appId !== undefined || !cur)) {
