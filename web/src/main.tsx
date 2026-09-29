@@ -26,6 +26,16 @@ import { RouteCtx, SessionCtx, applyTheme, readTheme, useRoute } from './context
 
 applyTheme(readTheme());
 
+// After a new version is deployed, a tab that was already open still asks for the old build's files, which
+// are gone ("Failed to fetch dynamically imported module"). Reload once to pick up the new build; the
+// timestamp stops a reload loop if the file is really missing.
+const reloadForUpdate = () => {
+  try { const last = Number(sessionStorage.getItem('jhino-chunk-reload') || 0); if (Date.now() - last < 30_000) return false; sessionStorage.setItem('jhino-chunk-reload', String(Date.now())); } catch { /* private mode */ }
+  location.reload(); return true;
+};
+addEventListener('vite:preloadError', (e) => { if (reloadForUpdate()) e.preventDefault(); });
+addEventListener('unhandledrejection', (e) => { if (/dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(String((e.reason as Error)?.message ?? e.reason))) reloadForUpdate(); });
+
 const KNOWN = new Set(['_themes', 'go', 'p', 'links', 'login', 'signup', 'forgot', 'reset', 'verify', 'help', 'terms', 'privacy', 'build', 'shared', 'trash', 'people', 'account', 'admin', 'apps', 'invite', 's', 'api', 'run', 'pricing', 'sitemap', 'home', 'l']);
 
 function App() {
