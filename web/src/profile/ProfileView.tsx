@@ -5,6 +5,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { ProfileData, ProfileItem, SocialKind } from './types';
 import { AvatarViewerModal } from '../AvatarModal';
+import { VideoCard } from './VideoCard';
 import './profile.css';
 import './themes.css';
 
@@ -113,15 +114,7 @@ function Item({ item, index, no, preview }: { item: ProfileItem; index: number; 
     case 'text':
       return <p className="pf-text" style={style} data-hidden={off}>{item.text}</p>;
     case 'video':
-      return (
-        <div className="pf-video" style={style} data-hidden={off}>
-          <b>{item.title}</b>
-          <div className={`pf-video-box${/tiktok\.com|instagram\.com/.test(item.embed) ? ' tall' : ''}`}>
-            <iframe src={item.embed} title={item.title} loading="lazy"
-              allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" />
-          </div>
-        </div>
-      );
+      return <VideoCard title={item.title} embed={item.embed} thumb={item.thumb} style={style} hidden={item.hidden} />;
     case 'app': {
       const link = (
         <a className="pf-link pf-app" href={item.href} target="_blank" rel="noopener" style={item.installable ? undefined : style} data-hidden={item.installable ? undefined : off}>

@@ -17,7 +17,7 @@ interface Row { id: string; app_id: string; name: string; type: string; size: nu
 const require = createRequire(import.meta.url);
 let warned = false;
 /** FFMPEG_PATH (the Docker image sets /usr/bin/ffmpeg), else the ffmpeg-static package, else no compression. */
-function ffmpegPath(): string | null {
+export function ffmpegPath(): string | null {
   const own = process.env.FFMPEG_PATH;
   if (own) {
     if (fs.existsSync(own)) return own;

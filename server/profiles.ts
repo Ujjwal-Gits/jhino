@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import https from 'node:https';
+import { spawn } from 'node:child_process';
 import path from 'node:path';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { config } from './config.js';
@@ -11,6 +12,7 @@ import { PLANS, featuresOf } from './plans.js';
 import { THEME_TIERS, DEFAULT_THEME } from './themes.js';
 import { nextUsernameChange, USERNAME_EVERY_DAYS } from './usernames.js';
 import { pingSearchEngines } from './seo.js';
+import { ffmpegPath } from './video.js';
 
 /*
  * A person's public page at jhino.com/<username>: a link-in-bio page with their links, socials, a
@@ -93,32 +95,170 @@ async function resolveVideoUrl(url: string): Promise<string> {
 }
 
 /**
- * Asks Instagram or TikTok whether they will play this post on another site. False only on a clear no
- * (removed, private, or embedding turned off); null when they could not be asked, so saving is never
- * blocked by a slow network.
+ * Asks the platform about a post: will it play on another site, and what picture shows it. ok is false
+ * only on a clear no from Instagram or TikTok (removed, private, or embedding turned off); null when they
+ * could not be asked, so saving is never blocked by a slow network. thumb is the platform's own picture
+ * address (signed and short-lived on Instagram and TikTok: storeThumb keeps a copy).
  */
-async function embeddable(embed: string): Promise<boolean | null> {
+async function probeVideo(embed: string): Promise<{ ok: boolean | null; thumb: string | null }> {
   try {
     if (embed.startsWith('https://www.instagram.com/')) {
       // Instagram answers an iframe request with the post, or with "The link to this photo or video may be
       // broken". It only does so for a request that says it is an iframe (Sec-Fetch-Dest), a header fetch()
       // will not send, hence https.get.
-      const html = await getText(embed, { accept: 'text/html', 'user-agent': 'Mozilla/5.0 (compatible; Jhino/1.0; +https://jhino.com)',
+      const html = await getText(embed, { accept: 'text/html', 'user-agent': BOT_UA,
         'sec-fetch-dest': 'iframe', 'sec-fetch-mode': 'navigate', 'sec-fetch-site': 'cross-site' });
-      if (html === null) return null;
-      if (html.includes('EmbeddedMedia')) return true;
-      return /may be broken|may have been removed/.test(html) ? false : null;
+      if (html === null) return { ok: null, thumb: null };
+      const img = /<img[^>]*class="EmbeddedMediaImage"[^>]*\ssrc="([^"]+)"/.exec(html);
+      const thumb = img ? decodeEntities(img[1]) : null;
+      if (html.includes('EmbeddedMedia')) return { ok: true, thumb };
+      return { ok: /may be broken|may have been removed/.test(html) ? false : null, thumb: null };
     }
     const tt = /tiktok\.com\/player\/v1\/(\d+)/.exec(embed);
     if (tt) {
-      const r = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(`https://www.tiktok.com/@_/video/${tt[1]}`)}`, { signal: AbortSignal.timeout(8000) });
-      await r.body?.cancel();
-      if (r.ok) return true;
-      return r.status === 400 || r.status === 404 ? false : null;
+      const r = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(`https://www.tiktok.com/@_/video/${tt[1]}`)}`, { headers: { 'user-agent': BOT_UA }, signal: AbortSignal.timeout(8000) });
+      if (!r.ok) { await r.body?.cancel(); return { ok: r.status === 400 || r.status === 404 ? false : null, thumb: null }; }
+      const j = await r.json() as { thumbnail_url?: unknown };
+      return { ok: true, thumb: typeof j.thumbnail_url === 'string' ? j.thumbnail_url : null };
+    }
+    const vm = /player\.vimeo\.com\/video\/(\d+)/.exec(embed);
+    if (vm) {
+      // Vimeo is never refused here (a private video can still be embeddable); it only gives the picture.
+      const r = await fetch(`https://vimeo.com/api/oembed.json?width=1280&url=${encodeURIComponent(`https://vimeo.com/${vm[1]}`)}`, { headers: { 'user-agent': BOT_UA }, signal: AbortSignal.timeout(8000) });
+      if (!r.ok) { await r.body?.cancel(); return { ok: null, thumb: null }; }
+      const j = await r.json() as { thumbnail_url?: unknown };
+      return { ok: null, thumb: typeof j.thumbnail_url === 'string' ? j.thumbnail_url : null };
     }
   } catch { /* offline or slow */ }
+  return { ok: null, thumb: null };
+}
+const BOT_UA = 'Mozilla/5.0 (compatible; Jhino/1.0; +https://jhino.com)';
+const decodeEntities = (s: string) => s.replace(/&amp;/g, '&').replace(/&#(x?)([0-9a-f]+);/gi, (_, x: string, n: string) => String.fromCharCode(parseInt(n, x ? 16 : 10)));
+
+/* ---------------- video pictures ----------------
+ * A video shows on the page as a picture with a play button. YouTube's pictures have stable addresses
+ * (i.ytimg.com) and are used as they are, never copied. Vimeo, TikTok and Instagram give signed CDN
+ * addresses that expire, so a small copy is kept on disk (DATA_DIR/thumbs/<itemId>.jpg, at most 640 px
+ * wide) and served from /api/profile/<name>/thumb/<itemId>?v=<version>, cached for good by browsers and
+ * the CDN. Nothing about them is in the database. Only images, only from those platforms' CDNs, only
+ * over https, up to 1.5 MB before shrinking. Made when the video is saved; older items get theirs on
+ * first view, a few at a time; a failed try waits 6 hours.
+ */
+const THUMB_DIR = path.join(config.dataDir, 'thumbs');
+const THUMB_HOSTS = /(?:^|\.)(?:cdninstagram\.com|fbcdn\.net|tiktokcdn\.com|tiktokcdn-us\.com|tiktokcdn-eu\.com|ibyteimg\.com|vimeocdn\.com)$/i;
+const THUMB_EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif' };
+const THUMB_MAX = 1_500_000;
+const THUMB_KEEP_ORIGINAL = 300_000;
+const THUMB_RETRY_MS = 6 * 3600e3;
+const BACKFILL_AT_ONCE = 2;
+const youtubeId = (embed: string) => /youtube-nocookie\.com\/embed\/([\w-]{11})/.exec(embed)?.[1] ?? null;
+const safeItemId = (id: string) => /^[\w-]{4,40}$/.test(id);
+
+async function downloadImage(src: string): Promise<{ type: string; data: Buffer } | null> {
+  let at = src;
+  for (let hop = 0; hop < 3; hop++) {
+    let u: URL;
+    try { u = new URL(at); } catch { return null; }
+    if (u.protocol !== 'https:' || !THUMB_HOSTS.test(u.hostname) || u.username || u.password) return null;
+    const r = await fetch(u, { redirect: 'manual', headers: { accept: 'image/webp,image/jpeg,image/png,image/*;q=0.8', 'user-agent': BOT_UA }, signal: AbortSignal.timeout(10_000) });
+    const next = r.status >= 300 && r.status < 400 ? r.headers.get('location') : null;
+    if (next) { await r.body?.cancel(); at = new URL(next, u).toString(); continue; }
+    const type = (r.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase();
+    if (r.status !== 200 || !THUMB_EXT[type] || Number(r.headers.get('content-length') ?? 0) > THUMB_MAX || !r.body) { await r.body?.cancel(); return null; }
+    const parts: Buffer[] = [];
+    let size = 0;
+    for await (const chunk of r.body as unknown as AsyncIterable<Uint8Array>) {
+      size += chunk.length;
+      if (size > THUMB_MAX) return null;
+      parts.push(Buffer.from(chunk));
+    }
+    return size ? { type, data: Buffer.concat(parts) } : null;
+  }
   return null;
 }
+/** The picture made smaller: at most 640 px wide, JPEG (about 30 to 80 KB). Null when ffmpeg cannot. */
+function shrinkImage(data: Buffer): Promise<Buffer | null> {
+  const bin = ffmpegPath();
+  if (!bin) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const p = spawn(bin, ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-vf', "scale='min(640,iw)':-2", '-frames:v', '1', '-q:v', '6', '-f', 'image2', '-c:v', 'mjpeg', 'pipe:1'],
+      { stdio: ['pipe', 'pipe', 'ignore'], windowsHide: true });
+    const out: Buffer[] = [];
+    const timer = setTimeout(() => p.kill('SIGKILL'), 15_000);
+    p.stdout.on('data', (d: Buffer) => out.push(d));
+    p.on('error', () => { clearTimeout(timer); resolve(null); });
+    p.on('close', (code) => { clearTimeout(timer); const b = Buffer.concat(out); resolve(code === 0 && b.length > 500 ? b : null); });
+    p.stdin.on('error', () => { /* ffmpeg stopped reading: close tells */ });
+    p.stdin.end(data);
+  });
+}
+/** The kept picture for an item, if there is one. */
+function thumbFile(itemId: string): { file: string; type: string; version: string } | null {
+  if (!safeItemId(itemId)) return null;
+  for (const [type, ext] of Object.entries(THUMB_EXT)) {
+    const file = path.join(THUMB_DIR, `${itemId}.${ext}`);
+    try { const st = fs.statSync(file); return { file, type, version: Math.round(st.mtimeMs).toString(36) }; } catch { /* not this one */ }
+  }
+  return null;
+}
+function removeThumb(itemId: string) {
+  if (!safeItemId(itemId)) return;
+  thumbFailed.delete(itemId);
+  for (const ext of Object.values(THUMB_EXT)) fs.rmSync(path.join(THUMB_DIR, `${itemId}.${ext}`), { force: true });
+}
+const thumbJobs = new Map<string, Promise<void>>();
+const thumbFailed = new Map<string, number>();
+/** Fetch, shrink and keep the picture for one video item (one fetch per item at a time). src: already known. */
+function storeThumb(itemId: string, url: string, src?: string | null): Promise<void> {
+  const running = thumbJobs.get(itemId);
+  if (running) return running;
+  const job = (async () => {
+    const embed = embedOf(url);
+    if (!embed || youtubeId(embed) || !safeItemId(itemId)) return;
+    let data: Buffer | null = null, type = 'image/jpeg';
+    try {
+      const from = src ?? (await probeVideo(embed)).thumb;
+      const img = from ? await downloadImage(from) : null;
+      if (img) {
+        data = await shrinkImage(img.data);
+        if (!data && img.data.length <= THUMB_KEEP_ORIGINAL) { data = img.data; type = img.type; }
+      }
+    } catch { data = null; }
+    // The item may have gone, or changed its link, while this ran: only keep it for the link it still has.
+    if (!db.prepare("SELECT 1 FROM profile_items WHERE id=? AND url=? AND type='video'").get(itemId, url)) return;
+    if (!data) { thumbFailed.set(itemId, Date.now()); return; }
+    removeThumb(itemId);
+    fs.mkdirSync(THUMB_DIR, { recursive: true });
+    const file = path.join(THUMB_DIR, `${itemId}.${THUMB_EXT[type]}`);
+    fs.writeFileSync(file + '.part', data);
+    fs.renameSync(file + '.part', file);
+  })().finally(() => thumbJobs.delete(itemId));
+  thumbJobs.set(itemId, job);
+  return job;
+}
+const thumbDue = (itemId: string) => Date.now() - (thumbFailed.get(itemId) ?? 0) > THUMB_RETRY_MS;
+/** The picture address for a video item on the page, or null (the page then shows a plain card). */
+function thumbOf(username: string, r: ItemRow, embed: string): string | null {
+  const yt = youtubeId(embed);
+  // maxresdefault is not made for every video; the page falls back to hqdefault, which always is.
+  if (yt) return `https://i.ytimg.com/vi/${yt}/maxresdefault.jpg`;
+  const base = `/api/profile/${encodeURIComponent(username)}/thumb/${r.id}`;
+  const kept = thumbFile(r.id);
+  if (kept) return `${base}?v=${kept.version}`;
+  // Not made yet (an item from before pictures): asking for the picture makes it.
+  return thumbDue(r.id) ? base : null;
+}
+/** Pictures of items that are gone (an account deleted, say): removed at start. */
+function sweepThumbs() {
+  let names: string[] = [];
+  try { names = fs.readdirSync(THUMB_DIR); } catch { return; }
+  const has = db.prepare("SELECT 1 FROM profile_items WHERE id=? AND type='video'");
+  for (const n of names) {
+    const id = n.replace(/\.[a-z]+(\.part)?$/, '');
+    if (n.endsWith('.part') || !has.get(id)) fs.rmSync(path.join(THUMB_DIR, n), { force: true });
+  }
+}
+
 /** A page's text (up to 2 MB), or null when it did not answer 200 in time. */
 function getText(url: string, headers: Record<string, string>): Promise<string | null> {
   return new Promise((resolve) => {
@@ -187,7 +327,7 @@ function publicItems(u: UserRow, rows: ItemRow[], forOwner: boolean) {
     else if (r.type === 'link' && r.url) out.push({ id: r.id, type: 'link', title: r.title || hostOf(r.url), subtitle: r.subtitle || undefined, href: `/go/${r.id}`, url: r.url, thumb: null, highlight: !!r.highlight, ...hidden });
     else if (r.type === 'video' && r.url) {
       const embed = embedOf(r.url);
-      if (embed) out.push({ id: r.id, type: 'video', title: r.title, embed, href: `/go/${r.id}`, ...hidden });
+      if (embed) out.push({ id: r.id, type: 'video', title: r.title, embed, href: `/go/${r.id}`, thumb: thumbOf(u.username!, r, embed), ...hidden });
       else out.push({ id: r.id, type: 'link', title: r.title || hostOf(r.url), subtitle: 'Video', href: `/go/${r.id}`, url: r.url, thumb: null, ...hidden });
     } else if (r.type === 'app' && r.app_id) {
       const a = db.prepare('SELECT id, name, slug, root_slug, access, share_token FROM apps WHERE id=? AND owner_id=? AND deleted_at IS NULL').get(r.app_id, u.id) as { id: string; name: string; slug: string | null; root_slug: string | null; access: string; share_token: string | null } | undefined;
@@ -312,6 +452,7 @@ export function registerProfiles(app: FastifyInstance) {
   // Every person with a username has a live page from the start (public, listed), even before they open My page.
   const made = db.prepare("INSERT OR IGNORE INTO profiles(user_id, updated_at) SELECT id, created_at FROM users WHERE kind='person' AND username IS NOT NULL").run().changes;
   if (made) console.log(`  Made ${made} people's pages live.`);
+  sweepThumbs();
   /** The public page's data. The owner also gets hidden items (marked), for the editor's preview. */
   app.get('/api/profile/:name', async (req) => {
     limit(req, 'profile-read', 240, 60_000);
@@ -347,6 +488,33 @@ export function registerProfiles(app: FastifyInstance) {
     const type = u.avatar.endsWith('.png') ? 'image/png' : u.avatar.endsWith('.webp') ? 'image/webp' : 'image/jpeg';
     reply.header('Cache-Control', 'public, max-age=86400').header('X-Content-Type-Options', 'nosniff').header('Content-Security-Policy', "sandbox; default-src 'none'");
     return reply.type(type).send(fs.readFileSync(file));
+  });
+
+  /**
+   * A video's picture (Vimeo, TikTok, Instagram), kept on disk. With ?v= (the page always adds it once the
+   * picture is kept) it never changes, so browsers and the CDN keep it for good. Items from before
+   * pictures get theirs here on first view, a few at a time; the rest show a plain card until later.
+   */
+  app.get('/api/profile/:name/thumb/:id', async (req, reply) => {
+    limit(req, 'profile-thumb', 600, 60_000);
+    const { name, id } = req.params as { name: string; id: string };
+    const u = userByName(name);
+    const item = u && safeItemId(id) ? db.prepare("SELECT * FROM profile_items WHERE id=? AND user_id=? AND type='video'").get(id, u.id) as ItemRow | undefined : undefined;
+    const owner = !!u && !!req.user && !req.pub && !req.desk && req.user.id === u.id;
+    if (!u || !item?.url || ((!item.visible || !profileOf(u.id).published) && !owner)) throw new HttpError(404, 'NOT_FOUND', 'No picture.');
+    let kept = thumbFile(item.id);
+    if (!kept && thumbDue(item.id) && (thumbJobs.has(item.id) || thumbJobs.size < BACKFILL_AT_ONCE)) {
+      await storeThumb(item.id, item.url);
+      kept = thumbFile(item.id);
+    }
+    if (!kept) {
+      reply.header('Cache-Control', 'no-store');
+      throw new HttpError(404, 'NOT_FOUND', 'No picture yet.');
+    }
+    const versioned = (req.query as { v?: string }).v === kept.version;
+    reply.header('Cache-Control', versioned ? 'public, max-age=31536000, immutable' : 'public, max-age=300')
+      .header('X-Content-Type-Options', 'nosniff').header('Content-Security-Policy', "sandbox; default-src 'none'");
+    return reply.type(kept.type).send(fs.createReadStream(kept.file));
   });
 
   /** Every link on a page goes through here: count the click, then go. */
@@ -471,16 +639,20 @@ export function registerProfiles(app: FastifyInstance) {
       highlight: b.highlight === undefined ? cur?.highlight ?? 0 : b.highlight ? 1 : 0,
       visible: b.visible === undefined ? cur?.visible ?? 1 : b.visible ? 1 : 0,
     };
+    // The platform's picture for a video, found while checking the link (kept by storeThumb once saved).
+    let thumbSrc: string | null = null;
     if ((type === 'link' || type === 'video') && (b.url !== undefined || !cur)) out.url = httpUrl(b.url, type === 'video' ? 'video link' : 'address');
     if (type === 'video' && out.url && b.url !== undefined) {
       out.url = await resolveVideoUrl(out.url);
       const embed = embedOf(out.url);
       if (!embed) throw new HttpError(400, 'VALIDATION_FAILED', 'Paste a YouTube, Vimeo, TikTok or Instagram post link to play it on the page, like tiktok.com/@name/video/… or instagram.com/reel/….');
-      if (await embeddable(embed) === false) {
+      const probe = await probeVideo(embed);
+      if (probe.ok === false) {
         throw new HttpError(400, 'VALIDATION_FAILED', /instagram/.test(embed)
           ? 'Instagram will not show this post on other sites. It may be private, removed, or its owner turned off embedding. Check that it opens when you are signed out of Instagram, then copy its link again.'
           : 'TikTok will not play this video on other sites. It may be private, removed, or its owner turned off embedding.');
       }
+      thumbSrc = probe.thumb;
     }
     if (type === 'text' && (b.text !== undefined || !cur)) { out.text = String(b.text ?? '').trim().slice(0, 1000); if (!out.text) throw new HttpError(400, 'VALIDATION_FAILED', 'Write the text.'); }
     if (type === 'header' && !out.title) throw new HttpError(400, 'VALIDATION_FAILED', 'Write the heading.');
@@ -490,7 +662,7 @@ export function registerProfiles(app: FastifyInstance) {
       out.app_id = String(b.appId);
     }
     if (out.highlight && featuresOf(u).themeTier === 'free') throw new HttpError(403, 'PLAN_FEATURE', 'Highlighting a link is on Plus and Pro. Upgrade in Plan & usage.', { feature: 'highlight' });
-    return out;
+    return { ...out, thumbSrc };
   }
   /** Links added, changed, removed or reordered: the page changed (the sitemap's lastmod follows). */
   const touchPage = (userId: string) => db.prepare('UPDATE profiles SET updated_at=? WHERE user_id=?').run(now(), userId);
@@ -503,9 +675,12 @@ export function registerProfiles(app: FastifyInstance) {
     const t = now();
     const first = (req.body as { position?: string })?.position !== 'end';
     const position = first ? pos : (db.prepare('SELECT COALESCE(MAX(position),0)+1 n FROM profile_items WHERE user_id=?').get(u.id) as { n: number }).n;
+    const id = newId('pi');
     db.prepare('INSERT INTO profile_items(id,user_id,position,type,title,subtitle,url,text,app_id,highlight,visible,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)')
-      .run(newId('pi'), u.id, position, v.type, v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, t, t);
+      .run(id, u.id, position, v.type, v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, t, t);
     touchPage(u.id);
+    // The video's picture is kept now, so the page shows it at once.
+    if (v.type === 'video' && v.url) await storeThumb(id, v.url, v.thumbSrc);
     return editorView(u);
   });
   app.patch('/api/me/page/items/:id', async (req) => {
@@ -516,11 +691,17 @@ export function registerProfiles(app: FastifyInstance) {
     db.prepare('UPDATE profile_items SET title=?, subtitle=?, url=?, text=?, app_id=?, highlight=?, visible=?, updated_at=? WHERE id=?')
       .run(v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, now(), cur.id);
     touchPage(u.id);
+    // A new link: the old picture goes, the new one is kept.
+    if (cur.type === 'video' && v.url !== cur.url) {
+      removeThumb(cur.id);
+      if (v.url) await storeThumb(cur.id, v.url, v.thumbSrc);
+    }
     return editorView(u);
   });
   app.delete('/api/me/page/items/:id', async (req) => {
     const u = me(req);
-    db.prepare('DELETE FROM profile_items WHERE id=? AND user_id=?').run((req.params as { id: string }).id, u.id);
+    const id = (req.params as { id: string }).id;
+    if (db.prepare('DELETE FROM profile_items WHERE id=? AND user_id=?').run(id, u.id).changes) removeThumb(id);
     touchPage(u.id);
     return editorView(u);
   });

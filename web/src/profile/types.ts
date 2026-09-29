@@ -20,8 +20,11 @@ export type ProfileItem = (
   | { id: string; type: 'link'; title: string; subtitle?: string; href: string; url: string; thumb?: string | null; highlight?: boolean }
   | { id: string; type: 'header'; title: string }
   | { id: string; type: 'text'; text: string }
-  /** A YouTube, Vimeo, TikTok or Instagram post, played in the page. embed is the player address. */
-  | { id: string; type: 'video'; title: string; embed: string; href: string }
+  /**
+   * A YouTube, Vimeo, TikTok or Instagram post, shown as a picture card and played on the page. embed is the
+   * player address; thumb the picture (YouTube's own, or Jhino's kept copy), null for a plain card.
+   */
+  | { id: string; type: 'video'; title: string; embed: string; href: string; thumb?: string | null }
   /** One of the person's Jhino apps (opens at its address). installable: visitors can add it to their home screen. */
   | { id: string; type: 'app'; title: string; subtitle?: string; href: string; installable?: boolean }
 ) & {
