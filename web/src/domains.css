@@ -109,3 +109,11 @@
 .cf-steps small { color: var(--ink-3); font-size: 12.5px; }
 .cf-form { display: flex; gap: 8px; flex-wrap: wrap; }
 .cf-form .input { flex: 1 1 280px; min-width: 0; }
+
+/* Super Admin: how many of Cloudflare's free hostnames are used */
+.cf-usage { border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); padding: 14px 18px; display: grid; gap: 8px; margin-bottom: 18px; }
+.cf-usage-top { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.cf-meter { height: 8px; border-radius: 4px; background: var(--paper-3); overflow: hidden; }
+.cf-meter i { display: block; height: 100%; background: var(--ink); transform-origin: left; transition: transform 300ms var(--ease); }
+.cf-meter i.near { background: var(--warn); }
+.cf-meter i.full { background: var(--danger); }

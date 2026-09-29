@@ -1010,7 +1010,10 @@ export function registerCustomDomains(app: FastifyInstance) {
       WHERE (?='' OR lower(d.hostname) LIKE ? ESCAPE '!' OR lower(COALESCE(d.alt_hostname,'')) LIKE ? ESCAPE '!' OR lower(COALESCE(u.email,'')) LIKE ? ESCAPE '!' OR lower(COALESCE(a.name,'')) LIKE ? ESCAPE '!')
       ORDER BY d.created_at DESC LIMIT 500`).all(q, like, like, like, like) as (DomainRow & { owner_name: string | null; owner_email: string | null; app_name: string | null })[];
     const counts = db.prepare('SELECT status, COUNT(*) n FROM custom_domains GROUP BY status').all() as { status: string; n: number }[];
+    // Cloudflare counts every hostname: a domain with the www option is two.
+    const hostnames = (db.prepare('SELECT COUNT(*) + COUNT(alt_hostname) n FROM custom_domains').get() as { n: number }).n;
     return {
+      hostnames,
       ...setupInfo(),
       counts: Object.fromEntries(counts.map((r) => [r.status, r.n])),
       domains: rows.map((r) => ({ ...view(r), ownerId: r.owner_id, ownerName: r.owner_name, ownerEmail: r.owner_email, appName: r.app_name })),

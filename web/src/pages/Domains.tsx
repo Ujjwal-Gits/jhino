@@ -368,7 +368,7 @@ export function DomainsAdmin() {
   const toast = useToast();
   const { user } = useSession();
   const [q, setQ] = useState('');
-  const [d, setD] = useState<{ mode: 'cloudflare' | 'self'; target: string; aRecord: string | null; counts: Record<string, number>; domains: AdminDomainT[] } | null>(null);
+  const [d, setD] = useState<{ mode: 'cloudflare' | 'self'; target: string; aRecord: string | null; counts: Record<string, number>; hostnames?: number; domains: AdminDomainT[] } | null>(null);
   const [busy, setBusy] = useState('');
   const load = useCallback(() => get<typeof d>(`/api/admin/domains?q=${encodeURIComponent(q)}`).then(setD, () => {}), [q]);
   useEffect(() => { const t = setTimeout(load, 150); return () => clearTimeout(t); }, [load]);
@@ -387,6 +387,16 @@ export function DomainsAdmin() {
         </div>
       </div>
       <CloudflareCard onChange={load} />
+      {d && d.hostnames !== undefined && (() => {
+        const used = d.hostnames, free = 100, over = Math.max(0, used - free);
+        return (
+          <section className="cf-usage" aria-label="Cloudflare usage">
+            <div className="cf-usage-top"><b>Cloudflare hostnames</b><span className="mono">{used} of {free} free</span></div>
+            <div className="cf-meter" aria-hidden="true"><i style={{ transform: `scaleX(${Math.min(1, used / free)})` }} className={used >= free ? 'full' : used >= free * 0.8 ? 'near' : ''} /></div>
+            <p className="hint">{over ? <>{over} over the free 100: about <b>USD {(over * 0.1).toFixed(2)} a month</b> at Cloudflare's USD 0.10 per extra hostname.</> : <>No cost until 100. After that Cloudflare charges USD 0.10 for each extra hostname.</>} A domain with the www option counts as two. Check the exact bill in Cloudflare → Billing.</p>
+          </section>
+        );
+      })()}
       {d && (
         <dl className="store-row">
           <div><dt>Live</dt><dd className="mono">{c.active ?? 0}</dd></div>
