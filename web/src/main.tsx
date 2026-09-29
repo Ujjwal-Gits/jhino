@@ -114,6 +114,8 @@ function App() {
   else if (previewOf && !user) page = <Login onDone={refresh} />;
   else if (previewOf && user?.username?.toLowerCase() === previewOf) page = <PagePreview />;
   else if (shareMatch || under) page = <PublicApp refId={shareMatch ? shareMatch[1] : under!} signedInUser={user} />;
+  // Your own page sits in the same dashboard frame as every other section, so the frame is not rebuilt on the way in or out.
+  else if (person && user?.username && user.username.toLowerCase() === person.toLowerCase()) page = <Shell><PersonPage name={person} user={user} framed /></Shell>;
   else if (person) page = <PersonPage name={person} user={user} />;
   else if (path === '/_themes' && user?.isAdmin) page = <ThemeGallery />;
   // The website is always at the main address; the dashboard lives at /apps.

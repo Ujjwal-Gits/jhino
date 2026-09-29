@@ -21,7 +21,7 @@ import type { ProfileData, SocialKind, Tier } from '../profile/types';
 
 interface PublicResp { profile: ProfileData; owner: boolean; custom: boolean; published: boolean }
 
-export function PersonPage({ name, user }: { name: string; user: User | null }) {
+export function PersonPage({ name, user, framed = false }: { name: string; user: User | null; framed?: boolean }) {
   const [d, setD] = useState<PublicResp | null | 'none'>(null);
   useEffect(() => {
     setD(null);
@@ -31,10 +31,10 @@ export function PersonPage({ name, user }: { name: string; user: User | null }) 
     );
   }, [name]);
   // Your own page: keep the dashboard frame on screen while it loads.
-  if (d === null) return user?.username && user.username.toLowerCase() === name.toLowerCase() ? <Shell><PanelLoader /></Shell> : <main className="state-card" aria-busy="true"><span className="spin" /></main>;
+  if (d === null) return framed ? <PanelLoader /> : <main className="state-card" aria-busy="true"><span className="spin" /></main>;
   // Not a person: a top-level address (made by a super admin, or before usernames).
   if (d === 'none') return <PublicApp refId={name} signedInUser={user} />;
-  if (d.owner && user) return <Shell><MyPage /></Shell>;
+  if (d.owner && user) return framed ? <MyPage /> : <Shell><MyPage /></Shell>;
   return <PublicProfile d={d} />;
 }
 
