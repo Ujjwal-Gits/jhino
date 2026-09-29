@@ -402,6 +402,16 @@ function startJob() {
       // Apps deleted for good: let their domains go too.
       const gone = db.prepare('SELECT d.* FROM custom_domains d LEFT JOIN apps a ON a.id=d.app_id WHERE a.id IS NULL LIMIT 20').all() as DomainRow[];
       for (const d of gone) await removeDomain(d).catch(() => {});
+      // Plan ended (no longer Pro) or account gone: disconnect the domain fully, so the site stops opening here
+      // and it stops counting at Cloudflare. Domains a super admin gave are kept.
+      const rows = db.prepare('SELECT * FROM custom_domains WHERE granted=0').all() as DomainRow[];
+      for (const d of rows) {
+        const owner = db.prepare('SELECT * FROM users WHERE id=?').get(d.owner_id) as UserRow | undefined;
+        if (owner?.is_admin || (owner && !pausedByPlan(d, owner))) continue;
+        await removeDomain(d).then(() => {
+          if (owner) notify(owner.id, 'account', `${d.hostname} was disconnected`, 'Custom domains are part of Pro. Your plan ended, so the domain no longer opens your app. Renew Pro and connect it again whenever you like; your app and its data are unchanged.', '/account/plan');
+        }).catch(() => {});
+      }
     } catch (e) { console.error('  [domains]', (e as Error).message); }
     busy = false;
   };
