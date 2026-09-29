@@ -560,3 +560,7 @@ details.adv[open] { display: grid; gap: 12px; }
 .pf-custom-badge:hover { transform: translateY(-1px); }
 .pf-custom-badge .pf-wordmark { color: #151412; }
 .mp-phone .pf-custom-badge, .pv-screen .pf-custom-badge { position: absolute; }
+
+/* Request a feature: sent state */
+.fb-sent { display: flex; gap: 12px; align-items: flex-start; color: var(--ink-2); }
+.fb-sent svg { color: var(--ok); flex: none; margin-top: 2px; }

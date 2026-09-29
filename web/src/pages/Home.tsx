@@ -7,6 +7,7 @@ import { Icon, ago, useToast } from '../ui';
 import { Brand, appPathOf } from './Apps';
 import { HomeApps } from './Tools';
 import { Welcome } from '../Welcome';
+import { FeedbackDialog } from '../FeedbackDialog';
 import type { InterestState } from '../appsPrefs';
 
 /*
@@ -30,6 +31,7 @@ export function HomePage() {
   const [pulse, setPulse] = useState<Record<string, Pulse>>({});
   const [day, setDay] = useState<Day | null>(null);
   const [pins, setPins] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState(false);
   const [welcome, setWelcome] = useState(false);
   useEffect(() => { if (user.canCreate) get<InterestState>('/api/home/interests').then((r) => setWelcome(r.onboard), () => {}); }, [user.canCreate]);
 
@@ -83,7 +85,7 @@ export function HomePage() {
         {user.canCreate && (
           <div className="hm-acts">
             <Link to="/links" className="btn"><Icon name="link" size={16} />Short link</Link>
-            <Link to="/help?kind=feedback" className="btn"><Icon name="spark" size={16} />Request a feature</Link>
+            <button className="btn" onClick={() => setFeedback(true)}><Icon name="spark" size={16} />Request a feature</button>
           </div>
         )}
       </div>
@@ -134,6 +136,7 @@ export function HomePage() {
           )}
         </section>
       </div>
+      {feedback && <FeedbackDialog onClose={() => setFeedback(false)} />}
     </main>
   );
 }

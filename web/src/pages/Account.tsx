@@ -793,7 +793,7 @@ function HelpSection() {
         <li><Link to="/help"><b>Help center</b><small>Guides for sharing, plans, bookings and more</small></Link></li>
         <li><Link to="/help#contact-h"><b>Contact support</b><small>Write to us; we answer by email</small></Link></li>
         <li><Link to="/help?kind=problem"><b>Report a problem</b><small>We add the page and browser for you</small></Link></li>
-        <li><Link to="/help?kind=feedback"><b>Send feedback</b><small>What would make Jhino better for you</small></Link></li>
+        <li><a href="/help?kind=feedback" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event('jhino-feedback')); }}><b>Send feedback</b><small>What would make Jhino better for you</small></a></li>
         <li><Link to="/terms"><b>Terms of Service</b></Link></li>
         <li><Link to="/privacy"><b>Privacy Policy</b></Link></li>
       </ul>

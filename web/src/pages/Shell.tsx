@@ -1,5 +1,6 @@
 import { Wordmark } from '../Logo';
 import { QuickTools } from '../QuickTools';
+import { FeedbackDialog } from '../FeedbackDialog';
 import { PanelLoader } from '../Loader';
 import { QuickSearch, type Hit } from '../Search';
 import { bsToday } from '../bs';
@@ -133,6 +134,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const [menuFor, setMenuFor] = useState<HTMLElement | null>(null);
   const [dialog, setDialog] = useState<'upload' | null>(null);
   const [dropped, setDropped] = useState<File | null>(null);
+  // Any page can open the feature-request form (Account → Send feedback).
+  const [feedback, setFeedback] = useState(false);
+  useEffect(() => { const on = () => setFeedback(true); addEventListener('jhino-feedback', on); return () => removeEventListener('jhino-feedback', on); }, []);
   const [dragging, setDragging] = useState(false);
 
   // Drop an app anywhere on the page to upload it.
@@ -267,6 +271,7 @@ export function Shell({ children }: { children: ReactNode }) {
       )}
       {user.canCreate && <QuickTools />}
       {dialog === 'upload' && <UploadDialog file={dropped} onClose={() => setDialog(null)} />}
+      {feedback && <FeedbackDialog onClose={() => setFeedback(false)} />}
       {dragging && <div className="dropping-overlay">Drop to upload your app</div>}
     </>
   );
