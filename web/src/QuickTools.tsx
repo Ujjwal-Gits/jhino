@@ -46,9 +46,10 @@ function useItems(kind: string) {
   const [items, setItems] = useState<Item[] | null>(null);
   const load = useCallback(() => get<{ items: Item[] }>(`/api/tools/${kind}`).then((r) => setItems(r.items), (e) => toast(msg(e, 'Could not load.'), true)), [kind, toast]);
   useEffect(() => { load(); }, [load]);
-  const add = async (b: Record<string, unknown>) => { try { const r = await post<{ item: Item }>(`/api/tools/${kind}`, b); setItems((l) => [r.item, ...(l ?? [])]); return r.item; } catch (e) { toast(msg(e, 'Could not save.'), true); return null; } };
-  const save = async (id: string, b: Record<string, unknown>) => { try { const r = await api<{ item: Item }>('PATCH', `/api/tools/${kind}/${id}`, b); setItems((l) => (l ?? []).map((x) => (x.id === id ? r.item : x))); return r.item; } catch (e) { toast(msg(e, 'Could not save.'), true); return null; } };
-  const remove = async (id: string) => { try { await api('DELETE', `/api/tools/${kind}/${id}`); setItems((l) => (l ?? []).filter((x) => x.id !== id)); } catch (e) { toast(msg(e, 'Could not delete.'), true); } };
+  const changed = () => window.dispatchEvent(new Event('jhino-tools-changed'));
+  const add = async (b: Record<string, unknown>) => { try { const r = await post<{ item: Item }>(`/api/tools/${kind}`, b); setItems((l) => [r.item, ...(l ?? [])]); changed(); return r.item; } catch (e) { toast(msg(e, 'Could not save.'), true); return null; } };
+  const save = async (id: string, b: Record<string, unknown>) => { try { const r = await api<{ item: Item }>('PATCH', `/api/tools/${kind}/${id}`, b); setItems((l) => (l ?? []).map((x) => (x.id === id ? r.item : x))); changed(); return r.item; } catch (e) { toast(msg(e, 'Could not save.'), true); return null; } };
+  const remove = async (id: string) => { try { await api('DELETE', `/api/tools/${kind}/${id}`); setItems((l) => (l ?? []).filter((x) => x.id !== id)); changed(); } catch (e) { toast(msg(e, 'Could not delete.'), true); } };
   return { items, add, save, remove, load };
 }
 const Stamp = ({ i }: { i: Item }) => <small className="qt-stamp">Added by {i.createdBy} {ago(i.createdAt)}{i.updatedAt !== i.createdAt ? ` · edited by ${i.updatedBy} ${ago(i.updatedAt)}` : ''}</small>;
@@ -62,6 +63,8 @@ export function QuickTools({ actions }: { actions?: { label: string; to?: string
   const openPlus = (el: HTMLElement) => { const b = el.getBoundingClientRect(); setPlus(innerWidth <= 760 ? { bottom: innerHeight - b.top + 8, right: 10 } : { top: Math.min(b.top, innerHeight - 380), right: innerWidth - b.left + 10 }); };
   const timer = useTimer();
   useEffect(() => { try { if (open) sessionStorage.setItem('jhino-qt', open); else sessionStorage.removeItem('jhino-qt'); } catch { /* private mode */ } }, [open]);
+  // Other screens can open a tool (Home's "All tasks").
+  useEffect(() => { const on = (e: Event) => { setPlus(null); setOpen((e as CustomEvent).detail as ToolKey); }; addEventListener('jhino-tool', on); return () => removeEventListener('jhino-tool', on); }, []);
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(null); setPlus(null); } }; addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, []);
   const tool = TOOLS.find((t) => t.key === open);
   return (

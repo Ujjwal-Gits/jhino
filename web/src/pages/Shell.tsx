@@ -2,7 +2,7 @@ import { Wordmark } from '../Logo';
 import { QuickTools } from '../QuickTools';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
-import { Link, useRoute, useSession } from '../context';
+import { Link, useRoute, useSession, applyTheme } from '../context';
 import { live } from '../live';
 import { Avatar, Icon, Menu, Modal, ago, useToast } from '../ui';
 import { VerifyGate } from './VerifyGate';
@@ -144,43 +144,77 @@ export function Shell({ children }: { children: ReactNode }) {
   // Room for the quick-tools rail on the right (a bottom bar on phones).
   useEffect(() => { if (!user.canCreate) return; document.body.classList.add('has-qt'); return () => document.body.classList.remove('has-qt'); }, [user.canCreate]);
 
-  const tab = (to: string, label: string, cls = '') => (
-    <Link to={to} className={`tab ${cls}`} aria-current={path === to ? 'page' : undefined}>{label}</Link>
+  const [drawer, setDrawer] = useState(false);
+  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark');
+  const [q, setQ] = useState('');
+  useEffect(() => { setDrawer(false); }, [path]);
+  const nav = (to: string, label: string, icon: ReactNode, badge?: number) => (
+    <Link to={to} aria-current={path === to ? 'page' : undefined}>{icon}<span>{label}</span>{!!badge && <span className="dsh-count mono">{badge}</span>}</Link>
   );
+  const I = (d: string) => <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
+  const today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
     <>
       {user.mustVerify && <VerifyGate user={user} onDone={refresh} />}
-      <header className="topbar">
-        <div className="topbar-inner">
-          <Link to={user.canCreate ? '/home' : '/apps'} className="wordmark" aria-label="Your Jhino home"><Wordmark /></Link>
-          {user.canCreate ? (
-            <nav className="tabs" aria-label="Apps">
-              {tab('/home', 'Home')}
-              {user.username && tab(`/${user.username}`, 'My page')}
-              {tab('/apps', 'My apps')}
-              {tab('/shared', 'Shared with me')}
-              {tab('/links', 'Links')}
-              {tab('/trash', 'Trash', 'tab-trash')}
-            </nav>
-          ) : <span className="who-tag hide-sm">Apps shared with you</span>}
-          <div className="spacer" />
-          {user.canCreate && (
-            <div className="home-actions">
-              <button className="btn primary sm" onClick={() => { setDropped(null); setDialog('upload'); }} aria-label="Upload HTML or ZIP">
-                <Icon name="upload" size={16} /><span className="new-label">Upload HTML</span><span className="up-label">Upload</span>
-              </button>
-              <button className="btn sm" onClick={() => go('/build')} aria-keyshortcuts="n" aria-label="Create app">
-                <Icon name="plus" size={16} /><span className="new-label">Create app</span>
-              </button>
-            </div>
-          )}
-          <Bell />
-          <button className="avatar-btn" onClick={(e) => setMenuFor(e.currentTarget)} aria-label="Account menu" aria-haspopup="menu" aria-expanded={!!menuFor}>
-            <Avatar name={user.name} src={avatarUrl(user)} />
-          </button>
+      <div className="dsh">
+        <aside className={`dsh-side ${drawer ? 'open' : ''}`} aria-label="Jhino">
+          <div className="dsh-brand">
+            <Link to={user.canCreate ? '/home' : '/apps'} className="wordmark" aria-label="Your Jhino home"><Wordmark /></Link>
+            <button className="icon-btn dsh-close" onClick={() => setDrawer(false)} aria-label="Close menu"><Icon name="close" /></button>
+          </div>
+          <nav className="dsh-nav" aria-label="Workspace">
+            <p className="dsh-group">Workspace</p>
+            {user.canCreate ? <>
+              {nav('/home', 'Home', I('M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z'))}
+              {nav('/apps', 'My apps', <Icon name="grid" size={18} />)}
+              {nav('/shared', 'Shared with me', <Icon name="users" size={18} />)}
+              {nav('/links', 'Links', <Icon name="link" size={18} />)}
+              {user.username && nav(`/${user.username}`, 'My page', <Icon name="user" size={18} />)}
+              {nav('/trash', 'Trash', <Icon name="trash" size={18} />)}
+            </> : nav('/apps', 'Your apps', <Icon name="grid" size={18} />)}
+            <p className="dsh-group">Account</p>
+            {nav('/account/profile', 'Profile', <Icon name="user" size={18} />)}
+            {user.canCreate && nav('/account/plan', 'Plan & usage', <Icon name="chart" size={18} />)}
+            {user.canCreate && nav('/account/billing', 'Billing', <Icon name="card" size={18} />)}
+            {nav('/account/notifications', 'Notifications', <Icon name="bell" size={18} />)}
+            {nav('/account/security', 'Security', <Icon name="shield" size={18} />)}
+            {nav('/help', 'Help & support', <Icon name="help" size={18} />)}
+            {user.isAdmin && <><p className="dsh-group">Admin</p>{nav('/admin', 'Super Admin', <Icon name="lock" size={18} />)}</>}
+          </nav>
+        </aside>
+        {drawer && <div className="dsh-scrim" onClick={() => setDrawer(false)} aria-hidden="true" />}
+        <div className="dsh-main">
+          <header className="dsh-top">
+            <button className="icon-btn dsh-menu" onClick={() => setDrawer(true)} aria-label="Open menu" aria-expanded={drawer}><Icon name="list" /></button>
+            {user.canCreate && (
+              <form className="dsh-search" role="search" onSubmit={(e) => { e.preventDefault(); go(`/apps?q=${encodeURIComponent(q.trim())}`); window.dispatchEvent(new CustomEvent('jhino-search', { detail: q.trim() })); }}>
+                <Icon name="search" size={16} /><input aria-label="Search your apps" placeholder="Search apps, clients, people" value={q} onChange={(e) => setQ(e.target.value)} />
+              </form>
+            )}
+            <div className="spacer" />
+            <span className="dsh-date hide-sm">{today}</span>
+            {user.canCreate && (
+              <div className="home-actions">
+                <button className="btn primary sm" onClick={() => { setDropped(null); setDialog('upload'); }} aria-label="Upload HTML or ZIP">
+                  <Icon name="upload" size={16} /><span className="new-label">Upload HTML</span><span className="up-label">Upload</span>
+                </button>
+                <button className="btn sm" onClick={() => go('/build')} aria-keyshortcuts="n" aria-label="Create app">
+                  <Icon name="plus" size={16} /><span className="new-label">Create app</span>
+                </button>
+              </div>
+            )}
+            <Bell />
+            <button className="icon-btn" aria-label={dark ? 'Use light theme' : 'Use dark theme'} title={dark ? 'Light theme' : 'Dark theme'} onClick={() => { applyTheme(dark ? 'light' : 'dark'); setDark(!dark); }}>
+              {I(dark ? 'M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M5.6 18.4l-1.4 1.4M19.8 4.2l-1.4 1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z' : 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z')}
+            </button>
+            <button className="avatar-btn" onClick={(e) => setMenuFor(e.currentTarget)} aria-label="Account menu" aria-haspopup="menu" aria-expanded={!!menuFor}>
+              <Avatar name={user.name} src={avatarUrl(user)} />
+            </button>
+          </header>
+          {children}
         </div>
-      </header>
+      </div>
       {menuFor && (
         <Menu anchor={menuFor} onClose={() => setMenuFor(null)}>
           <div className="who"><b>{user.displayName || user.name}</b><span>{user.email}</span></div>
@@ -200,7 +234,6 @@ export function Shell({ children }: { children: ReactNode }) {
           <button role="menuitem" onClick={async () => { await post('/api/auth/logout'); await refresh(); go('/login', true); }}><Icon name="logout" size={16} />Log out</button>
         </Menu>
       )}
-      {children}
       {user.canCreate && <QuickTools actions={[
         { label: 'Create an app', to: '/build' },
         { label: 'Upload HTML or ZIP', onClick: () => { setDropped(null); setDialog('upload'); } },

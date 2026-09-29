@@ -66,7 +66,9 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
   const [apps, setApps] = useState<AppSummary[] | null>(null);
   const [pulse, setPulse] = useState<Record<string, Pulse>>({});
   const [error, setError] = useState('');
-  const [q, setQ] = useState('');
+  const [q, setQ] = useState(() => new URLSearchParams(location.search).get('q') ?? '');
+  // The search box in the top bar.
+  useEffect(() => { const on = (e: Event) => setQ(String((e as CustomEvent).detail ?? '')); addEventListener('jhino-search', on); return () => removeEventListener('jhino-search', on); }, []);
   const [kind, setKind] = useState<Kind>('all');
   const [sort, setSort] = useState<Sort>(() => readPref('jhino-sort', ['recent', 'name', 'new'], 'recent'));
   const [upload, setUpload] = useState(false);
