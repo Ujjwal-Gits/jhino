@@ -1,45 +1,76 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ApiError, api, get, post } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { PanelLoader } from '../Loader';
 import { Icon, ago, bytes, copyText, Modal, useToast } from '../ui';
-import { Calendar, Contacts, LOFI, Notes, P, QrMaker, QrSvg, ShortLinks, Subs, TOOLS, Tasks, focusTimer, useTimer, ytId } from '../QuickTools';
+import { Calendar, Contacts, Notes, P, QrMaker, QrSvg, TOOLS, Tasks, useTimer } from '../QuickTools';
 import { Calculator, ColourTool, Encoder, JsonTool, NepaliDate, Passwords, WorldClock } from '../MoreTools';
 import { UploadDialog } from './Shell';
 import '../tools.css';
+import '../apps.css';
 
 /*
- * Apps on the dashboard: twelve everyday apps, each with a full page at /home/<key>. Home shows six of
- * them as cards, and the person picks which six (saved to their account). The side rail's tools also open
+ * Apps on the dashboard: twenty everyday apps, each with a full page at /home/<key>. Home shows nine of
+ * them as cards, and the person picks which nine (saved to their account). The side rail's tools also open
  * full-page from here. Smart links, dynamic QR codes and Ask me anything are saved on the server
  * (server/mini.ts); the text and image tools run only in the browser.
  */
-type AppKey = 'upload' | 'bio' | 'smart' | 'qr' | 'ask' | 'focus' | 'text' | 'image' | 'links' | 'tasks' | 'notes' | 'date';
-interface DashApp { key: AppKey; label: string; desc: string; d: string; to?: string }
+type AppKey = 'upload' | 'bio' | 'smart' | 'qr' | 'ask' | 'focus' | 'subs' | 'image' | 'pdf' | 'wordpdf' | 'pdfword' | 'currency' | 'text' | 'fonts' | 'thumb' | 'picker' | 'emi' | 'date' | 'password' | 'links';
+interface DashApp { key: AppKey; label: string; desc: string; d: string; to?: string; group: string }
 const D = {
   upload: 'M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4',
   bio: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM6 21v-1a6 6 0 0 1 12 0v1M3 3h4M17 3h4',
   smart: 'M6 3h5v7H6zM13 14h5v7h-5zM8.5 10v4a2 2 0 0 0 2 2h2.5M15.5 14V9a2 2 0 0 0-2-2H11',
   ask: 'M4 5h16v11H9l-5 4zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.4M12 14.5h.01',
   image: 'M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15 9h.01',
+  subs: 'M4 6h16v12H4zM4 10h16M8 15h3M16 3v3M8 3v3',
+  pdf: 'M7 3h7l5 5v13H7zM14 3v5h5M9.5 13h5M9.5 17h5',
+  wordpdf: 'M5 3h7l4 4v6M12 3v4h4M6 9l1.2 5 1.3-4 1.3 4L11 9M14 17h7M18 14l3 3-3 3',
+  pdfword: 'M5 3h7l4 4v6M12 3v4h4M6 10h4M6 13h3M14 17h7M18 14l3 3-3 3',
+  currency: 'M12 3v18M16.5 7.5c-.8-1.2-2.4-2-4.5-2-2.8 0-4.5 1.4-4.5 3.2 0 4.3 9 2.3 9 6.6 0 1.9-1.9 3.2-4.5 3.2-2.3 0-4-.9-4.8-2.3',
+  fonts: 'M4 19l5-14 5 14M6 14h6M17 8v11M14.5 11h5',
+  thumb: 'M3 6h18v12H3zM10 9.5v5l4.5-2.5z',
+  picker: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 3v9l6.4 6.4M12 12H3',
+  emi: 'M4 20h16M6 16V9M10 16V6M14 16v-4M18 16V8M3 4h4',
 };
 export const DASH_APPS: DashApp[] = [
-  { key: 'upload', label: 'Upload HTML or ZIP', desc: 'Your own page or site, live in seconds.', d: D.upload },
-  { key: 'bio', label: 'Link in bio', desc: 'Your page: links, videos, TikToks and posts.', d: D.bio },
-  { key: 'smart', label: 'Smart link', desc: 'One link. iPhone, Android and computers each land in the right place.', d: D.smart },
-  { key: 'qr', label: 'Dynamic QR', desc: 'Print it once, change where it goes any time.', d: P.qr },
-  { key: 'ask', label: 'Ask me anything', desc: 'Anonymous questions from your followers.', d: D.ask },
-  { key: 'focus', label: 'Pomodoro', desc: 'Focus and break timer, with lo-fi music.', d: P.focus },
-  { key: 'text', label: 'Text converter', desc: 'UPPER, lower, Title Case, slugs and word counts.', d: P.text },
-  { key: 'image', label: 'Image compressor', desc: 'Shrink and resize photos without uploading them.', d: D.image },
-  { key: 'links', label: 'Short links', desc: 'Short links with a QR and click counts.', d: P.links, to: '/links' },
-  { key: 'tasks', label: 'Tasks', desc: 'To-dos with due dates and reminders.', d: P.tasks },
-  { key: 'notes', label: 'Notes', desc: 'Write, search, pin and archive.', d: P.notes },
-  { key: 'date', label: 'Nepali date', desc: 'BS to AD and back.', d: P.date },
+  { key: 'upload', group: 'Publish', label: 'Upload HTML or ZIP', desc: 'Your own page or site, live in seconds.', d: D.upload },
+  { key: 'bio', group: 'Publish', label: 'Link in bio', desc: 'Your page: links, videos, TikToks and posts.', d: D.bio },
+  { key: 'smart', group: 'Publish', label: 'Smart link', desc: 'One link. iPhone, Android and computers each land in the right place.', d: D.smart },
+  { key: 'qr', group: 'Publish', label: 'Dynamic QR', desc: 'Print it once, change where it goes any time.', d: P.qr },
+  { key: 'ask', group: 'Publish', label: 'Ask me anything', desc: 'Anonymous questions from your followers.', d: D.ask },
+  { key: 'links', group: 'Publish', label: 'Short links', desc: 'Short links with a QR and click counts.', d: P.links, to: '/links' },
+  { key: 'focus', group: 'Everyday', label: 'Focus studio', desc: 'Pomodoro with a real alarm, live music, sounds and your playlists.', d: P.focus },
+  { key: 'subs', group: 'Everyday', label: 'Subscriptions and domains', desc: 'Every renewal and domain expiry in one place, with totals in rupees.', d: D.subs },
+  { key: 'currency', group: 'Everyday', label: 'Currency converter', desc: "NPR against USD, INR and 20 more, at today's NRB rates.", d: D.currency },
+  { key: 'emi', group: 'Everyday', label: 'EMI calculator', desc: 'Monthly loan payment, interest and a year-by-year plan.', d: D.emi },
+  { key: 'date', group: 'Everyday', label: 'Nepali date', desc: 'BS to AD and back.', d: P.date },
+  { key: 'image', group: 'Files', label: 'Image converter', desc: 'JPG, PNG, WebP and AVIF. Convert, shrink and resize in bulk.', d: D.image },
+  { key: 'pdf', group: 'Files', label: 'PDF tools', desc: 'Merge, split, organise, compress, images to PDF and back.', d: D.pdf },
+  { key: 'wordpdf', group: 'Files', label: 'Word to PDF', desc: 'Turn a .docx into a clean PDF.', d: D.wordpdf },
+  { key: 'pdfword', group: 'Files', label: 'PDF to Word', desc: 'Get the text of a PDF as an editable .docx.', d: D.pdfword },
+  { key: 'text', group: 'Social and text', label: 'Text converter', desc: 'UPPER, lower, Title Case, slugs and word counts.', d: P.text },
+  { key: 'fonts', group: 'Social and text', label: 'Fancy fonts', desc: 'Bold, script and more letters for your bio and captions.', d: D.fonts },
+  { key: 'thumb', group: 'Social and text', label: 'YouTube thumbnail', desc: "Save any video's thumbnail in full HD.", d: D.thumb },
+  { key: 'picker', group: 'Social and text', label: 'Giveaway picker', desc: 'Spin a wheel to pick fair winners from names or comments.', d: D.picker },
+  { key: 'password', group: 'Social and text', label: 'Password generator', desc: 'Strong passwords you can read out and type.', d: P.password },
 ];
-const DEFAULT: AppKey[] = ['upload', 'bio', 'smart', 'qr', 'ask', 'focus'];
-/** Side-rail tools that are not one of the twelve, also opened full-page. */
-const EXTRA = TOOLS.filter((t) => !t.admin && !['focus', 'tasks', 'notes', 'links', 'qr', 'text', 'date'].includes(t.key));
+const DEFAULT: AppKey[] = ['upload', 'bio', 'focus', 'subs', 'smart', 'qr', 'ask', 'image', 'pdf'];
+const MAX = 9;
+const GROUPS = ['Publish', 'Everyday', 'Files', 'Social and text'];
+/** Side-rail tools that are not one of the twenty, also opened full-page. */
+const EXTRA = TOOLS.filter((t) => !t.admin && !['focus', 'links', 'qr', 'text', 'date', 'password', 'subs'].includes(t.key));
+const FocusStudio = lazy(() => import('./apps/Focus').then((m) => ({ default: m.FocusStudio })));
+const Subscriptions = lazy(() => import('./apps/Subscriptions').then((m) => ({ default: m.Subscriptions })));
+const PdfTools = lazy(() => import('./apps/Pdf').then((m) => ({ default: m.PdfTools })));
+const WordToPdf = lazy(() => import('./apps/Pdf').then((m) => ({ default: m.WordToPdf })));
+const PdfToWord = lazy(() => import('./apps/Pdf').then((m) => ({ default: m.PdfToWord })));
+const ImageConverter = lazy(() => import('./apps/Everyday').then((m) => ({ default: m.ImageConverter })));
+const Currency = lazy(() => import('./apps/Everyday').then((m) => ({ default: m.Currency })));
+const FancyFonts = lazy(() => import('./apps/Everyday').then((m) => ({ default: m.FancyFonts })));
+const Thumbnails = lazy(() => import('./apps/Everyday').then((m) => ({ default: m.Thumbnails })));
+const Picker = lazy(() => import('./apps/Everyday').then((m) => ({ default: m.Picker })));
+const Emi = lazy(() => import('./apps/Everyday').then((m) => ({ default: m.Emi })));
 
 const Svg = ({ d, size = 22 }: { d: string; size?: number }) => <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 const msg = (e: unknown, f: string) => (e instanceof ApiError ? e.message : f);
@@ -98,19 +129,19 @@ export function HomeApps() {
 
 function ChooseApps({ current, onClose, onSave }: { current: AppKey[]; onClose: () => void; onSave: (ids: AppKey[]) => void }) {
   const [pick, setPick] = useState<AppKey[]>(current);
-  const flip = (k: AppKey) => setPick((p) => (p.includes(k) ? p.filter((x) => x !== k) : p.length >= 6 ? p : [...p, k]));
+  const flip = (k: AppKey) => setPick((p) => (p.includes(k) ? p.filter((x) => x !== k) : p.length >= MAX ? p : [...p, k]));
   const move = (k: AppKey, by: number) => setPick((p) => { const i = p.indexOf(k), j = i + by; if (j < 0 || j >= p.length) return p; const n = [...p]; [n[i], n[j]] = [n[j], n[i]]; return n; });
   return (
-    <Modal title="Choose your six apps" onClose={onClose} footer={<>
+    <Modal title="Choose your apps for Home" onClose={onClose} footer={<>
       <button className="btn quiet" onClick={() => setPick(DEFAULT)}>Reset</button>
       <button className="btn primary" disabled={!pick.length} onClick={() => onSave(pick)}>Save</button>
     </>}>
-      <p className="hint">Pick up to six for Home, in the order you like. Every app stays in All apps. <b className="mono">{pick.length}/6</b></p>
+      <p className="hint">Pick up to nine for Home, in the order you like. Every app stays in All apps. <b className="mono">{pick.length}/{MAX}</b></p>
       <ul className="ha-pick">{DASH_APPS.map((a) => {
         const i = pick.indexOf(a.key), on = i >= 0;
         return (
           <li key={a.key} className={on ? 'on' : ''}>
-            <button className="ha-pick-main" aria-pressed={on} disabled={!on && pick.length >= 6} onClick={() => flip(a.key)}>
+            <button className="ha-pick-main" aria-pressed={on} disabled={!on && pick.length >= MAX} onClick={() => flip(a.key)}>
               <span className="ha-num mono">{on ? i + 1 : ''}</span>
               <span className="ha-ic sm"><Svg d={a.d} size={18} /></span>
               <span className="ha-t"><b>{a.label}</b><small>{a.desc}</small></span>
@@ -137,11 +168,13 @@ export function ToolsPage({ k }: { k: string }) {
 function ToolFrame({ k, app, extra }: { k: string; app?: DashApp; extra?: (typeof EXTRA)[number] }) {
   const label = app?.label ?? extra!.label, desc = app?.desc ?? extra!.desc, d = app?.d ?? P[k];
   const body: Record<string, ReactNode> = {
-    upload: <UploadApp />, smart: <SmartLinks kind="smart" />, qr: <DynamicQr />, ask: <AskInbox />, focus: <FocusPage />, text: <TextStudio />, image: <ImageTool />,
-    tasks: <Narrow><Tasks /></Narrow>, notes: <Narrow><Notes /></Narrow>, date: <Narrow><NepaliDate /></Narrow>,
-    calendar: <Narrow><Calendar /></Narrow>, contacts: <Narrow><Contacts /></Narrow>, subs: <Narrow><Subs /></Narrow>, calc: <Narrow><Calculator /></Narrow>,
-    password: <Narrow><Passwords /></Narrow>, clock: <Narrow><WorldClock /></Narrow>, json: <Narrow><JsonTool /></Narrow>, encode: <Narrow><Encoder /></Narrow>, colour: <Narrow><ColourTool /></Narrow>,
-    links: <Narrow><ShortLinks /></Narrow>,
+    upload: <UploadApp />, smart: <SmartLinks kind="smart" />, qr: <DynamicQr />, ask: <AskInbox />, text: <TextStudio />,
+    focus: <FocusStudio />, subs: <Subscriptions />, image: <ImageConverter />, pdf: <PdfTools />, wordpdf: <WordToPdf />, pdfword: <PdfToWord />,
+    currency: <Currency />, fonts: <FancyFonts />, thumb: <Thumbnails />, picker: <Picker />, emi: <Emi />,
+    date: <Narrow><NepaliDate /></Narrow>, password: <Narrow><Passwords /></Narrow>,
+    tasks: <Narrow><Tasks /></Narrow>, notes: <Narrow><Notes /></Narrow>,
+    calendar: <Narrow><Calendar /></Narrow>, contacts: <Narrow><Contacts /></Narrow>, calc: <Narrow><Calculator /></Narrow>,
+    clock: <Narrow><WorldClock /></Narrow>, json: <Narrow><JsonTool /></Narrow>, encode: <Narrow><Encoder /></Narrow>, colour: <Narrow><ColourTool /></Narrow>,
   };
   useEffect(() => { document.title = `${label} | Jhino`; }, [label]);
   return (
@@ -151,7 +184,7 @@ function ToolFrame({ k, app, extra }: { k: string; app?: DashApp; extra?: (typeo
         <span className="ha-ic"><Svg d={d} /></span>
         <div><h1>{label}</h1><p>{desc}</p></div>
       </header>
-      {body[k]}
+      <Suspense fallback={<PanelLoader />}>{body[k]}</Suspense>
     </main>
   );
 }
@@ -163,11 +196,16 @@ function AllApps({ username }: { username?: string | null }) {
     <main className="page tp">
       <div className="tp-head">
         <Link to="/home" className="icon-btn" aria-label="Home"><Icon name="back" size={18} /></Link>
-        <div><h1>All apps</h1><p>Everything opens full-page. Choose which six sit on Home from Home's Choose button.</p></div>
+        <div><h1>All apps</h1><p>Twenty apps, each on its own page. Choose which nine sit on Home with Home's Choose button.</p></div>
       </div>
-      <ul className="ha-grid all">{DASH_APPS.map((a) => (
-        <li key={a.key}><Link to={hrefOf(a, username)} className="ha-card"><span className="ha-ic"><Svg d={a.d} /></span><span className="ha-t"><b>{a.label}</b><small>{a.desc}</small></span></Link></li>
-      ))}</ul>
+      {GROUPS.map((g) => (
+        <section key={g} className="tp-group">
+          <h2 className="tp-sub">{g}</h2>
+          <ul className="ha-grid all">{DASH_APPS.filter((a) => a.group === g).map((a) => (
+            <li key={a.key}><Link to={hrefOf(a, username)} className="ha-card"><span className="ha-ic"><Svg d={a.d} /></span><span className="ha-t"><b>{a.label}</b><small>{a.desc}</small></span></Link></li>
+          ))}</ul>
+        </section>
+      ))}
       <h2 className="tp-sub">More tools</h2>
       <ul className="tp-list">{EXTRA.map((t) => (
         <li key={t.key}><Link to={`/home/${t.key}`}><span className="ha-ic sm"><Svg d={P[t.key]} size={18} /></span><span className="ha-t"><b>{t.label}</b><small>{t.desc}</small></span></Link></li>
@@ -473,55 +511,6 @@ function storyImage(question: string, username: string, answer?: string) {
   download(c.toDataURL('image/png'), 'question.png');
 }
 
-/* ---------------- pomodoro ---------------- */
-const PRESETS: [number, number, string][] = [[25, 5, 'Classic'], [50, 10, 'Deep work'], [90, 20, 'Long block'], [15, 3, 'Sprint']];
-function FocusPage() {
-  const t = useTimer();
-  const [video, setVideo] = useState<string | null>(null);
-  const [custom, setCustom] = useState('');
-  const total = (t.mode === 'work' ? t.work : t.rest) * 60;
-  const p = Math.min(1, Math.max(0, 1 - t.left / total));
-  useEffect(() => { document.title = t.running ? `${pad(Math.floor(t.left / 60))}:${pad(t.left % 60)} ${t.mode === 'work' ? 'Focus' : 'Break'} | Jhino` : 'Pomodoro | Jhino'; }, [t.left, t.running, t.mode]);
-  return (
-    <div className="tp-focus">
-      <section className={`tp-card tp-clock ${t.mode}`}>
-        <div className="tp-tabs" role="tablist">
-          <button role="tab" aria-selected={t.mode === 'work'} onClick={() => t.mode !== 'work' && focusTimer.skip()}>Focus</button>
-          <button role="tab" aria-selected={t.mode === 'rest'} onClick={() => t.mode !== 'rest' && focusTimer.skip()}>Break</button>
-        </div>
-        <div className="tp-ring" style={{ ['--p' as string]: `${p * 360}deg` }}>
-          <span className="mono">{pad(Math.floor(t.left / 60))}:{pad(t.left % 60)}</span>
-          <small>{t.running ? (t.mode === 'work' ? 'Stay on one thing' : 'Stand up, look away') : 'Ready'}</small>
-        </div>
-        <div className="actions-row center">
-          <button className="btn primary lg" onClick={() => t.setRunning(!t.running)}>{t.running ? 'Pause' : 'Start'}</button>
-          <button className="btn lg" onClick={t.reset}>Reset</button>
-          <button className="btn lg quiet" onClick={focusTimer.skip}>Skip</button>
-        </div>
-        <p className="tp-rounds">Rounds done <b className="mono">{t.rounds}</b> {t.rounds > 0 && <button className="link" onClick={focusTimer.clearRounds}>Clear</button>}</p>
-      </section>
-      <section className="tp-card">
-        <h2>Lengths</h2>
-        <div className="tp-presets">{PRESETS.map(([w, r, n]) => (
-          <button key={n} className={t.work === w && t.rest === r ? 'on' : ''} disabled={t.running} onClick={() => focusTimer.set(w, r)}><b className="mono">{w}/{r}</b><small>{n}</small></button>
-        ))}</div>
-        <div className="qt-row">
-          <label className="field sm"><span>Focus (min)</span><input className="input mono" type="number" min={1} max={180} value={t.work} disabled={t.running} onChange={(e) => t.setWork(Math.min(180, Math.max(1, Number(e.target.value) || 1)))} /></label>
-          <label className="field sm"><span>Break (min)</span><input className="input mono" type="number" min={1} max={60} value={t.rest} disabled={t.running} onChange={(e) => t.setRest(Math.min(60, Math.max(1, Number(e.target.value) || 1)))} /></label>
-        </div>
-        <p className="hint">The timer keeps going when you move to another page, and shows on the rail. You get a sound and a notification when it turns over.</p>
-        <h2>Music</h2>
-        {video ? <div className="tp-video"><iframe title="Music" src={`https://www.youtube-nocookie.com/embed/${video}?autoplay=1`} allow="autoplay; encrypted-media" allowFullScreen /></div>
-          : <button className="qt-play" onClick={() => setVideo(LOFI)}><Icon name="play" /><span>Play lo-fi radio</span><small>From YouTube. Starts only when you press play.</small></button>}
-        <form className="tp-inline" onSubmit={(e) => { e.preventDefault(); const id = ytId(custom.trim()); if (id) setVideo(id); }}>
-          <input className="input" placeholder="Or paste a YouTube link" value={custom} onChange={(e) => setCustom(e.target.value)} />
-          <button className="btn sm">Play</button>{video && <button type="button" className="btn sm quiet" onClick={() => setVideo(null)}>Stop</button>}
-        </form>
-      </section>
-    </div>
-  );
-}
-
 /* ---------------- text converter (browser only) ---------------- */
 const words = (s: string) => s.replace(/([a-z0-9])([A-Z])/g, '$1 $2').split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 const CASES: [string, (s: string) => string][] = [
@@ -574,65 +563,6 @@ function TextStudio() {
         <h2>Clean up</h2>
         <div className="tp-chips">{CLEAN.map(([n, f]) => <button key={n} className="chip" disabled={!text} onClick={() => apply(f)}>{n}</button>)}</div>
       </aside>
-    </div>
-  );
-}
-
-/* ---------------- image compressor (browser only) ---------------- */
-interface Img { id: string; name: string; src: File; w: number; h: number; out?: { url: string; size: number; w: number; h: number } }
-function ImageTool() {
-  const [imgs, setImgs] = useState<Img[]>([]);
-  const [maxW, setMaxW] = useState(1920), [q, setQ] = useState(0.8), [fmt, setFmt] = useState<'image/jpeg' | 'image/webp' | 'image/png'>('image/webp');
-  const [over, setOver] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
-  const add = async (files: FileList | File[]) => {
-    const list = [...files].filter((f) => f.type.startsWith('image/')).slice(0, 30);
-    const got = await Promise.all(list.map(async (f) => { const b = await createImageBitmap(f).catch(() => null); if (!b) return null; const r: Img = { id: Math.random().toString(36).slice(2), name: f.name, src: f, w: b.width, h: b.height }; b.close(); return r; }));
-    setImgs((l) => [...l, ...(got.filter(Boolean) as Img[])]);
-  };
-  const run = useCallback(async (l: Img[]) => {
-    for (const im of l) {
-      const b = await createImageBitmap(im.src);
-      const s = Math.min(1, maxW / b.width), w = Math.round(b.width * s), h = Math.round(b.height * s);
-      const c = document.createElement('canvas'); c.width = w; c.height = h;
-      const x = c.getContext('2d')!; if (fmt === 'image/jpeg') { x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); } x.drawImage(b, 0, 0, w, h); b.close();
-      const blob = await new Promise<Blob | null>((r) => c.toBlob(r, fmt, q));
-      if (!blob) continue;
-      setImgs((all) => all.map((z) => { if (z.id !== im.id) return z; if (z.out) URL.revokeObjectURL(z.out.url); return { ...z, out: { url: URL.createObjectURL(blob), size: blob.size, w, h } }; }));
-    }
-  }, [maxW, q, fmt]);
-  const key = imgs.map((i) => i.id).join();
-  useEffect(() => { const id = setTimeout(() => run(imgs), 250); return () => clearTimeout(id); }, [key, run]); // eslint-disable-line react-hooks/exhaustive-deps
-  const ext = fmt === 'image/jpeg' ? 'jpg' : fmt === 'image/webp' ? 'webp' : 'png';
-  const saved = imgs.reduce((n, i) => n + (i.out ? i.src.size - i.out.size : 0), 0);
-  return (
-    <div className="tp-split img">
-      <section className="tp-card tp-sticky">
-        <h2>Settings</h2>
-        <div className="field"><span>Format</span><div className="tp-seg">{([['image/webp', 'WebP'], ['image/jpeg', 'JPG'], ['image/png', 'PNG']] as const).map(([v, l]) => <button key={v} aria-pressed={fmt === v} onClick={() => setFmt(v)}>{l}</button>)}</div></div>
-        <label className="field"><span>Largest width <em className="mono">{maxW}px</em></span><input type="range" min={320} max={4000} step={40} value={maxW} onChange={(e) => setMaxW(Number(e.target.value))} /></label>
-        {fmt !== 'image/png' && <label className="field"><span>Quality <em className="mono">{Math.round(q * 100)}%</em></span><input type="range" min={0.3} max={1} step={0.05} value={q} onChange={(e) => setQ(Number(e.target.value))} /></label>}
-        <div className="tp-presets">{[[1080, 'Instagram'], [1920, 'Full HD'], [800, 'Web'], [400, 'Thumbnail']].map(([w, n]) => <button key={n} className={maxW === w ? 'on' : ''} onClick={() => setMaxW(w as number)}><b className="mono">{w}</b><small>{n}</small></button>)}</div>
-        <p className="hint">Photos never leave your device: everything happens in this browser.</p>
-      </section>
-      <section>
-        <button className={`tp-drop ${over ? 'over' : ''}`} onClick={() => input.current?.click()} onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false); add(e.dataTransfer.files); }}>
-          <Svg d={D.image} size={28} /><b>Drop photos here</b><span>or click to choose. Up to 30 at a time.</span>
-        </button>
-        <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => { if (e.target.files) add(e.target.files); e.target.value = ''; }} />
-        {!!imgs.length && <>
-          <div className="tp-row tp-sum"><span>{imgs.length} {imgs.length === 1 ? 'photo' : 'photos'} · saved <b>{bytes(Math.max(0, saved))}</b></span>
-            <span className="actions-row"><button className="btn sm primary" onClick={() => imgs.forEach((i, n) => i.out && setTimeout(() => download(i.out!.url, i.name.replace(/\.[^.]+$/, '') + '.' + ext), n * 250))}><Icon name="download" size={15} />Download all</button><button className="btn sm quiet" onClick={() => setImgs([])}>Clear</button></span></div>
-          <ul className="tp-imgs">{imgs.map((i) => (
-            <li key={i.id} className="tp-card">
-              {i.out ? <img src={i.out.url} alt="" /> : <span className="tp-img-wait"><span className="spin" /></span>}
-              <div className="ha-t"><b title={i.name}>{i.name}</b><small className="mono">{bytes(i.src.size)} → {i.out ? bytes(i.out.size) : '…'}{i.out && ` · ${i.out.w}×${i.out.h}`}</small>
-                {i.out && <small className={i.out.size < i.src.size ? 'ok-text' : 'warn-text'}>{i.out.size < i.src.size ? `${Math.round((1 - i.out.size / i.src.size) * 100)}% smaller` : 'Bigger: try WebP or lower quality'}</small>}</div>
-              <button className="btn sm" disabled={!i.out} onClick={() => i.out && download(i.out.url, i.name.replace(/\.[^.]+$/, '') + '.' + ext)}><Icon name="download" size={15} /></button>
-            </li>
-          ))}</ul>
-        </>}
-      </section>
     </div>
   );
 }

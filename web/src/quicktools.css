@@ -282,3 +282,9 @@ form.qt-add > .input:first-child { flex-basis: 100%; }
 .qt-swatch { height: 96px; border-radius: var(--r-lg); border: 1px solid var(--rule); position: relative; overflow: hidden; }
 .qt-swatch input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .qt-body .check-row { font-size: 14px; }
+/* The focus alarm is ringing: one button to stop it, wherever you are. */
+.qt-ringing { position: fixed; z-index: 90; left: 50%; top: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 16px; padding: 12px 12px 12px 18px; background: var(--paper); border: 1px solid var(--ink); border-radius: var(--r-lg); box-shadow: var(--lift); animation: qt-ring-in 260ms var(--ease) both; }
+.qt-ringing span { display: grid; }
+.qt-ringing small { color: var(--ink-3); font-size: 12.5px; }
+@keyframes qt-ring-in { from { opacity: 0; transform: translate(-50%, -8px); } }
+@media (prefers-reduced-motion: reduce) { .qt-ringing { animation: none; } }

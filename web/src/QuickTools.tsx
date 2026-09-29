@@ -5,6 +5,7 @@ import { Link } from './context';
 import { Icon, ago, copyText, useToast } from './ui';
 import './quicktools.css';
 import { PanelLoader } from './Loader';
+import { ringAlarm, stopAlarm, useSounds } from './alarm';
 import { Calculator, ColourTool, Encoder, JsonTool, NepaliDate, Passwords, UserLookup, WorldClock } from './MoreTools';
 
 /*
@@ -90,6 +91,7 @@ export function QuickTools({ admin = false }: { admin?: boolean }) {
   });
   const [open, setOpen] = useState<ToolKey | null>(() => { try { return (sessionStorage.getItem('jhino-qt') as ToolKey) || null; } catch { return null; } });
   const timer = useTimer();
+  const sounds = useSounds();
   useEffect(() => { try { if (open) sessionStorage.setItem('jhino-qt', open); else sessionStorage.removeItem('jhino-qt'); } catch { /* private mode */ } }, [open]);
   useEffect(() => { try { localStorage.setItem(RAIL_KEY, JSON.stringify(rail)); } catch { /* private mode */ } }, [rail]);
   // Other screens can open a tool (Home's "All tasks").
@@ -100,6 +102,12 @@ export function QuickTools({ admin = false }: { admin?: boolean }) {
   const toggleRail = (k: ToolKey) => setRail((r) => (r.includes(k) ? r.filter((x) => x !== k) : [...r, k]));
   return (
     <>
+      {sounds.ringing && (
+        <div className="qt-ringing" role="alert">
+          <span><b>{timer.mode === 'rest' ? 'Time for a break' : 'Back to focus'}</b><small>Your timer turned over.</small></span>
+          <button className="btn primary" onClick={stopAlarm}>Stop alarm</button>
+        </div>
+      )}
       <nav className="qt-rail" aria-label="Quick tools">
         {shown.map((t) => (
           <button key={t.key} className="qt-btn" aria-pressed={open === t.key} aria-label={t.label} onClick={() => setOpen(open === t.key ? null : t.key)}>
@@ -174,20 +182,13 @@ let snap = { ...T };
 const timerSubs = new Set<() => void>();
 let ticker: ReturnType<typeof setInterval> | undefined;
 const emit = () => { snap = { ...T }; try { localStorage.setItem(TIMER_KEY, JSON.stringify(T)); } catch { /* private mode */ } timerSubs.forEach((f) => f()); };
-const chime = () => {
-  try {
-    const ctx = new AudioContext(); const o = ctx.createOscillator(), g = ctx.createGain();
-    o.frequency.value = 880; g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.9);
-    o.connect(g).connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 1);
-  } catch { /* no sound */ }
-};
 const tick = () => {
   if (!T.running) return;
   T.left = Math.max(0, Math.round((T.endAt - Date.now()) / 1000));
   if (T.left === 0) {
     const next = T.mode === 'work' ? 'rest' : 'work';
     if (T.mode === 'work') T.rounds += 1;
-    chime();
+    ringAlarm();
     if ('Notification' in window && Notification.permission === 'granted') new Notification(next === 'rest' ? 'Time for a break' : 'Back to work');
     T.mode = next; T.left = (next === 'work' ? T.work : T.rest) * 60; T.endAt = Date.now() + T.left * 1000;
   }
@@ -196,7 +197,7 @@ const tick = () => {
 const run = () => { clearInterval(ticker); if (T.running) ticker = setInterval(tick, 500); };
 run();
 export const focusTimer = {
-  start() { if (T.running) return; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); T.running = true; T.endAt = Date.now() + T.left * 1000; run(); emit(); },
+  start() { stopAlarm(); if (T.running) return; if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); T.running = true; T.endAt = Date.now() + T.left * 1000; run(); emit(); },
   pause() { tick(); T.running = false; run(); emit(); },
   reset() { T.running = false; T.mode = 'work'; T.left = T.work * 60; run(); emit(); },
   skip() { T.mode = T.mode === 'work' ? 'rest' : 'work'; T.left = (T.mode === 'work' ? T.work : T.rest) * 60; T.endAt = Date.now() + T.left * 1000; emit(); },
@@ -237,6 +238,7 @@ export function Focus({ t }: { t: ReturnType<typeof useTimer> }) {
           <button className="btn" onClick={() => { const id = ytId(custom.trim()); if (id) setVideo(id); }}>Play</button>
         </div>
         {video && <button className="btn sm" onClick={() => setVideo(null)}>Stop music</button>}
+        <Link to="/home/focus" className="btn sm">Open Focus studio: alarm sounds, playlists, favourites</Link>
       </div>
     </div>
   );
@@ -475,6 +477,7 @@ export function Subs() {
   return (
     <>
       <div className="qt-add"><span className="muted small">Get reminded before renewals and trial ends.</span><button className="btn primary" onClick={() => setEdit('new')}>Add</button></div>
+      <Link to="/home/subs" className="btn sm qt-full">Open the full page: totals, domains, expiry checks</Link>
       {!sorted.length ? <Empty>Nothing added yet.</Empty> : (
         <ul className="qt-list">{sorted.map((i) => { const days = i.dueAt ? Math.ceil((new Date(i.dueAt).getTime() - Date.now()) / 864e5) : null; return (
           <li key={i.id}>

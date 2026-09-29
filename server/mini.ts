@@ -187,7 +187,7 @@ export function registerMini(app: FastifyInstance) {
     const u = requireUser(req);
     limit(req, 'tools-write', 600, 3600_000, u.id);
     const raw = (req.body as { ids?: unknown })?.ids;
-    const ids = [...new Set(Array.isArray(raw) ? raw.filter((x): x is string => typeof x === 'string' && /^[a-z]{2,16}$/.test(x)) : [])].slice(0, 6);
+    const ids = [...new Set(Array.isArray(raw) ? raw.filter((x): x is string => typeof x === 'string' && /^[a-z]{2,16}$/.test(x)) : [])].slice(0, 9);
     db.prepare('INSERT INTO user_home_apps(user_id,ids,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET ids=excluded.ids, updated_at=excluded.updated_at').run(u.id, JSON.stringify(ids), now());
     return { ids };
   });
