@@ -388,6 +388,10 @@ async function removeDomain(d: DomainRow) {
   forgetHosts();
 }
 
+/** How long a site stays paused after Pro ends before its domain is disconnected. */
+const PAUSE_GRACE_MS = 2 * 864e5;
+try { db.exec('ALTER TABLE custom_domains ADD COLUMN plan_paused_at TEXT'); } catch { /* already there */ }
+
 let jobOn = false;
 function startJob() {
   if (jobOn) return;
@@ -402,14 +406,28 @@ function startJob() {
       // Apps deleted for good: let their domains go too.
       const gone = db.prepare('SELECT d.* FROM custom_domains d LEFT JOIN apps a ON a.id=d.app_id WHERE a.id IS NULL LIMIT 20').all() as DomainRow[];
       for (const d of gone) await removeDomain(d).catch(() => {});
-      // Plan ended (no longer Pro) or account gone: disconnect the domain fully, so the site stops opening here
-      // and it stops counting at Cloudflare. Domains a super admin gave are kept.
-      const rows = db.prepare('SELECT * FROM custom_domains WHERE granted=0').all() as DomainRow[];
+      // Plan ended (no longer Pro): the site is paused (it shows "paused"; DNS and Cloudflare stay as they are).
+      // Renew within 2 days and it comes back by itself; after 2 days it is disconnected for good, so it stops
+      // counting at Cloudflare. Super admins' domains and domains a super admin gave are never touched.
+      const rows = db.prepare('SELECT * FROM custom_domains WHERE granted=0').all() as (DomainRow & { plan_paused_at: string | null })[];
       for (const d of rows) {
         const owner = db.prepare('SELECT * FROM users WHERE id=?').get(d.owner_id) as UserRow | undefined;
-        if (owner?.is_admin || (owner && !pausedByPlan(d, owner))) continue;
+        const ok = !!owner && (!!owner.is_admin || !pausedByPlan(d, owner));
+        if (ok) {
+          if (d.plan_paused_at) {
+            db.prepare('UPDATE custom_domains SET plan_paused_at=NULL WHERE id=?').run(d.id); forgetHosts();
+            notify(d.owner_id, 'account', `${d.hostname} is back`, 'Your Pro plan is active again, so your site opens at its domain again. Nothing needed setting up.', `/apps/${d.app_id}`);
+          }
+          continue;
+        }
+        if (!d.plan_paused_at) {
+          db.prepare('UPDATE custom_domains SET plan_paused_at=? WHERE id=?').run(now(), d.id); forgetHosts();
+          if (owner) notify(owner.id, 'account', `${d.hostname} is paused`, 'Your Pro plan ended, so your site is paused. Renew Pro within 2 days and it comes back by itself, with no DNS changes. After 2 days the domain is disconnected.', '/account/plan');
+          continue;
+        }
+        if (Date.now() - Date.parse(d.plan_paused_at) < PAUSE_GRACE_MS) continue;
         await removeDomain(d).then(() => {
-          if (owner) notify(owner.id, 'account', `${d.hostname} was disconnected`, 'Custom domains are part of Pro. Your plan ended, so the domain no longer opens your app. Renew Pro and connect it again whenever you like; your app and its data are unchanged.', '/account/plan');
+          if (owner) notify(owner.id, 'account', `${d.hostname} was disconnected`, 'Your Pro plan ended more than 2 days ago, so the domain was disconnected. Renew Pro and connect it again whenever you like; your app and its data are unchanged.', '/account/plan');
         }).catch(() => {});
       }
     } catch (e) { console.error('  [domains]', (e as Error).message); }
