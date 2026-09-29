@@ -315,4 +315,5 @@ form.qt-add > .input:first-child { flex-basis: 100%; }
   .qt-rail::-webkit-scrollbar { display: none; }
   .qt-rail > .qt-btn { flex: 0 0 20%; width: 20%; height: 60px; border-radius: 0; scroll-snap-align: start; }
   .qt-rail > .qt-sep, .qt-rail > .qt-plus-wrap { display: none; }
+  .qt-rail > .qt-btn::before { left: calc(50% - 9px); top: 0; }
 }
