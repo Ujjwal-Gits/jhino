@@ -308,3 +308,11 @@ form.qt-add > .input:first-child { flex-basis: 100%; }
 .qt-add:has(> .dtf) { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
 .qt-add:has(> .dtf) > .input { min-width: 0; }
 .qt-add:has(> .dtf) > .dtf { grid-column: 1 / -1; }
+
+/* Phones: no + button; about five tools show at once and the rest scroll sideways. */
+@media (max-width: 760px) {
+  .qt-rail { justify-content: flex-start; padding: 0; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .qt-rail::-webkit-scrollbar { display: none; }
+  .qt-rail > .qt-btn { flex: 0 0 20%; width: 20%; height: 60px; border-radius: 0; scroll-snap-align: start; }
+  .qt-rail > .qt-sep, .qt-rail > .qt-plus-wrap { display: none; }
+}
