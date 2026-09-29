@@ -187,3 +187,20 @@
 @media (prefers-reduced-motion: reduce) {
   .pk-wheel canvas.spinning, .sb-cats i, .emi-split i, .pd-thumb img { transition: none; }
 }
+
+/* Focus studio: the music panel stays in view and its list scrolls on its own; the timer side scrolls with the page. */
+.fs-music { display: flex; flex-direction: column; gap: 12px; }
+.fs-scroll { display: grid; gap: 10px; align-content: start; }
+.fs-now .ha-t { min-width: 0; }
+.fs-now .ha-t b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fs-now .actions-row { flex-wrap: nowrap; flex: none; }
+.tp-clock .btn.lg { height: 38px; font-size: 14px; }
+@media (min-width: 1101px) {
+  .tp-focus { align-items: start; }
+  .fs-music { position: sticky; top: 16px; max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); }
+  .fs-music > * { flex: none; }
+  .fs-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; margin-right: -8px; padding-right: 8px; }
+}
+@media (max-width: 1100px) {
+  .fs-scroll { max-height: 60vh; overflow-y: auto; overscroll-behavior: contain; }
+}

@@ -151,10 +151,11 @@ export function FocusStudio() {
             <button key={k} role="tab" aria-selected={tab === k} onClick={() => { setTab(k); setOpen(null); }}>{l}{k === 'favs' && lib?.favs.length ? <small className="mono">{lib.favs.length}</small> : null}</button>
           ))}
         </div>
+        <div className="fs-scroll">
         {tab === 'stations' && (!stations ? <p className="pd-busy"><span className="spin" />Finding what is live…</p> : <ul className="fs-list">{stations.map((m) => <Row key={m.id} m={m} extra={<span className="fs-tag">{m.tag}</span>} />)}</ul>)}
         {tab === 'sounds' && (
           <div className="fs-amb">
-            <p className="hint">Made right here in your browser. Mix as many as you like; they keep playing as you move around Jhino.</p>
+            <p className="hint">Made right here in your browser, with no ads and no internet needed. Mix as many as you like; they keep playing as you move around Jhino.</p>
             {AMBIENT.map(([k, l]) => { const v = snd.ambient[k] ?? 0; return (
               <div key={k} className={`fs-amb-row ${v ? 'on' : ''}`}>
                 <button className="btn sm" aria-pressed={!!v} onClick={() => setAmbient(k, v ? 0 : 0.4)}>{v ? <Icon name="pause" size={14} /> : <Icon name="play" size={14} />}{l}</button>
@@ -199,6 +200,7 @@ export function FocusStudio() {
           <ul className="fs-list">{lib.history.map((m) => <Row key={m.type + m.id} m={m} />)}</ul>
           <button className="btn sm quiet" onClick={() => update((l) => ({ ...l, history: [] }))}>Clear recent</button>
         </>)}
+        </div>
       </section>
 
       {addTo && lib && (
