@@ -1,282 +1,1235 @@
 {
-  "id": "agency",
+ "id": "agency",
+ "name": "Chautari Creative",
+ "category": "Creative agency",
+ "description": "A dark, image-led studio site: selected work with hover, services and prices, a moving word band, how projects run, the team and a brief form.",
+ "site": {
   "name": "Chautari Creative",
-  "category": "Creative agency",
-  "description": "A sharp, white creative-studio site: selected work, services, how a project runs, and a brief form.",
-  "site": {
-    "name": "Chautari Creative",
-    "theme": {
-      "preset": "gallery"
+  "theme": {
+   "preset": "monolith"
+  },
+  "settings": {
+   "tagline": "Brand identity, web and film for Nepali companies",
+   "lang": "en",
+   "phone": "01-5551907",
+   "email": "studio@chautari.com.np",
+   "address": "Jhamsikhel, Lalitpur 44600",
+   "social": [
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/chautaricreative"
     },
-    "settings": {
-      "lang": "en",
-      "social": [
-        {
-          "network": "instagram",
-          "url": "https://www.instagram.com/chautaricreative"
-        },
-        {
-          "network": "behance",
-          "url": "https://www.behance.net/chautaricreative"
-        },
-        {
-          "network": "linkedin",
-          "url": "https://www.linkedin.com/company/chautari-creative"
-        }
-      ],
-      "tagline": "Brand identity, web and film for Nepali companies",
-      "phone": "01-5551907",
-      "email": "studio@chautari.com.np",
-      "address": "Jhamsikhel, Lalitpur 44600"
+    {
+     "network": "behance",
+     "url": "https://www.behance.net/chautaricreative"
     },
-    "header": {
-      "type": "header",
-      "variant": "minimal",
+    {
+     "network": "linkedin",
+     "url": "https://www.linkedin.com/company/chautari-creative"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Start a project",
+     "href": "page:contact"
+    },
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Let’s make something people keep.",
+    "cta": {
+     "label": "Start a project",
+     "href": "page:contact"
+    },
+    "about": "A brand, web and film studio in Jhamsikhel, Lalitpur, since 2074.",
+    "hours": "Sunday to Friday\n10:00 to 18:00",
+    "note": "",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Chautari Creative: brand identity, websites and film in Kathmandu",
+    "seoDescription": "A design studio in Jhamsikhel, Lalitpur. Identity, packaging, websites and film for Nepali companies, from tea estates and hotels to banks and schools.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
       "props": {
-        "cta": {
-          "label": "Send a brief",
-          "href": "page:brief"
-        },
-        "sticky": true
+       "title": "Identity, websites and film for Nepali companies with something to say",
+       "text": "A studio of nine in Jhamsikhel. Since 2074 we have named, drawn and launched brands for tea estates, hotels, banks and schools from Ilam to Pokhara.",
+       "primary": {
+        "label": "Start a project",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "See the work",
+        "href": "page:work"
+       },
+       "image": {
+        "src": "lib:agency-studio",
+        "alt": "The studio in the afternoon: a desk by the window, plants and prints pinned up",
+        "focal": [
+         50,
+         55
+        ]
+       },
+       "eyebrow": "Now booking projects for Shrawan",
+       "video": ""
       }
-    },
-    "footer": {
-      "type": "footer",
+     },
+     {
+      "type": "marquee",
+      "variant": "large",
+      "props": {
+       "items": [
+        {
+         "text": "Identity"
+        },
+        {
+         "text": "Packaging"
+        },
+        {
+         "text": "Websites"
+        },
+        {
+         "text": "Film"
+        },
+        {
+         "text": "Wayfinding"
+        },
+        {
+         "text": "Type"
+        }
+       ]
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "feature",
+      "props": {
+       "heading": "Selected work",
+       "intro": "Six of the forty-odd projects we have shipped. Every one started with a conversation, not a pitch deck.",
+       "items": [
+        {
+         "image": {
+          "src": "lib:agency-tea",
+          "alt": "Two tubes from the Kanchan tea range on a mint background"
+         },
+         "title": "Kanchan Tea Estate",
+         "tag": "Packaging",
+         "text": "A green tea latte from Ilam leaves, now poured in cafés in Tokyo and Berlin, in a tube you keep.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-hotel",
+          "alt": "A boutique hotel room with carved wood and soft light"
+         },
+         "title": "Hotel Patan Courtyard",
+         "tag": "Identity and website",
+         "text": "Twenty-two rooms around a Newari courtyard, and bookings that no longer go through agents.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-textile",
+          "alt": "A close-up of woven dhaka cloth"
+         },
+         "title": "Tana Bana",
+         "tag": "Identity",
+         "text": "A dhaka weaving label from Palpa, with a mark drawn from the loom itself.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-phone",
+          "alt": "A phone showing the Tapkeshwor heater app",
+          "focal": [
+           62,
+           45
+          ]
+         },
+         "title": "Tapkeshwor Heaters",
+         "tag": "Product design",
+         "text": "An app to warm the house before you get home, for a Balaju appliance maker’s first smart heater.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-packaging",
+          "alt": "A set of product boxes with a clean new identity"
+         },
+         "title": "Himali Organics",
+         "tag": "Packaging",
+         "text": "Buckwheat, millet and honey from Mustang, on supermarket shelves across the valley.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "All projects",
+        "href": "page:work"
+       }
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "A logo is the smallest part of a brand. The rest is every decision somebody makes after we leave.",
+       "name": "Rojina Tamang",
+       "detail": "Creative director",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "What we make",
+       "intro": "Four disciplines under one roof, so the logo, the box, the website and the launch film look like they came from the same place.",
+       "items": [
+        {
+         "title": "Brand identity",
+         "text": "Naming, logo, type, colour and the guidelines your team will actually open.",
+         "detail": "8 to 10 weeks"
+        },
+        {
+         "title": "Packaging",
+         "text": "Structure and graphics, printed and checked on press in Kathmandu or Delhi.",
+         "detail": "6 to 12 weeks"
+        },
+        {
+         "title": "Websites",
+         "text": "Designed and built by us, fast on a phone in Surkhet, easy for you to update.",
+         "detail": "6 to 10 weeks"
+        },
+        {
+         "title": "Film and photography",
+         "text": "Launch films, product shoots and portraits, in the studio or on location.",
+         "detail": "2 to 4 weeks"
+        },
+        {
+         "title": "Wayfinding",
+         "text": "Signs and maps for hotels, hospitals, schools and heritage sites.",
+         "detail": "Per site"
+        },
+        {
+         "title": "Ongoing design",
+         "text": "A monthly retainer for campaigns, social and everything after launch.",
+         "detail": "From 3 months"
+        }
+       ]
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "How a project runs",
+       "intro": "",
+       "items": [
+        {
+         "title": "Listen",
+         "text": "A week of interviews with your team and your customers, and a walk around the place itself.",
+         "detail": "Week 1"
+        },
+        {
+         "title": "Define",
+         "text": "One page that says who you are for and what you will never do. Nothing is drawn until you sign it.",
+         "detail": "Week 2"
+        },
+        {
+         "title": "Design",
+         "text": "Two directions, then one, built out across every thing it has to work on.",
+         "detail": "Weeks 3 to 7"
+        },
+        {
+         "title": "Launch",
+         "text": "Files, printers, developers and the launch film, handled with you.",
+         "detail": "Weeks 8 to 10"
+        },
+        {
+         "title": "Look after it",
+         "text": "A check-in at three and twelve months, because brands drift.",
+         "detail": "After"
+        }
+       ]
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "left",
+      "props": {
+       "heading": "Inside the studio",
+       "intro": "A first-floor room above a bakery, with the best light in Jhamsikhel after two o’clock.",
+       "image": {
+        "src": "lib:agency-desk",
+        "alt": "A designer sketching screens with a pen",
+        "focal": [
+         65,
+         35
+        ]
+       },
+       "items": [
+        {
+         "label": "Morning",
+         "title": "Pencils first",
+         "text": "Every mark starts on paper. We scan the good ones at eleven."
+        },
+        {
+         "label": "Afternoon",
+         "title": "Everything on the wall",
+         "text": "Work in progress is printed and pinned, so clients see it the way customers will."
+        },
+        {
+         "label": "Friday",
+         "title": "Crit and momo",
+         "text": "The whole studio reviews the week’s work over lunch from the bakery downstairs."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "bento",
+      "props": {
+       "heading": "Pinned up this month",
+       "intro": "",
+       "images": [
+        {
+         "image": {
+          "src": "lib:agency-posters",
+          "alt": "Printed posters pinned to a studio wall"
+         },
+         "caption": "Poster tests, Tihar campaign"
+        },
+        {
+         "image": {
+          "src": "lib:agency-stationery",
+          "alt": "Business cards and letterheads on a table"
+         },
+         "caption": "Stationery proofs"
+        },
+        {
+         "image": {
+          "src": "lib:agency-shoot",
+          "alt": "Lights and a camera set up for a product shoot"
+         },
+         "caption": "Product shoot, Himali Organics"
+        },
+        {
+         "image": {
+          "src": "lib:agency-meeting",
+          "alt": "The team looking over printed layouts on a table"
+         },
+         "caption": "Reviewing layouts"
+        },
+        {
+         "image": {
+          "src": "lib:agency-patan",
+          "alt": "Carved windows in Patan"
+         },
+         "caption": "Research walk, Patan"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "team",
+      "variant": "grid",
+      "props": {
+       "heading": "Who you will work with",
+       "intro": "Nine of us. These three will be in your first meeting.",
+       "people": [
+        {
+         "name": "Rojina Tamang",
+         "role": "Creative director",
+         "bio": "Twelve years in branding, the last four running the studio. Draws every mark by hand first.",
+         "image": {
+          "src": "lib:agency-team-1",
+          "alt": "Portrait of Rojina Tamang"
+         }
+        },
+        {
+         "name": "Aashish Rai",
+         "role": "Design lead, web",
+         "bio": "Builds the websites he designs. Previously at a product studio in Bengaluru.",
+         "image": {
+          "src": "lib:agency-team-2",
+          "alt": "Portrait of Aashish Rai"
+         }
+        },
+        {
+         "name": "Sabina Shrestha",
+         "role": "Film and photography",
+         "bio": "Shoots our launches, from tea gardens at dawn to hotel kitchens at night.",
+         "image": {
+          "src": "lib:agency-team-3",
+          "alt": "Portrait of Sabina Shrestha"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "logos",
+      "variant": "row",
+      "props": {
+       "heading": "Clients include",
+       "items": [
+        {
+         "name": "Kanchan Tea Estate",
+         "image": {
+          "src": "",
+          "alt": ""
+         },
+         "url": ""
+        },
+        {
+         "name": "Hotel Patan Courtyard",
+         "image": {
+          "src": "",
+          "alt": ""
+         },
+         "url": ""
+        },
+        {
+         "name": "Tana Bana",
+         "image": {
+          "src": "",
+          "alt": ""
+         },
+         "url": ""
+        },
+        {
+         "name": "Himali Organics",
+         "image": {
+          "src": "",
+          "alt": ""
+         },
+         "url": ""
+        },
+        {
+         "name": "Tapkeshwor Heaters",
+         "image": {
+          "src": "",
+          "alt": ""
+         },
+         "url": ""
+        },
+        {
+         "name": "Sunrise Montessori",
+         "image": {
+          "src": "",
+          "alt": ""
+         },
+         "url": ""
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "Have a brief, or only a hunch?",
+       "text": "Tell us what you are making. We reply within two working days, with honest advice even when it is not us.",
+       "primary": {
+        "label": "Start a project",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "studio@chautari.com.np",
+        "href": "mailto:studio@chautari.com.np"
+       },
+       "image": {
+        "src": "lib:agency-meeting",
+        "alt": "Two designers reviewing colour swatches in front of the moodboard wall",
+        "focal": [
+         60,
+         55
+        ]
+       }
+      }
+     }
+    ]
+   },
+   {
+    "id": "work",
+    "slug": "work",
+    "title": "Work",
+    "nav": true,
+    "seoTitle": "Work · Chautari Creative",
+    "seoDescription": "Brand identity, packaging, websites, product design and wayfinding for Nepali tea estates, hotels, weavers and start-ups.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Work we are proud of, and what it changed",
+       "text": "Each project here is still in use. Ask us for the longer story of any of them; most clients are happy to take a call.",
+       "primary": {
+        "label": "Start a project",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "grid",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:agency-tea",
+          "alt": "Two tubes from the Kanchan tea range on a mint background"
+         },
+         "title": "Kanchan Tea Estate",
+         "tag": "Packaging",
+         "text": "A green tea latte from Ilam leaves, now poured in cafés in Tokyo and Berlin, in a tube you keep.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-hotel",
+          "alt": "A boutique hotel room with carved wood and soft light"
+         },
+         "title": "Hotel Patan Courtyard",
+         "tag": "Identity and website",
+         "text": "Twenty-two rooms around a Newari courtyard, and bookings that no longer go through agents.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-textile",
+          "alt": "A close-up of woven dhaka cloth"
+         },
+         "title": "Tana Bana",
+         "tag": "Identity",
+         "text": "A dhaka weaving label from Palpa, with a mark drawn from the loom itself.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-phone",
+          "alt": "A phone showing the Tapkeshwor heater app",
+          "focal": [
+           62,
+           45
+          ]
+         },
+         "title": "Tapkeshwor Heaters",
+         "tag": "Product design",
+         "text": "An app to warm the house before you get home, for a Balaju appliance maker’s first smart heater.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-packaging",
+          "alt": "A set of product boxes with a clean new identity"
+         },
+         "title": "Himali Organics",
+         "tag": "Packaging",
+         "text": "Buckwheat, millet and honey from Mustang, on supermarket shelves across the valley.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-patan",
+          "alt": "Carved windows and roofs of Patan Durbar Square"
+         },
+         "title": "Patan Heritage Walks",
+         "tag": "Wayfinding",
+         "text": "Signs, maps and an audio guide for eleven courtyards the tour buses miss.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "image",
+      "props": {
+       "quote": "They spent a week in our tea garden before they drew anything. It shows on every tin.",
+       "name": "Dawa Lama",
+       "detail": "Director, Kanchan Tea Estate",
+       "image": {
+        "src": "lib:agency-tea",
+        "alt": "Kanchan tea tins on a shelf"
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "work",
+      "variant": "list",
+      "props": {
+       "heading": "Also",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:agency-stationery",
+          "alt": "Stationery"
+         },
+         "title": "Nepal Law Chambers",
+         "tag": "Identity",
+         "text": "A calmer, more modern face for a firm founded in 1996.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-posters",
+          "alt": "Posters"
+         },
+         "title": "Valley Jazz Week 2081",
+         "tag": "Campaign",
+         "text": "Posters, tickets and stage graphics for the festival.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-shoot",
+          "alt": "A product shoot"
+         },
+         "title": "Himali Organics",
+         "tag": "Photography",
+         "text": "A year of product and farm photography.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Your project could be next on this page",
+       "text": "We take on four new projects each quarter.",
+       "primary": {
+        "label": "Start a project",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "services",
+    "slug": "services",
+    "title": "Services",
+    "nav": true,
+    "seoTitle": "Services and prices · Chautari Creative",
+    "seoDescription": "Brand identity from Rs 6,50,000, websites from Rs 4,50,000, packaging, film and ongoing design retainers. How we work and what it costs.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "What we make, and what it costs",
+       "text": "Clear scopes and starting prices, so you can plan before we meet. Every project gets a written proposal with a fixed fee.",
+       "primary": {
+        "label": "Ask for a proposal",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:agency-desk",
+        "alt": "A hand sketching screens on paper",
+        "focal": [
+         65,
+         35
+        ]
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:agency-stationery",
+          "alt": "Cards and letterheads from an identity project"
+         },
+         "title": "Brand identity",
+         "text": "Research, naming if you need it, a logo drawn by hand, a type and colour system, and guidelines as a website your team can search. Delivered with every file your printer and developer will ask for.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-packaging",
+          "alt": "Packaging boxes from a recent project"
+         },
+         "title": "Packaging",
+         "text": "From a single label to a range of forty products. We check colours on press, so what reaches the shelf matches what you approved.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-phone",
+          "alt": "A phone showing an app we designed"
+         },
+         "title": "Websites and product design",
+         "text": "Designed and built in-house, tested on the cheap Android phones most Nepali customers use, and handed over with training.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:agency-shoot",
+          "alt": "Camera and lights on a shoot"
+         },
+         "title": "Film and photography",
+         "text": "Launch films, portraits and product shoots, with a crew of three and our own lighting kit.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Starting prices",
+       "intro": "Fixed fees, excluding VAT. Half on signing, half on delivery.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Brand identity",
+         "price": "650000",
+         "period": "project",
+         "note": "8 to 10 weeks.",
+         "features": "Research and strategy page\nLogo and type system\nGuidelines website",
+         "cta": {
+          "label": "Ask for a proposal",
+          "href": "page:contact"
+         },
+         "featured": true
+        },
+        {
+         "name": "Website",
+         "price": "450000",
+         "period": "project",
+         "note": "6 to 10 weeks.",
+         "features": "Up to 12 pages\nBuilt and hosted\nTraining for your team",
+         "cta": {
+          "label": "Ask for a proposal",
+          "href": "page:contact"
+         },
+         "featured": false
+        },
+        {
+         "name": "Packaging",
+         "price": "180000",
+         "period": "product",
+         "note": "Less per product in a range.",
+         "features": "Structure and graphics\nPress check",
+         "cta": {
+          "label": "Ask for a proposal",
+          "href": "page:contact"
+         },
+         "featured": false
+        },
+        {
+         "name": "Design retainer",
+         "price": "220000",
+         "period": "month",
+         "note": "Three months minimum.",
+         "features": "Two days a week of design\nMonthly planning call",
+         "cta": {
+          "label": "Ask for a proposal",
+          "href": "page:contact"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "Before we start",
+       "intro": "",
+       "items": [
+        {
+         "q": "Do you work outside the valley?",
+         "a": "Often. We have worked in Ilam, Pokhara, Palpa and Mustang. Travel is billed at cost."
+        },
+        {
+         "q": "Can you work to a smaller budget?",
+         "a": "Sometimes, by doing less rather than doing it worse. Tell us your number and we will say what it buys."
+        },
+        {
+         "q": "Who owns the work?",
+         "a": "You do, in full, once the final invoice is paid. We only ask to show it here."
+        },
+        {
+         "q": "Do you pitch for free?",
+         "a": "No. We would rather spend that time on a paid discovery week that you keep either way."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Tell us about the project",
+       "text": "A short brief is enough. We reply within two working days.",
+       "primary": {
+        "label": "Start a project",
+        "href": "page:contact"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "studio",
+    "slug": "studio",
+    "title": "Studio",
+    "nav": true,
+    "seoTitle": "The studio · Chautari Creative, Jhamsikhel",
+    "seoDescription": "Nine designers, developers and filmmakers above a bakery in Jhamsikhel. How we started and who we are.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "Nine people and one long table in Jhamsikhel",
+       "text": "Named after the stone resting platforms under Nepal’s pipal trees, where people stop, talk and carry on. That is what we want our work to be for our clients’ customers.",
+       "primary": {
+        "label": "Meet the team",
+        "href": "#team"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "lib:agency-meeting",
+        "alt": "The team gathered around printed work"
+       },
+       "eyebrow": "Above the bakery on Jhamsikhel Road",
+       "video": ""
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "How it started",
+       "body": "<p>Rojina left an agency job in 2074 with one client, a tea estate in Ilam that wanted to stop selling to middlemen. The tin we designed for them is still on the shelf.</p><p>Since then we have grown slowly, on purpose. Nine people is enough to do everything well and small enough that the person you meet is the person who does the work.</p>"
+      }
+     },
+     {
+      "type": "timeline",
+      "variant": "list",
+      "props": {
+       "heading": "Along the way",
+       "items": [
+        {
+         "date": "2074",
+         "title": "One client, one room",
+         "text": "Kanchan Tea Estate, and a desk in Rojina’s flat in Sanepa."
+        },
+        {
+         "date": "2076",
+         "title": "The studio above the bakery",
+         "text": "Four of us, and our first website project."
+        },
+        {
+         "date": "2078",
+         "title": "Film joins the studio",
+         "text": "Sabina brings a camera and we start shooting our own launches."
+        },
+        {
+         "date": "2081",
+         "title": "Forty projects",
+         "text": "Nine people, clients in seven provinces, and still one long table."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "team",
+      "variant": "grid",
+      "props": {
+       "heading": "The team",
+       "intro": "And six more designers, developers and a producer who keeps us on time.",
+       "people": [
+        {
+         "name": "Rojina Tamang",
+         "role": "Creative director",
+         "bio": "Twelve years in branding, the last four running the studio. Draws every mark by hand first.",
+         "image": {
+          "src": "lib:agency-team-1",
+          "alt": "Portrait of Rojina Tamang"
+         }
+        },
+        {
+         "name": "Aashish Rai",
+         "role": "Design lead, web",
+         "bio": "Builds the websites he designs. Previously at a product studio in Bengaluru.",
+         "image": {
+          "src": "lib:agency-team-2",
+          "alt": "Portrait of Aashish Rai"
+         }
+        },
+        {
+         "name": "Sabina Shrestha",
+         "role": "Film and photography",
+         "bio": "Shoots our launches, from tea gardens at dawn to hotel kitchens at night.",
+         "image": {
+          "src": "lib:agency-team-3",
+          "alt": "Portrait of Sabina Shrestha"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "feed",
+      "props": {
+       "heading": "@chautaricreative",
+       "intro": "Work in progress, most weeks.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:agency-posters",
+          "alt": "Work in progress at the studio"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:agency-desk",
+          "alt": "Work in progress at the studio"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:agency-stationery",
+          "alt": "Work in progress at the studio"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:agency-shoot",
+          "alt": "Work in progress at the studio"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:agency-tea",
+          "alt": "Work in progress at the studio"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:agency-textile",
+          "alt": "Work in progress at the studio"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:agency-patan",
+          "alt": "Work in progress at the studio"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:agency-packaging",
+          "alt": "Work in progress at the studio"
+         },
+         "caption": ""
+        }
+       ],
+       "link": {
+        "label": "Follow on Instagram",
+        "href": "https://www.instagram.com/chautaricreative",
+        "newTab": true
+       }
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "We are hiring a junior designer",
+       "text": "Send three projects and a paragraph about why. No CV needed.",
+       "primary": {
+        "label": "Apply by email",
+        "href": "mailto:studio@chautari.com.np"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "contact",
+    "slug": "contact",
+    "title": "Contact",
+    "nav": true,
+    "seoTitle": "Start a project · Chautari Creative",
+    "seoDescription": "Send a short brief. We reply within two working days with honest advice and, if we are the right fit, a proposal.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Start a project",
+       "text": "A few lines are enough: what you make, who it is for, and when you need it. We reply within two working days.",
+       "primary": {
+        "label": "",
+        "href": ""
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "studio@chautari.com.np · 01-5551907",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "split",
+      "props": {
+       "heading": "Tell us about it",
+       "text": "Budget ranges help us answer faster, but are not required.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send the brief",
+       "success": "Thank you. Rojina will reply within two working days."
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "After you send it",
+       "intro": "",
+       "items": [
+        {
+         "title": "We read it together",
+         "text": "The whole studio reads every brief on Monday morning.",
+         "detail": ""
+        },
+        {
+         "title": "A call or a coffee",
+         "text": "Forty minutes to ask questions. No charge, no deck.",
+         "detail": "Within a week"
+        },
+        {
+         "title": "A written proposal",
+         "text": "Scope, timeline and a fixed fee, or a referral if we are not the right studio.",
+         "detail": "Within two weeks"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "map",
+      "variant": "card",
+      "props": {
+       "heading": "Visit the studio",
+       "address": "First floor, Jhamsikhel Road, Lalitpur 44600",
+       "hours": "Sunday to Friday, 10:00 to 18:00",
+       "phone": "",
+       "note": "Above the bakery. Ring the bell by the green door.",
+       "query": "Jhamsikhel Road, Lalitpur",
+       "link": ""
+      }
+     },
+     {
+      "type": "social",
       "variant": "big",
       "props": {
-        "note": "",
-        "showPages": true,
-        "showContact": true,
-        "showSocial": true,
-        "about": "A studio of seven in Jhamsikhel. We take about eight projects a year."
+       "heading": "Elsewhere",
+       "links": []
       }
-    },
-    "pages": [
-      {
-        "id": "home",
-        "title": "Home",
-        "nav": true,
-        "seoTitle": "Chautari Creative, Jhamsikhel: brand, web and film for Nepali companies",
-        "seoDescription": "Creative studio in Jhamsikhel, Lalitpur. Brand identity from Rs 3.5 lakh, websites from Rs 2 lakh, brand films. About eight projects a year.",
-        "blocks": [
-          {
-            "type": "hero",
-            "variant": "text",
-            "props": {
-              "eyebrow": "Studio · Jhamsikhel, Lalitpur",
-              "title": "We make Nepali companies look like they mean it",
-              "text": "Identity, websites and short films for hotels, banks, cooperatives and the people who supply them. Seven of us, eight projects a year, no juniors on your account.",
-              "primary": {
-                "label": "Send a brief",
-                "href": "page:brief"
-              },
-              "secondary": {
-                "label": "See work",
-                "href": "page:work"
-              }
-            }
-          },
-          {
-            "type": "image",
-            "variant": "full",
-            "props": {
-              "image": {
-                "src": "lib:camera-kit",
-                "alt": "A camera body and two lenses on a dark table",
-                "focal": [
-                  50,
-                  50
-                ]
-              },
-              "caption": "Camera kit in the studio, Jhamsikhel"
-            }
-          },
-          {
-            "type": "features",
-            "variant": "compact",
-            "props": {
-              "heading": "What we do",
-              "items": [
-                {
-                  "title": "Brand identity",
-                  "text": "Name, logo, colours, type, a usable guideline. Signage and packaging follow.",
-                  "detail": "From Rs 3.5 lakh"
-                },
-                {
-                  "title": "Websites",
-                  "text": "Designed, written and built. You can edit it yourself afterwards.",
-                  "detail": "From Rs 2 lakh"
-                },
-                {
-                  "title": "Brand film",
-                  "text": "Two to four minutes, shot in Nepal with Nepali crew. Subtitled in English.",
-                  "detail": "From Rs 4 lakh"
-                },
-                {
-                  "title": "Campaign design",
-                  "text": "Print, hoardings and social for a Dashain or Tihar season.",
-                  "detail": "Quoted per campaign"
-                }
-              ]
-            }
-          },
-          {
-            "type": "stats",
-            "variant": "split",
-            "props": {
-              "heading": "The shape of the studio",
-              "text": "Small on purpose. We would rather do eight projects properly than twenty in a hurry.",
-              "items": [
-                {
-                  "value": "7",
-                  "label": "People in the studio"
-                },
-                {
-                  "value": "8",
-                  "label": "Projects a year, at most"
-                },
-                {
-                  "value": "2071",
-                  "label": "The year we started"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          },
-          {
-            "type": "cta",
-            "variant": "split",
-            "props": {
-              "title": "Have a brief? Send it as it is.",
-              "text": "One paragraph is enough. We reply in two working days.",
-              "primary": {
-                "label": "Send a brief",
-                "href": "page:brief"
-              },
-              "secondary": {
-                "label": "",
-                "href": ""
-              }
-            },
-            "style": {
-              "bg": "ink"
-            }
-          }
-        ]
-      },
-      {
-        "id": "work",
-        "title": "Work",
-        "nav": true,
-        "seoTitle": "Selected work by Chautari Creative, Jhamsikhel",
-        "seoDescription": "Selected brand, web and film projects by Chautari Creative for Nepali hotels, cooperatives and food companies.",
-        "blocks": [
-          {
-            "type": "timeline",
-            "variant": "list",
-            "props": {
-              "heading": "Selected work",
-              "items": [
-                {
-                  "date": "2080",
-                  "title": "Thakali Kitchen, Thamel",
-                  "text": "A restaurant identity built on the Thakali tarkari set: menu, signage, and a QR ordering page."
-                },
-                {
-                  "date": "2080",
-                  "title": "Rara Cooperative",
-                  "text": "Rebrand and website for a savings and credit cooperative in Jumla, with a Nepali-first interface."
-                },
-                {
-                  "date": "2079",
-                  "title": "Kavre Dairy",
-                  "text": "Packaging for six cheeses and curd, shot in the farm at Panauti."
-                },
-                {
-                  "date": "2079",
-                  "title": "Bhaktapur Guest House",
-                  "text": "A two-minute film and a website with online booking requests."
-                },
-                {
-                  "date": "2078",
-                  "title": "Everest Hardware",
-                  "text": "Catalogue design, 96 pages, in Nepali and English."
-                }
-              ]
-            }
-          },
-          {
-            "type": "gallery",
-            "variant": "grid",
-            "props": {
-              "heading": "",
-              "intro": "",
-              "images": [
-                {
-                  "image": {
-                    "src": "lib:camera-kit",
-                    "alt": "A camera and lenses on a table"
-                  },
-                  "caption": "On set"
-                },
-                {
-                  "image": {
-                    "src": "lib:cafe-hall",
-                    "alt": "A bright café with long tables and hanging lamps"
-                  },
-                  "caption": "Thakali Kitchen, dining room"
-                }
-              ]
-            },
-            "style": {
-              "bg": "surface"
-            }
-          }
-        ]
-      },
-      {
-        "id": "brief",
-        "title": "Brief",
-        "nav": true,
-        "seoTitle": "Send a brief to Chautari Creative, Jhamsikhel",
-        "seoDescription": "Tell Chautari Creative about your project, timeline and budget. We reply within two working days.",
-        "blocks": [
-          {
-            "type": "contact",
-            "variant": "split",
-            "props": {
-              "heading": "Send a brief",
-              "text": "What is the company, what do you need, and by when? A rough budget helps us say yes or no honestly.",
-              "askPhone": true,
-              "button": "Send the brief",
-              "success": "Thank you. We will reply within two working days."
-            }
-          },
-          {
-            "type": "social",
-            "variant": "big",
-            "props": {
-              "heading": "Elsewhere",
-              "links": [
-                {
-                  "network": "instagram",
-                  "url": "https://www.instagram.com/chautaricreative"
-                },
-                {
-                  "network": "behance",
-                  "url": "https://www.behance.net/chautaricreative"
-                },
-                {
-                  "network": "linkedin",
-                  "url": "https://www.linkedin.com/company/chautari-creative"
-                }
-              ]
-            }
-          }
-        ]
-      }
+     }
     ]
-  }
+   }
+  ]
+ }
 }

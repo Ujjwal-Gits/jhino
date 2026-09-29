@@ -17,10 +17,17 @@ export interface FontDef {
   weights: [number, number];
   italic?: boolean;
   /** Weight headings use with this face, and their letter spacing. */
-  display: { weight: number; tracking: string; lead: number };
+  display: { weight: number; tracking: string; lead: number; stretch?: string };
   fallback: string;
+  /** Width axis range of a variable file (e.g. "62% 125%"). */
+  stretch?: string;
 }
 export const FONTS: FontDef[] = [
+  { id: 'rozha', name: 'Rozha One', kind: 'serif', family: 'Rozha One', weights: [400, 400], display: { weight: 400, tracking: '-0.015em', lead: 1.0 }, fallback: 'Didot, Georgia, serif' },
+  { id: 'sourceserif', name: 'Source Serif', kind: 'serif', family: 'Source Serif 4', weights: [200, 900], italic: true, display: { weight: 520, tracking: '-0.022em', lead: 1.04 }, fallback: 'Georgia, serif' },
+  { id: 'caslon', name: 'Libre Caslon Display', kind: 'serif', family: 'Libre Caslon Display', weights: [400, 400], display: { weight: 400, tracking: '-0.01em', lead: 1.02 }, fallback: 'Georgia, serif' },
+  { id: 'figtree', name: 'Figtree', kind: 'sans', family: 'Figtree', weights: [300, 900], display: { weight: 650, tracking: '-0.03em', lead: 1.02 }, fallback: '"Helvetica Neue", Arial, sans-serif' },
+  { id: 'archivox', name: 'Archivo Expanded', kind: 'sans', family: 'Archivo Wide', weights: [100, 900], stretch: '62% 125%', display: { weight: 720, tracking: '-0.035em', lead: 0.98, stretch: '125%' }, fallback: '"Helvetica Neue", Arial, sans-serif' },
   { id: 'youngserif', name: 'Young Serif', kind: 'serif', family: 'Young Serif', weights: [400, 400], display: { weight: 400, tracking: '-0.01em', lead: 1.08 }, fallback: 'Georgia, serif' },
   { id: 'fraunces', name: 'Fraunces', kind: 'serif', family: 'Fraunces', weights: [100, 900], italic: true, display: { weight: 560, tracking: '-0.02em', lead: 1.04 }, fallback: 'Georgia, serif' },
   { id: 'newsreader', name: 'Newsreader', kind: 'serif', family: 'Newsreader', weights: [200, 800], italic: true, display: { weight: 500, tracking: '-0.015em', lead: 1.06 }, fallback: 'Georgia, serif' },
@@ -54,36 +61,54 @@ export interface Theme {
   rhythm: Rhythm;
   /** Headings in capitals (for condensed display faces). */
   caps: boolean;
+  /** Size of headings against the text, 0.85 (quiet) to 1.15 (grand). */
+  scale: number;
 }
 export const COLOR_KEYS: (keyof ThemeColors)[] = ['bg', 'surface', 'text', 'muted', 'accent', 'onAccent', 'line'];
 export const COLOR_LABELS: Record<keyof ThemeColors, string> = { bg: 'Page', surface: 'Panels', text: 'Text', muted: 'Quiet text', accent: 'Accent', onAccent: 'Text on accent', line: 'Lines' };
 
 export interface Preset { id: string; name: string; note: string; theme: Theme }
-const preset = (id: string, name: string, note: string, display: string, body: string, c: [string, string, string, string, string, string, string], radius: number, button: ButtonStyle, rhythm: Rhythm, space = 1, caps = false): Preset =>
-  ({ id, name, note, theme: { preset: id, display, body, colors: { bg: c[0], surface: c[1], text: c[2], muted: c[3], accent: c[4], onAccent: c[5], line: c[6] }, radius, space, button, rhythm, caps } });
+type Swatch = [bg: string, surface: string, text: string, muted: string, accent: string, onAccent: string, line: string];
+const preset = (id: string, name: string, note: string, display: string, body: string, c: Swatch, radius: number, button: ButtonStyle, rhythm: Rhythm, o: { space?: number; caps?: boolean; scale?: number } = {}): Preset =>
+  ({ id, name, note, theme: { preset: id, display, body, colors: { bg: c[0], surface: c[1], text: c[2], muted: c[3], accent: c[4], onAccent: c[5], line: c[6] }, radius, space: o.space ?? 1, button, rhythm, caps: o.caps ?? false, scale: o.scale ?? 1 } });
+/*
+ * The themes. Neutral grounds (true white, charcoal, near-black) and ONE accent each, taken from the kind
+ * of photography the business shows. Every text/background pair is at least 4.5:1.
+ */
 export const PRESETS: Preset[] = [
-  preset('chiya', 'Chiya house', 'Cream paper, a soft serif and terracotta. Cafés, bakeries, homestays.', 'youngserif', 'hanken',
-    ['#f4efe6', '#ebe2d2', '#2a211b', '#6b5d51', '#b5462a', '#fff8f1', '#d8ccb8'], 4, 'solid', 'airy'),
-  preset('darkroom', 'Darkroom', 'Near-black, bone white and a didone. Photographers, film, fashion.', 'bodoni', 'archivo',
-    ['#121110', '#1c1b19', '#efebe3', '#a19b90', '#d9c9a8', '#121110', '#34322e'], 0, 'outline', 'airy'),
-  preset('clinic', 'Clear clinic', 'White, pine green, one grotesque. Clinics, pharmacies, labs.', 'hanken', 'hanken',
-    ['#ffffff', '#eef4f1', '#10231d', '#4d625a', '#0f6b54', '#ffffff', '#d6e2dc'], 8, 'solid', 'even'),
-  preset('newsprint', 'Newsprint', 'Off-white and ink with a red rule. Writers, NGOs, publications.', 'newsreader', 'newsreader',
-    ['#fbfaf6', '#f1eee6', '#171614', '#5e5a52', '#c1272d', '#ffffff', '#dcd7cc'], 0, 'underline', 'tight'),
-  preset('workshop', 'Workshop', 'Concrete grey, signal yellow, condensed capitals. Gyms, garages, builders.', 'bigshoulders', 'archivo',
-    ['#e8e6e1', '#dcd9d2', '#151515', '#55534e', '#f0b400', '#151515', '#c3c0b8'], 0, 'solid', 'tight', 0.95, true),
-  preset('rhododendron', 'Rhododendron', 'Blush white and laligurans red. Salons, boutiques, events.', 'dmserif', 'schibsted',
-    ['#fff8f5', '#f7e7e1', '#2b1014', '#6d4b50', '#a3161f', '#fff8f5', '#ecd3cb'], 16, 'pill', 'even'),
-  preset('teagarden', 'Tea garden', 'Pale leaf, deep green and round corners. Farms, tea, wellness.', 'fraunces', 'schibsted',
-    ['#f2f4ec', '#e3e9d8', '#1c2a1e', '#566257', '#3d6a38', '#f6f8f1', '#cfd8c2'], 22, 'pill', 'airy', 1.08),
-  preset('ledger', 'Ledger', 'Typewriter headings over a book serif. Consultants, architects, lawyers.', 'plexmono', 'newsreader',
-    ['#f6f4ee', '#ece8dd', '#1b1b1a', '#5b5a55', '#2e5b4f', '#f6f4ee', '#d4d0c4'], 2, 'outline', 'even'),
-  preset('marigold', 'Marigold night', 'Warm dark brown with marigold. Bars, music venues, late kitchens.', 'gloock', 'bricolage',
-    ['#1b1412', '#261d1a', '#f4e8d8', '#b5a390', '#e9a23b', '#1b1412', '#3d302b'], 6, 'solid', 'even'),
-  preset('gallery', 'Gallery white', 'White space and heavy black type, nothing else. Studios, artists, agencies.', 'archivo', 'archivo',
-    ['#ffffff', '#f3f3f1', '#0b0b0b', '#5f5f5b', '#0b0b0b', '#ffffff', '#e2e2de'], 0, 'underline', 'airy', 1.1),
+  preset('roast', 'Roast', 'White, espresso ink and bottle green, with a heavy Devanagari-born didone. Cafés, bakeries, restaurants.', 'rozha', 'figtree',
+    ['#ffffff', '#f3f1ec', '#1b1815', '#5f5851', '#1f4a3a', '#ffffff', '#e4e0d9'], 2, 'solid', 'airy', { scale: 1.02 }),
+  preset('meridian', 'Meridian', 'Clinical white, deep navy and one clear cobalt. A readable serif for headings. Clinics, labs, schools.', 'sourceserif', 'hanken',
+    ['#ffffff', '#eef3f7', '#0e1b2a', '#4b5968', '#1d5fb4', '#ffffff', '#d9e2ea'], 12, 'pill', 'even'),
+  preset('monolith', 'Monolith', 'Near-black, bone text, marigold and wide heavy type. Agencies, studios, music.', 'archivox', 'archivo',
+    ['#111110', '#1b1b19', '#f1efe9', '#a6a39a', '#f0b43c', '#111110', '#2f2e2b'], 0, 'solid', 'airy', { scale: 1.06 }),
+  preset('salt', 'Salt', 'True white and black grotesque, nothing else. Architects, portfolios, galleries.', 'schibsted', 'schibsted',
+    ['#ffffff', '#f4f4f2', '#0b0b0b', '#5c5c58', '#0b0b0b', '#ffffff', '#e3e3df'], 0, 'underline', 'airy', { space: 1.05, scale: 1.08 }),
+  preset('kora', 'Kora', 'A soft white, slate blue and a contrasty serif. Homestays, boutique hotels, weddings.', 'gloock', 'figtree',
+    ['#faf9f6', '#efece6', '#1f1d1a', '#5e5952', '#2e4a5c', '#ffffff', '#e2ded6'], 4, 'solid', 'airy'),
+  preset('summit', 'Summit', 'White, pine-black and prayer-flag yellow, condensed capitals. Gyms, trekking, builders.', 'bigshoulders', 'archivo',
+    ['#ffffff', '#eef0ec', '#121613', '#545b55', '#e8a317', '#121613', '#dde1db'], 0, 'solid', 'tight', { caps: true, scale: 1.1 }),
+  preset('nocturne', 'Nocturne', 'Green-black, warm bone and brass, with a fashion didone. Photographers, weddings, bars.', 'bodoni', 'schibsted',
+    ['#0f1312', '#171d1b', '#ece9e2', '#a39f95', '#c8a46a', '#0f1312', '#2a312e'], 0, 'outline', 'airy'),
+  preset('counsel', 'Counsel', 'White, graphite and oxblood, a sturdy serif. Consultants, lawyers, NGOs.', 'youngserif', 'hanken',
+    ['#ffffff', '#f3f3f0', '#16181b', '#53575d', '#7a1e2c', '#ffffff', '#dfdfdb'], 2, 'solid', 'even'),
+  preset('bloom', 'Bloom', 'White, a blush panel and raspberry, with an elegant Caslon. Salons, boutiques, florists.', 'caslon', 'figtree',
+    ['#ffffff', '#f8eef0', '#231418', '#6b5358', '#a3214f', '#ffffff', '#eedde1'], 20, 'pill', 'even'),
 ];
-export const presetById = (id: string) => PRESETS.find((p) => p.id === id) ?? PRESETS[0];
+/** Theme ids from before the redesign, and the theme each moved to. */
+export const LEGACY_PRESETS: Record<string, { to: string; colors: Swatch; display: string; body: string }> = {
+  chiya: { to: 'roast', colors: ['#f4efe6', '#ebe2d2', '#2a211b', '#6b5d51', '#b5462a', '#fff8f1', '#d8ccb8'], display: 'youngserif', body: 'hanken' },
+  darkroom: { to: 'nocturne', colors: ['#121110', '#1c1b19', '#efebe3', '#a19b90', '#d9c9a8', '#121110', '#34322e'], display: 'bodoni', body: 'archivo' },
+  clinic: { to: 'meridian', colors: ['#ffffff', '#eef4f1', '#10231d', '#4d625a', '#0f6b54', '#ffffff', '#d6e2dc'], display: 'hanken', body: 'hanken' },
+  newsprint: { to: 'counsel', colors: ['#fbfaf6', '#f1eee6', '#171614', '#5e5a52', '#c1272d', '#ffffff', '#dcd7cc'], display: 'newsreader', body: 'newsreader' },
+  workshop: { to: 'summit', colors: ['#e8e6e1', '#dcd9d2', '#151515', '#55534e', '#f0b400', '#151515', '#c3c0b8'], display: 'bigshoulders', body: 'archivo' },
+  rhododendron: { to: 'bloom', colors: ['#fff8f5', '#f7e7e1', '#2b1014', '#6d4b50', '#a3161f', '#fff8f5', '#ecd3cb'], display: 'dmserif', body: 'schibsted' },
+  teagarden: { to: 'kora', colors: ['#f2f4ec', '#e3e9d8', '#1c2a1e', '#566257', '#3d6a38', '#f6f8f1', '#cfd8c2'], display: 'fraunces', body: 'schibsted' },
+  ledger: { to: 'counsel', colors: ['#f6f4ee', '#ece8dd', '#1b1b1a', '#5b5a55', '#2e5b4f', '#f6f4ee', '#d4d0c4'], display: 'plexmono', body: 'newsreader' },
+  marigold: { to: 'monolith', colors: ['#1b1412', '#261d1a', '#f4e8d8', '#b5a390', '#e9a23b', '#1b1412', '#3d302b'], display: 'gloock', body: 'bricolage' },
+  gallery: { to: 'salt', colors: ['#ffffff', '#f3f3f1', '#0b0b0b', '#5f5f5b', '#0b0b0b', '#ffffff', '#e2e2de'], display: 'archivo', body: 'archivo' },
+};
+export const presetById = (id: string) => PRESETS.find((p) => p.id === id) ?? PRESETS.find((p) => p.id === LEGACY_PRESETS[id]?.to) ?? PRESETS[0];
 
 /* ---------------- the site ---------------- */
 export interface ImageRef { src: string; alt: string; focal?: [number, number] }
@@ -158,16 +183,16 @@ export const BLOCKS: BlockDef[] = [
   {
     type: 'hero', name: 'Hero', category: 'structure', keywords: 'banner intro headline top cover',
     description: 'The first thing people see: what you do, where, and what to do next.',
-    variants: v(['split', 'Text beside a photo'], ['image', 'Full photo, text on top'], ['text', 'Large type only'], ['video', 'Video in the background']),
-    fields: [text('eyebrow', 'Small line above', 80), text('title', 'Headline', 160), para('text', 'Text', 500), link('primary', 'Main button'), link('secondary', 'Second button'), image('image', 'Photo'), url('video', 'Background video', 'A direct link to an .mp4 file. The photo shows while it loads and on slow connections.')],
+    variants: v(['split', 'Text beside a photo'], ['image', 'Full photo, text on top'], ['stacked', 'Big headline over a wide photo'], ['text', 'Large type only'], ['video', 'Video in the background']),
+    fields: [text('title', 'Headline', 160), para('text', 'Text', 500), link('primary', 'Main button'), link('secondary', 'Second button'), image('image', 'Photo'), text('eyebrow', 'Detail line', 120, 'A short fact under the buttons, like opening hours or the neighbourhood.'), url('video', 'Background video', 'A direct link to an .mp4 file. The photo shows while it loads and on slow connections.')],
     defaults: () => ({ eyebrow: '', title: 'Say what you do and where, in one line', text: 'Add a sentence or two about who you help and why people come back. Click any text on the page to change it.', primary: { label: 'Get in touch', href: '' }, secondary: { label: '', href: '' }, image: noImage(), video: '' }),
   },
   {
     type: 'footer', name: 'Footer', category: 'structure', global: 'footer', keywords: 'bottom copyright contact',
-    description: 'Your name, pages, contact details and social links, on every page.',
-    variants: v(['columns', 'Columns'], ['simple', 'One quiet line'], ['big', 'Large name']),
-    fields: [para('about', 'About line', 300), text('note', 'Small print', 160), bool('showPages', 'List the pages'), bool('showContact', 'Show phone, email and address'), bool('showSocial', 'Show social links')],
-    defaults: () => ({ about: '', note: '', showPages: true, showContact: true, showSocial: true }),
+    description: 'Your name, pages, contact details, hours and social links, on every page.',
+    variants: v(['rich', 'Full: a closing line, columns and hours'], ['columns', 'Columns'], ['simple', 'One quiet line'], ['big', 'Large name']),
+    fields: [text('headline', 'Closing line', 140, 'A last sentence in large type, like "Come in for a cup". Full footer only.'), link('cta', 'Button'), para('about', 'About line', 300), para('hours', 'Hours', 300, 'One line per row, like "Sun to Fri, 7:30 to 21:00". Full footer only.'), text('note', 'Small print', 160), bool('showPages', 'List the pages'), bool('showContact', 'Show phone, email and address'), bool('showSocial', 'Show social links')],
+    defaults: () => ({ headline: '', cta: { label: '', href: '' }, about: '', hours: '', note: '', showPages: true, showContact: true, showSocial: true }),
   },
   /* ---- text and media ---- */
   {
@@ -193,10 +218,38 @@ export const BLOCKS: BlockDef[] = [
   },
   {
     type: 'gallery', name: 'Gallery', category: 'media', keywords: 'photos portfolio images grid slider',
-    description: 'Several photos as a grid, a masonry wall or a carousel.',
-    variants: v(['grid', 'Even grid'], ['masonry', 'Masonry'], ['carousel', 'Carousel']),
-    fields: [text('heading', 'Heading'), para('intro', 'Intro', 400), list('images', 'Photos', 'photo', [image('image', 'Photo'), text('caption', 'Caption', 160)], 48)],
-    defaults: () => ({ heading: 'Gallery', intro: '', images: [{ image: noImage(), caption: '' }, { image: noImage(), caption: '' }, { image: noImage(), caption: '' }] }),
+    description: 'Several photos as a mosaic, a grid, a masonry wall, a carousel or a square feed.',
+    variants: v(['bento', 'Mosaic of mixed sizes'], ['grid', 'Even grid'], ['masonry', 'Masonry'], ['carousel', 'Carousel'], ['feed', 'Square feed, like Instagram']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 400), list('images', 'Photos', 'photo', [image('image', 'Photo'), text('caption', 'Caption', 160)], 48), link('link', 'Link', )],
+    defaults: () => ({ heading: 'Gallery', intro: '', images: [{ image: noImage(), caption: '' }, { image: noImage(), caption: '' }, { image: noImage(), caption: '' }], link: { label: '', href: '' } }),
+  },
+  {
+    type: 'rows', name: 'Feature rows', category: 'media', keywords: 'alternating image text zigzag features story sections',
+    description: 'Large photos and short stories in rows, left and right in turn.',
+    variants: v(['alternate', 'Photo left, then right'], ['large', 'Big photos, text beneath']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500), list('items', 'Rows', 'row', [image('image', 'Photo'), text('title', 'Title', 120), para('text', 'Text', 700), link('link', 'Link')], 12)],
+    defaults: () => ({ heading: '', intro: '', items: [{ image: noImage(), title: 'One thing you do well', text: 'Two or three sentences with a real detail: where it comes from, who makes it, how long it takes.', link: { label: '', href: '' } }, { image: noImage(), title: 'Another thing worth a photo', text: 'Say what a customer sees, tastes or gets.', link: { label: '', href: '' } }] }),
+  },
+  {
+    type: 'sticky', name: 'Photo with scrolling story', category: 'media', keywords: 'sticky pinned image scroll chapters story about',
+    description: 'A photo that stays in view while short chapters scroll past beside it.',
+    variants: v(['left', 'Photo on the left'], ['right', 'Photo on the right']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500), image('image', 'Photo'), list('items', 'Chapters', 'chapter', [plain('label', 'Small label', 40, 'Like a year, a place or a step.'), text('title', 'Title', 120), para('text', 'Text', 700)], 10)],
+    defaults: () => ({ heading: 'How it is made', intro: '', image: noImage(), items: [{ label: '', title: 'Where it starts', text: 'A few sentences about the first part of the story.' }, { label: '', title: 'What happens next', text: 'Keep each chapter short enough to read in one breath.' }] }),
+  },
+  {
+    type: 'quote', name: 'Big quote', category: 'media', keywords: 'pull quote statement words founder saying',
+    description: 'One sentence in large type: your promise, or words someone really said.',
+    variants: v(['large', 'Large type'], ['image', 'Beside a photo']),
+    fields: [para('quote', 'Quote', 600), text('name', 'Who said it', 80), text('detail', 'Who they are', 120), image('image', 'Photo')],
+    defaults: () => ({ quote: 'One sentence that sums up why you do this work.', name: '', detail: '', image: noImage() }),
+  },
+  {
+    type: 'marquee', name: 'Moving words', category: 'media', keywords: 'marquee ticker scrolling text band words',
+    description: 'A slow band of words across the page. It stands still for visitors who turn motion off.',
+    variants: v(['large', 'Large'], ['small', 'Small band']),
+    fields: [list('items', 'Words', 'phrase', [plain('text', 'Words', 80)], 12)],
+    defaults: () => ({ items: [{ text: 'Say it' }, { text: 'In a few words' }, { text: 'Again and again' }] }),
   },
   {
     type: 'video', name: 'Video', category: 'media', keywords: 'youtube vimeo film embed',
@@ -224,11 +277,32 @@ export const BLOCKS: BlockDef[] = [
   {
     type: 'menu', name: 'Menu', category: 'business', keywords: 'food drinks restaurant cafe prices dishes',
     description: 'Food and drinks by section, with prices in rupees (or any currency).',
-    variants: v(['columns', 'Two columns'], ['list', 'One long list'], ['compact', 'Compact board']),
+    variants: v(['columns', 'Two columns'], ['photo', 'With photos of the dishes'], ['list', 'One long list'], ['compact', 'Compact board']),
     fields: [text('heading', 'Heading'), para('intro', 'Note', 400), select('currency', 'Currency', CURRENCIES),
       list('sections', 'Sections', 'section', [text('title', 'Section', 80), para('note', 'Section note', 200),
-        list('items', 'Dishes and drinks', 'item', [text('name', 'Name', 90), para('desc', 'Description', 240), plain('price', 'Price', 20), plain('tag', 'Tag', 20, 'Like Veg, New or Spicy.')], 60)], 16)],
-    defaults: () => ({ heading: 'Menu', intro: '', currency: 'NPR', sections: [{ title: 'Section', note: '', items: [{ name: 'Dish name', desc: 'What is in it.', price: '', tag: '' }] }] }),
+        list('items', 'Dishes and drinks', 'item', [text('name', 'Name', 90), para('desc', 'Description', 240), plain('price', 'Price', 20), plain('tag', 'Tag', 20, 'Like Veg, New or Spicy.'), image('image', 'Photo')], 60)], 16)],
+    defaults: () => ({ heading: 'Menu', intro: '', currency: 'NPR', sections: [{ title: 'Section', note: '', items: [{ name: 'Dish name', desc: 'What is in it.', price: '', tag: '', image: noImage() }] }] }),
+  },
+  {
+    type: 'steps', name: 'Steps', category: 'business', keywords: 'process how it works numbered steps stages first visit',
+    description: 'How it works, in numbered steps, when the order matters.',
+    variants: v(['columns', 'Side by side'], ['stack', 'Down the page, large numbers']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500), list('items', 'Steps', 'step', [text('title', 'Title', 100), para('text', 'Text', 500), plain('detail', 'Time or note', 60, 'Like "Day 1" or "20 minutes".')], 8)],
+    defaults: () => ({ heading: 'How it works', intro: '', items: [{ title: 'First, you ask', text: 'What happens and what the customer needs to do.', detail: '' }, { title: 'Then we get to work', text: 'What you do, and how long it takes.', detail: '' }, { title: 'You get the result', text: 'What they walk away with.', detail: '' }] }),
+  },
+  {
+    type: 'work', name: 'Work and projects', category: 'business', keywords: 'portfolio case studies projects clients work grid',
+    description: 'Projects or case studies as large photos with a title and a line each.',
+    variants: v(['grid', 'Two columns'], ['feature', 'One large, then two'], ['list', 'Rows with a small photo']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500), list('items', 'Projects', 'project', [image('image', 'Photo'), text('title', 'Title', 100), plain('tag', 'Kind of work', 60), para('text', 'One line', 300), link('link', 'Link')], 24), link('link', 'Link under the list')],
+    defaults: () => ({ heading: 'Selected work', intro: '', items: [{ image: noImage(), title: 'Project name', tag: 'Identity', text: 'What you made and for whom.', link: { label: '', href: '' } }, { image: noImage(), title: 'Another project', tag: 'Website', text: 'The result in one line.', link: { label: '', href: '' } }], link: { label: '', href: '' } }),
+  },
+  {
+    type: 'press', name: 'Press and awards', category: 'business', keywords: 'press mentions awards media recognition featured in',
+    description: 'Where you were written about or what you won, with a short line from each.',
+    variants: v(['list', 'Rows'], ['quotes', 'Quotes from the press']),
+    fields: [text('heading', 'Heading'), list('items', 'Mentions', 'mention', [plain('name', 'Publication or award', 80), text('detail', 'Title or year', 140), para('quote', 'What they wrote', 300), url('url', 'Link')], 16)],
+    defaults: () => ({ heading: 'In the press', items: [{ name: 'Publication name', detail: 'The headline, and the year', quote: '', url: '' }] }),
   },
   {
     type: 'team', name: 'Team', category: 'business', keywords: 'people staff doctors about us',
@@ -269,9 +343,9 @@ export const BLOCKS: BlockDef[] = [
   {
     type: 'cta', name: 'Call to action', category: 'engagement', keywords: 'banner book call button',
     description: 'One clear next step: book, call, visit or order.',
-    variants: v(['band', 'Full-width band'], ['split', 'Text left, buttons right'], ['boxed', 'Boxed']),
-    fields: [text('title', 'Heading', 140), para('text', 'Text', 400), link('primary', 'Main button'), link('secondary', 'Second button')],
-    defaults: () => ({ title: 'Ready when you are', text: '', primary: { label: 'Get in touch', href: '' }, secondary: { label: '', href: '' } }),
+    variants: v(['band', 'Full-width band'], ['image', 'Over a photo'], ['split', 'Text left, buttons right'], ['boxed', 'Boxed']),
+    fields: [text('title', 'Heading', 140), para('text', 'Text', 400), link('primary', 'Main button'), link('secondary', 'Second button'), image('image', 'Background photo')],
+    defaults: () => ({ title: 'Ready when you are', text: '', primary: { label: 'Get in touch', href: '' }, secondary: { label: '', href: '' }, image: noImage() }),
   },
   {
     type: 'contact', name: 'Contact form', category: 'engagement', keywords: 'form message email phone enquiry',
@@ -307,9 +381,9 @@ export const BLOCKS: BlockDef[] = [
   {
     type: 'map', name: 'Map', category: 'engagement', keywords: 'location directions google maps address',
     description: 'A Google map of where you are, with a directions link. No API key needed.',
-    variants: v(['embed', 'Map, full width'], ['split', 'Address beside the map'], ['card', 'Address card only']),
-    fields: [text('heading', 'Heading'), para('address', 'Address', 300, 'Empty: the address from Site settings.'), plain('query', 'Place to show', 200, 'A place name or address as you would type it into Google Maps.'), url('link', 'Google Maps link', 'The share link from Google Maps, for directions.')],
-    defaults: () => ({ heading: 'Find us', address: '', query: '', link: '' }),
+    variants: v(['location', 'Location card over the map'], ['split', 'Address beside the map'], ['embed', 'Map, full width'], ['card', 'Address card only']),
+    fields: [text('heading', 'Heading'), para('address', 'Address', 300, 'Empty: the address from Site settings.'), para('hours', 'Hours', 300, 'Optional. One line per row.'), plain('phone', 'Phone', 40, 'Empty: the phone from Site settings.'), para('note', 'Getting here', 400, 'Landmarks, parking, which gate.'), plain('query', 'Place to show', 200, 'A place name or address as you would type it into Google Maps.'), url('link', 'Google Maps link', 'The share link from Google Maps, for directions.')],
+    defaults: () => ({ heading: 'Find us', address: '', hours: '', phone: '', note: '', query: '', link: '' }),
   },
   {
     type: 'timeline', name: 'Timeline', category: 'engagement', keywords: 'history milestones steps process journey',
@@ -351,8 +425,53 @@ export const blockDef = (type: string) => BLOCKS.find((b) => b.type === type);
 export const FORM_TYPES = BLOCKS.filter((b) => b.form).map((b) => b.type);
 
 /* ---------------- library photos (runtime/site-img) ---------------- */
-/** name → widths available (files are <name>-<width>.webp). */
+/** name → widths available (files are <name>-<width>.webp), smallest first. */
 export const LIBRARY: Record<string, { widths: number[]; alt: string }> = {
+  /* flagship templates (cafe, clinic, agency): 800 and 1600 wide */
+  'cafe-room': { widths: [800, 1600], alt: 'A sunlit café with a pale wood counter, an espresso machine and tables by tall windows' },
+  'cafe-barista': { widths: [800, 1600], alt: 'A barista pouring from a gooseneck kettle into pour-over drippers at a dark counter' },
+  'cafe-pourover': { widths: [800, 1600], alt: 'A glass pour-over brewer and carafe beside copper kettles on a dark bar' },
+  'cafe-latte': { widths: [800, 1600], alt: 'A latte with tulip latte art, seen from above on a dark wooden table' },
+  'cafe-roaster': { widths: [800, 1600], alt: 'Freshly roasted beans pouring from a drum roaster into its cooling tray' },
+  'cafe-beans': { widths: [800, 1600], alt: 'Close-up of glossy roasted coffee beans' },
+  'cafe-cherries': { widths: [800, 1600], alt: 'A branch of ripening red and yellow coffee cherries' },
+  'cafe-momo': { widths: [800, 1600], alt: 'Steam rising from a bamboo steamer of momo, with a bowl of dipping sauce' },
+  'cafe-momo-2': { widths: [800, 1600], alt: 'Plates of steamed, spinach and pan-fried momo with a bowl of soup' },
+  'cafe-chiya': { widths: [800, 1600], alt: 'A steel tray of small glasses of milk tea, from above' },
+  'cafe-thali': { widths: [800, 1600], alt: 'A Thakali set on a brass plate: rice, dal, curries, achar, greens and papad' },
+  'cafe-pastry': { widths: [800, 1600], alt: 'Rows of golden croissants on baking paper' },
+  'cafe-bag': { widths: [800, 1600], alt: 'A plain black coffee pouch with roasted beans in front of it' },
+  'cafe-evening': { widths: [800, 1600], alt: 'A Kathmandu durbar square at night, lit temples and light trails' },
+  'clinic-reception': { widths: [800, 1600], alt: 'A bright, minimal white clinic lobby with a small indoor tree and curved benches' },
+  'clinic-consult': { widths: [800, 1600], alt: 'A doctor writing notes at a desk while a patient sits across from him' },
+  'clinic-doctor-1': { widths: [800, 1600], alt: 'Portrait of a smiling woman doctor in a white coat' },
+  'clinic-doctor-2': { widths: [800, 1600], alt: 'Portrait of a bearded doctor with glasses and a stethoscope' },
+  'clinic-doctor-3': { widths: [800, 1600], alt: 'Portrait of a smiling woman doctor in a white coat over green scrubs' },
+  'clinic-child': { widths: [800, 1600], alt: 'A doctor’s stethoscope on a young child’s chest' },
+  'clinic-lab': { widths: [800, 1600], alt: 'Blood sample tubes with coloured caps in a rack' },
+  'clinic-bp': { widths: [800, 1600], alt: 'A nurse inflating a blood pressure cuff on a patient’s arm' },
+  'clinic-pharmacy': { widths: [800, 1600], alt: 'A pharmacist reaching for medicine on pharmacy shelves' },
+  'clinic-scan': { widths: [800, 1600], alt: 'A pregnant woman holding an ultrasound print' },
+  'clinic-physio': { widths: [800, 1600], alt: 'A physiotherapist working on a patient’s knee' },
+  'clinic-room': { widths: [800, 1600], alt: 'A modern consultation room with a desk, chairs and an examination couch' },
+  'clinic-hands': { widths: [800, 1600], alt: 'An older person’s hand held by a younger hand' },
+  'clinic-stetho': { widths: [800, 1600], alt: 'A stethoscope on a plain light blue background' },
+  'agency-studio': { widths: [800, 1600], alt: 'A designer at a desk in a warm, plant-filled studio with prints pinned up' },
+  'agency-desk': { widths: [800, 1600], alt: 'A hand sketching app screens on paper' },
+  'agency-posters': { widths: [800, 1600], alt: 'A wall of black and white typographic posters' },
+  'agency-packaging': { widths: [800, 1600], alt: 'A plain box and a frosted jar with a blank label on pale stone' },
+  'agency-tea': { widths: [800, 1600], alt: 'Two green tea tubes on a pale mint background' },
+  'agency-stationery': { widths: [800, 1600], alt: 'A stationery suite of cards and envelopes laid flat' },
+  'agency-patan': { widths: [800, 1600], alt: 'The courtyard of the Patan palace with carved Newari facades' },
+  'agency-hotel': { widths: [800, 1600], alt: 'A calm hotel bedroom with a mustard throw and pendant lamps' },
+  'agency-textile': { widths: [800, 1600], alt: 'Brightly coloured warp threads on a loom' },
+  'agency-shoot': { widths: [800, 1600], alt: 'A photographer shooting in a studio surrounded by lights' },
+  'agency-phone': { widths: [800, 1600], alt: 'Hands holding a phone with a dark app on screen' },
+  'agency-team-1': { widths: [800, 1600], alt: 'Portrait of a young woman in a red top in natural light' },
+  'agency-team-2': { widths: [800, 1600], alt: 'Portrait of a smiling man with long dark hair' },
+  'agency-team-3': { widths: [800, 1600], alt: 'Portrait of a laughing woman in a mustard and navy outfit' },
+  'agency-meeting': { widths: [800, 1600], alt: 'Two women reviewing colour swatches in front of a moodboard wall' },
+  /* earlier photos: 640 and 1400 wide */
   'salon-chairs': { widths: [640, 1400], alt: 'A bright hair salon with styling chairs and a long mirror' },
   'salon-mirrors': { widths: [640, 1400], alt: 'Salon chairs facing round mirrors on a dark wall' },
   'salon-facial': { widths: [640, 1400], alt: 'A therapist giving a facial to a woman lying back' },
@@ -380,17 +499,11 @@ export const LIBRARY: Record<string, { widths: number[]; alt: string }> = {
   'portrait-woman': { widths: [640, 1400], alt: 'Portrait of a woman in a striped shirt' },
   'portrait-man': { widths: [640, 1400], alt: 'Portrait of a smiling man' },
   'doctor-visit': { widths: [640, 1400], alt: 'A doctor talking with a patient' },
-  'doctor-coat': { widths: [640, 1400], alt: 'A doctor in a white coat with a stethoscope' },
-  'pill-bottle': { widths: [640, 1400], alt: 'A bottle of tablets on a white surface' },
   boudha: { widths: [640, 1400], alt: 'Boudhanath stupa from above, surrounded by the city' },
   swayambhu: { widths: [640, 1400], alt: 'Swayambhu stupa with prayer flags' },
   'himal-trek': { widths: [640, 1400], alt: 'A trekker looking at snow peaks' },
   'night-peaks': { widths: [640, 1400], alt: 'Snow peaks under a starry sky' },
-  'cut-pour-over': { widths: [1400], alt: 'Coffee being poured over a filter' },
-  'shoot-beans': { widths: [1400], alt: 'Roasted coffee beans' },
   'shoot-cheers': { widths: [1400], alt: 'Two coffee cups raised together' },
-  'shoot-iced': { widths: [1400], alt: 'An iced coffee in a glass' },
-  'shoot-lattes': { widths: [1400], alt: 'Two lattes with milk art' },
 };
 
 /* ---------------- sanitising ---------------- */
@@ -492,8 +605,14 @@ const RESERVED_SLUGS = new Set(['assets', '__jhino', '_jhino', 'api', 'index', '
 export const slugOk = (s: string) => /^[a-z0-9](?:[a-z0-9-]{0,40}[a-z0-9])?$/.test(s) && !RESERVED_SLUGS.has(s);
 export const toSlug = (s: string) => String(s).toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40).replace(/-+$/, '');
 
+/** Library photos that were retired, and the photo that replaces each (so older sites keep a picture). */
+export const LIBRARY_MOVED: Record<string, string> = {
+  'cut-pour-over': 'cafe-pourover', 'shoot-beans': 'cafe-beans', 'shoot-cheers': 'cafe-latte', 'cafe-window': 'cafe-room', 'shoot-iced': 'cafe-latte', 'shoot-lattes': 'cafe-latte',
+  'cafe-hall': 'cafe-room', 'doctor-visit': 'clinic-consult', 'doctor-coat': 'clinic-doctor-2', 'pill-bottle': 'clinic-pharmacy',
+};
 export function cleanImage(raw: any): ImageRef {
-  const src0 = String(raw?.src ?? '').trim();
+  let src0 = String(raw?.src ?? '').trim();
+  if (/^lib:/.test(src0) && !LIBRARY[src0.slice(4)] && LIBRARY_MOVED[src0.slice(4)]) src0 = 'lib:' + LIBRARY_MOVED[src0.slice(4)];
   let src = '';
   if (/^file:[\w-]{1,64}$/.test(src0)) src = src0;
   else if (/^lib:[\w-]{1,40}$/.test(src0) && LIBRARY[src0.slice(4)]) src = src0;
@@ -551,13 +670,24 @@ export function cleanBlock(raw: any, ids: Set<string>): Block | null {
   return { id, type: def.type, variant, props: cleanProps(def.fields, raw?.props && typeof raw.props === 'object' ? raw.props : {}, def.defaults()), style };
 }
 
-export function cleanTheme(raw: any): Theme {
+export function cleanTheme(input: any): Theme {
+  let raw = input;
+  // A theme id from before the redesign: move to its successor. Colours and fonts the owner never changed
+  // follow the new theme; ones they did change are kept.
+  const legacy = LEGACY_PRESETS[String(raw?.preset ?? '')];
+  if (legacy) {
+    const c = raw?.colors ?? {};
+    const custom = COLOR_KEYS.some((k, i) => typeof c[k] === 'string' && c[k].toLowerCase() !== legacy.colors[i]);
+    raw = { ...raw, preset: legacy.to, colors: custom ? raw.colors : undefined, display: raw.display && raw.display !== legacy.display ? raw.display : undefined, body: raw.body && raw.body !== legacy.body ? raw.body : undefined, scale: undefined };
+    if (!custom) { raw.radius = undefined; raw.button = undefined; raw.rhythm = undefined; raw.caps = undefined; raw.space = undefined; }
+  }
   const base = presetById(String(raw?.preset ?? '')).theme;
   const c = raw?.colors ?? {};
   const colors = { ...base.colors };
   for (const k of COLOR_KEYS) if (typeof c[k] === 'string' && HEX.test(c[k])) colors[k] = c[k].toLowerCase();
   const num = (n: unknown, lo: number, hi: number, d: number) => (typeof n === 'number' && isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d);
   return {
+    scale: Math.round(num(raw?.scale, 0.85, 1.15, base.scale) * 100) / 100,
     preset: PRESETS.some((p) => p.id === raw?.preset) ? raw.preset : base.preset,
     display: FONTS.some((f) => f.id === raw?.display) ? raw.display : base.display,
     body: FONTS.some((f) => f.id === raw?.body) ? raw.body : base.body,
@@ -620,7 +750,7 @@ export function makeBlock(type: string): Block {
 }
 
 /** A blank site: header, one hero, footer, one theme. */
-export function blankSite(name: string, presetId = 'gallery'): Site {
+export function blankSite(name: string, presetId = 'salt'): Site {
   return cleanSite({
     name, theme: presetById(presetId).theme,
     header: makeBlock('header'), footer: makeBlock('footer'),

@@ -1,214 +1,1263 @@
 {
-  "id": "cafe",
+ "id": "cafe",
+ "name": "Ghumti Café",
+ "category": "Restaurant and café",
+ "description": "A long, photo-led café site: momo and coffee menu with photos, the roastery story, private tables and catering, hours, booking and a map.",
+ "site": {
   "name": "Ghumti Café",
-  "category": "Restaurant and café",
-  "description": "A neighbourhood café with a full momo and coffee menu, opening hours, a table booking form and a map.",
-  "site": {
-    "name": "Ghumti Café",
-    "theme": { "preset": "chiya" },
-    "settings": {
-      "tagline": "Coffee, momo and chiya in Jhamsikhel",
-      "lang": "en",
-      "phone": "01-5911204",
-      "email": "hello@ghumticafe.com.np",
-      "address": "Jhamsikhel Road, near Sanepa Chowk, Lalitpur 44600",
-      "social": [
-        { "network": "instagram", "url": "https://www.instagram.com/ghumticafe" },
-        { "network": "facebook", "url": "https://www.facebook.com/ghumticafe" }
-      ]
+  "theme": {
+   "preset": "roast"
+  },
+  "settings": {
+   "tagline": "Coffee, momo and chiya in Jhamsikhel",
+   "lang": "en",
+   "phone": "01-5911204",
+   "email": "hello@ghumticafe.com.np",
+   "address": "Jhamsikhel Road, near Sanepa Chowk, Lalitpur 44600",
+   "social": [
+    {
+     "network": "instagram",
+     "url": "https://www.instagram.com/ghumticafe"
     },
-    "header": { "type": "header", "variant": "bar", "props": { "cta": { "label": "Book a table", "href": "page:visit" }, "sticky": true } },
-    "footer": {
-      "type": "footer", "variant": "columns",
-      "props": { "about": "Coffee roasted on Tuesdays, momo folded every morning, chiya until closing. In Jhamsikhel since 2076.", "note": "", "showPages": true, "showContact": true, "showSocial": true },
-      "style": { "bg": "surface" }
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/ghumticafe"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Book a table",
+     "href": "page:visit"
     },
-    "pages": [
-      {
-        "id": "home", "title": "Home",
-        "seoTitle": "Ghumti Café, Jhamsikhel: momo, pour-over coffee and chiya",
-        "seoDescription": "A café in Jhamsikhel, Lalitpur. Hand-folded momo, coffee from Nuwakot and Gulmi roasted in-house, Thakali set on Saturdays. Open 7:30 to 21:00.",
-        "blocks": [
-          {
-            "type": "hero", "variant": "split",
-            "props": {
-              "eyebrow": "Jhamsikhel, Lalitpur · Open 7:30 to 21:00",
-              "title": "Slow coffee, buff momo and a long table by the window",
-              "text": "We roast Nuwakot and Gulmi beans on Tuesdays, fold momo by hand every morning, and keep the chiya coming until the last guest leaves.",
-              "primary": { "label": "See the menu", "href": "page:menu" },
-              "secondary": { "label": "Book a table", "href": "page:visit" },
-              "image": { "src": "lib:cafe-hall", "alt": "The café's main room with long tables and hanging lamps" }
-            }
-          },
-          {
-            "type": "features", "variant": "rows",
-            "props": {
-              "heading": "What people come back for",
-              "intro": "",
-              "items": [
-                { "title": "Hand-folded momo", "text": "Buff, chicken or mushroom and cheese. Steamed, jhol or kothey, folded fresh from six in the morning.", "detail": "from Rs 280" },
-                { "title": "Single-origin pour-over", "text": "Beans from cooperatives in Nuwakot and Gulmi, roasted here in twelve-kilo batches.", "detail": "Rs 350" },
-                { "title": "Thakali set, Saturdays only", "text": "Rice, black dal, gundruk, saag, timur achar and chicken or mutton curry, refilled until you stop us.", "detail": "Rs 650" },
-                { "title": "Masala chiya all day", "text": "Boiled with fresh ginger, cardamom and a little black pepper. The first cup at 7:30 is on the house on Sundays.", "detail": "Rs 110" }
-              ]
-            }
-          },
-          {
-            "type": "imagetext", "variant": "left",
-            "props": {
-              "image": { "src": "lib:cut-pour-over", "alt": "Coffee being poured over a paper filter" },
-              "eyebrow": "Our coffee",
-              "heading": "Roasted twelve kilos at a time, every Tuesday",
-              "body": "<p>Sarita started roasting in a popcorn pan in 2076. Today the beans come from two farmer cooperatives in Nuwakot and Gulmi, and we roast small batches so nothing sits on the shelf for more than a fortnight.</p><p>Ask at the counter and we will grind a 250 g bag for your filter, French press or moka pot.</p>",
-              "link": { "label": "See coffee prices", "href": "page:menu" }
-            },
-            "style": { "bg": "surface" }
-          },
-          {
-            "type": "gallery", "variant": "carousel",
-            "props": {
-              "heading": "From the kitchen this week",
-              "intro": "",
-              "images": [
-                { "image": { "src": "lib:food-spread", "alt": "Grilled chicken choila, greens and dipping sauce on a wooden table" }, "caption": "Chicken choila with timur and mustard oil" },
-                { "image": { "src": "lib:shoot-lattes", "alt": "Two lattes with milk art" }, "caption": "Flat whites with Gulmi beans" },
-                { "image": { "src": "lib:dinner-plate", "alt": "A plated dish on a busy table" }, "caption": "Saturday Thakali set" },
-                { "image": { "src": "lib:shoot-iced", "alt": "An iced latte in a tall glass" }, "caption": "Iced latte, April to September" },
-                { "image": { "src": "lib:long-table", "alt": "The long table set for a group with glasses and flowers" }, "caption": "The long table, set for twelve" }
-              ]
-            }
-          },
-          {
-            "type": "hours", "variant": "split",
-            "props": {
-              "heading": "Opening hours",
-              "note": "The kitchen closes at 20:30. We close on Dashain Tika and Laxmi Puja, and open late (10:00) on the day after.",
-              "days": [
-                { "day": "Sunday", "hours": "07:30 – 21:00" },
-                { "day": "Monday", "hours": "07:30 – 21:00" },
-                { "day": "Tuesday", "hours": "07:30 – 21:00" },
-                { "day": "Wednesday", "hours": "07:30 – 21:00" },
-                { "day": "Thursday", "hours": "07:30 – 21:00" },
-                { "day": "Friday", "hours": "07:30 – 21:00" },
-                { "day": "Saturday", "hours": "08:30 – 21:00" }
-              ]
-            }
-          },
-          {
-            "type": "cta", "variant": "split",
-            "props": {
-              "title": "Coming with more than six?",
-              "text": "Call a day ahead and we will set the long table, and keep the momo coming.",
-              "primary": { "label": "Book the long table", "href": "page:visit" },
-              "secondary": { "label": "Call 01-5911204", "href": "tel:015911204" }
-            },
-            "style": { "bg": "accent" }
-          }
-        ]
-      },
-      {
-        "id": "menu", "slug": "menu", "title": "Menu",
-        "seoTitle": "Menu and prices · Ghumti Café, Jhamsikhel",
-        "seoDescription": "Momo from Rs 280, pour-over coffee Rs 350, Thakali set on Saturdays Rs 650, masala chiya Rs 110. Prices include VAT.",
-        "blocks": [
-          {
-            "type": "hero", "variant": "text",
-            "props": { "eyebrow": "", "title": "Menu", "text": "Prices in rupees, VAT included. Tell us about allergies and the kitchen will adjust anything it can.", "primary": { "label": "", "href": "" }, "secondary": { "label": "", "href": "" } },
-            "style": { "space": "s" }
-          },
-          {
-            "type": "menu", "variant": "columns",
-            "props": {
-              "heading": "", "intro": "", "currency": "NPR",
-              "sections": [
-                { "title": "Momo", "note": "Ten pieces. Choose steamed, fried, jhol or kothey.", "items": [
-                  { "name": "Buff momo", "desc": "Minced buffalo, onion, ginger and coriander.", "price": "280", "tag": "" },
-                  { "name": "Chicken momo", "desc": "With spring onion and a little timur.", "price": "300", "tag": "" },
-                  { "name": "Mushroom and cheese", "desc": "Oyster mushroom and local yak cheese.", "price": "320", "tag": "Veg" },
-                  { "name": "Jhol momo", "desc": "Buff momo in a sesame and tomato soup.", "price": "330", "tag": "" },
-                  { "name": "Kothey momo", "desc": "Pan-fried on one side, any filling.", "price": "340", "tag": "" }
-                ] },
-                { "title": "Plates", "note": "", "items": [
-                  { "name": "Thakali set", "desc": "Rice, black dal, gundruk, saag, achar and chicken or mutton. Saturdays only.", "price": "650", "tag": "" },
-                  { "name": "Chicken choila", "desc": "Grilled, tossed with mustard oil, timur and garlic, with beaten rice.", "price": "380", "tag": "Spicy" },
-                  { "name": "Aloo sadeko", "desc": "Boiled potato with sesame, chilli and lemon.", "price": "220", "tag": "Veg" },
-                  { "name": "Sel roti and aloo tarkari", "desc": "Mornings until 11:00.", "price": "240", "tag": "Veg" }
-                ] },
-                { "title": "Coffee", "note": "Nuwakot or Gulmi beans. Oat milk Rs 60 extra.", "items": [
-                  { "name": "Espresso", "desc": "", "price": "200", "tag": "" },
-                  { "name": "Americano", "desc": "", "price": "220", "tag": "" },
-                  { "name": "Flat white", "desc": "", "price": "300", "tag": "" },
-                  { "name": "Pour-over", "desc": "Brewed at the bar, about four minutes.", "price": "350", "tag": "" },
-                  { "name": "Iced latte", "desc": "April to September.", "price": "330", "tag": "" }
-                ] },
-                { "title": "Chiya and more", "note": "", "items": [
-                  { "name": "Milk chiya", "desc": "", "price": "80", "tag": "" },
-                  { "name": "Masala chiya", "desc": "Ginger, cardamom, black pepper.", "price": "110", "tag": "" },
-                  { "name": "Lemon, honey and ginger", "desc": "Hot, with Ilam honey.", "price": "180", "tag": "" },
-                  { "name": "Sweet lassi", "desc": "", "price": "220", "tag": "" },
-                  { "name": "Seasonal juice", "desc": "Ask what came in this morning.", "price": "260", "tag": "" }
-                ] }
-              ]
-            }
-          },
-          {
-            "type": "cta", "variant": "boxed",
-            "props": {
-              "title": "Take the beans home",
-              "text": "250 g bags, whole or ground to order, Rs 950. Roasted on Tuesday, best within a month.",
-              "primary": { "label": "Ask us to set one aside", "href": "page:visit" },
-              "secondary": { "label": "", "href": "" }
-            }
-          }
-        ]
-      },
-      {
-        "id": "visit", "slug": "visit", "title": "Visit",
-        "seoTitle": "Visit and book a table · Ghumti Café, Jhamsikhel",
-        "seoDescription": "Find us on Jhamsikhel Road near Sanepa Chowk. Book a table or the long table for groups; we confirm by phone.",
-        "blocks": [
-          {
-            "type": "booking", "variant": "split",
-            "props": {
-              "heading": "Book a table",
-              "text": "Tell us the day, the time and how many of you. We confirm by phone within the hour, 8:00 to 20:00.",
-              "services": "Table for two\nTable for four\nThe long table (6 to 12)",
-              "askTime": true,
-              "button": "Ask for a table",
-              "success": "Thank you. We will call you to confirm the table."
-            }
-          },
-          {
-            "type": "map", "variant": "split",
-            "props": { "heading": "Find us", "address": "Jhamsikhel Road, near Sanepa Chowk, Lalitpur 44600. The green gate beside the pharmacy.", "query": "Jhamsikhel, Lalitpur", "link": "" },
-            "style": { "bg": "surface" }
-          },
-          {
-            "type": "faq", "variant": "split",
-            "props": {
-              "heading": "Before you come",
-              "intro": "",
-              "items": [
-                { "q": "Is there parking?", "a": "Two-wheeler parking at the front. Cars can park on the Sanepa side street after 17:00." },
-                { "q": "Can I work from the café?", "a": "Yes. Wi-Fi is free and laptops are welcome until noon on weekdays. After noon we keep the tables for lunch." },
-                { "q": "Do you take eSewa, Fonepay or cards?", "a": "eSewa and Fonepay for any amount, and cards above Rs 500." },
-                { "q": "Can I bring my dog?", "a": "Yes, in the garden seats at the back." }
-              ]
-            }
-          },
-          {
-            "type": "contact", "variant": "stacked",
-            "props": {
-              "heading": "Events and catering",
-              "text": "Birthdays, office lunches, a momo counter at your wedding. Tell us the date and the number of guests.",
-              "address": "", "phone": "", "email": "",
-              "askPhone": true,
-              "button": "Send message",
-              "success": "Thank you. Sarita will write back within a day."
-            }
-          }
-        ]
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Pull up a stool. The chiya is on.",
+    "cta": {
+     "label": "Book a table",
+     "href": "page:visit"
+    },
+    "about": "Coffee roasted on Tuesdays, momo folded every morning, chiya until closing. In Jhamsikhel since 2076.",
+    "hours": "Sunday to Friday, 7:30 to 21:00\nSaturday, 8:30 to 21:00\nKitchen closes at 20:30",
+    "note": "",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Ghumti Café, Jhamsikhel: momo, pour-over coffee and chiya",
+    "seoDescription": "A café in Jhamsikhel, Lalitpur. Hand-folded momo, coffee from Nuwakot and Gulmi roasted in-house every Tuesday, Thakali set on Saturdays. Open daily from 7:30.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "image",
+      "props": {
+       "title": "Slow coffee and hand-folded momo on Jhamsikhel Road",
+       "text": "Beans from Nuwakot and Gulmi, roasted here every Tuesday. Momo folded from six each morning. Chiya until the last guest leaves.",
+       "primary": {
+        "label": "See the menu",
+        "href": "page:menu"
+       },
+       "secondary": {
+        "label": "Book a table",
+        "href": "page:visit"
+       },
+       "image": {
+        "src": "lib:cafe-room",
+        "alt": "The café’s front room in the morning: the counter, the espresso machine and tables by the windows"
+       },
+       "eyebrow": "Open every day from 7:30 · Jhamsikhel, Lalitpur",
+       "video": ""
       }
+     },
+     {
+      "type": "marquee",
+      "variant": "small",
+      "props": {
+       "items": [
+        {
+         "text": "Roasted every Tuesday"
+        },
+        {
+         "text": "Momo folded from 6 am"
+        },
+        {
+         "text": "Chiya until close"
+        },
+        {
+         "text": "Thakali set on Saturdays"
+        },
+        {
+         "text": "In Jhamsikhel since 2076"
+        }
+       ]
+      },
+      "style": {
+       "bg": "accent"
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "We opened with a popcorn pan, twelve chairs and one rule: nothing on the counter is older than a fortnight.",
+       "name": "Sarita Maharjan",
+       "detail": "Founder and roaster",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "Three things we do the long way",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:cafe-momo",
+          "alt": "Steam rising from a basket of momo, with tomato achar on the side",
+          "focal": [
+           68,
+           62
+          ]
+         },
+         "title": "Momo, folded from six every morning",
+         "text": "Buff, chicken, or mushroom and cheese, wrapped by Maili Didi and two helpers before the doors open. Steamed, jhol, or kothey with a crisp base. The achar is roasted tomato, timur and sesame, ground on a stone.",
+         "link": {
+          "label": "See the momo menu",
+          "href": "page:menu"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:cafe-pourover",
+          "alt": "Hot water poured in a slow circle over a paper coffee filter"
+         },
+         "title": "Pour-over from two Nepali hillsides",
+         "text": "Washed arabica from a farmers’ cooperative in Nuwakot and a family estate in Gulmi. We roast light so you can taste the place: stone fruit from one, brown sugar and cocoa from the other.",
+         "link": {
+          "label": "Read about our coffee",
+          "href": "page:coffee"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:cafe-chiya",
+          "alt": "A tray of small glasses of masala chiya, ready to go out"
+         },
+         "title": "Masala chiya, boiled the old way",
+         "text": "Assam CTC, fresh ginger, green cardamom and a pinch of black pepper, boiled twice with full-cream milk. The first cup at 7:30 on Sunday is on the house.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "rows",
+      "props": {
+       "heading": "Order these first",
+       "intro": "Prices include 13% VAT. We do not add a service charge.",
+       "items": [
+        {
+         "title": "Buff jhol momo",
+         "text": "Ten pieces in a warm sesame and tomato broth, with a squeeze of lime.",
+         "detail": "Rs 320"
+        },
+        {
+         "title": "Gulmi pour-over",
+         "text": "Brewed to order at the bar, about four minutes. Ask for the tasting notes card.",
+         "detail": "Rs 380"
+        },
+        {
+         "title": "Thakali set, Saturdays",
+         "text": "Rice, black dal, gundruk, saag, timur achar and chicken or mutton curry, refilled until you stop us.",
+         "detail": "Rs 690"
+        },
+        {
+         "title": "Sel roti and aloo achar",
+         "text": "Rice-flour rings fried to order, with spiced potato and a glass of chiya.",
+         "detail": "Rs 260"
+        },
+        {
+         "title": "Cardamom bun",
+         "text": "Baked at seven and usually gone by eleven.",
+         "detail": "Rs 180"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "left",
+      "props": {
+       "heading": "From cherry to cup in about nine days",
+       "intro": "Most coffee sold in Kathmandu left the farm a year ago. Ours left in the last month.",
+       "image": {
+        "src": "lib:cafe-roaster",
+        "alt": "Freshly roasted coffee beans tumbling out of a drum roaster into the cooling tray"
+       },
+       "items": [
+        {
+         "label": "November to February",
+         "title": "Picked ripe on the ridge",
+         "text": "The cooperative in Nuwakot picks only red cherries, by hand, over three or four passes of each tree."
+        },
+        {
+         "label": "Days one to four",
+         "title": "Pulped, washed and dried",
+         "text": "Fruit is pulped the same evening, fermented overnight, washed and laid on raised beds. It is turned every hour of sun."
+        },
+        {
+         "label": "Every Tuesday",
+         "title": "Roasted here, twelve kilos at a time",
+         "text": "Sarita roasts in the back room from eight. If you are in early you will smell it from Sanepa Chowk."
+        },
+        {
+         "label": "Five days later",
+         "title": "Rested, then ground to order",
+         "text": "Beans rest for five days before we brew them, and we grind each bag for your filter, press or moka pot while you wait."
+        }
+       ]
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "bento",
+      "props": {
+       "heading": "From the kitchen this week",
+       "intro": "The board changes on Mondays. These are the ones people ask about.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:cafe-latte",
+          "alt": "A flat white with a rosetta in the milk"
+         },
+         "caption": "Flat white, Nuwakot beans"
+        },
+        {
+         "image": {
+          "src": "lib:cafe-momo-2",
+          "alt": "Plates of steamed, spinach and kothey momo with a bowl of jhol"
+         },
+         "caption": "Steamed, spinach and kothey"
+        },
+        {
+         "image": {
+          "src": "lib:cafe-pastry",
+          "alt": "Croissants and buns on the bakery counter"
+         },
+         "caption": "Out of the oven at seven"
+        },
+        {
+         "image": {
+          "src": "lib:cafe-thali",
+          "alt": "A brass thali with rice, dal, greens, pickle and curry"
+         },
+         "caption": "Saturday Thakali set"
+        },
+        {
+         "image": {
+          "src": "lib:cafe-beans",
+          "alt": "Close-up of medium-roasted coffee beans"
+         },
+         "caption": "Tuesday’s roast"
+        }
+       ],
+       "link": {
+        "label": "",
+        "href": ""
+       }
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "split",
+      "props": {
+       "heading": "Open every day",
+       "note": "The kitchen closes at 20:30. We close on Dashain Tika and Laxmi Puja, and open at 10:00 the day after.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Monday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Thursday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Friday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Saturday",
+         "hours": "08:30 – 21:00"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "gallery",
+      "variant": "feed",
+      "props": {
+       "heading": "@ghumticafe",
+       "intro": "Specials, the Tuesday roast and who is playing on Friday night.",
+       "images": [
+        {
+         "image": {
+          "src": "lib:cafe-latte",
+          "alt": "Latte art from above"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:cafe-momo",
+          "alt": "A basket of steamed momo"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:cafe-momo-2",
+          "alt": "Three kinds of momo and a bowl of jhol"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:cafe-pourover",
+          "alt": "Pour-over brewing"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:cafe-chiya",
+          "alt": "Glasses of masala chiya"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:cafe-pastry",
+          "alt": "Buns on the counter"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:cafe-beans",
+          "alt": "Roasted coffee beans"
+         },
+         "caption": ""
+        },
+        {
+         "image": {
+          "src": "lib:cafe-barista",
+          "alt": "The barista pulling an espresso shot"
+         },
+         "caption": ""
+        }
+       ],
+       "link": {
+        "label": "Follow on Instagram",
+        "href": "https://www.instagram.com/ghumticafe",
+        "newTab": true
+       }
+      }
+     },
+     {
+      "type": "map",
+      "variant": "location",
+      "props": {
+       "heading": "Find the green shutter",
+       "address": "Jhamsikhel Road, two doors from Sanepa Chowk, Lalitpur 44600",
+       "hours": "Sunday to Friday, 7:30 to 21:00\nSaturday, 8:30 to 21:00\nKitchen closes at 20:30",
+       "phone": "",
+       "note": "Look for the green shutter beside the tailor. Scooters park in front; cars fit in the Jhamsikhel Football Ground lot, a four-minute walk.",
+       "query": "Jhamsikhel Road, Lalitpur",
+       "link": ""
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "image",
+      "props": {
+       "title": "Coming with more than six?",
+       "text": "Call a day ahead and we will set the long table by the window, and keep the momo coming.",
+       "primary": {
+        "label": "Plan a gathering",
+        "href": "page:gatherings"
+       },
+       "secondary": {
+        "label": "Call 01-5911204",
+        "href": "tel:015911204"
+       },
+       "image": {
+        "src": "lib:cafe-barista",
+        "alt": "Our barista pouring water over the pour-over drippers at the bar",
+        "focal": [
+         60,
+         40
+        ]
+       }
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "menu",
+    "slug": "menu",
+    "title": "Menu",
+    "nav": true,
+    "seoTitle": "Menu · Ghumti Café, Jhamsikhel",
+    "seoDescription": "Momo, Nepali coffee, masala chiya, all-day plates and bakes, with prices in rupees. Thakali set on Saturdays.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "The menu",
+       "text": "Everything is made in our kitchen, from the momo wrappers to the achar. Prices are in rupees and include 13% VAT. Tell us about allergies; most dishes can be made without nuts or gluten.",
+       "primary": {
+        "label": "Book a table",
+        "href": "page:visit"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "Kitchen open 7:30 to 20:30",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "menu",
+      "variant": "photo",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "currency": "NPR",
+       "sections": [
+        {
+         "title": "Momo",
+         "note": "Ten pieces. Steamed, jhol in sesame broth, or kothey pan-fried on one side.",
+         "items": [
+          {
+           "name": "Buff momo",
+           "desc": "Minced buffalo, onion, ginger and coriander.",
+           "price": "280",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-momo",
+            "alt": "Steamed buff momo"
+           }
+          },
+          {
+           "name": "Chicken momo",
+           "desc": "Free-range chicken from Dhading with spring onion.",
+           "price": "300",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Mushroom and cheese",
+           "desc": "Oyster mushroom, yak cheese and garlic chive.",
+           "price": "290",
+           "tag": "Veg",
+           "image": {
+            "src": "lib:cafe-momo-2",
+            "alt": "Mushroom and cheese momo with spinach wrappers"
+           }
+          },
+          {
+           "name": "Jhol momo, any filling",
+           "desc": "In a warm tomato, sesame and timur broth.",
+           "price": "320",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          }
+         ]
+        },
+        {
+         "title": "Coffee",
+         "note": "Nuwakot or Gulmi beans, roasted every Tuesday. Oat milk is Rs 60.",
+         "items": [
+          {
+           "name": "Espresso",
+           "desc": "A double, always.",
+           "price": "180",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Flat white",
+           "desc": "Double shot, silky milk.",
+           "price": "260",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-latte",
+            "alt": "A flat white with latte art"
+           }
+          },
+          {
+           "name": "Pour-over",
+           "desc": "Brewed to order, about four minutes.",
+           "price": "380",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-pourover",
+            "alt": "Pour-over coffee brewing"
+           }
+          },
+          {
+           "name": "Iced honey latte",
+           "desc": "Chitwan wild honey, April to September.",
+           "price": "320",
+           "tag": "Season",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          }
+         ]
+        },
+        {
+         "title": "Chiya and tea",
+         "note": "",
+         "items": [
+          {
+           "name": "Masala chiya",
+           "desc": "Ginger, cardamom, black pepper, full-cream milk.",
+           "price": "110",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-chiya",
+            "alt": "Masala chiya in glasses"
+           }
+          },
+          {
+           "name": "Ilam first flush",
+           "desc": "Light and floral, served in a pot for two.",
+           "price": "240",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Lemon, honey and ginger",
+           "desc": "For the winter throat.",
+           "price": "160",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          }
+         ]
+        },
+        {
+         "title": "All day and bakes",
+         "note": "Plates until 20:30; bakes until they run out.",
+         "items": [
+          {
+           "name": "Sel roti and aloo achar",
+           "desc": "With a glass of chiya.",
+           "price": "260",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Chicken choila",
+           "desc": "Grilled, dressed in mustard oil and timur, with beaten rice.",
+           "price": "420",
+           "tag": "Spicy",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Egg and saag on toast",
+           "desc": "Sourdough from Patan, mustard greens, soft egg.",
+           "price": "360",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Butter croissant",
+           "desc": "Laminated with butter from Kavre, out of the oven at seven.",
+           "price": "220",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-pastry",
+            "alt": "Croissants fresh from the oven"
+           }
+          },
+          {
+           "name": "Cardamom bun",
+           "desc": "Usually gone by eleven.",
+           "price": "180",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          }
+         ]
+        }
+       ]
+      }
+     },
+     {
+      "type": "imagetext",
+      "variant": "left",
+      "props": {
+       "image": {
+        "src": "lib:cafe-thali",
+        "alt": "A Thakali set of rice, black dal, greens, pickles and curry"
+       },
+       "eyebrow": "Saturdays from 11:30 until it runs out",
+       "heading": "Saturday is Thakali day",
+       "body": "<p>Rice from Jumla, black dal cooked for three hours in a copper pot, gundruk, seasonal saag, timur and tomato achar, and chicken or mutton curry. Everything is refilled until you tell us to stop.</p><p>We make sixty sets. Book a table if you are coming after one o’clock.</p>",
+       "link": {
+        "label": "Book for Saturday",
+        "href": "page:visit"
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "Before you order",
+       "intro": "Ask at the counter too. We would rather cook it your way than have you go without.",
+       "items": [
+        {
+         "q": "Do you have vegan food?",
+         "a": "Yes. The mushroom momo can be made without cheese, the dal, saag and achar are vegan, and every coffee comes with oat milk if you ask."
+        },
+        {
+         "q": "Can I get momo to take away?",
+         "a": "Yes, cooked or frozen. Frozen momo come in packs of fifty and keep for a month."
+        },
+        {
+         "q": "Is there a charge for sitting and working?",
+         "a": "No. There are sockets under the window bench and the Wi-Fi password is on your bill. On weekend afternoons we ask laptops to share tables."
+        },
+        {
+         "q": "Do you take eSewa and Khalti?",
+         "a": "Yes, and Fonepay QR, cards and cash."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Momo for the office?",
+       "text": "Platters for ten to a hundred, delivered hot anywhere inside the Ring Road.",
+       "primary": {
+        "label": "See gathering and catering prices",
+        "href": "page:gatherings"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "ink"
+      }
+     }
+    ]
+   },
+   {
+    "id": "coffee",
+    "slug": "coffee",
+    "title": "Our coffee",
+    "nav": true,
+    "seoTitle": "Nepali coffee roasted in Jhamsikhel · Ghumti Café",
+    "seoDescription": "Washed arabica from Nuwakot and Gulmi, roasted every Tuesday in Jhamsikhel. Buy 250 g and 500 g bags or a monthly bag delivered in the valley.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "stacked",
+      "props": {
+       "title": "Coffee from two Nepali hillsides, roasted twelve kilos at a time",
+       "text": "We buy directly from a farmers’ cooperative in Nuwakot and one family estate in Gulmi, pay above the Fairtrade floor, and roast every Tuesday in the room behind the counter.",
+       "primary": {
+        "label": "Buy a bag",
+        "href": "#pricing"
+       },
+       "secondary": {
+        "label": "Wholesale",
+        "href": "#cta"
+       },
+       "image": {
+        "src": "lib:cafe-cherries",
+        "alt": "Ripe red coffee cherries on a branch"
+       },
+       "eyebrow": "",
+       "video": ""
+      }
+     },
+     {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "Why Nepali coffee",
+       "body": "<p>Nepal grows very little coffee, about five hundred tonnes a year, most of it on small terraces between 1,000 and 1,700 metres. That is the height where arabica ripens slowly and tastes of something.</p><p>For years most of it left the country as green beans. We would rather you drank it here, fresh, and knew whose field it came from. Every bag we sell says the farm, the harvest month and the roast date.</p>"
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "Two origins",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:cafe-cherries",
+          "alt": "Coffee cherries ripening on the plant"
+         },
+         "title": "Nuwakot, Kakani ridge, 1,700 m",
+         "text": "Forty families sell through the Kakani cooperative. Washed and dried on raised beds. In the cup: apricot, black tea, a clean finish. Harvest December and January.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:cafe-beans",
+          "alt": "Medium-roasted coffee beans"
+         },
+         "title": "Gulmi, Arkhale, 1,300 m",
+         "text": "The Bhandari family estate, three hectares under alder shade. Pulped natural. In the cup: brown sugar, cocoa, a heavier body that loves milk. Harvest November.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "How a bag reaches you",
+       "intro": "",
+       "items": [
+        {
+         "title": "Picked",
+         "text": "Only ripe red cherries, by hand, over several passes of each tree.",
+         "detail": "November to February"
+        },
+        {
+         "title": "Processed at the farm",
+         "text": "Pulped, fermented and washed or dried in the fruit, then rested in parchment.",
+         "detail": "Two to four weeks"
+        },
+        {
+         "title": "Roasted in Jhamsikhel",
+         "text": "Twelve kilos a batch, light for filter, medium for espresso.",
+         "detail": "Every Tuesday"
+        },
+        {
+         "title": "Rested and packed",
+         "text": "Five days of rest, then into valve bags with the roast date written by hand.",
+         "detail": "Ready on Sunday"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "columns",
+      "props": {
+       "heading": "Take some home",
+       "intro": "Whole beans, or ground while you wait for filter, French press, moka pot or espresso.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "250 g bag",
+         "price": "1100",
+         "period": "",
+         "note": "Nuwakot or Gulmi.",
+         "features": "Roast date on every bag\nGround to order, free\nAbout 16 cups",
+         "cta": {
+          "label": "Order by phone",
+          "href": "tel:015911204"
+         },
+         "featured": false
+        },
+        {
+         "name": "Monthly bag",
+         "price": "1950",
+         "period": "month",
+         "note": "500 g delivered in the valley on the first Sunday.",
+         "features": "Switch origin any month\nFree delivery inside the Ring Road\nPause or stop any time",
+         "cta": {
+          "label": "Start a subscription",
+          "href": "page:visit"
+         },
+         "featured": true
+        },
+        {
+         "name": "500 g bag",
+         "price": "2000",
+         "period": "",
+         "note": "Both origins, or one of each.",
+         "features": "Roast date on every bag\nGround to order, free\nAbout 32 cups",
+         "cta": {
+          "label": "Order by phone",
+          "href": "tel:015911204"
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "image",
+      "variant": "full",
+      "props": {
+       "image": {
+        "src": "lib:cafe-roaster",
+        "alt": "Coffee pouring from the roaster into the cooling tray"
+       },
+       "caption": "Tuesday morning in the back room."
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Coffee questions",
+       "intro": "",
+       "items": [
+        {
+         "q": "How should I store the beans?",
+         "a": "In the bag, valve up, away from the stove and out of the fridge. Drink within a month of the roast date."
+        },
+        {
+         "q": "Which one for milk coffee?",
+         "a": "Gulmi. Its heavier body and cocoa notes stand up to milk. Nuwakot shines as filter or black espresso."
+        },
+        {
+         "q": "Do you teach brewing?",
+         "a": "On the last Saturday of the month, 8:00 to 9:30, for eight people. Rs 1,500 including a 250 g bag."
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Serving our coffee in your café or office?",
+       "text": "Wholesale from 5 kg a month, with a free grinder check and a morning of barista training.",
+       "primary": {
+        "label": "Write to Sarita",
+        "href": "mailto:hello@ghumticafe.com.np"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "gatherings",
+    "slug": "gatherings",
+    "title": "Gatherings",
+    "nav": true,
+    "seoTitle": "Private tables and momo catering · Ghumti Café",
+    "seoDescription": "Book the long table for up to fourteen, the whole café after 19:00, or momo platters delivered to your office in Lalitpur and Kathmandu.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "The long table, for birthdays, farewells and Friday meetings",
+       "text": "Up to fourteen at the window table, forty for the whole café after seven, or momo platters sent hot to your office.",
+       "primary": {
+        "label": "Ask for a date",
+        "href": "#booking"
+       },
+       "secondary": {
+        "label": "See prices",
+        "href": "#pricing"
+       },
+       "image": {
+        "src": "lib:cafe-momo-2",
+        "alt": "Plates of steamed, spinach and kothey momo to share"
+       },
+       "eyebrow": "Answered within a day, usually by phone",
+       "video": ""
+      }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "Four ways to gather",
+       "intro": "",
+       "items": [
+        {
+         "title": "The long table",
+         "text": "Fourteen seats by the window, with a set menu of momo, choila and chiya.",
+         "detail": "Any day, any time"
+        },
+        {
+         "title": "The whole café",
+         "text": "Thirty to forty guests after 19:00, with your own playlist and a cake from our oven.",
+         "detail": "Evenings only"
+        },
+        {
+         "title": "Momo to your office",
+         "text": "Platters of fifty to five hundred, delivered hot with achar and plates.",
+         "detail": "Inside the Ring Road"
+        },
+        {
+         "title": "Coffee cart",
+         "text": "A barista and a lever machine at your launch, workshop or wedding.",
+         "detail": "Half day or full day"
+        }
+       ]
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Prices",
+       "intro": "Per group, including VAT. Final quotes depend on the date and the menu.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Long table set",
+         "price": "850",
+         "period": "person",
+         "note": "Momo, choila, a bake and unlimited chiya.",
+         "features": "8 to 14 guests\nTwo hours\nNo booking fee",
+         "cta": {
+          "label": "Ask for a date",
+          "href": "#booking"
+         },
+         "featured": true
+        },
+        {
+         "name": "Momo platter for ten",
+         "price": "3200",
+         "period": "",
+         "note": "A hundred pieces, three fillings, two achars.",
+         "features": "Delivered hot\nOrder by 10:00 for lunch",
+         "cta": {
+          "label": "Order",
+          "href": "tel:015911204"
+         },
+         "featured": false
+        },
+        {
+         "name": "Coffee cart, half day",
+         "price": "28000",
+         "period": "",
+         "note": "Up to 150 drinks.",
+         "features": "Barista, machine and cups\nBeans of your choice",
+         "cta": {
+          "label": "Ask",
+          "href": "#booking"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "How booking works",
+       "intro": "",
+       "items": [
+        {
+         "title": "Send the form",
+         "text": "Tell us the date, how many and what the occasion is.",
+         "detail": ""
+        },
+        {
+         "title": "We call you back",
+         "text": "Within a day, to talk menu, timing and anything special.",
+         "detail": "Usually the same afternoon"
+        },
+        {
+         "title": "A small deposit holds it",
+         "text": "Twenty per cent by eSewa or Fonepay; refundable until three days before.",
+         "detail": ""
+        },
+        {
+         "title": "You turn up",
+         "text": "The table is set, the chiya is boiling and the playlist is yours.",
+         "detail": ""
+        }
+       ]
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Ask for a date",
+       "text": "We confirm by phone. For same-day tables, just call 01-5911204.",
+       "services": "The long table\nThe whole café\nMomo to an office\nCoffee cart",
+       "askTime": true,
+       "button": "Send the request",
+       "success": "Thank you. We will call you within a day to plan it."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "visit",
+    "slug": "visit",
+    "title": "Visit",
+    "nav": true,
+    "seoTitle": "Visit Ghumti Café in Jhamsikhel: hours, map and table booking",
+    "seoDescription": "Jhamsikhel Road, two doors from Sanepa Chowk. Open every day from 7:30. Book a table or ask about groups.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Come in, or call ahead",
+       "text": "Most tables are for walk-ins. Book if you are six or more, or coming for the Saturday Thakali set after one.",
+       "primary": {
+        "label": "Book a table",
+        "href": "#booking"
+       },
+       "secondary": {
+        "label": "Call 01-5911204",
+        "href": "tel:015911204"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "map",
+      "variant": "location",
+      "props": {
+       "heading": "Jhamsikhel Road, by the green shutter",
+       "address": "Jhamsikhel Road, two doors from Sanepa Chowk, Lalitpur 44600",
+       "hours": "Sunday to Friday, 7:30 to 21:00\nSaturday, 8:30 to 21:00\nKitchen closes at 20:30",
+       "phone": "",
+       "note": "Look for the green shutter beside the tailor. Scooters park in front; cars fit in the Jhamsikhel Football Ground lot, a four-minute walk.",
+       "query": "Jhamsikhel Road, Lalitpur",
+       "link": ""
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "split",
+      "props": {
+       "heading": "Hours",
+       "note": "Closed on Dashain Tika and Laxmi Puja. Open at 10:00 the day after.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Monday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Thursday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Friday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Saturday",
+         "hours": "08:30 – 21:00"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Book a table",
+       "text": "Pick a day and a time and we will call to confirm. Tables are held for fifteen minutes.",
+       "services": "Table for 2 to 4\nTable for 5 to 8\nThe long table (9 to 14)\nSaturday Thakali set",
+       "askTime": true,
+       "button": "Ask for the table",
+       "success": "Thank you. We will call you to confirm."
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "Good to know",
+       "intro": "",
+       "items": [
+        {
+         "q": "Is there parking?",
+         "a": "Scooters and bikes in front of the café. Cars fit in the Jhamsikhel Football Ground lot, a four-minute walk."
+        },
+        {
+         "q": "Are children welcome?",
+         "a": "Very. We have two high chairs and a plain buttered momo that has never failed."
+        },
+        {
+         "q": "Can I bring my dog?",
+         "a": "On the front bench, yes. There is always a bowl of water by the door."
+        },
+        {
+         "q": "Is it step-free?",
+         "a": "The front room is, from the street. The toilet has a wide door and a rail."
+        }
+       ]
+      }
+     },
+     {
+      "type": "contact",
+      "variant": "stacked",
+      "props": {
+       "heading": "Write to us",
+       "text": "For anything that is not a booking: suppliers, musicians, jobs, lost umbrellas.",
+       "address": "",
+       "phone": "",
+       "email": "",
+       "askPhone": true,
+       "button": "Send",
+       "success": "Thank you. We reply within a day."
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

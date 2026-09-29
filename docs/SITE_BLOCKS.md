@@ -41,6 +41,49 @@ The source of truth is `server/site/schema.ts`. The block and theme sections bel
 - Photos: use library photos (`"src": "lib:<name>"`, listed at the end) or leave `src` empty. A block with an
   empty photo shows an "Add a photo" frame in the editor and nothing on the published site.
 
+## Making a template look studio-made
+
+The three flagship templates (`cafe`, `clinic`, `agency`) are the reference. Open them next to this list.
+
+- **Long and complete.** The home page has 10 to 14 sections (header and footer included); every inner page
+  (3 or 4 of them) is fully built, 5 to 8 blocks, never a stub with one text block.
+- **Photo-led.** 10 to 15 library photos per template, each one of *this* business (the dish, the room, the
+  treatment, the work), never a nearby category. Set `focal` when the subject is off-centre. If the library has
+  no fitting photo, add one (see *Adding library photos*) instead of using an unrelated one.
+- **Pick the theme for the photography**, not the category: `roast` (white, bottle green, heavy serif) suits
+  moody food and coffee; `meridian` (white, navy, cobalt) suits bright clinical rooms; `monolith` (near-black,
+  marigold) suits a portfolio of vivid work. Every theme has one accent. Do not add a second accent colour.
+- **Vary the rhythm.** Alternate dense and quiet sections and change the layout every block: a full-photo hero,
+  then a band of `marquee` words on `accent`, a `quote`, `rows` with big photos, a text-dense `features` list on
+  `surface`, a `sticky` photo story, a `gallery` mosaic, and so on. Never put two blocks with the same layout
+  next to each other. Use `style.bg` (`surface`, `accent`, `ink`) to separate sections instead of lines.
+- **No eyebrows.** The small line above headings is gone; the hero's `eyebrow` prop is now a *detail line*
+  shown under the buttons (hours, neighbourhood). Headings carry themselves.
+- **Numbers only where order matters.** `steps` is numbered because the order is the point. Lists of services
+  are not numbered.
+- **Real content only.** No invented reviews, press mentions, awards or statistics. `quote` may carry the
+  owner's own words; `press`, `stats` and `testimonials` stay out of templates unless the copy is clearly
+  the business's own. Avoid real brand, hospital or shop names in copy.
+- **Close well.** End the home page with a `cta` (the `image` variant over a photo is strongest), and use the
+  `rich` footer with a closing line, a button and the hours.
+- **Check both widths.** Look at every page at 1440 and 390 px wide before calling it done.
+
+### Motion
+
+One signature motion only, and it is automatic: photos inside most photo blocks are *unveiled* as they scroll
+into view (a panel in the section colour slides away while the photo settles from 1.08 to 1; transform only).
+It is off in the editor, in print, without JavaScript and for visitors who turn motion off. The `marquee`
+block moves slowly and stands still for those visitors too. Do not ask for more.
+
+### Adding library photos
+
+Free Unsplash photos only (the `unsplash.com/photos/<id>/download` redirect must go to `images.unsplash.com`;
+Unsplash+ is not allowed). Convert each to WebP at 800 and 1600 pixels wide (the files
+`runtime/site-img/<name>-800.webp` and `<name>-1600.webp`; the flagship photos were drawn onto a canvas in
+Chromium and exported with `toDataURL('image/webp', 0.8)`), add `'<name>': { widths: [800, 1600], alt: '…' }`
+to `LIBRARY` in `server/site/schema.ts`, and a line to `runtime/site-img/CREDITS.txt`. When a photo is
+retired, add its name to `LIBRARY_MOVED` with the photo that replaces it, so older sites keep a picture.
+
 ## The site object
 
 ```json
@@ -95,14 +138,22 @@ The source of truth is `server/site/schema.ts`. The block and theme sections bel
 
 ## Theme tokens
 
-`theme` is a preset id plus any overrides:
+`theme` is a preset id plus any overrides. In a template, the preset alone is usually right:
 
 ```json
-{ "preset": "chiya", "display": "youngserif", "body": "hanken",
-  "colors": { "bg": "#f4efe6", "surface": "#ebe2d2", "text": "#2a211b", "muted": "#6b5d51",
-              "accent": "#b5462a", "onAccent": "#fff8f1", "line": "#d8ccb8" },
-  "radius": 4, "space": 1, "button": "solid", "rhythm": "airy", "caps": false }
+{ "preset": "roast" }
+{ "preset": "roast", "display": "rozha", "body": "figtree",
+  "colors": { "bg": "#ffffff", "surface": "#f3f1ec", "text": "#1b1815", "muted": "#5f5851",
+              "accent": "#1f4a3a", "onAccent": "#ffffff", "line": "#e4e0d9" },
+  "radius": 2, "space": 1, "button": "solid", "rhythm": "airy", "caps": false, "scale": 1.02 }
 ```
+
+- Theme ids from before the redesign (`chiya`, `darkroom`, `clinic`, `newsprint`, `workshop`, `rhododendron`,
+  `teagarden`, `ledger`, `marigold`, `gallery`) still load: they move to the nearest new theme
+  (`LEGACY_PRESETS` in schema.ts). Colours and fonts the owner never changed follow the new theme.
+- `scale`: 0.85 to 1.15, how large headings are against the text.
+- Text in the accent colour (step numbers, labels, links) falls back to the text colour when the accent is too
+  light to read on the page, so a yellow accent stays legible.
 
 - `display` / `body`: font ids (below). Headings use the display font at a weight tuned per font.
 - `colors`: seven hex colours. `accent` is for buttons and small marks; `onAccent` is text on it. Keep text
@@ -132,33 +183,36 @@ Defaults: `{"cta":{"label":"Contact us","href":""},"sticky":true}`
 
 The first thing people see: what you do, where, and what to do next.
 
-Variants: `split` (Text beside a photo), `image` (Full photo, text on top), `text` (Large type only), `video` (Video in the background). The first is the default.
+Variants: `split` (Text beside a photo), `image` (Full photo, text on top), `stacked` (Big headline over a wide photo), `text` (Large type only), `video` (Video in the background). The first is the default.
 
 Props:
-- `eyebrow` (Small line above): inline text (bold, italic, links), up to 80 characters.
 - `title` (Headline): inline text (bold, italic, links), up to 160 characters.
 - `text` (Text): inline text, several lines, up to 500 characters.
 - `primary` (Main button): button `{ label, href, newTab? }`.
 - `secondary` (Second button): button `{ label, href, newTab? }`.
 - `image` (Photo): image `{ src, alt, focal? }`.
+- `eyebrow` (Detail line): inline text (bold, italic, links), up to 120 characters. A short fact under the buttons, like opening hours or the neighbourhood.
 - `video` (Background video): link (https:, mailto:, tel:, page:<id>, #anchor). A direct link to an .mp4 file. The photo shows while it loads and on slow connections.
 
 Defaults: `{"eyebrow":"","title":"Say what you do and where, in one line","text":"Add a sentence or two about who you help and why people come back. Click any text on the page to change it.","primary":{"label":"Get in touch","href":""},"secondary":{"label":"","href":""},"image":{"src":"","alt":""},"video":""}`
 
 #### `footer`: Footer (one per site, in `site.footer`)
 
-Your name, pages, contact details and social links, on every page.
+Your name, pages, contact details, hours and social links, on every page.
 
-Variants: `columns` (Columns), `simple` (One quiet line), `big` (Large name). The first is the default.
+Variants: `rich` (Full: a closing line, columns and hours), `columns` (Columns), `simple` (One quiet line), `big` (Large name). The first is the default.
 
 Props:
+- `headline` (Closing line): inline text (bold, italic, links), up to 140 characters. A last sentence in large type, like "Come in for a cup". Full footer only.
+- `cta` (Button): button `{ label, href, newTab? }`.
 - `about` (About line): inline text, several lines, up to 300 characters.
+- `hours` (Hours): inline text, several lines, up to 300 characters. One line per row, like "Sun to Fri, 7:30 to 21:00". Full footer only.
 - `note` (Small print): inline text (bold, italic, links), up to 160 characters.
 - `showPages` (List the pages): true / false.
 - `showContact` (Show phone, email and address): true / false.
 - `showSocial` (Show social links): true / false.
 
-Defaults: `{"about":"","note":"","showPages":true,"showContact":true,"showSocial":true}`
+Defaults: `{"headline":"","cta":{"label":"","href":""},"about":"","hours":"","note":"","showPages":true,"showContact":true,"showSocial":true}`
 
 ### Text and media
 
@@ -203,9 +257,9 @@ Defaults: `{"image":{"src":"","alt":""},"eyebrow":"","heading":"Tell one story h
 
 #### `gallery`: Gallery
 
-Several photos as a grid, a masonry wall or a carousel.
+Several photos as a mosaic, a grid, a masonry wall, a carousel or a square feed.
 
-Variants: `grid` (Even grid), `masonry` (Masonry), `carousel` (Carousel). The first is the default.
+Variants: `bento` (Mosaic of mixed sizes), `grid` (Even grid), `masonry` (Masonry), `carousel` (Carousel), `feed` (Square feed, like Instagram). The first is the default.
 
 Props:
 - `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
@@ -213,8 +267,69 @@ Props:
 - `images` (Photos): list of items. Up to 48 photos, each:
   - `image` (Photo): image `{ src, alt, focal? }`.
   - `caption` (Caption): inline text (bold, italic, links), up to 160 characters.
+- `link` (Link): button `{ label, href, newTab? }`.
 
-Defaults: `{"heading":"Gallery","intro":"","images":[{"image":{"src":"","alt":""},"caption":""},{"image":{"src":"","alt":""},"caption":""},{"image":{"src":"","alt":""},"caption":""}]}`
+Defaults: `{"heading":"Gallery","intro":"","images":[{"image":{"src":"","alt":""},"caption":""},{"image":{"src":"","alt":""},"caption":""},{"image":{"src":"","alt":""},"caption":""}],"link":{"label":"","href":""}}`
+
+#### `rows`: Feature rows
+
+Large photos and short stories in rows, left and right in turn.
+
+Variants: `alternate` (Photo left, then right), `large` (Big photos, text beneath). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `items` (Rows): list of items. Up to 12 rows, each:
+  - `image` (Photo): image `{ src, alt, focal? }`.
+  - `title` (Title): inline text (bold, italic, links), up to 120 characters.
+  - `text` (Text): inline text, several lines, up to 700 characters.
+  - `link` (Link): button `{ label, href, newTab? }`.
+
+Defaults: `{"heading":"","intro":"","items":[{"image":{"src":"","alt":""},"title":"One thing you do well","text":"Two or three sentences with a real detail: where it comes from, who makes it, how long it takes.","link":{"label":"","href":""}},{"image":{"src":"","alt":""},"title":"Another thing worth a photo","text":"Say what a customer sees, tastes or gets.","link":{"label":"","href":""}}]}`
+
+#### `sticky`: Photo with scrolling story
+
+A photo that stays in view while short chapters scroll past beside it.
+
+Variants: `left` (Photo on the left), `right` (Photo on the right). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `image` (Photo): image `{ src, alt, focal? }`.
+- `items` (Chapters): list of items. Up to 10 chapters, each:
+  - `label` (Small label): plain text, up to 40 characters. Like a year, a place or a step.
+  - `title` (Title): inline text (bold, italic, links), up to 120 characters.
+  - `text` (Text): inline text, several lines, up to 700 characters.
+
+Defaults: `{"heading":"How it is made","intro":"","image":{"src":"","alt":""},"items":[{"label":"","title":"Where it starts","text":"A few sentences about the first part of the story."},{"label":"","title":"What happens next","text":"Keep each chapter short enough to read in one breath."}]}`
+
+#### `quote`: Big quote
+
+One sentence in large type: your promise, or words someone really said.
+
+Variants: `large` (Large type), `image` (Beside a photo). The first is the default.
+
+Props:
+- `quote` (Quote): inline text, several lines, up to 600 characters.
+- `name` (Who said it): inline text (bold, italic, links), up to 80 characters.
+- `detail` (Who they are): inline text (bold, italic, links), up to 120 characters.
+- `image` (Photo): image `{ src, alt, focal? }`.
+
+Defaults: `{"quote":"One sentence that sums up why you do this work.","name":"","detail":"","image":{"src":"","alt":""}}`
+
+#### `marquee`: Moving words
+
+A slow band of words across the page. It stands still for visitors who turn motion off.
+
+Variants: `large` (Large), `small` (Small band). The first is the default.
+
+Props:
+- `items` (Words): list of items. Up to 12 phrases, each:
+  - `text` (Words): plain text, up to 80 characters.
+
+Defaults: `{"items":[{"text":"Say it"},{"text":"In a few words"},{"text":"Again and again"}]}`
 
 #### `video`: Video
 
@@ -273,7 +388,7 @@ Defaults: `{"heading":"Prices","intro":"","currency":"NPR","plans":[{"name":"Bas
 
 Food and drinks by section, with prices in rupees (or any currency).
 
-Variants: `columns` (Two columns), `list` (One long list), `compact` (Compact board). The first is the default.
+Variants: `columns` (Two columns), `photo` (With photos of the dishes), `list` (One long list), `compact` (Compact board). The first is the default.
 
 Props:
 - `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
@@ -287,8 +402,60 @@ Props:
     - `desc` (Description): inline text, several lines, up to 240 characters.
     - `price` (Price): plain text, up to 20 characters.
     - `tag` (Tag): plain text, up to 20 characters. Like Veg, New or Spicy.
+    - `image` (Photo): image `{ src, alt, focal? }`.
 
-Defaults: `{"heading":"Menu","intro":"","currency":"NPR","sections":[{"title":"Section","note":"","items":[{"name":"Dish name","desc":"What is in it.","price":"","tag":""}]}]}`
+Defaults: `{"heading":"Menu","intro":"","currency":"NPR","sections":[{"title":"Section","note":"","items":[{"name":"Dish name","desc":"What is in it.","price":"","tag":"","image":{"src":"","alt":""}}]}]}`
+
+#### `steps`: Steps
+
+How it works, in numbered steps, when the order matters.
+
+Variants: `columns` (Side by side), `stack` (Down the page, large numbers). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `items` (Steps): list of items. Up to 8 steps, each:
+  - `title` (Title): inline text (bold, italic, links), up to 100 characters.
+  - `text` (Text): inline text, several lines, up to 500 characters.
+  - `detail` (Time or note): plain text, up to 60 characters. Like "Day 1" or "20 minutes".
+
+Defaults: `{"heading":"How it works","intro":"","items":[{"title":"First, you ask","text":"What happens and what the customer needs to do.","detail":""},{"title":"Then we get to work","text":"What you do, and how long it takes.","detail":""},{"title":"You get the result","text":"What they walk away with.","detail":""}]}`
+
+#### `work`: Work and projects
+
+Projects or case studies as large photos with a title and a line each.
+
+Variants: `grid` (Two columns), `feature` (One large, then two), `list` (Rows with a small photo). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `items` (Projects): list of items. Up to 24 projects, each:
+  - `image` (Photo): image `{ src, alt, focal? }`.
+  - `title` (Title): inline text (bold, italic, links), up to 100 characters.
+  - `tag` (Kind of work): plain text, up to 60 characters.
+  - `text` (One line): inline text, several lines, up to 300 characters.
+  - `link` (Link): button `{ label, href, newTab? }`.
+- `link` (Link under the list): button `{ label, href, newTab? }`.
+
+Defaults: `{"heading":"Selected work","intro":"","items":[{"image":{"src":"","alt":""},"title":"Project name","tag":"Identity","text":"What you made and for whom.","link":{"label":"","href":""}},{"image":{"src":"","alt":""},"title":"Another project","tag":"Website","text":"The result in one line.","link":{"label":"","href":""}}],"link":{"label":"","href":""}}`
+
+#### `press`: Press and awards
+
+Where you were written about or what you won, with a short line from each.
+
+Variants: `list` (Rows), `quotes` (Quotes from the press). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `items` (Mentions): list of items. Up to 16 mentions, each:
+  - `name` (Publication or award): plain text, up to 80 characters.
+  - `detail` (Title or year): inline text (bold, italic, links), up to 140 characters.
+  - `quote` (What they wrote): inline text, several lines, up to 300 characters.
+  - `url` (Link): link (https:, mailto:, tel:, page:<id>, #anchor).
+
+Defaults: `{"heading":"In the press","items":[{"name":"Publication name","detail":"The headline, and the year","quote":"","url":""}]}`
 
 #### `team`: Team
 
@@ -373,15 +540,16 @@ Defaults: `{"heading":"Questions","intro":"","items":[{"q":"A question people of
 
 One clear next step: book, call, visit or order.
 
-Variants: `band` (Full-width band), `split` (Text left, buttons right), `boxed` (Boxed). The first is the default.
+Variants: `band` (Full-width band), `image` (Over a photo), `split` (Text left, buttons right), `boxed` (Boxed). The first is the default.
 
 Props:
 - `title` (Heading): inline text (bold, italic, links), up to 140 characters.
 - `text` (Text): inline text, several lines, up to 400 characters.
 - `primary` (Main button): button `{ label, href, newTab? }`.
 - `secondary` (Second button): button `{ label, href, newTab? }`.
+- `image` (Background photo): image `{ src, alt, focal? }`.
 
-Defaults: `{"title":"Ready when you are","text":"","primary":{"label":"Get in touch","href":""},"secondary":{"label":"","href":""}}`
+Defaults: `{"title":"Ready when you are","text":"","primary":{"label":"Get in touch","href":""},"secondary":{"label":"","href":""},"image":{"src":"","alt":""}}`
 
 #### `contact`: Contact form
 
@@ -456,15 +624,18 @@ Defaults: `{"heading":"Opening hours","note":"","days":[{"day":"Sunday","hours":
 
 A Google map of where you are, with a directions link. No API key needed.
 
-Variants: `embed` (Map, full width), `split` (Address beside the map), `card` (Address card only). The first is the default.
+Variants: `location` (Location card over the map), `split` (Address beside the map), `embed` (Map, full width), `card` (Address card only). The first is the default.
 
 Props:
 - `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
 - `address` (Address): inline text, several lines, up to 300 characters. Empty: the address from Site settings.
+- `hours` (Hours): inline text, several lines, up to 300 characters. Optional. One line per row.
+- `phone` (Phone): plain text, up to 40 characters. Empty: the phone from Site settings.
+- `note` (Getting here): inline text, several lines, up to 400 characters. Landmarks, parking, which gate.
 - `query` (Place to show): plain text, up to 200 characters. A place name or address as you would type it into Google Maps.
 - `link` (Google Maps link): link (https:, mailto:, tel:, page:<id>, #anchor). The share link from Google Maps, for directions.
 
-Defaults: `{"heading":"Find us","address":"","query":"","link":""}`
+Defaults: `{"heading":"Find us","address":"","hours":"","phone":"","note":"","query":"","link":""}`
 
 #### `timeline`: Timeline
 
@@ -541,19 +712,23 @@ Defaults: `{"size":"m"}`
 
 | id | name | display / body font | radius | buttons | rhythm | for |
 | --- | --- | --- | --- | --- | --- | --- |
-| `chiya` | Chiya house | youngserif / hanken | 4 | solid | airy | Cream paper, a soft serif and terracotta. Cafés, bakeries, homestays. |
-| `darkroom` | Darkroom | bodoni / archivo | 0 | outline | airy | Near-black, bone white and a didone. Photographers, film, fashion. |
-| `clinic` | Clear clinic | hanken / hanken | 8 | solid | even | White, pine green, one grotesque. Clinics, pharmacies, labs. |
-| `newsprint` | Newsprint | newsreader / newsreader | 0 | underline | tight | Off-white and ink with a red rule. Writers, NGOs, publications. |
-| `workshop` | Workshop | bigshoulders / archivo | 0 | solid | tight | Concrete grey, signal yellow, condensed capitals. Gyms, garages, builders. |
-| `rhododendron` | Rhododendron | dmserif / schibsted | 16 | pill | even | Blush white and laligurans red. Salons, boutiques, events. |
-| `teagarden` | Tea garden | fraunces / schibsted | 22 | pill | airy | Pale leaf, deep green and round corners. Farms, tea, wellness. |
-| `ledger` | Ledger | plexmono / newsreader | 2 | outline | even | Typewriter headings over a book serif. Consultants, architects, lawyers. |
-| `marigold` | Marigold night | gloock / bricolage | 6 | solid | even | Warm dark brown with marigold. Bars, music venues, late kitchens. |
-| `gallery` | Gallery white | archivo / archivo | 0 | underline | airy | White space and heavy black type, nothing else. Studios, artists, agencies. |
+| `roast` | Roast | rozha / figtree | 2 | solid | airy | White, espresso ink and bottle green, with a heavy Devanagari-born didone. Cafés, bakeries, restaurants. |
+| `meridian` | Meridian | sourceserif / hanken | 12 | pill | even | Clinical white, deep navy and one clear cobalt. A readable serif for headings. Clinics, labs, schools. |
+| `monolith` | Monolith | archivox / archivo | 0 | solid | airy | Near-black, bone text, marigold and wide heavy type. Agencies, studios, music. |
+| `salt` | Salt | schibsted / schibsted | 0 | underline | airy | True white and black grotesque, nothing else. Architects, portfolios, galleries. |
+| `kora` | Kora | gloock / figtree | 4 | solid | airy | A soft white, slate blue and a contrasty serif. Homestays, boutique hotels, weddings. |
+| `summit` | Summit | bigshoulders / archivo | 0 | solid | tight | White, pine-black and prayer-flag yellow, condensed capitals. Gyms, trekking, builders. |
+| `nocturne` | Nocturne | bodoni / schibsted | 0 | outline | airy | Green-black, warm bone and brass, with a fashion didone. Photographers, weddings, bars. |
+| `counsel` | Counsel | youngserif / hanken | 2 | solid | even | White, graphite and oxblood, a sturdy serif. Consultants, lawyers, NGOs. |
+| `bloom` | Bloom | caslon / figtree | 20 | pill | even | White, a blush panel and raspberry, with an elegant Caslon. Salons, boutiques, florists. |
 
 ## Fonts (self-hosted, `/_jhino/fonts/s-<id>.woff2`)
 
+- `rozha`: Rozha One (serif, weights 400–400)
+- `sourceserif`: Source Serif (serif, weights 200–900)
+- `caslon`: Libre Caslon Display (serif, weights 400–400)
+- `figtree`: Figtree (sans, weights 300–900)
+- `archivox`: Archivo Expanded (sans, weights 100–900)
 - `youngserif`: Young Serif (serif, weights 400–400)
 - `fraunces`: Fraunces (serif, weights 100–900)
 - `newsreader`: Newsreader (serif, weights 200–800)
@@ -570,6 +745,65 @@ Defaults: `{"size":"m"}`
 
 ## Library photos (`lib:<name>`)
 
+- `cafe-room`: A sunlit café with a pale wood counter, an espresso machine and tables by tall windows
+- `cafe-barista`: A barista pouring from a gooseneck kettle into pour-over drippers at a dark counter
+- `cafe-pourover`: A glass pour-over brewer and carafe beside copper kettles on a dark bar
+- `cafe-latte`: A latte with tulip latte art, seen from above on a dark wooden table
+- `cafe-roaster`: Freshly roasted beans pouring from a drum roaster into its cooling tray
+- `cafe-beans`: Close-up of glossy roasted coffee beans
+- `cafe-cherries`: A branch of ripening red and yellow coffee cherries
+- `cafe-momo`: Steam rising from a bamboo steamer of momo, with a bowl of dipping sauce
+- `cafe-momo-2`: Plates of steamed, spinach and pan-fried momo with a bowl of soup
+- `cafe-chiya`: A steel tray of small glasses of milk tea, from above
+- `cafe-thali`: A Thakali set on a brass plate: rice, dal, curries, achar, greens and papad
+- `cafe-pastry`: Rows of golden croissants on baking paper
+- `cafe-bag`: A plain black coffee pouch with roasted beans in front of it
+- `cafe-evening`: A Kathmandu durbar square at night, lit temples and light trails
+- `clinic-reception`: A bright, minimal white clinic lobby with a small indoor tree and curved benches
+- `clinic-consult`: A doctor writing notes at a desk while a patient sits across from him
+- `clinic-doctor-1`: Portrait of a smiling woman doctor in a white coat
+- `clinic-doctor-2`: Portrait of a bearded doctor with glasses and a stethoscope
+- `clinic-doctor-3`: Portrait of a smiling woman doctor in a white coat over green scrubs
+- `clinic-child`: A doctor’s stethoscope on a young child’s chest
+- `clinic-lab`: Blood sample tubes with coloured caps in a rack
+- `clinic-bp`: A nurse inflating a blood pressure cuff on a patient’s arm
+- `clinic-pharmacy`: A pharmacist reaching for medicine on pharmacy shelves
+- `clinic-scan`: A pregnant woman holding an ultrasound print
+- `clinic-physio`: A physiotherapist working on a patient’s knee
+- `clinic-room`: A modern consultation room with a desk, chairs and an examination couch
+- `clinic-hands`: An older person’s hand held by a younger hand
+- `clinic-stetho`: A stethoscope on a plain light blue background
+- `agency-studio`: A designer at a desk in a warm, plant-filled studio with prints pinned up
+- `agency-desk`: A hand sketching app screens on paper
+- `agency-posters`: A wall of black and white typographic posters
+- `agency-packaging`: A plain box and a frosted jar with a blank label on pale stone
+- `agency-tea`: Two green tea tubes on a pale mint background
+- `agency-stationery`: A stationery suite of cards and envelopes laid flat
+- `agency-patan`: The courtyard of the Patan palace with carved Newari facades
+- `agency-hotel`: A calm hotel bedroom with a mustard throw and pendant lamps
+- `agency-textile`: Brightly coloured warp threads on a loom
+- `agency-shoot`: A photographer shooting in a studio surrounded by lights
+- `agency-phone`: Hands holding a phone with a dark app on screen
+- `agency-team-1`: Portrait of a young woman in a red top in natural light
+- `agency-team-2`: Portrait of a smiling man with long dark hair
+- `agency-team-3`: Portrait of a laughing woman in a mustard and navy outfit
+- `agency-meeting`: Two women reviewing colour swatches in front of a moodboard wall
+- `salon-chairs`: A bright hair salon with styling chairs and a long mirror
+- `salon-mirrors`: Salon chairs facing round mirrors on a dark wall
+- `salon-facial`: A therapist giving a facial to a woman lying back
+- `gym-barbell`: A loaded barbell beside a squat rack
+- `gym-kettlebells`: A wall of black kettlebells in a dark gym
+- `gym-lift`: A lifter gripping a barbell overhead
+- `gym-dumbbells`: Rows of black dumbbells on a rack
+- `school-class`: Students at desks listening to a teacher
+- `school-lecture`: A teacher speaking to students while a student raises a hand
+- `school-board`: A hand writing an equation on a chalkboard
+- `shop-fabric-shelf`: Shelves of folded cloth rolls in a small shop
+- `shop-fabric-rolls`: Stacked folded fabric in blue, teal, cream and magenta
+- `shop-rack`: A rail of ready-made clothes in a shop
+- `home-modern`: A modern house with tall glass doors and a garden
+- `home-garden`: A two-storey house with a timber and stone facade and a lawn
+- `home-living`: A bright living room with a sofa and large windows
 - `food-spread`: Plates of grilled meat, greens and dipping sauce on a wooden table
 - `dinner-plate`: A plated dish on a busy dinner table
 - `cafe-hall`: A bright café with long tables and hanging lamps
@@ -581,14 +815,8 @@ Defaults: `{"size":"m"}`
 - `portrait-woman`: Portrait of a woman in a striped shirt
 - `portrait-man`: Portrait of a smiling man
 - `doctor-visit`: A doctor talking with a patient
-- `doctor-coat`: A doctor in a white coat with a stethoscope
-- `pill-bottle`: A bottle of tablets on a white surface
 - `boudha`: Boudhanath stupa from above, surrounded by the city
 - `swayambhu`: Swayambhu stupa with prayer flags
 - `himal-trek`: A trekker looking at snow peaks
 - `night-peaks`: Snow peaks under a starry sky
-- `cut-pour-over`: Coffee being poured over a filter
-- `shoot-beans`: Roasted coffee beans
 - `shoot-cheers`: Two coffee cups raised together
-- `shoot-iced`: An iced coffee in a glass
-- `shoot-lattes`: Two lattes with milk art

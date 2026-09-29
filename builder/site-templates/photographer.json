@@ -5,7 +5,7 @@
   "description": "A dark, image-first studio site: portfolio wall, packages with prices, how a booking works, and a date enquiry form.",
   "site": {
     "name": "Tole Studio",
-    "theme": { "preset": "darkroom" },
+    "theme": { "preset": "nocturne" },
     "settings": {
       "tagline": "Wedding, portrait and food photography in Patan",
       "lang": "en",

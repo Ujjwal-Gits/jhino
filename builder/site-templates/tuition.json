@@ -6,7 +6,7 @@
   "site": {
     "name": "Himal Learning Centre",
     "theme": {
-      "preset": "clinic",
+      "preset": "meridian",
       "display": "newsreader",
       "body": "schibsted",
       "colors": {

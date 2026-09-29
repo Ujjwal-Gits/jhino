@@ -5,7 +5,7 @@ import {
   BLOCKS, CATEGORIES, LIBRARY, cleanImage, safeHref, sanitizeInline, sanitizeRich, textOf,
   type Field, type ImageRef, type LinkRef, type Site,
 } from '../../../server/site/schema';
-import { fontFaces, libraryAsset } from '../../../server/site/render';
+import { fontFaces, libraryAsset, libraryThumb } from '../../../server/site/render';
 import { FONTS } from '../../../server/site/schema';
 
 /*
@@ -228,7 +228,7 @@ export function ImageDialog({ appId, value, uploads, onClose, onSave }: { appId:
         {tab === 'library' && (
           <ul className="se-lib" role="list">
             {Object.entries(LIBRARY).map(([k, l]) => (
-              <li key={k}><button type="button" aria-pressed={cur.src === `lib:${k}`} onClick={() => setCur({ src: `lib:${k}`, alt: cur.src === `lib:${k}` ? cur.alt : l.alt })}><img src={libraryAsset(k)!.url.replace(/-1400\.webp$/, l.widths.includes(640) ? '-640.webp' : '-1400.webp')} alt={l.alt} loading="lazy" /></button></li>
+              <li key={k}><button type="button" aria-pressed={cur.src === `lib:${k}`} onClick={() => setCur({ src: `lib:${k}`, alt: cur.src === `lib:${k}` ? cur.alt : l.alt })}><img src={libraryThumb(k)} alt={l.alt} loading="lazy" /></button></li>
             ))}
           </ul>
         )}
@@ -304,6 +304,13 @@ const THUMB: Record<string, string> = {
   downloads: '<path d="M8 20h104M8 38h104M8 56h104" class="t"/><path d="M8 29h40M8 47h52M102 25v7l-3-3M102 32l3-3M102 43v7l-3-3M102 50l3-3"/>',
   social: '<path d="M8 36h22M40 36h22M72 36h16M98 36h14" class="w"/>',
   spacer: '<path d="M8 36h104" class="t"/><path d="M60 16v10M56 22l4 4 4-4M60 56V46M56 50l4-4 4 4"/>',
+  rows: '<rect x="8" y="8" width="56" height="26" rx="2" class="f"/><path d="M72 16h36M72 23h30"/><rect x="56" y="40" width="56" height="26" rx="2" class="f"/><path d="M8 48h36M8 55h30"/>',
+  sticky: '<rect x="8" y="10" width="46" height="54" rx="2" class="f"/><path d="M64 14h40M64 20h34" /><path d="M64 32h44M64 38h36" class="t"/><path d="M64 50h44M64 56h30" class="t"/>',
+  quote: '<path d="M14 16c-4 4-4 10 2 10M26 16c-4 4-4 10 2 10" class="a2"/><rect x="14" y="32" width="90" height="8" rx="1"/><rect x="14" y="44" width="70" height="8" rx="1"/><path d="M14 60h10M28 60h26" class="t"/>',
+  marquee: '<path d="M4 36h20M34 36h26M70 36h22M102 36h14" class="w"/><circle cx="29" cy="36" r="2" class="a"/><circle cx="65" cy="36" r="2" class="a"/><circle cx="97" cy="36" r="2" class="a"/>',
+  steps: '<path d="M8 22h8M44 22h8M80 22h8" class="w a2"/><path d="M8 34h28M44 34h28M80 34h28M8 42h24M44 42h22M80 42h26" /><path d="M8 14h28M44 14h28M80 14h28" class="t"/>',
+  work: '<rect x="8" y="8" width="50" height="34" rx="2" class="f"/><rect x="64" y="18" width="50" height="34" rx="2" class="f"/><path d="M8 48h30M8 54h20M64 58h30M64 64h20"/>',
+  press: '<path d="M8 16h104M8 34h104M8 52h104" class="t"/><path d="M8 25h30M56 25h36M8 43h24M56 43h40" /><circle cx="106" cy="25" r="4"/><circle cx="106" cy="43" r="4"/>',
 };
 export function BlockThumb({ type }: { type: string }) {
   return <svg className="se-thumb" viewBox="0 0 120 72" aria-hidden="true" dangerouslySetInnerHTML={{ __html: THUMB[type] ?? '' }} />;

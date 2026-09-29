@@ -1,5 +1,6 @@
 /* Jhino websites: the one small script a published site loads (deferred). Menu button, carousels,
-   click-to-play videos, the before/after slider, today's opening hours, and sending forms.
+   click-to-play videos, the before/after slider, today's opening hours, sending forms, the photo
+   unveil as sections scroll into view, and the header laid over a full-photo hero.
    Everything is delegated from the document, so it works for blocks added later too. */
 (function () {
   var d = document, root = d.documentElement;
@@ -55,6 +56,28 @@
     if (reduce) { var vs = d.querySelectorAll('video[autoplay]'); for (var j = 0; j < vs.length; j++) { vs[j].removeAttribute('autoplay'); vs[j].pause(); } }
   }
   if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', today); else today();
+
+  // Photos unveil once as they come into view (CSS draws the panel; this only says when).
+  // Without IntersectionObserver, or with motion turned off, everything is simply shown.
+  root.classList.add('rv-js');
+  function reveal() {
+    var els = d.querySelectorAll('.rv:not(.in)');
+    if (editing || reduce || !('IntersectionObserver' in window)) { for (var i = 0; i < els.length; i++) els[i].classList.add('in'); return; }
+    var io = new IntersectionObserver(function (es) {
+      for (var j = 0; j < es.length; j++) if (es[j].isIntersecting) { es[j].target.classList.add('in'); io.unobserve(es[j].target); }
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+    for (var k = 0; k < els.length; k++) io.observe(els[k]);
+  }
+  if (d.readyState === 'loading') d.addEventListener('DOMContentLoaded', reveal); else reveal();
+  window.addEventListener('beforeprint', function () { var els = d.querySelectorAll('.rv'); for (var i = 0; i < els.length; i++) els[i].classList.add('in'); });
+
+  // A header over a full-photo hero turns solid once the page scrolls.
+  var over = d.querySelector('.site-h.over'), ticking = false;
+  function onScroll() {
+    ticking = false;
+    if (over) over.classList.toggle('scrolled', (window.scrollY || 0) > 24);
+  }
+  if (over) { window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true }); onScroll(); }
 
   d.addEventListener('submit', function (e) {
     var f = e.target;

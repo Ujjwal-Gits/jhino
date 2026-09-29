@@ -6,7 +6,7 @@
   "site": {
     "name": "Utsav Wedding Planners",
     "theme": {
-      "preset": "teagarden",
+      "preset": "kora",
       "display": "fraunces",
       "body": "schibsted",
       "colors": {

@@ -6,7 +6,7 @@
   "site": {
     "name": "Acharya and Associates",
     "theme": {
-      "preset": "ledger"
+      "preset": "counsel"
     },
     "settings": {
       "lang": "en",

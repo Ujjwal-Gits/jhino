@@ -6,7 +6,7 @@
   "site": {
     "name": "Bagmati Homes and Land",
     "theme": {
-      "preset": "ledger",
+      "preset": "counsel",
       "display": "newsreader",
       "body": "hanken",
       "colors": {

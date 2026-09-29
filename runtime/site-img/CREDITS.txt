@@ -11,13 +11,11 @@ ridge-photographer  photo-1492691527719-9d1e07e534b4
 portrait-woman      photo-1544005313-94ddf0286df2
 portrait-man        photo-1500648767791-00dcc994a43e
 doctor-visit        photo-1631217868264-e5b90bb7e133
-doctor-coat         photo-1576091160399-112ba8d25d1d
-pill-bottle         photo-1544991875-5dc1b05f607d
 boudha              photo-1605640840605-14ac1855827b
 swayambhu           photo-1558799401-1dcba79834c2
 himal-trek          photo-1526772662000-3f88f10405ff
 night-peaks         photo-1519681393784-d120267933ba
-cut-pour-over, shoot-* : the same photographs as web/public/img (see its CREDITS.txt); one size only.
+shoot-cheers : the same photograph as web/public/img (see its CREDITS.txt); one size only.
 
 Added for the website templates (Unsplash License; ids are the unsplash.com/photos/<id> page ids). Two sizes each (640, 1400 wide, WebP).
 salon-chairs        ZkNxY2zErck
@@ -36,3 +34,48 @@ shop-rack           O8lxsc1RwCQ
 home-modern         eWOgoFHlE8g
 home-garden         hPu2n_SfV7Q
 home-living         6japTIjUQoI
+
+Flagship templates (cafe, clinic, agency), Unsplash License; ids are unsplash.com/photos/<id> page ids. Two sizes each (800, 1600 wide, WebP).
+cafe-room           3oSfmHbZtCM  rawkkim
+cafe-barista        lEbR6nR8V1A  Rohit Khadgi
+cafe-pourover       _FilM6g6DEQ  Thomas Martinsen
+cafe-latte          LI8inyHnm_A  Robbie Down
+cafe-roaster        6HR8vpjYUHo  Yanapi Senaud
+cafe-beans          REqK8jIAtv8  Immo Wegmann
+cafe-cherries       OE1zLjHsfm0  Quang Nguyen Vinh
+cafe-momo           q66grqqHpDQ  Pooja Chaudhary
+cafe-momo-2         LR559Dcst70  Abhishek Sanwa Limbu
+cafe-chiya          TlFf1kJm_zU  Dilpreet Singh
+cafe-thali          5Q-7kgG7xbo  Abhishek Sanwa Limbu
+cafe-pastry         sqkXyyj4WdE  Conor Brown
+cafe-bag            kVAs4SVIxSk  Caleb Minear
+cafe-evening        74Oi-lTP_Io  Stan Tuladhar
+clinic-reception    X8Y3CJA0aNs  rawkkim
+clinic-consult      8WYkI3cEZm8  Vitaly Gariev
+clinic-doctor-1     Jhzw6fBskX0  Jose Borrero
+clinic-doctor-2     3HIroMoyre8  vaibhav vivian
+clinic-doctor-3     2G73aoMR-Go  Ike Ellyana
+clinic-child        lDH1fxwguxw  Vitaly Gariev
+clinic-lab          egT3xtDu9DQ  National Cancer Institute
+clinic-bp           vN5s_G5SPkY  Julia Taubitz
+clinic-pharmacy     byGTytEGjBo  National Cancer Institute
+clinic-scan         87ev1NvhDsU  Volodymyr Hryshchenko
+clinic-physio       pbUWW-CBoqY  yury kirillov
+clinic-room         bdeLBIPYUrE  Irshad Pathan
+clinic-hands        d9Emsd3zM3I  Hunt Han
+clinic-stetho       g3PsF4_y7ZY  Etactics Inc
+agency-studio       laGC9MKgHIY  Hanna Lazar
+agency-desk         sv8oOQaUb-o  Amélie Mourichon
+agency-posters      pQ_SEJg8rII  Claudio Schwarz
+agency-packaging    w-IvqlYGYAU  Avtar Singh
+agency-tea          5H4Y5D4HNBc  Cali
+agency-stationery   R3I0suktDrM  Micah & Sammie Chaffin
+agency-patan        nHiAQu38jKg  Jochen van Wylick
+agency-hotel        XWgTzyymwj8  Lori Payne
+agency-textile      5EUy6c3e1bM  Mick Haupt
+agency-shoot        Qy-LgJuED0o  Lana Mattice
+agency-phone        vJPr5tORR8c  HUUM
+agency-team-1       WYwNK-zW7u4  Arnab De
+agency-team-2       NWazg9d26kc  Vitaly Gariev
+agency-team-3       bY8ffJZD2tE  Sushmita Nag
+agency-meeting      ITlbzevlInQ  Rodrigo Rodrigues / WOLF ART

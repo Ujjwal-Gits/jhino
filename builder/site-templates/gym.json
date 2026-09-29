@@ -6,7 +6,7 @@
   "site": {
     "name": "Iron Yak Fitness",
     "theme": {
-      "preset": "workshop"
+      "preset": "summit"
     },
     "settings": {
       "lang": "en",

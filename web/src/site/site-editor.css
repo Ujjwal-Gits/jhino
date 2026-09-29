@@ -286,3 +286,15 @@
 @media (prefers-reduced-motion: reduce) {
   .se-left, .se-right, .se-plus, .se-sec > summary::after { transition: none; }
 }
+
+/* ---------------- preview mode: the page alone, as visitors see it ---------------- */
+.se-mode button { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; font-weight: 550; }
+.se-mode button[aria-pressed='true'] { color: var(--ink); }
+.se-previewing .se-body { grid-template-columns: minmax(0, 1fr); }
+.se-previewing .se-left, .se-previewing .se-right, .se-previewing .se-scrim { display: none; }
+.se-prev-note { position: absolute; top: 0; left: 0; right: 0; z-index: 5; height: 46px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 14px; background: var(--paper); border-bottom: 1px solid var(--rule); font-size: 13.5px; color: var(--ink-2); }
+.se-prev-note b { color: var(--ink); font-weight: 600; }
+.se-previewing .se-stage { top: 46px; }
+.se-top-end .btn[aria-disabled='true'] { opacity: 0.45; cursor: not-allowed; }
+@media (max-width: 1320px) { .se-hide-m { display: none !important; } }
+@media (max-width: 960px) { .se-hist { display: none; } .se-prev-note span { display: none; } .se-prev-note { justify-content: flex-end; } }

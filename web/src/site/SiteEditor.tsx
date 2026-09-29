@@ -66,6 +66,47 @@ const EDIT_CSS = `html{scroll-behavior:auto}[data-f]{cursor:text;border-radius:2
 .site-h.sticky{position:relative}.empty-blk{padding:24px;border:1px dashed currentColor;opacity:.6;text-align:center;font-size:14px}a[href^="#page:"]{cursor:pointer}`;
 
 /* ---------------- the canvas ---------------- */
+/** The device frame: the page is drawn at the device's real width and scaled to fit the stage. */
+function useStage(device: Device) {
+  const stage = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 1000, h: 700 });
+  useLayoutEffect(() => {
+    const el = stage.current!;
+    const ro = new ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const devW = device === 'desktop' ? Math.max(WIDTH.desktop, Math.min(1440, size.w)) : WIDTH[device];
+  const scale = Math.min(1, (size.w - (device === 'desktop' ? 0 : 32)) / devW);
+  const devH = Math.max(400, (size.h - (device === 'desktop' ? 0 : 24)) / scale);
+  return { stage, size, devW, scale, devH, left: Math.max(0, (size.w - devW * scale) / 2) };
+}
+
+/** Preview mode: the page exactly as a visitor gets it (menus, carousels, the photo reveals), no editing chrome. */
+function PreviewFrame({ site, page, appId, device, onPage }: { site: Site; page: Page; appId: string; device: Device; onPage: (id: string) => void }) {
+  const { stage, devW, devH, scale, left } = useStage(device);
+  const html = useMemo(() => renderDocument(ctxFor(site, page, appId, 'preview')), [site, page, appId]);
+  const onLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
+    const d = e.currentTarget.contentDocument;
+    if (!d) return;
+    d.addEventListener('click', (ev) => {
+      const a = (ev.target as Element)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!a) return;
+      const href = a.getAttribute('href') ?? '';
+      if (href.startsWith('#page:')) { ev.preventDefault(); onPage(href.slice(6)); return; }
+      // Other sites open in a tab of their own, never inside the editor.
+      if (/^https?:/i.test(href)) { ev.preventDefault(); window.open(href, '_blank', 'noopener'); }
+    });
+  };
+  return (
+    <div className={`se-stage dev-${device}`} ref={stage}>
+      <div className="se-device" style={{ width: devW, height: devH, transform: `scale(${scale})`, left }}>
+        <iframe key={page.id} title="Preview of the page" srcDoc={html} onLoad={onLoad} />
+      </div>
+    </div>
+  );
+}
+
 interface CanvasApi { scrollTo: (id: string) => void }
 interface CanvasProps {
   site: Site; page: Page; appId: string; device: Device; selected: string | null;
@@ -80,11 +121,11 @@ interface CanvasProps {
   apiRef: React.MutableRefObject<CanvasApi | null>;
 }
 function Canvas(p: CanvasProps) {
-  const stage = useRef<HTMLDivElement>(null);
+  const { stage, devW, devH, scale, left } = useStage(p.device);
   const frame = useRef<HTMLIFrameElement>(null);
   const [doc, setDoc] = useState<Document | null>(null);
-  const [size, setSize] = useState({ w: 1000, h: 700 });
   const [tick, setTick] = useState(0);
+  const raf = useRef(0);
   const [hover, setHover] = useState<string | null>(null);
   const hoverTimer = useRef<number>(0);
   const editing = useRef<{ el: HTMLElement; blockId: string; path: string; kind: string; timer: number } | null>(null);
@@ -93,15 +134,6 @@ function Canvas(p: CanvasProps) {
   const force = useRef<string | null>(null);
   const props = useRef(p); props.current = p;
 
-  useLayoutEffect(() => {
-    const el = stage.current!;
-    const ro = new ResizeObserver(() => setSize({ w: el.clientWidth, h: el.clientHeight }));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  const devW = p.device === 'desktop' ? Math.max(WIDTH.desktop, Math.min(1440, size.w)) : WIDTH[p.device];
-  const scale = Math.min(1, (size.w - (p.device === 'desktop' ? 0 : 32)) / devW);
-  const devH = Math.max(400, (size.h - (p.device === 'desktop' ? 0 : 24)) / scale);
 
   // The page itself: written once per page; later changes are patched in.
   const srcDoc = useMemo(() => renderDocument(ctxFor(p.site, p.page, p.appId, 'edit'), { allCss: true, extraHead: `<style>${EDIT_CSS}</style>` }), [p.page.id, p.appId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -181,7 +213,10 @@ function Canvas(p: CanvasProps) {
       setHover(b ? b.dataset.b! : null);
     });
     d.addEventListener('mouseleave', () => { hoverTimer.current = window.setTimeout(() => setHover(null), 500); });
-    d.addEventListener('scroll', () => { setTick((t) => t + 1); if (editing.current) setEditRect(editing.current.el.getBoundingClientRect()); }, { passive: true });
+    d.addEventListener('scroll', () => {
+      if (raf.current) return;
+      raf.current = requestAnimationFrame(() => { raf.current = 0; setTick((t) => t + 1); if (editing.current) setEditRect(editing.current.el.getBoundingClientRect()); });
+    }, { passive: true });
     d.addEventListener('keydown', (ev) => {
       if (!editing.current) { props.current.onKey(ev); return; }
       // Undo while typing: finish the text first, then undo like anywhere else.
@@ -272,7 +307,7 @@ function Canvas(p: CanvasProps) {
 
   return (
     <div className={`se-stage dev-${p.device}`} ref={stage}>
-      <div className="se-device" style={{ width: devW, height: devH, transform: `scale(${scale})`, left: Math.max(0, (size.w - devW * scale) / 2) }}>
+      <div className="se-device" style={{ width: devW, height: devH, transform: `scale(${scale})`, left }}>
         <iframe ref={frame} title="Page preview" srcDoc={srcDoc} onLoad={onLoad} />
         <div className="se-overlay" style={{ ['--inv' as string]: String(1 / scale) }} onMouseEnter={() => clearTimeout(hoverTimer.current)} onMouseLeave={() => { hoverTimer.current = window.setTimeout(() => setHover(null), 400); }}>
           {hov && <div className="se-hov" style={{ top: hov.top, left: hov.left, width: hov.width, height: hov.height }} />}
@@ -465,6 +500,7 @@ export function SiteEditor({ id }: { id: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('block');
   const [device, setDevice] = useState<Device>(() => (innerWidth < 700 ? 'phone' : 'desktop'));
+  const [previewing, setPreviewing] = useState(false);
   const [view, setView] = useState<'edit' | 'submissions'>(() => (new URLSearchParams(location.search).get('tab') === 'submissions' ? 'submissions' : 'edit'));
   const [sheet, setSheet] = useState<'none' | 'left' | 'right'>('none');
   const [save, setSave] = useState<SaveState>('saved');
@@ -623,11 +659,12 @@ export function SiteEditor({ id }: { id: string }) {
     if (typing) return;
     if (mod && k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; }
     if (mod && (k === 'y' || (k === 'z' && e.shiftKey))) { e.preventDefault(); redo(); return; }
-    if (!selected) return;
+    if (e.key === 'Escape' && previewing) { setPreviewing(false); return; }
+    if (!selected || previewing) return;
     if (e.key === 'Escape') { setSelected(null); return; }
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); remove(selected); return; }
     if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { e.preventDefault(); move(selected, e.key === 'ArrowUp' ? -1 : 1); }
-  }, [selected, undo, redo, doSave]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selected, undo, redo, doSave, previewing]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const h = (e: KeyboardEvent) => onKey(e); addEventListener('keydown', h); return () => removeEventListener('keydown', h); }, [onKey]);
 
   if (loadErr) return <div className="se-fail"><p>{loadErr}</p><Link to="/apps" className="btn">Back to my apps</Link></div>;
@@ -715,27 +752,34 @@ export function SiteEditor({ id }: { id: string }) {
 
   const liveHref = meta.url;
   return (
-    <div className={`se ${sheet !== 'none' ? `sheet-${sheet}` : ''}`}>
+    <div className={`se ${sheet !== 'none' ? `sheet-${sheet}` : ''} ${previewing ? 'se-previewing' : ''}`}>
       <header className="se-top">
         <Link to="/apps" className="icon-btn" aria-label="Back to my apps"><Icon name="back" /></Link>
         <div className="se-title"><b>{site.name}</b><small className={`se-save s-${save}`} aria-live="polite">{saveLabel}</small></div>
         <div className="se-top-mid">
           <div className="se-pagesel"><Select label="Page" size="sm" width={170} value={page.id} options={site.pages.map((p) => ({ value: p.id, label: p.title }))} onChange={(v) => { setPageId(v); setSelected(null); }} /></div>
-          <div className="seg-sm se-devices" role="group" aria-label="Preview size">
+          <div className="seg-sm se-mode" role="group" aria-label="Editing or previewing">
+            <button aria-pressed={!previewing} onClick={() => setPreviewing(false)} title="Click things on the page to change them"><Icon name="pen" size={14} />Edit</button>
+            <button aria-pressed={previewing} onClick={() => { setPreviewing(true); setView('edit'); setSelected(null); setSheet('none'); }} title="See the page as a visitor does. Esc goes back to editing."><Icon name="eye" size={14} />Preview</button>
+          </div>
+          <div className="seg-sm se-devices" role="group" aria-label="Screen size">
             {([['desktop', 'Computer'], ['tablet', 'Tablet'], ['phone', 'Phone']] as const).map(([k, l]) => (
               <button key={k} aria-pressed={device === k} onClick={() => setDevice(k)} title={`${l} width`} aria-label={`${l} width`}><DeviceIcon d={k} /></button>
             ))}
           </div>
-          <div className="seg-sm" role="group" aria-label="History">
+          {!previewing && <div className="seg-sm se-hist" role="group" aria-label="History">
             <button onClick={undo} disabled={!hist!.past.length} aria-label="Undo" title="Undo (Ctrl+Z)"><UndoIcon /></button>
             <button onClick={redo} disabled={!hist!.future.length} aria-label="Redo" title="Redo (Ctrl+Shift+Z)" className="se-redo"><UndoIcon /></button>
-          </div>
+          </div>}
         </div>
         <div className="se-top-end">
           <button className={`btn sm quiet ${view === 'submissions' ? 'on' : ''}`} aria-pressed={view === 'submissions'} onClick={() => setView(view === 'submissions' ? 'edit' : 'submissions')}>
             <Icon name="mail" size={15} /><span className="se-hide-s">Submissions</span>{meta.unread > 0 && <span className="se-badge">{meta.unread}</span>}
           </button>
-          <a className="btn sm quiet se-hide-s" href={`/api/sites/${id}/preview/${page.slug ? page.slug + '/' : ''}`} target="_blank" rel="noopener" onClick={() => { void doSave(); }}><Icon name="eye" size={15} />Preview</a>
+          <a className="btn sm quiet se-hide-m" href={`/api/sites/${id}/preview/${page.slug ? page.slug + '/' : ''}`} target="_blank" rel="noopener" onClick={() => { void doSave(); }} title="The draft at full size, in a new tab"><Icon name="external" size={15} />Preview in new tab</a>
+          {liveHref
+            ? <a className="btn sm se-hide-s" href={liveHref + (page.slug && liveHref.endsWith('/') ? page.slug + '/' : '')} target="_blank" rel="noopener" title={changedSincePublish ? 'The published site. Your latest changes are not on it until you publish.' : 'The published site'}><Icon name="globe" size={15} />Open live site</a>
+            : <span className="btn sm se-hide-s" aria-disabled="true" title="Publish first to get an address">Open live site</span>}
           <button className="btn sm primary" onClick={publishNow} disabled={publishing || save === 'conflict'}>{publishing && <span className="spin" />}{changedSincePublish ? 'Publish' : 'Published'}</button>
         </div>
       </header>
@@ -753,7 +797,10 @@ export function SiteEditor({ id }: { id: string }) {
       <div className="se-body">
         {left}
         <main className="se-main">
-          {view === 'submissions'
+          {previewing && <div className="se-prev-note" role="status"><span><b>Preview.</b> The page as visitors see it: menus, links and photos work, forms do not send.</span><button className="btn sm" onClick={() => setPreviewing(false)}><Icon name="pen" size={14} />Back to editing</button></div>}
+          {previewing
+            ? <PreviewFrame site={site} page={page} appId={id} device={device} onPage={(pid) => { if (site.pages.some((p) => p.id === pid)) setPageId(pid); }} />
+            : view === 'submissions'
             ? <Submissions appId={id} onClose={() => setView('edit')} />
             : <Canvas site={site} page={page} appId={id} device={device} selected={selected} apiRef={canvas}
               onSelect={(bid) => { setSelected(bid); setTab('block'); }} onText={onText} onImage={onImage} onLink={onLink}
@@ -763,10 +810,16 @@ export function SiteEditor({ id }: { id: string }) {
         {right}
       </div>
       <nav className="se-bottom" aria-label="Editor">
-        <button onClick={() => setSheet(sheet === 'left' ? 'none' : 'left')} aria-pressed={sheet === 'left'}><Icon name="list" size={18} />Pages</button>
-        <button onClick={() => setPicker({ index: page.blocks.length })}><Icon name="plus" size={18} />Add block</button>
-        <button onClick={() => { setTab(block ? 'block' : 'design'); setSheet(sheet === 'right' ? 'none' : 'right'); }} aria-pressed={sheet === 'right'}><Icon name="settings" size={18} />{block ? 'Block' : 'Design'}</button>
-        <a href={`/api/sites/${id}/preview/${page.slug ? page.slug + '/' : ''}`} target="_blank" rel="noopener"><Icon name="eye" size={18} />Preview</a>
+        {previewing ? <>
+          <button onClick={() => setPreviewing(false)}><Icon name="pen" size={18} />Back to editing</button>
+          <a href={`/api/sites/${id}/preview/${page.slug ? page.slug + '/' : ''}`} target="_blank" rel="noopener"><Icon name="external" size={18} />New tab</a>
+          {liveHref && <a href={liveHref} target="_blank" rel="noopener"><Icon name="globe" size={18} />Live site</a>}
+        </> : <>
+          <button onClick={() => setSheet(sheet === 'left' ? 'none' : 'left')} aria-pressed={sheet === 'left'}><Icon name="list" size={18} />Pages</button>
+          <button onClick={() => setPicker({ index: page.blocks.length })}><Icon name="plus" size={18} />Add block</button>
+          <button onClick={() => { setTab(block ? 'block' : 'design'); setSheet(sheet === 'right' ? 'none' : 'right'); }} aria-pressed={sheet === 'right'}><Icon name="settings" size={18} />{block ? 'Block' : 'Design'}</button>
+          <button onClick={() => { setPreviewing(true); setSelected(null); setSheet('none'); }}><Icon name="eye" size={18} />Preview</button>
+        </>}
       </nav>
       {sheet !== 'none' && <button className="se-scrim" aria-label="Close" onClick={() => setSheet('none')} />}
 

@@ -6,7 +6,7 @@
   "site": {
     "name": "Pahal Nepal Foundation",
     "theme": {
-      "preset": "newsprint"
+      "preset": "counsel"
     },
     "settings": {
       "lang": "en",

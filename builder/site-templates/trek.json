@@ -6,7 +6,7 @@
   "site": {
     "name": "Sherpa Trail Nepal",
     "theme": {
-      "preset": "clinic",
+      "preset": "meridian",
       "display": "gloock",
       "body": "bricolage",
       "colors": {

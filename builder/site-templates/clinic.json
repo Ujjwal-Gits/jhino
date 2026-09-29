@@ -1,205 +1,1143 @@
 {
-  "id": "clinic",
+ "id": "clinic",
+ "name": "Sahara Family Clinic",
+ "category": "Clinic and health",
+ "description": "A calm, complete clinic site: services with photos, doctors, a same-day lab, fees written down, first-visit steps, booking and a map.",
+ "site": {
   "name": "Sahara Family Clinic",
-  "category": "Clinic and health",
-  "description": "A calm, information-first clinic site: hours up front, services and fees, doctors, and a visit request form.",
-  "site": {
-    "name": "Sahara Family Clinic",
-    "theme": { "preset": "clinic" },
-    "settings": {
-      "tagline": "Family doctors and a lab in New Baneshwor",
-      "lang": "en",
-      "phone": "01-4781230",
-      "email": "care@saharaclinic.com.np",
-      "address": "Madan Bhandari Road, New Baneshwor, Kathmandu 44600",
-      "social": [
-        { "network": "facebook", "url": "https://www.facebook.com/saharafamilyclinic" },
-        { "network": "viber", "url": "https://invite.viber.com/?g=sahara-clinic" }
-      ]
+  "theme": {
+   "preset": "meridian"
+  },
+  "settings": {
+   "tagline": "Family doctors and a lab in New Baneshwor",
+   "lang": "en",
+   "phone": "01-4781230",
+   "email": "care@saharaclinic.com.np",
+   "address": "Madan Bhandari Road, New Baneshwor, Kathmandu 44600",
+   "social": [
+    {
+     "network": "facebook",
+     "url": "https://www.facebook.com/saharafamilyclinic"
     },
-    "header": { "type": "header", "variant": "bar", "props": { "cta": { "label": "Book a visit", "href": "page:book" }, "sticky": true } },
-    "footer": {
-      "type": "footer", "variant": "columns",
-      "props": { "about": "A day clinic for families in New Baneshwor: doctors, a lab and a pharmacy under one roof. In an emergency, go to the nearest hospital or call 102.", "note": "", "showPages": true, "showContact": true, "showSocial": true },
-      "style": { "bg": "surface" }
+    {
+     "network": "viber",
+     "url": "https://invite.viber.com/?g=sahara-clinic"
+    }
+   ]
+  },
+  "header": {
+   "type": "header",
+   "variant": "bar",
+   "props": {
+    "cta": {
+     "label": "Book a visit",
+     "href": "page:book"
     },
-    "pages": [
-      {
-        "id": "home", "title": "Home",
-        "seoTitle": "Sahara Family Clinic, New Baneshwor: doctors, lab and pharmacy",
-        "seoDescription": "Family clinic in New Baneshwor, Kathmandu. General OPD Rs 600, children's health, women's health, same-day lab results. Open every day.",
-        "blocks": [
-          {
-            "type": "hero", "variant": "split",
-            "props": {
-              "eyebrow": "New Baneshwor, Kathmandu · Open every day",
-              "title": "A family clinic that answers the phone",
-              "text": "Check-ups, children's health, blood tests and small procedures, with lab results sent to your phone the same evening.",
-              "primary": { "label": "Book a visit", "href": "page:book" },
-              "secondary": { "label": "Call 01-4781230", "href": "tel:014781230" },
-              "image": { "src": "lib:doctor-visit", "alt": "A doctor talking with a patient in a consulting room", "focal": [45, 35] }
-            }
-          },
-          {
-            "type": "hours", "variant": "split",
-            "props": {
-              "heading": "Opening hours",
-              "note": "We are a day clinic. In an emergency, go to the nearest hospital emergency department or call 102 for an ambulance.",
-              "days": [
-                { "day": "Sunday", "hours": "07:00 – 19:00" },
-                { "day": "Monday", "hours": "07:00 – 19:00" },
-                { "day": "Tuesday", "hours": "07:00 – 19:00" },
-                { "day": "Wednesday", "hours": "07:00 – 19:00" },
-                { "day": "Thursday", "hours": "07:00 – 19:00" },
-                { "day": "Friday", "hours": "07:00 – 19:00" },
-                { "day": "Saturday", "hours": "08:00 – 13:00" }
-              ]
-            },
-            "style": { "bg": "surface", "space": "s" }
-          },
-          {
-            "type": "features", "variant": "grid",
-            "props": {
-              "heading": "What people see us for",
-              "intro": "Walk in or book ahead. A doctor sees you, and anything that needs a specialist gets a written referral the same day.",
-              "items": [
-                { "title": "General medicine", "text": "Fever, stomach trouble, coughs that will not go away, and a second opinion on a prescription.", "detail": "OPD Rs 600" },
-                { "title": "Children's health", "text": "Growth checks, vaccines on the national schedule, and sick visits the same day.", "detail": "" },
-                { "title": "Women's health", "text": "Check-ups, pregnancy tests and antenatal visits with a woman doctor on Sundays, Tuesdays and Thursdays.", "detail": "" },
-                { "title": "Diabetes and blood pressure", "text": "Regular follow-up with your readings kept in one file, and a reminder when the next test is due.", "detail": "" },
-                { "title": "Lab tests", "text": "Blood, urine and thyroid tests. Samples before 10:00 get results by SMS the same evening.", "detail": "" },
-                { "title": "Small procedures", "text": "Dressings, stitches and their removal, ear cleaning, nebulisation.", "detail": "" }
-              ]
-            }
-          },
-          {
-            "type": "imagetext", "variant": "right",
-            "props": {
-              "image": { "src": "lib:pill-bottle", "alt": "A bottle of tablets on a white surface" },
-              "eyebrow": "Downstairs",
-              "heading": "A pharmacy open the same hours",
-              "body": "<p>Fill your prescription before you leave. The pharmacist goes through each medicine with you, and writes the doses in Nepali on the packet if you ask.</p>",
-              "link": { "label": "", "href": "" }
-            }
-          },
-          {
-            "type": "faq", "variant": "accordion",
-            "props": {
-              "heading": "Before your visit",
-              "intro": "",
-              "items": [
-                { "q": "Do I need an appointment?", "a": "No. Walk-ins are seen in order. With a booking you are seen at your time, and we call if the doctor is running late." },
-                { "q": "Should I come fasting for blood tests?", "a": "For sugar and lipid tests, yes: nothing but water for ten hours. Other tests do not need it. Ask when you book." },
-                { "q": "How do I get my report?", "a": "By SMS with a link, the same evening for samples given before 10:00. Printed copies wait at the front desk." },
-                { "q": "Do you take the Health Insurance Board card?", "a": "Not yet. We give an itemised bill you can claim with private insurers." }
-              ]
-            }
-          }
-        ]
-      },
-      {
-        "id": "doctors", "slug": "doctors", "title": "Doctors",
-        "seoTitle": "Our doctors · Sahara Family Clinic, New Baneshwor",
-        "seoDescription": "Meet the doctors at Sahara Family Clinic and see which days each one is in.",
-        "blocks": [
-          {
-            "type": "hero", "variant": "text",
-            "props": { "eyebrow": "", "title": "Our doctors", "text": "Each doctor keeps regular days, so you can see the same person every time.", "primary": { "label": "", "href": "" }, "secondary": { "label": "", "href": "" } },
-            "style": { "space": "s" }
-          },
-          {
-            "type": "team", "variant": "list",
-            "props": {
-              "heading": "", "intro": "",
-              "people": [
-                { "name": "Dr. Sabina Shrestha", "role": "General medicine · MBBS, MD", "bio": "Sunday to Friday mornings. Twelve years at a district hospital in Dhading before starting the clinic.", "image": { "src": "", "alt": "" } },
-                { "name": "Dr. Prakash Adhikari", "role": "Children's health · MBBS, MD Paediatrics", "bio": "Sunday to Friday afternoons. Runs the vaccine clinic on Tuesdays.", "image": { "src": "", "alt": "" } },
-                { "name": "Dr. Manisha Karki", "role": "Women's health · MBBS, MS Obstetrics and Gynaecology", "bio": "Sundays, Tuesdays and Thursdays, 14:00 to 18:00.", "image": { "src": "", "alt": "" } },
-                { "name": "Rita Gurung", "role": "Lab in charge · BMLT", "bio": "Every day from 07:00. Calls you herself if a result needs a doctor today.", "image": { "src": "", "alt": "" } }
-              ]
-            }
-          },
-          {
-            "type": "cta", "variant": "band",
-            "props": {
-              "title": "Want to see a particular doctor?",
-              "text": "Choose them in the booking form, or say so when you call.",
-              "primary": { "label": "Book a visit", "href": "page:book" },
-              "secondary": { "label": "", "href": "" }
-            },
-            "style": { "bg": "accent" }
-          }
-        ]
-      },
-      {
-        "id": "fees", "slug": "fees", "title": "Fees",
-        "seoTitle": "Fees and lab test prices · Sahara Family Clinic",
-        "seoDescription": "General OPD Rs 600, specialist OPD Rs 1,000, full body check-up Rs 4,500. Lab test prices with same-day results.",
-        "blocks": [
-          {
-            "type": "pricing", "variant": "table",
-            "props": {
-              "heading": "Fees", "intro": "What a visit costs, before any tests or medicine. We tell you the cost of a test before we take the sample.", "currency": "NPR",
-              "plans": [
-                { "name": "General OPD", "price": "600", "period": "visit", "note": "Follow-up within 7 days is free.", "features": "", "cta": { "label": "", "href": "" }, "featured": false },
-                { "name": "Specialist OPD", "price": "1000", "period": "visit", "note": "Children's and women's health.", "features": "", "cta": { "label": "", "href": "" }, "featured": false },
-                { "name": "Full body check-up", "price": "4500", "period": "package", "note": "Come fasting. Takes about two hours.", "features": "Blood count, sugar, lipid profile\nKidney and liver function\nThyroid (TSH) and urine routine\nECG\nA doctor goes through every result with you", "cta": { "label": "Book a check-up", "href": "page:book" }, "featured": true },
-                { "name": "Vaccine visit", "price": "300", "period": "visit", "note": "Plus the cost of any vaccine not on the national schedule.", "features": "", "cta": { "label": "", "href": "" }, "featured": false }
-              ]
-            }
-          },
-          {
-            "type": "features", "variant": "compact",
-            "props": {
-              "heading": "Common lab tests",
-              "intro": "Samples before 10:00 get results the same evening.",
-              "items": [
-                { "title": "Complete blood count (CBC)", "text": "", "detail": "Rs 450" },
-                { "title": "Fasting blood sugar", "text": "", "detail": "Rs 150" },
-                { "title": "HbA1c", "text": "", "detail": "Rs 1,100" },
-                { "title": "Thyroid (TSH)", "text": "", "detail": "Rs 700" },
-                { "title": "Lipid profile", "text": "", "detail": "Rs 900" },
-                { "title": "Urine routine", "text": "", "detail": "Rs 200" }
-              ]
-            },
-            "style": { "bg": "surface" }
-          }
-        ]
-      },
-      {
-        "id": "book", "slug": "book", "title": "Book a visit",
-        "seoTitle": "Book a visit · Sahara Family Clinic, New Baneshwor",
-        "seoDescription": "Ask for a visit at Sahara Family Clinic. We call back to confirm a time within two hours during opening hours.",
-        "blocks": [
-          {
-            "type": "booking", "variant": "split",
-            "props": {
-              "heading": "Book a visit",
-              "text": "Pick a day and what the visit is for. We call back within two hours during opening hours to confirm a time.",
-              "services": "General OPD\nChildren's health\nWomen's health\nFull body check-up\nLab test only",
-              "askTime": true,
-              "button": "Request a visit",
-              "success": "Thank you. We will call you within two hours to confirm the time."
-            }
-          },
-          {
-            "type": "map", "variant": "split",
-            "props": { "heading": "Where we are", "address": "Madan Bhandari Road, New Baneshwor, Kathmandu 44600. Ground floor, across from the Baneshwor bus stop.", "query": "New Baneshwor, Kathmandu", "link": "" },
-            "style": { "bg": "surface" }
-          },
-          {
-            "type": "contact", "variant": "form",
-            "props": {
-              "heading": "A question about a report?",
-              "text": "Write to us and the lab or your doctor will reply. Please do not send urgent symptoms here; call us instead.",
-              "address": "", "phone": "", "email": "",
-              "askPhone": true,
-              "button": "Send question",
-              "success": "Thank you. We reply within one working day."
-            }
-          }
-        ]
+    "sticky": true
+   }
+  },
+  "footer": {
+   "type": "footer",
+   "variant": "rich",
+   "props": {
+    "headline": "Unwell, or simply due a check? We are here most days.",
+    "cta": {
+     "label": "Book a visit",
+     "href": "page:book"
+    },
+    "about": "A family clinic and lab in New Baneshwor since 2068. Registered with the Department of Health Services.",
+    "hours": "Sunday to Friday, 7:00 to 19:00\nSaturday, 9:00 to 13:00 (GP and lab only)\nWalk-ins until 11:00 every morning",
+    "note": "For emergencies call 102 or go to the nearest hospital emergency department.",
+    "showPages": true,
+    "showContact": true,
+    "showSocial": true
+   },
+   "style": {
+    "bg": "ink"
+   }
+  },
+  "pages": [
+   {
+    "id": "home",
+    "title": "Home",
+    "seoTitle": "Sahara Family Clinic, New Baneshwor: family doctors and a same-day lab",
+    "seoDescription": "Family doctors, children’s care, women’s health and a same-day lab in New Baneshwor, Kathmandu. Walk in before 11:00 or book a visit. Clear fees.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "split",
+      "props": {
+       "title": "A family doctor who knows your name",
+       "text": "General practice, children’s care, women’s health and a same-day lab under one roof in New Baneshwor. Walk in before eleven, or book a time that suits you.",
+       "primary": {
+        "label": "Book a visit",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "See fees",
+        "href": "page:fees"
+       },
+       "image": {
+        "src": "lib:clinic-reception",
+        "alt": "The clinic’s bright reception and waiting area"
+       },
+       "eyebrow": "Open Sunday to Friday 7:00 to 19:00 · Saturday mornings",
+       "video": ""
       }
+     },
+     {
+      "type": "features",
+      "variant": "grid",
+      "props": {
+       "heading": "What people come to us for",
+       "intro": "Most visits start with a twenty-minute consultation. If you need a specialist we do not have, we will say so and refer you.",
+       "items": [
+        {
+         "title": "Fevers, coughs and stomach trouble",
+         "text": "Seen the same morning, with tests downstairs if you need them.",
+         "detail": "Walk in before 11:00"
+        },
+        {
+         "title": "Diabetes and blood pressure",
+         "text": "Regular reviews, medicine adjustments and a written plan you can follow at home.",
+         "detail": "Every three months"
+        },
+        {
+         "title": "Children and vaccinations",
+         "text": "Newborn checks, the national schedule plus optional vaccines, growth and school forms.",
+         "detail": "Tuesday and Friday"
+        },
+        {
+         "title": "Pregnancy and women’s health",
+         "text": "Antenatal care, ultrasound, family planning, smear tests and menopause advice.",
+         "detail": "By appointment"
+        },
+        {
+         "title": "Health checks",
+         "text": "Blood, urine, ECG and a doctor who explains every number to you.",
+         "detail": "Results same day"
+        },
+        {
+         "title": "Physiotherapy",
+         "text": "Back and neck pain, sports injuries and recovery after surgery.",
+         "detail": "Sessions of 45 minutes"
+        }
+       ]
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:clinic-consult",
+          "alt": "A doctor taking notes while a patient talks",
+          "focal": [
+           45,
+           50
+          ]
+         },
+         "title": "Twenty minutes, not five",
+         "text": "Every first consultation is booked for twenty minutes, so there is time to tell the whole story. You leave with a written note of what we found and what to do next, in Nepali or English.",
+         "link": {
+          "label": "Meet the doctors",
+          "href": "page:doctors"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:clinic-child",
+          "alt": "A paediatrician listening to a young child’s chest",
+          "focal": [
+           60,
+           45
+          ]
+         },
+         "title": "Children seen by a paediatrician",
+         "text": "Dr. Prabin Karki runs the children’s clinic on Tuesday and Friday afternoons, with a separate waiting corner and vaccines kept at the right temperature, logged twice a day.",
+         "link": {
+          "label": "Children’s services",
+          "href": "page:services"
+         }
+        },
+        {
+         "image": {
+          "src": "lib:clinic-scan",
+          "alt": "An expectant mother holding her ultrasound print"
+         },
+         "title": "Pregnancy care from the first scan",
+         "text": "Antenatal visits, ultrasound and blood tests in one place, and a written referral to the maternity hospital you choose when the time comes.",
+         "link": {
+          "label": "Women’s health",
+          "href": "page:services"
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "Most visits need a good conversation more than a new medicine.",
+       "name": "Dr. Anjana Shrestha",
+       "detail": "Family physician and founder",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "sticky",
+      "variant": "right",
+      "props": {
+       "heading": "A lab downstairs, results the same afternoon",
+       "intro": "No second trip across town. Blood is drawn in the clinic and tested on our own analysers.",
+       "image": {
+        "src": "lib:clinic-lab",
+        "alt": "Blood samples in labelled tubes in the clinic laboratory"
+       },
+       "items": [
+        {
+         "label": "Before 11:00",
+         "title": "Sample taken",
+         "text": "Fasting tests are drawn from 7:00. Bring your previous reports if you have them."
+        },
+        {
+         "label": "By 15:00",
+         "title": "Results ready",
+         "text": "Most blood and urine tests are reported the same day, checked by our pathologist."
+        },
+        {
+         "label": "Same evening",
+         "title": "Explained by your doctor",
+         "text": "Your doctor reads the results with you, in person or by phone, and writes what changes."
+        },
+        {
+         "label": "Always",
+         "title": "Yours to keep",
+         "text": "Reports come as a PDF on Viber or email and on paper, so your next doctor sees them too."
+        }
+       ]
+      }
+     },
+     {
+      "type": "team",
+      "variant": "grid",
+      "props": {
+       "heading": "Doctors you will see",
+       "intro": "Three doctors here every week, and visiting specialists by appointment.",
+       "people": [
+        {
+         "name": "Dr. Anjana Shrestha",
+         "role": "Family physician, founder",
+         "bio": "MD General Practice, BPKIHS. Twenty years of family medicine, the last twelve here. Sees adults and children; special interest in diabetes and thyroid care.",
+         "image": {
+          "src": "lib:clinic-doctor-1",
+          "alt": "Portrait of Dr. Anjana Shrestha",
+          "focal": [
+           50,
+           25
+          ]
+         }
+        },
+        {
+         "name": "Dr. Prabin Karki",
+         "role": "Paediatrician",
+         "bio": "MD Paediatrics, IOM Maharajgunj. Newborn checks, vaccinations, growth and development, childhood asthma. Tuesday and Friday afternoons for school forms.",
+         "image": {
+          "src": "lib:clinic-doctor-2",
+          "alt": "Portrait of Dr. Prabin Karki",
+          "focal": [
+           50,
+           22
+          ]
+         }
+        },
+        {
+         "name": "Dr. Sunita Gurung",
+         "role": "Obstetrician and gynaecologist",
+         "bio": "MS Obstetrics and Gynaecology, Paropakar Maternity Hospital. Antenatal care, ultrasound, family planning and menopause clinics.",
+         "image": {
+          "src": "lib:clinic-doctor-3",
+          "alt": "Portrait of Dr. Sunita Gurung",
+          "focal": [
+           45,
+           32
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "columns",
+      "props": {
+       "heading": "Your first visit",
+       "intro": "",
+       "items": [
+        {
+         "title": "Walk in or book",
+         "text": "Walk in before 11:00, or book online or by phone for a set time.",
+         "detail": ""
+        },
+        {
+         "title": "Register at the desk",
+         "text": "Bring an ID and any old reports or medicines. It takes five minutes.",
+         "detail": ""
+        },
+        {
+         "title": "See the doctor",
+         "text": "Twenty minutes for a first visit; ten for a follow-up.",
+         "detail": ""
+        },
+        {
+         "title": "Tests and medicine",
+         "text": "The lab and pharmacy are on the same floor. No queue across town.",
+         "detail": ""
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Fees, written down",
+       "intro": "What you see here is what you pay. Fees include VAT where it applies.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "First consultation",
+         "price": "800",
+         "period": "",
+         "note": "Twenty minutes with a family doctor.",
+         "features": "Written summary\nFollow-up within 7 days free",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": true
+        },
+        {
+         "name": "Paediatric consultation",
+         "price": "900",
+         "period": "",
+         "note": "With Dr. Karki.",
+         "features": "Growth chart updated\nVaccination card checked",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Basic health check",
+         "price": "4500",
+         "period": "",
+         "note": "Blood count, sugar, lipids, kidney and liver, urine, ECG.",
+         "features": "Results the same day\nExplained by a doctor",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "accordion",
+      "props": {
+       "heading": "Questions before you come",
+       "intro": "",
+       "items": [
+        {
+         "q": "Do I need an appointment?",
+         "a": "Not for general practice before 11:00. Children’s clinic, ultrasound and physiotherapy are by appointment."
+        },
+        {
+         "q": "Do you accept insurance or SSF?",
+         "a": "We accept Social Security Fund (SSF) cards and bill most private insurers directly. Bring your card and policy number."
+        },
+        {
+         "q": "How can I pay?",
+         "a": "Cash, card, eSewa, Khalti or Fonepay QR."
+        },
+        {
+         "q": "Can I get my results on my phone?",
+         "a": "Yes. We send reports as a PDF on Viber or email, and give you the paper copy too."
+        },
+        {
+         "q": "What if it is an emergency?",
+         "a": "Go straight to the nearest hospital emergency or call 102 for an ambulance. We are not an emergency department."
+        }
+       ]
+      }
+     },
+     {
+      "type": "map",
+      "variant": "location",
+      "props": {
+       "heading": "Find the clinic",
+       "address": "Madan Bhandari Road, New Baneshwor, Kathmandu 44600. Ground floor of the Sahara Building, opposite Everest Bank.",
+       "hours": "Sunday to Friday, 7:00 to 19:00\nSaturday, 9:00 to 13:00 (GP and lab only)\nWalk-ins until 11:00 every morning",
+       "phone": "",
+       "note": "Wheelchair access from the side ramp. Free parking for patients in the basement; the Baneshwor micro stop is a two-minute walk.",
+       "query": "Madan Bhandari Road, New Baneshwor, Kathmandu",
+       "link": ""
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Unwell today?",
+       "text": "Walk in before eleven, or call and we will tell you the shortest wait.",
+       "primary": {
+        "label": "Call 01-4781230",
+        "href": "tel:014781230"
+       },
+       "secondary": {
+        "label": "Book a visit",
+        "href": "page:book"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
     ]
-  }
+   },
+   {
+    "id": "services",
+    "slug": "services",
+    "title": "Services",
+    "nav": true,
+    "seoTitle": "Services · Sahara Family Clinic, New Baneshwor",
+    "seoDescription": "Family medicine, children’s clinic, women’s health and pregnancy care, diabetes and blood pressure, physiotherapy and a same-day lab.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Care for the whole family, in one building",
+       "text": "Six services, one set of records. Your doctor sees your lab results, your physiotherapy notes and your children’s vaccination card in one place.",
+       "primary": {
+        "label": "Book a visit",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "rows",
+      "variant": "alternate",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:clinic-consult",
+          "alt": "A doctor in conversation with a patient"
+         },
+         "title": "Family medicine",
+         "text": "Everyday illness, long-term conditions, travel advice, medical certificates and a second opinion when a hospital plan confuses you. Walk-ins every morning until 11:00.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:clinic-child",
+          "alt": "A child being examined by a paediatrician"
+         },
+         "title": "Children’s clinic",
+         "text": "Newborn and six-week checks, the full national immunisation schedule, optional vaccines such as typhoid and chickenpox, growth and development, asthma and allergy care.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:clinic-scan",
+          "alt": "An expectant mother holding her ultrasound print"
+         },
+         "title": "Women’s health and pregnancy",
+         "text": "Antenatal care with scans at the right weeks, family planning including implants and IUDs, cervical screening, and menopause clinics every second Wednesday.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:clinic-bp",
+          "alt": "A nurse measuring a patient’s blood pressure",
+          "focal": [
+           55,
+           45
+          ]
+         },
+         "title": "Diabetes and blood pressure",
+         "text": "A three-monthly review with HbA1c, kidney tests and a foot and eye check once a year, and a nurse you can message between visits.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "image": {
+          "src": "lib:clinic-physio",
+          "alt": "A physiotherapist working on a patient’s shoulder"
+         },
+         "title": "Physiotherapy",
+         "text": "Neck and back pain, frozen shoulder, knee injuries and recovery after surgery. Forty-five-minute sessions and exercises you can do at home.",
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "Lab tests and when results are ready",
+       "intro": "",
+       "items": [
+        {
+         "title": "Complete blood count",
+         "text": "",
+         "detail": "Same day"
+        },
+        {
+         "title": "Fasting sugar and HbA1c",
+         "text": "",
+         "detail": "Same day"
+        },
+        {
+         "title": "Lipid profile",
+         "text": "",
+         "detail": "Same day"
+        },
+        {
+         "title": "Thyroid (TSH, T3, T4)",
+         "text": "",
+         "detail": "Next day"
+        },
+        {
+         "title": "Urine routine",
+         "text": "",
+         "detail": "2 hours"
+        },
+        {
+         "title": "Vitamin D and B12",
+         "text": "",
+         "detail": "2 days"
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "image",
+      "variant": "contained",
+      "props": {
+       "image": {
+        "src": "lib:clinic-room",
+        "alt": "A clean, bright consultation room"
+       },
+       "caption": "Consultation room two, cleaned between every patient."
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "split",
+      "props": {
+       "title": "Not sure which service you need?",
+       "text": "Call the desk. A nurse will tell you who to see and when.",
+       "primary": {
+        "label": "Call 01-4781230",
+        "href": "tel:014781230"
+       },
+       "secondary": {
+        "label": "Book a visit",
+        "href": "page:book"
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "doctors",
+    "slug": "doctors",
+    "title": "Doctors",
+    "nav": true,
+    "seoTitle": "Our doctors · Sahara Family Clinic",
+    "seoDescription": "Family physician Dr. Anjana Shrestha, paediatrician Dr. Prabin Karki, gynaecologist Dr. Sunita Gurung, and visiting specialists.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "The people you will see",
+       "text": "Registered with the Nepal Medical Council, trained in Nepal, and here every week so you see the same face next time.",
+       "primary": {
+        "label": "Book with a doctor",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "team",
+      "variant": "grid",
+      "props": {
+       "heading": "",
+       "intro": "",
+       "people": [
+        {
+         "name": "Dr. Anjana Shrestha",
+         "role": "Family physician, founder",
+         "bio": "MD General Practice, BPKIHS. Twenty years of family medicine, the last twelve here. Sees adults and children; special interest in diabetes and thyroid care.",
+         "image": {
+          "src": "lib:clinic-doctor-1",
+          "alt": "Portrait of Dr. Anjana Shrestha",
+          "focal": [
+           50,
+           25
+          ]
+         }
+        },
+        {
+         "name": "Dr. Prabin Karki",
+         "role": "Paediatrician",
+         "bio": "MD Paediatrics, IOM Maharajgunj. Newborn checks, vaccinations, growth and development, childhood asthma. Tuesday and Friday afternoons for school forms.",
+         "image": {
+          "src": "lib:clinic-doctor-2",
+          "alt": "Portrait of Dr. Prabin Karki",
+          "focal": [
+           50,
+           22
+          ]
+         }
+        },
+        {
+         "name": "Dr. Sunita Gurung",
+         "role": "Obstetrician and gynaecologist",
+         "bio": "MS Obstetrics and Gynaecology, Paropakar Maternity Hospital. Antenatal care, ultrasound, family planning and menopause clinics.",
+         "image": {
+          "src": "lib:clinic-doctor-3",
+          "alt": "Portrait of Dr. Sunita Gurung",
+          "focal": [
+           45,
+           32
+          ]
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "quote",
+      "variant": "image",
+      "props": {
+       "quote": "Children notice when a doctor is in a hurry. So we are not.",
+       "name": "Dr. Prabin Karki",
+       "detail": "Paediatrician",
+       "image": {
+        "src": "lib:clinic-child",
+        "alt": "Dr. Karki listening to a child’s breathing"
+       }
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "team",
+      "variant": "list",
+      "props": {
+       "heading": "Visiting specialists",
+       "intro": "By appointment. Ask at the desk for the next date.",
+       "people": [
+        {
+         "name": "Dr. Rajesh Adhikari",
+         "role": "Cardiologist",
+         "bio": "First Sunday of the month. ECG and echo reviews.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Dr. Mira Joshi",
+         "role": "Dermatologist",
+         "bio": "Second and fourth Monday. Skin, hair and nails.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Sabina Tamang",
+         "role": "Physiotherapist",
+         "bio": "Sunday to Thursday, 9:00 to 17:00.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        },
+        {
+         "name": "Kiran Bhattarai",
+         "role": "Clinical dietitian",
+         "bio": "Wednesday afternoons. Diabetes and weight clinics.",
+         "image": {
+          "src": "",
+          "alt": ""
+         }
+        }
+       ]
+      }
+     },
+     {
+      "type": "cta",
+      "variant": "band",
+      "props": {
+       "title": "Book with the doctor you want",
+       "text": "Tell us who, and we will find the nearest free time.",
+       "primary": {
+        "label": "Book a visit",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent"
+      }
+     }
+    ]
+   },
+   {
+    "id": "fees",
+    "slug": "fees",
+    "title": "Fees",
+    "nav": true,
+    "seoTitle": "Fees and health check packages · Sahara Family Clinic",
+    "seoDescription": "Consultation fees from Rs 800, health check packages, lab prices, SSF and insurance. No hidden charges.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Fees, with nothing hidden",
+       "text": "Consultation fees include a written summary and a free follow-up within seven days for the same problem. Lab and medicine are charged separately, at the prices below.",
+       "primary": {
+        "label": "Book a visit",
+        "href": "page:book"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "table",
+      "props": {
+       "heading": "Consultations",
+       "intro": "",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Family doctor, first visit",
+         "price": "800",
+         "period": "",
+         "note": "Twenty minutes.",
+         "features": "Follow-up within 7 days free",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Family doctor, follow-up",
+         "price": "500",
+         "period": "",
+         "note": "Ten minutes, after 7 days.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Paediatrician",
+         "price": "900",
+         "period": "",
+         "note": "Children up to 16.",
+         "features": "Vaccine given separately",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Gynaecologist",
+         "price": "1000",
+         "period": "",
+         "note": "Including a basic scan if needed.",
+         "features": "",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        },
+        {
+         "name": "Physiotherapy session",
+         "price": "1200",
+         "period": "",
+         "note": "45 minutes.",
+         "features": "Packages of 6 for Rs 6,500",
+         "cta": {
+          "label": "",
+          "href": ""
+         },
+         "featured": false
+        }
+       ]
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "columns",
+      "props": {
+       "heading": "Health check packages",
+       "intro": "Fasting from 10 pm the night before. Results and a doctor’s review the same day.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Basic",
+         "price": "4500",
+         "period": "",
+         "note": "For adults under 40.",
+         "features": "Blood count\nFasting sugar\nLipid profile\nKidney and liver tests\nUrine routine\nDoctor’s review",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        },
+        {
+         "name": "Complete",
+         "price": "8500",
+         "period": "",
+         "note": "For adults over 40.",
+         "features": "Everything in Basic\nHbA1c and thyroid\nVitamin D and B12\nECG\nChest X-ray (partner lab)\nDoctor’s review",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": true
+        },
+        {
+         "name": "Women’s check",
+         "price": "7500",
+         "period": "",
+         "note": "With Dr. Gurung.",
+         "features": "Everything in Basic\nThyroid\nCervical screening\nBreast examination\nPelvic ultrasound",
+         "cta": {
+          "label": "Book",
+          "href": "page:book"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "features",
+      "variant": "compact",
+      "props": {
+       "heading": "Common lab tests",
+       "intro": "",
+       "items": [
+        {
+         "title": "Complete blood count",
+         "text": "",
+         "detail": "Rs 450"
+        },
+        {
+         "title": "Fasting blood sugar",
+         "text": "",
+         "detail": "Rs 150"
+        },
+        {
+         "title": "HbA1c",
+         "text": "",
+         "detail": "Rs 900"
+        },
+        {
+         "title": "Lipid profile",
+         "text": "",
+         "detail": "Rs 1,000"
+        },
+        {
+         "title": "Thyroid profile",
+         "text": "",
+         "detail": "Rs 1,400"
+        },
+        {
+         "title": "Urine routine",
+         "text": "",
+         "detail": "Rs 250"
+        }
+       ]
+      }
+     },
+     {
+      "type": "faq",
+      "variant": "split",
+      "props": {
+       "heading": "Paying",
+       "intro": "",
+       "items": [
+        {
+         "q": "Do you accept SSF?",
+         "a": "Yes. Bring your Social Security Fund card; covered services are billed directly."
+        },
+        {
+         "q": "Which insurers do you bill directly?",
+         "a": "Most major Nepali health insurers. Ask the desk with your policy number and we will check before your visit."
+        },
+        {
+         "q": "How can I pay?",
+         "a": "Cash, debit or credit card, eSewa, Khalti or Fonepay QR. Receipts show VAT where it applies."
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   },
+   {
+    "id": "book",
+    "slug": "book",
+    "title": "Visit us",
+    "nav": true,
+    "seoTitle": "Book a visit · Sahara Family Clinic, New Baneshwor",
+    "seoDescription": "Ask for an appointment with a family doctor, paediatrician, gynaecologist, physiotherapist or the lab. We call to confirm.",
+    "blocks": [
+     {
+      "type": "hero",
+      "variant": "text",
+      "props": {
+       "title": "Book a visit",
+       "text": "Ask for a day and a time and we will call to confirm within the hour during opening times. For something urgent today, walk in before eleven or call.",
+       "primary": {
+        "label": "Call 01-4781230",
+        "href": "tel:014781230"
+       },
+       "secondary": {
+        "label": "",
+        "href": ""
+       },
+       "image": {
+        "src": "",
+        "alt": ""
+       },
+       "eyebrow": "",
+       "video": ""
+      },
+      "style": {
+       "bg": "page",
+       "space": "s"
+      }
+     },
+     {
+      "type": "booking",
+      "variant": "split",
+      "props": {
+       "heading": "Ask for an appointment",
+       "text": "We call to confirm. If the time is taken, we offer the nearest one.",
+       "services": "Family doctor\nChildren’s clinic\nWomen’s health or pregnancy\nHealth check package\nPhysiotherapy\nLab test only",
+       "askTime": true,
+       "button": "Send the request",
+       "success": "Thank you. The desk will call you within the hour to confirm."
+      }
+     },
+     {
+      "type": "steps",
+      "variant": "stack",
+      "props": {
+       "heading": "What happens next",
+       "intro": "",
+       "items": [
+        {
+         "title": "We call you",
+         "text": "Within an hour during opening times, to confirm the time and tell you anything to bring or avoid.",
+         "detail": ""
+        },
+        {
+         "title": "You get a reminder",
+         "text": "A Viber or SMS message the evening before, with the doctor’s name.",
+         "detail": ""
+        },
+        {
+         "title": "You come in",
+         "text": "Arrive ten minutes early for registration. Fasting tests start from 7:00.",
+         "detail": ""
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface"
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "split",
+      "props": {
+       "heading": "Opening hours",
+       "note": "Closed on public holidays. Walk-ins until 11:00 every morning.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "07:00 – 19:00"
+        },
+        {
+         "day": "Monday",
+         "hours": "07:00 – 19:00"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "07:00 – 19:00"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "07:00 – 19:00"
+        },
+        {
+         "day": "Thursday",
+         "hours": "07:00 – 19:00"
+        },
+        {
+         "day": "Friday",
+         "hours": "07:00 – 19:00"
+        },
+        {
+         "day": "Saturday",
+         "hours": "09:00 – 13:00"
+        }
+       ]
+      }
+     },
+     {
+      "type": "map",
+      "variant": "location",
+      "props": {
+       "heading": "Find the clinic",
+       "address": "Madan Bhandari Road, New Baneshwor, Kathmandu 44600. Ground floor of the Sahara Building, opposite Everest Bank.",
+       "hours": "Sunday to Friday, 7:00 to 19:00\nSaturday, 9:00 to 13:00 (GP and lab only)\nWalk-ins until 11:00 every morning",
+       "phone": "",
+       "note": "Wheelchair access from the side ramp. Free parking for patients in the basement; the Baneshwor micro stop is a two-minute walk.",
+       "query": "Madan Bhandari Road, New Baneshwor, Kathmandu",
+       "link": ""
+      },
+      "style": {
+       "bg": "surface"
+      }
+     }
+    ]
+   }
+  ]
+ }
 }

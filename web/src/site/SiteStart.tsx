@@ -55,7 +55,7 @@ export function SiteStart() {
   const [err, setErr] = useState('');
   const [cat, setCat] = useState('');
   const [tpl, setTpl] = useState('');
-  const [preset, setPreset] = useState('gallery');
+  const [preset, setPreset] = useState('salt');
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);

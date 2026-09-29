@@ -6,7 +6,7 @@
   "site": {
     "name": "Anish Karki",
     "theme": {
-      "preset": "darkroom",
+      "preset": "nocturne",
       "display": "fraunces",
       "body": "hanken",
       "colors": {
