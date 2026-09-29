@@ -60,6 +60,10 @@ PUBLIC_URL=https://apps.example.com
 
 Server-sent events need response buffering switched off in your proxy. Caddy does this by itself; for nginx add `proxy_buffering off;` to the location block. Serve over HTTPS with HTTP/2 (Caddy does by default): over plain HTTP/1.1 a browser allows only about six connections per server, and every open Jhino tab uses one for live updates (background tabs let theirs go after 15 seconds).
 
+### Custom domains
+
+Pro customers (1 domain; super admins unlimited) can open an app at their own domain, for example `yourstudio.com`. The complete app runs there, not in a frame and not by redirect, with its data, files and live updates. They connect it in Share → Custom domain, and Jhino shows the DNS records to add. Certificates come from Cloudflare for SaaS (set `CF_API_TOKEN`, `CF_ZONE_ID`, `CF_FALLBACK_ORIGIN`, `CUSTOM_DOMAIN_CNAME_TARGET`). Without Cloudflare, Caddy's on-demand TLS asks `GET /api/domains/tls-ask`. Every page on a custom domain ends with a small "Built with Jhino" line. The full setup, the costs and how to test are in [docs/CUSTOM_DOMAINS.md](docs/CUSTOM_DOMAINS.md).
+
 ## Accounts, plans and Super Admin
 
 - **Website and sign-up.** The website is always at `/` (pricing, help, terms, privacy), signed in or not; the dashboard (My apps) is at `/apps`, and signing in lands there. Anyone can create a Free Forever account (switch sign-ups off in Super Admin → Settings). A new account opens only after its email is confirmed with a 6-digit code; forgot password, email change, sign-in alerts for new devices and every security email go out through Resend (`RESEND_API_KEY`) or SMTP (`SMTP_URL`); without either, Super Admin → Settings shows them (with the codes, so they can be passed on by hand) and has a "Send a test email" button once one is set.

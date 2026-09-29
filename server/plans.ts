@@ -34,21 +34,23 @@ export interface Features {
   analyticsDays: number;
   /** Apps that can be public pages listed on Google ("Show on Google"). */
   seoPages: number;
+  /** The person's own domains (shop.com) that open one of their apps, hosted by Jhino (customdomains.ts). */
+  customDomains: number;
 }
 export interface Plan { id: PlanId; name: string; price: number; yearly: number; creations: number; blurb: string; features: Features }
 /** The starting plans. Super admins change prices and limits in Super Admin → Plans & pricing (kept in settings). */
 const DEFAULT_PLANS: Record<PlanId, Plan> = {
   free: { id: 'free', name: 'Free Forever', price: 0, yearly: 0, creations: 1, blurb: 'One client room, free for as long as you like.',
-    features: { addresses: 1, shortLinks: 5, customCodes: false, passwordLinks: false, hideBar: false, download: false, linkStats: false, prioritySupport: false, maxUploadMB: 20, themeTier: 'free', branding: 'popup', removeBranding: false, customPage: false, analyticsDays: 7, seoPages: 0 } },
+    features: { addresses: 1, shortLinks: 5, customCodes: false, passwordLinks: false, hideBar: false, download: false, linkStats: false, prioritySupport: false, maxUploadMB: 20, themeTier: 'free', branding: 'popup', removeBranding: false, customPage: false, analyticsDays: 7, seoPages: 0, customDomains: 0 } },
   plus: { id: 'plus', name: 'Plus', price: 500, yearly: 5000, creations: 10, blurb: 'A freelancer or a small studio with a handful of clients.',
-    features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false, maxUploadMB: 50, themeTier: 'plus', branding: 'badge', removeBranding: false, customPage: false, analyticsDays: 30, seoPages: 0 } },
+    features: { addresses: 10, shortLinks: 100, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: false, prioritySupport: false, maxUploadMB: 50, themeTier: 'plus', branding: 'badge', removeBranding: false, customPage: false, analyticsDays: 30, seoPages: 0, customDomains: 0 } },
   pro: { id: 'pro', name: 'Pro', price: 2000, yearly: 20000, creations: 50, blurb: 'A studio or agency with a room for every client.',
-    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50, themeTier: 'pro', branding: 'badge', removeBranding: true, customPage: true, analyticsDays: 365, seoPages: 10 } },
+    features: { addresses: 50, shortLinks: 1000, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 50, themeTier: 'pro', branding: 'badge', removeBranding: true, customPage: true, analyticsDays: 365, seoPages: 10, customDomains: 1 } },
 };
 /** The plans in force. Everything reads them at call time, so a saved change applies at once. */
 export const PLANS: Record<PlanId, Plan> = JSON.parse(JSON.stringify(DEFAULT_PLANS));
 /** Super admins: everything, no limits (uploads only up to the server's own MAX_FILE_MB). */
-const UNLIMITED: Features = { addresses: 1e9, shortLinks: 1e9, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 1e9, themeTier: 'pro', branding: 'badge', removeBranding: true, customPage: true, analyticsDays: 365, seoPages: 1e9 };
+const UNLIMITED: Features = { addresses: 1e9, shortLinks: 1e9, customCodes: true, passwordLinks: true, hideBar: true, download: true, linkStats: true, prioritySupport: true, maxUploadMB: 1e9, themeTier: 'pro', branding: 'badge', removeBranding: true, customPage: true, analyticsDays: 365, seoPages: 1e9, customDomains: 1e9 };
 const PLAN_IDS: PlanId[] = ['free', 'plus', 'pro'];
 const serverMaxMB = () => Math.floor(config.limits.fileBytes / 1048576);
 
@@ -104,6 +106,7 @@ export function savePlans(input: unknown) {
         customPage: !!(f.customPage ?? cur.features.customPage),
         analyticsDays: int(f.analyticsDays ?? cur.features.analyticsDays, 1, 3650, `${label} analytics days`),
         seoPages: int(f.seoPages ?? cur.features.seoPages, 0, 100_000, `${label} pages on Google`),
+        customDomains: int(f.customDomains ?? cur.features.customDomains, 0, 100_000, `${label} custom domains`),
       },
     };
   }

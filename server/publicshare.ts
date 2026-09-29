@@ -129,7 +129,7 @@ export function shareInfo(a: AppRow, base: string) {
   };
 }
 
-async function ensureVisitor(a: AppRow): Promise<string> {
+export async function ensureVisitor(a: AppRow): Promise<string> {
   if (a.visitor_id && db.prepare('SELECT 1 FROM users WHERE id=?').get(a.visitor_id)) return a.visitor_id;
   const v = await createUser(`visitor.${a.id.toLowerCase()}@visitors.invalid`.replace(/[^a-z0-9@._-]/g, ''), 'Visitor', makePassword(24), false, { createdBy: a.owner_id, kind: 'visitor' });
   db.prepare('UPDATE users SET password_set=0 WHERE id=?').run(v.id);
@@ -225,7 +225,7 @@ function visitingAs(req: FastifyRequest, a: AppRow): string | null {
  * Link visitors can add or edit: then they come in by name (signed-in people as themselves, others as a
  * named guest). A view-only link opens straight away for everyone, anonymously, and makes nobody a member.
  */
-const collaborative = (role: string | null | undefined) => role === 'contributor' || role === 'editor';
+export const collaborative = (role: string | null | undefined) => role === 'contributor' || role === 'editor';
 /** An anonymous visit to a view-only link, as the app's shared visitor account. */
 async function viewVisit(reply: FastifyReply, a: AppRow, req: FastifyRequest) {
   startVisit(reply, a, req, await ensureVisitor(a));

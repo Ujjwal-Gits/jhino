@@ -8,6 +8,8 @@
  * - window.jhino exposes record collections for apps built for Jhino.
  * All requests go through a MessageChannel handed over by the Jhino page after a
  * per-launch handshake. The server checks every request again.
+ * On a custom domain (B.direct) there is no Jhino page around the app: the shim talks to the
+ * server itself, same origin, with the visitor's host-only cookie, and opens the live stream.
  */
 (function () {
   'use strict';
@@ -19,6 +21,10 @@
 
   var addListener = window.addEventListener.bind(window);
   var user = B.user;
+  var direct = !!(B.direct && B.direct.app === B.appId);
+  // Kept before the app (or this file) can replace them.
+  var nativeFetch = window.fetch ? window.fetch.bind(window) : null, NativeXHR = window.XMLHttpRequest, realSession = null;
+  try { realSession = window.sessionStorage; } catch (e) { realSession = null; }
   var canWrite = function () { return user.role === 'owner' || user.role === 'editor'; };
 
   /* ---------------- bridge to the Jhino page ---------------- */
@@ -26,8 +32,9 @@
   var readyResolve, readyPromise = new Promise(function (r) { readyResolve = r; });
 
   function post(msg) { if (port) port.postMessage(msg); else outbox.push(msg); }
-  function note(type, data) { post({ note: type, data: data || null }); }
+  function note(type, data) { if (direct) { directNote(type, data || {}); return; } post({ note: type, data: data || null }); }
   function call(op, args, timeoutMs) {
+    if (direct) return directCall(op, args || {});
     return new Promise(function (resolve) {
       var id = ++seq;
       // timeoutMs 0 = no timeout (file uploads can take minutes).
@@ -59,7 +66,7 @@
 
   var helloTries = 0;
   (function hello() {
-    if (port || helloTries++ > 40 || window.parent === window) return;
+    if (direct || port || helloTries++ > 40 || window.parent === window) return;
     window.parent.postMessage({ jhino: 'hello', nonce: B.nonce }, '*');
     setTimeout(hello, 250);
   })();
@@ -629,7 +636,7 @@
     NativeReader.prototype.readAsDataURL = function (blob) {
       var big = blob instanceof Blob && blob.size > 0 && (blob.size > 150 * 1024 || /^(video|audio)\//.test(blob.type) || blob.type === 'application/pdf');
       // With uploads switched off by the platform, the file stays inside the saved data as before.
-      if (!big || window.parent === window || B.uploads === false) return nativeReadAsDataURL.call(this, blob);
+      if (!big || (window.parent === window && !direct) || B.uploads === false) return nativeReadAsDataURL.call(this, blob);
       var fr = this;
       var set = function (k, v) { try { Object.defineProperty(fr, k, { configurable: true, get: function () { return v; } }); } catch (err) { /* ignore */ } };
       set('readyState', 1); set('result', null); set('error', null);
@@ -915,6 +922,152 @@
       req.onerror = function () { console.warn('[jhino] could not restore the database', s.name, req.error); };
     });
   })();
+
+  /* ---------------- custom domains: straight to the server ---------------- */
+  var API = '/api/apps/' + encodeURIComponent(B.appId);
+  var COL = /^[A-Za-z0-9_-]{1,64}$/, RID = /^[\w-]{1,64}$/;
+  function http(method, url, body) {
+    if (!nativeFetch) return Promise.resolve({ error: 'CONNECTION_LOST', message: 'This browser cannot reach the server.' });
+    var headers = { 'x-jhino': '1' }, opts = { method: method, headers: headers, credentials: 'same-origin' };
+    if (body !== undefined) { headers['content-type'] = 'application/json'; opts.body = JSON.stringify(body); if (method !== 'GET' && opts.body.length < 60000) opts.keepalive = true; }
+    return nativeFetch(url, opts).then(function (r) {
+      return r.text().then(function (t) {
+        var j = null;
+        try { j = t ? JSON.parse(t) : null; } catch (e) { j = null; }
+        if (r.ok) return j || {};
+        var o = j && typeof j === 'object' ? j : {};
+        o.error = o.error || 'SERVER_ERROR';
+        o.message = o.message || ('Request failed (' + r.status + ').');
+        return o;
+      });
+    }, function () { return { error: 'CONNECTION_LOST', message: 'Could not reach the server.' }; });
+  }
+  function invalid(m) { return Promise.resolve({ error: 'VALIDATION_FAILED', message: m }); }
+  function idList(x) { return Array.isArray(x) ? x.filter(function (v) { return typeof v === 'string'; }).slice(0, 500) : []; }
+  function directUpload(a) {
+    return new Promise(function (resolve) {
+      if (!(a.file instanceof Blob)) { resolve({ error: 'VALIDATION_FAILED', message: 'Pass a File or Blob.' }); return; }
+      var name = typeof a.name === 'string' && a.name ? a.name.slice(0, 200) : 'file', last = 0;
+      var x = new NativeXHR();
+      x.open('POST', API + '/files');
+      x.setRequestHeader('x-jhino', '1');
+      x.upload.onprogress = function (e) {
+        if (!e.lengthComputable) return;
+        var t = Date.now();
+        if (t - last > 120 || e.loaded === e.total) { last = t; onEvent('upload-progress', { uploadId: a.uploadId, loaded: e.loaded, total: e.total }); }
+      };
+      x.onload = function () {
+        var j = null;
+        try { j = JSON.parse(x.responseText); } catch (e) { j = null; }
+        if (x.status >= 200 && x.status < 300) { resolve(j || {}); return; }
+        var o = j && typeof j === 'object' ? j : {};
+        o.error = o.error || 'SERVER_ERROR';
+        o.message = o.message || ('Upload failed (' + x.status + ').');
+        resolve(o);
+      };
+      x.onerror = function () { resolve({ error: 'CONNECTION_LOST', message: 'The upload was interrupted. Check the connection and try again.' }); };
+      var fd = new FormData();
+      fd.append('file', a.file, name);
+      x.send(fd);
+    });
+  }
+  function directCall(op, a) {
+    switch (op) {
+      case 'kv.set':
+        if (a.ns !== 'ls' && a.ns !== 'ws') return invalid('Unknown storage.');
+        if (typeof a.key !== 'string' || (a.value !== null && typeof a.value !== 'string')) return invalid('Keys and values must be text.');
+        if (a.value && a.value.length > 5 * 1024 * 1024) return Promise.resolve({ error: 'QUOTA_EXCEEDED', message: 'That value is too large to save (5 MB limit).' });
+        return http('PUT', API + '/kv', { ns: a.ns, scope: a.scope === 'private' ? 'private' : 'shared', key: a.key, value: a.value, baseRev: Number(a.baseRev) || 0 });
+      case 'kv.snapshot': return http('GET', API + '/kv');
+      case 'people': return http('GET', API + '/people' + (a.former ? '?former=1' : ''));
+      case 'files.list': return http('GET', API + '/files');
+      case 'files.upload': return directUpload(a);
+      case 'files.delete':
+        if (typeof a.id !== 'string' || !RID.test(a.id)) return invalid('Invalid file id.');
+        return http('DELETE', API + '/files/' + a.id);
+      case 'activity.list': {
+        var q = [];
+        if (a.limit) q.push('limit=' + Math.min(200, Number(a.limit) || 100));
+        if (a.before) q.push('before=' + (Number(a.before) || 0));
+        return http('GET', API + '/activity?' + q.join('&'));
+      }
+      case 'activity.seen': return http('POST', API + '/activity/seen', { upTo: Number(a.upTo) || 0 });
+      case 'trash.list': return http('GET', API + '/trash');
+      case 'trash.restore': return http('POST', API + '/trash/restore', { ids: idList(a.ids) });
+      case 'trash.purge': return http('POST', API + '/trash/purge', a.all === true ? { all: true } : { ids: idList(a.ids) });
+      case 'records.list': {
+        if (typeof a.collection !== 'string' || !COL.test(a.collection)) return invalid('Collection names use letters, numbers, - and _.');
+        var p = [];
+        if (a.limit) p.push('limit=' + (Number(a.limit) || 50));
+        if (typeof a.after === 'string') p.push('after=' + encodeURIComponent(a.after));
+        return http('GET', API + '/records/' + a.collection + '?' + p.join('&'));
+      }
+      case 'records.get': case 'records.update': case 'records.delete': case 'records.create': {
+        if (typeof a.collection !== 'string' || !COL.test(a.collection)) return invalid('Collection names use letters, numbers, - and _.');
+        var base = API + '/records/' + a.collection;
+        if (op === 'records.create') return http('POST', base, { data: a.data, idempotencyKey: typeof a.idempotencyKey === 'string' ? a.idempotencyKey : undefined });
+        if (typeof a.id !== 'string' || !RID.test(a.id)) return invalid('Invalid record id.');
+        if (op === 'records.get') return http('GET', base + '/' + a.id);
+        if (op === 'records.update') return http('PATCH', base + '/' + a.id, { data: a.data, expectedRevision: a.expectedRevision });
+        return http('DELETE', base + '/' + a.id + (a.expectedRevision !== undefined ? '?expectedRevision=' + (Number(a.expectedRevision) || 0) : ''));
+      }
+      default: return Promise.resolve({ error: 'UNKNOWN', message: 'Unknown request: ' + op });
+    }
+  }
+  function hashOf(d) { return typeof d.hash === 'string' && /^#?[\w/-]{0,160}$/.test(d.hash) ? d.hash.replace(/^#?/, '#') : ''; }
+  function keepScroll(s) { try { if (realSession && s) realSession.setItem('__jhino_scroll', JSON.stringify([Number(s[0]) || 0, Number(s[1]) || 0])); } catch (e) { /* private mode */ } }
+  function directNote(type, d) {
+    if (type === 'title') { if (typeof d.title === 'string' && d.title) document.title = d.title.slice(0, 120); }
+    else if (type === 'location') { var h = hashOf(d); try { history.replaceState(history.state, '', location.pathname + location.search + (h === '#' ? '' : h)); } catch (e) { /* ignore */ } }
+    else if (type === 'open-tab') { var t = hashOf(d); window.open(location.pathname + (t === '#' ? '' : t), '_blank', 'noopener'); }
+    else if (type === 'open-full') { var f = hashOf(d); if (f && f !== '#') location.hash = f; }
+    else if (type === 'reloading') keepScroll(d.scroll);
+    else if (type === 'version-ready') { keepScroll(d.scroll); location.reload(); }
+    else if (type === 'error') { try { console.warn('[jhino]', d.message); } catch (e) { /* ignore */ } }
+  }
+  function startDirect() {
+    readyResolve();
+    try {
+      var saved = realSession && realSession.getItem('__jhino_scroll');
+      if (saved) { realSession.removeItem('__jhino_scroll'); restoreScroll(JSON.parse(saved)); }
+    } catch (e) { /* ignore */ }
+    setTimeout(function () { kvResync(); }, 300);
+    if (typeof EventSource !== 'function') return;
+    var es = null, connId = null, hideTimer = null;
+    var parse = function (e) { try { return JSON.parse(e.data); } catch (x) { return null; } };
+    function open() {
+      if (es) return;
+      es = new EventSource('/api/events?app=' + encodeURIComponent(B.appId));
+      es.addEventListener('hello', function (e) {
+        var d = parse(e);
+        if (!d) return;
+        var again = connId !== null;
+        connId = d.connId;
+        // Watch first; after a reconnect, fetch what changed while the stream was down.
+        http('POST', API + '/watch', { connId: connId }).then(function () { if (again) onEvent('resync', {}); });
+      });
+      ['kv', 'record', 'file', 'activity', 'trash'].forEach(function (n) {
+        es.addEventListener(n, function (e) { var d = parse(e); if (d && d.appId === B.appId) onEvent(n, d); });
+      });
+      es.addEventListener('role-changed', function (e) { var d = parse(e); if (d && d.userId === user.id) onEvent('role', { role: d.role }); });
+      es.addEventListener('app-updated', function (e) {
+        var d = parse(e);
+        if (!d || d.appId !== B.appId) return;
+        if (d.reason === 'version') onEvent('new-version', {});
+        else if (d.reason === 'settings' || d.reason === 'trashed') refreshSoon();
+      });
+      // Access changed (the link was turned off, a new password): the page asks again.
+      es.addEventListener('revoked', function (e) { var d = parse(e); if (d && d.appId === B.appId) { close(); setTimeout(function () { location.reload(); }, 300); } });
+    }
+    function close() { if (es) { es.close(); es = null; } }
+    // Background tabs let their connection go after a while and catch up when looked at again.
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') { clearTimeout(hideTimer); hideTimer = setTimeout(close, 15000); }
+      else { clearTimeout(hideTimer); open(); }
+    });
+    open();
+  }
+  if (direct) startDirect();
 
   // Save anything waiting before the page goes away.
   addListener('pagehide', function () { if (flushTimer) { clearTimeout(flushTimer); flushTimer = null; } flush(); });

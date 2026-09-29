@@ -1,0 +1,84 @@
+/* Custom domains (Share → Custom domain, Super Admin → Custom domains). Tokens from styles.css; hairlines, no shadows. */
+.cd-sec { display: grid; gap: 10px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--rule); }
+.cd-sec .section-title { display: flex; align-items: center; gap: 8px; margin-bottom: 0; }
+
+.cd-upsell { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 14px 16px; border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper-2); }
+.cd-upsell > div { display: grid; gap: 3px; flex: 1 1 260px; min-width: 0; }
+.cd-upsell b { font-weight: 600; }
+
+.cd-add { display: grid; gap: 12px; padding: 14px 16px; border: 1px solid var(--rule-strong); border-radius: var(--r-lg); }
+.cd-warn { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--warn); line-height: 1.45; }
+.cd-warn .svg { margin-top: 2px; }
+.cd-note { font-size: 13px; color: var(--ink-2); }
+
+/* one connected domain */
+.cd-card { display: grid; gap: 14px; padding: 16px; border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); min-width: 0; }
+.cd-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.cd-name { display: grid; gap: 2px; min-width: 0; }
+.cd-name .mono { font-size: 14.5px; font-weight: 500; color: var(--ink); overflow-wrap: anywhere; }
+.cd-name a { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.cd-name a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.cd-name small { font-size: 12.5px; color: var(--ink-3); }
+.cd-head .status { display: inline-flex; align-items: center; gap: 6px; text-transform: none; flex: none; }
+
+/* the three steps: DNS → certificate → live */
+.cd-steps { display: flex; align-items: center; gap: 0; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--ink-3); }
+.cd-step { display: flex; align-items: center; gap: 7px; flex: 1 1 0; min-width: 0; white-space: nowrap; }
+.cd-step:not(:last-child)::after { content: ''; flex: 1; height: 1px; margin: 0 10px; background: var(--rule-strong); min-width: 12px; }
+.cd-dot { display: grid; place-items: center; width: 20px; height: 20px; flex: none; border-radius: 50%; border: 1px solid var(--rule-strong); font: 500 11px/1 var(--mono); color: var(--ink-3); background: var(--paper); }
+.cd-step.done { color: var(--ink-2); }
+.cd-step.done .cd-dot { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.cd-step.done:not(:last-child)::after { background: var(--ink); }
+.cd-step.now { color: var(--ink); font-weight: 600; }
+.cd-step.now .cd-dot { border-color: var(--ink); color: var(--ink); }
+.cd-card.live .cd-step:last-child .cd-dot { background: var(--ok); border-color: var(--ok); }
+
+/* the DNS records to add */
+.cd-dns { display: grid; gap: 10px; }
+.cd-dns-lede { font-size: 13.5px; color: var(--ink-2); }
+.cd-records { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border: 1px solid var(--rule); border-radius: var(--r-lg); overflow: hidden; }
+.cd-rec { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 12px 14px; }
+.cd-rec + .cd-rec { border-top: 1px solid var(--rule); }
+.cd-type { display: inline-flex; justify-content: center; padding: 3px 0; border-radius: var(--r-sm); background: var(--paper-3); font: 600 11.5px/1.2 var(--mono); color: var(--ink); letter-spacing: 0.02em; }
+.cd-rec-body { display: grid; gap: 6px; min-width: 0; }
+.cd-kv { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 8px; min-width: 0; }
+.cd-k { font-size: 12px; color: var(--ink-3); }
+.cd-copy { display: flex; align-items: center; gap: 4px; min-width: 0; padding: 2px 2px 2px 10px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--paper-2); }
+.cd-val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); }
+.cd-copy-btn { width: 28px; height: 28px; flex: none; }
+.cd-purpose { font-size: 12.5px; color: var(--ink-3); line-height: 1.45; overflow-wrap: anywhere; }
+.cd-purpose .mono { font-size: 12px; }
+.cd-state { display: inline-flex; align-items: center; gap: 4px; padding-top: 4px; font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.cd-state.ok { color: var(--ok); font-weight: 600; }
+.cd-state.no { color: var(--warn); }
+.cd-more summary { cursor: pointer; font-size: 13px; color: var(--ink-2); padding: 2px 0 8px; }
+.cd-more summary:hover { color: var(--ink); }
+
+.cd-live { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.cd-foot { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.cd-foot .spacer { flex: 1; }
+.cd-checked { font-size: 12px; }
+
+/* The one moving thing: the dot while the certificate is issued. */
+.cd-pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+@media (prefers-reduced-motion: no-preference) {
+  .cd-pulse { animation: cd-pulse 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+  @keyframes cd-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.7); } }
+}
+
+/* Super Admin table */
+.cd-table .cell-main { max-width: 340px; }
+.cd-err-line { color: var(--danger) !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cd-admin-acts { flex-wrap: nowrap; justify-content: flex-end; }
+
+@media (max-width: 640px) {
+  .cd-card { padding: 14px 12px; }
+  .cd-steps { font-size: 12px; }
+  .cd-step:not(:last-child)::after { margin: 0 6px; }
+  .cd-rec { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; }
+  .cd-rec .cd-type { justify-self: start; padding: 3px 8px; }
+  .cd-state { padding-top: 0; }
+  .cd-foot .spacer { display: none; }
+  .cd-foot .actions-row > .dd { width: 100% !important; order: 3; }
+  .cd-admin-acts { flex-wrap: wrap; justify-content: flex-start; }
+}

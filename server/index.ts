@@ -19,6 +19,7 @@ import { registerOAuth } from './oauth.js';
 import { registerBilling } from './billing.js';
 import { registerSuperAdmin } from './superadmin.js';
 import { registerPublicShare } from './publicshare.js';
+import { registerCustomDomains } from './customdomains.js';
 import { registerLinks } from './links.js';
 import { registerTools } from './tools.js';
 import { registerMini } from './mini.js';
@@ -85,6 +86,8 @@ app.addHook('onSend', async (req, reply) => {
   if (config.cookieSecure) reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 });
 
+// Custom domains first: a request for someone's own domain is that site, before any Jhino route or sign-in.
+registerCustomDomains(app);
 registerAuth(app);
 registerDesk(app);
 registerPublicShare(app);

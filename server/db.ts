@@ -611,6 +611,38 @@ function ensureSchema() {
     add('profiles', 'seo_index', 'INTEGER NOT NULL DEFAULT 1');
     add('profiles', 'seo_description', 'TEXT');
     db.exec('CREATE TABLE IF NOT EXISTS code_usage(user_id TEXT NOT NULL, day TEXT NOT NULL, issued INTEGER NOT NULL DEFAULT 0, wrong INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(user_id, day))');
+    // Custom domains (customdomains.ts): one hostname (and its www/apex twin, when the owner wants it) opens one app.
+    // No foreign key to apps on purpose: when an app is deleted for good, the sweep also removes the hostname at
+    // Cloudflare before the row goes.
+    db.exec(`CREATE TABLE IF NOT EXISTS custom_domains(
+      id TEXT PRIMARY KEY,
+      owner_id TEXT NOT NULL,
+      app_id TEXT NOT NULL,
+      hostname TEXT NOT NULL UNIQUE,
+      alt_hostname TEXT UNIQUE,
+      www_mode TEXT NOT NULL DEFAULT 'off',
+      status TEXT NOT NULL DEFAULT 'pending',
+      verify_token TEXT NOT NULL,
+      cf_hostname_id TEXT,
+      cf_alt_id TEXT,
+      ssl_status TEXT,
+      records TEXT,
+      backlink INTEGER NOT NULL DEFAULT 1,
+      granted INTEGER NOT NULL DEFAULT 0,
+      disabled_at TEXT,
+      error TEXT,
+      fails INTEGER NOT NULL DEFAULT 0,
+      checks INTEGER NOT NULL DEFAULT 0,
+      last_checked_at TEXT,
+      next_check_at TEXT,
+      activated_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )`);
+    add('custom_domains', 'granted', 'INTEGER NOT NULL DEFAULT 0');
+    db.exec('CREATE INDEX IF NOT EXISTS custom_domains_app ON custom_domains(app_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS custom_domains_owner ON custom_domains(owner_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS custom_domains_next ON custom_domains(next_check_at)');
   })();
 }
 ensureSchema();

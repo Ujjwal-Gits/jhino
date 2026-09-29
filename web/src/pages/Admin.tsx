@@ -10,6 +10,7 @@ import { QuickSearch, type Hit } from '../Search';
 import { bsToday } from '../bs';
 import { Bell } from './Shell';
 import { applyTheme } from '../context';
+import { DomainsAdmin } from './Domains';
 
 /*
  * Super Admin: the platform owners' own workspace. A full-height sidebar on the left edge, a working
@@ -29,15 +30,15 @@ const fmtBytes = (n: number | null | undefined) => {
   return b >= 1073741824 ? `${(b / 1073741824).toFixed(2)} GB` : b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : b >= 1024 ? `${Math.round(b / 1024)} KB` : `${b} B`;
 };
 
-type NavKey = 'overview' | 'analytics' | 'creations' | 'users' | 'payments' | 'subscriptions' | 'plans' | 'methods' | 'apps' | 'hosting' | 'links' | 'support' | 'audit' | 'settings';
+type NavKey = 'overview' | 'analytics' | 'creations' | 'users' | 'payments' | 'subscriptions' | 'plans' | 'methods' | 'apps' | 'hosting' | 'domains' | 'links' | 'support' | 'audit' | 'settings';
 const NAV: { group: string; items: [NavKey, string, string][] }[] = [
   { group: '', items: [['overview', 'Overview', 'chart'], ['analytics', 'Analytics', 'live']] },
   { group: 'Customers', items: [['payments', 'Plan requests', 'receipt'], ['subscriptions', 'Subscriptions', 'card'], ['users', 'Users', 'users']] },
   { group: 'Money', items: [['plans', 'Plans & pricing', 'chart'], ['methods', 'QR & payment methods', 'qr']] },
-  { group: 'Platform', items: [['creations', 'Apps made', 'blocks'], ['apps', 'Apps & data', 'grid'], ['hosting', 'Addresses', 'globe'], ['links', 'Short links', 'link']] },
+  { group: 'Platform', items: [['creations', 'Apps made', 'blocks'], ['apps', 'Apps & data', 'grid'], ['hosting', 'Addresses', 'globe'], ['domains', 'Custom domains', 'lock'], ['links', 'Short links', 'link']] },
   { group: 'Operations', items: [['support', 'Support', 'help'], ['audit', 'Audit log', 'audit'], ['settings', 'Settings', 'settings']] },
 ];
-const TITLES: Record<NavKey, string> = { overview: 'Overview', analytics: 'Analytics', creations: 'Apps made', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', plans: 'Plans & pricing', apps: 'Apps & data', methods: 'QR & payment methods', hosting: 'Addresses', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
+const TITLES: Record<NavKey, string> = { overview: 'Overview', analytics: 'Analytics', creations: 'Apps made', users: 'Users', payments: 'Plan requests', subscriptions: 'Subscriptions', plans: 'Plans & pricing', apps: 'Apps & data', methods: 'QR & payment methods', hosting: 'Addresses', domains: 'Custom domains', links: 'Short links', support: 'Support', audit: 'Audit log', settings: 'Settings' };
 
 /** Every admin screen, for the top-bar search. */
 const ADMIN_PAGES: Hit[] = [...NAV.flatMap((g) => g.items.map(([k, l]) => ({ group: 'Pages', label: l, sub: g.group || 'Dashboard', to: `/admin/${k}` }))), { group: 'Pages', label: 'My apps', sub: 'Leave Super Admin', to: '/home' }];
@@ -121,6 +122,7 @@ export function AdminPage({ section, sub }: { section: string; sub?: string }) {
           {cur === 'apps' && (sub ? <AppDetailAdmin id={sub} /> : <AppsAdmin />)}
           {cur === 'methods' && <Methods />}
           {cur === 'hosting' && <Hosting />}
+          {cur === 'domains' && <DomainsAdmin />}
           {cur === 'links' && <AdminLinks />}
           {cur === 'support' && <Support onChanged={loadCounts} />}
           {cur === 'audit' && <Audit />}
@@ -824,6 +826,7 @@ function PlansAdmin() {
                 <div className="field"><span>Jhino branding on the page</span><Select label="Jhino branding" value={String(p.features.branding)} options={[{ value: 'popup', label: 'Badge and popup' }, { value: 'badge', label: 'Small badge' }, { value: 'none', label: 'None' }]} onChange={(v) => setF(i, 'branding', v as never)} /></div>
                 <label className="field"><span>Analytics (days)</span><input className="input mono" inputMode="numeric" value={Number(p.features.analyticsDays)} onChange={(e) => setF(i, 'analyticsDays', num(e.target.value))} /></label>
                 <label className="field"><span>Pages on Google</span><input className="input mono" inputMode="numeric" value={Number(p.features.seoPages ?? 0)} onChange={(e) => setF(i, 'seoPages', num(e.target.value))} /></label>
+                <label className="field"><span>Custom domains</span><input className="input mono" inputMode="numeric" value={Number(p.features.customDomains ?? 0)} onChange={(e) => setF(i, 'customDomains', num(e.target.value))} /></label>
               </div>
               <div className="plan-flags">
                 {FLAG_FIELDS.map(([k, l]) => (

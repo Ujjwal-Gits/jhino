@@ -5,6 +5,7 @@ import { Avatar, Icon, Modal, Select, ago, copyText, useToast } from '../ui';
 import { ShareOut } from './ShareOut';
 import { downloadHtml } from './Player';
 import { AddressField, HOST, PlanTag, addrBase, slugify, useNameCheck } from './Address';
+import { CustomDomainSection } from './Domains';
 
 interface InviteRow { id: string; role: Role; createdAt: string; expiresAt: string; usedAt: string | null; revokedAt: string | null; usedBy: string | null }
 interface Member { id: string; name: string; email: string; username?: string | null; role: Role; madeByMe?: boolean; guest?: boolean; viaLink?: boolean }
@@ -535,6 +536,7 @@ function LinkSharing({ appId, appName }: { appId: string; appName: string }) {
       <label className="check-row"><input type="checkbox" checked={s.showBar} disabled={s.showBar && !f?.hideBar} onChange={(e) => save({ showBar: e.target.checked })} /><span>Show the Jhino top bar (hide it to open like a standalone app){s.showBar && !f?.hideBar && <PlanTag />}</span></label>
       {error && <p className="error-text" role="alert">{error}</p>}
       <SeoSection appId={appId} appName={appName} onShared={() => { get<SharingT>(`/api/apps/${appId}/sharing`).then(setS, () => {}); }} />
+      <CustomDomainSection appId={appId} access={s.access} />
     </section>
   );
 }

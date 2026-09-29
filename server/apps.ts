@@ -48,7 +48,7 @@ export function access(req: FastifyRequest, appId: string, need: 'read' | 'add' 
   return { user, app, role };
 }
 
-function versionRow(appId: string, n: number) {
+export function versionRow(appId: string, n: number) {
   return db.prepare('SELECT * FROM app_versions WHERE app_id=? AND n=?').get(appId, n) as
     { app_id: string; n: number; entry: string; file_count: number; size: number; features: string; source_name: string; uploaded_by: string; created_at: string } | undefined;
 }
@@ -129,7 +129,7 @@ interface Run { appId: string; n: number; userId: string; nonce: string; exp: nu
 const getRun = (token: string) => db.prepare('SELECT app_id appId, n, user_id userId, nonce, expires_at exp, desk FROM runs WHERE token_hash=?').get(sha256(token)) as Run | undefined;
 setInterval(() => db.prepare('DELETE FROM runs WHERE expires_at < ?').run(Date.now()), 10 * 60_000).unref();
 
-const TYPES: Record<string, string> = {
+export const TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.htm': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif',
@@ -144,7 +144,7 @@ export const SANDBOX = 'allow-scripts allow-forms allow-modals allow-popups allo
  * Where the first <name ...> tag ends (the index after its ">"), looking only at the start of the page
  * and without a regex, so a hostile page cannot make this slow. -1 when there is none.
  */
-function openTag(html: string, name: string) {
+export function openTag(html: string, name: string) {
   const lower = html.slice(0, 256 * 1024).toLowerCase();
   for (let i = lower.indexOf('<' + name); i >= 0; i = lower.indexOf('<' + name, i + 1)) {
     const c = lower[i + name.length + 1];
@@ -157,7 +157,7 @@ function openTag(html: string, name: string) {
 }
 
 /** Put the Jhino bridge first in <head> so it runs before any app script. */
-function inject(html: string, boot: unknown, idb = false) {
+export function inject(html: string, boot: unknown, idb = false) {
   // Escape "<" and the two JS line separators so data can never close the script tag.
   const unsafe = new RegExp('[<' + String.fromCharCode(0x2028, 0x2029) + ']', 'g');
   const json = JSON.stringify(boot).replace(unsafe, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
