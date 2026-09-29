@@ -69,7 +69,9 @@ function CustomBadge({ preview }: { preview?: boolean }) {
 }
 
 /* ---------------- the owner's editor ---------------- */
-interface ItemT { id: string; type: 'link' | 'header' | 'text' | 'video' | 'app'; title: string; subtitle: string; url: string | null; text: string | null; appId: string | null; highlight: boolean; visible: boolean; clicks30: number }
+interface ItemT { id: string; type: 'link' | 'header' | 'text' | 'video' | 'app'; title: string; subtitle: string; url: string | null; text: string | null; appId: string | null; highlight: boolean; visible: boolean; clicks30: number;
+  /** Links only: the smart link behind it (device addresses), and which icon it has ('own' = their picture). */
+  smart?: { id: string; code: string; url: string; ios: string; android: string; windows: string; mac: string } | null; icon?: 'auto' | 'own' | null }
 interface EditorT {
   username: string; page: ProfileData;
   usernameNextChange?: string | null; usernameEveryDays?: number;
@@ -169,6 +171,7 @@ function LinksTab({ d, run }: { d: EditorT; run: Run }) {
               </div>
               <button className="mp-main" onClick={() => setOpen(open === it.id ? null : it.id)} aria-expanded={open === it.id}>
                 <span className="mp-kind mono">{it.type === 'app' ? 'app' : it.type}</span>
+                {it.smart && <span className="mp-kind mono" title="Sends iPhone, Android and computers to different places">Smart</span>}
                 <b>{it.type === 'text' ? (it.text ?? '').slice(0, 60) : it.title || (it.url ? hostOf(it.url) : 'Untitled')}</b>
                 {(it.url || it.type === 'app') && <small>{it.type === 'app' ? d.apps.find((a) => a.id === it.appId)?.name ?? 'App' : hostOf(it.url!)}</small>}
               </button>
@@ -189,15 +192,27 @@ function LinksTab({ d, run }: { d: EditorT; run: Run }) {
 const hostOf = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
 
 function ItemForm({ type, d, item, onDone, run }: { type: ItemT['type']; d: EditorT; item?: ItemT; onDone: () => void; run: Run }) {
-  const [f, setF] = useState({ title: item?.title ?? '', subtitle: item?.subtitle ?? '', url: item?.url ?? '', text: item?.text ?? '', appId: item?.appId ?? d.apps[0]?.id ?? '' });
+  const [f, setF] = useState({ title: item?.title ?? '', subtitle: item?.subtitle ?? '', url: item?.smart?.url ?? item?.url ?? '', text: item?.text ?? '', appId: item?.appId ?? d.apps[0]?.id ?? '' });
   const [busy, setBusy] = useState(false);
+  const [smart, setSmart] = useState(!!item?.smart);
+  const [dev, setDev] = useState({ ios: item?.smart?.ios ?? '', android: item?.smart?.android ?? '', windows: item?.smart?.windows ?? '', mac: item?.smart?.mac ?? '' });
+  const toast = useToast();
+  const iconInput = useRef<HTMLInputElement>(null);
+  const shown = item ? (d.page.items.find((x) => x.id === item.id) as { thumb?: string | null } | undefined)?.thumb : null;
+  const pickIcon = async (file: File | undefined) => {
+    if (!file || !item) return;
+    if (file.size > 2 * 1024 * 1024) { toast('Use a picture up to 2 MB.', true); return; }
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    await run(api<EditorT>('POST', `/api/me/page/items/${item.id}/icon`, fd), 'Icon saved');
+  };
   // Why a video link cannot play (Instagram or TikTok said no), shown under the link rather than in a passing toast.
   const [err, setErr] = useState('');
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
     setErr('');
-    const body = { type, ...f, appId: f.appId || undefined };
+    const body = { type, ...f, appId: f.appId || undefined, ...(type === 'link' ? { smart, ...(smart ? dev : {}) } : {}) };
     const ok = await run(item ? api<EditorT>('PATCH', `/api/me/page/items/${item.id}`, body) : post<EditorT>('/api/me/page/items', body), item ? 'Saved' : 'Added to your page', type === 'video' ? setErr : undefined);
     setBusy(false);
     if (ok) onDone();
@@ -211,6 +226,31 @@ function ItemForm({ type, d, item, onDone, run }: { type: ItemT['type']; d: Edit
           <label className="field"><span>Title</span><input className="input" maxLength={120} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Book a session" /></label>
           <label className="field"><span>Line under it <em>optional</em></span><input className="input" maxLength={160} value={f.subtitle} onChange={(e) => setF({ ...f, subtitle: e.target.value })} placeholder="Weekdays, 10 to 6" /></label>
         </div>
+        <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
+          <input type="checkbox" checked={smart} onChange={(e) => setSmart(e.target.checked)} style={{ marginTop: 3 }} />
+          <span>Smart link: send iPhone, Android and computers to different places</span>
+        </label>
+        {smart && <>
+          <div className="grid2">
+            <label className="field"><span>iPhone <em>optional</em></span><input className="input" inputMode="url" value={dev.ios} onChange={(e) => setDev({ ...dev, ios: e.target.value })} placeholder="App Store link" /></label>
+            <label className="field"><span>Android <em>optional</em></span><input className="input" inputMode="url" value={dev.android} onChange={(e) => setDev({ ...dev, android: e.target.value })} placeholder="Play Store link" /></label>
+            <label className="field"><span>Windows <em>optional</em></span><input className="input" inputMode="url" value={dev.windows} onChange={(e) => setDev({ ...dev, windows: e.target.value })} placeholder="Microsoft Store link" /></label>
+            <label className="field"><span>Mac <em>optional</em></span><input className="input" inputMode="url" value={dev.mac} onChange={(e) => setDev({ ...dev, mac: e.target.value })} placeholder="Mac App Store link" /></label>
+          </div>
+          <p className="hint">Everyone else, and anyone with no address above, goes to the Address at the top. Clicks are counted on your page as usual.</p>
+        </>}
+        {item && (
+          <div className="field">
+            <span>Icon</span>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+              {shown ? <img src={shown} alt="" width={40} height={40} style={{ borderRadius: 8, objectFit: 'cover', background: 'var(--paper-2, transparent)' }} /> : <span className="mono" style={{ width: 40, height: 40, borderRadius: 8, display: 'grid', placeItems: 'center', border: '1px solid var(--rule)' }} aria-hidden="true">{(hostOf(f.url)[0] || '?').toUpperCase()}</span>}
+              <input ref={iconInput} type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden onChange={(e) => { const file = e.target.files?.[0]; e.target.value = ''; pickIcon(file); }} />
+              <button type="button" className="btn sm" onClick={() => iconInput.current?.click()}>Choose image</button>
+              {item.icon === 'own' && <button type="button" className="btn sm quiet" onClick={() => run(api<EditorT>('DELETE', `/api/me/page/items/${item.id}/icon`), "Using the site's icon")}>Use the site's icon</button>}
+            </div>
+            <p className="hint">{item.icon === 'own' ? 'Your picture.' : "The site's own icon is used when it has one."} JPG, PNG, WEBP or GIF, up to 2 MB.</p>
+          </div>
+        )}
       </>}
       {type === 'video' && <>
         <label className="field"><span>YouTube, Vimeo, TikTok or Instagram link</span><input className="input" inputMode="url" required value={f.url} onChange={(e) => { setF({ ...f, url: e.target.value }); setErr(''); }} placeholder="https://www.tiktok.com/@you/video/… or youtu.be/…" autoFocus={!item} aria-invalid={err ? true : undefined} aria-describedby={err ? 'mp-video-err' : undefined} /></label>

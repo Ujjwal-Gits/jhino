@@ -1,6 +1,8 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import https from 'node:https';
+import dns from 'node:dns';
+import net from 'node:net';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
@@ -29,7 +31,10 @@ type SocialKind = typeof SOCIALS[number];
 const TIER = { free: 0, plus: 1, pro: 2 } as const;
 
 interface ProfileRow { user_id: string; bio: string; location: string; theme: string; layout: string; socials: string; published: number; custom_html: string | null; use_custom: number; hide_branding: number; seo_index: number; seo_description: string | null; updated_at: string }
-interface ItemRow { id: string; user_id: string; position: number; type: ItemType; title: string; subtitle: string; url: string | null; text: string | null; app_id: string | null; highlight: number; visible: number; created_at: string; updated_at: string }
+interface ItemRow { id: string; user_id: string; position: number; type: ItemType; title: string; subtitle: string; url: string | null; text: string | null; app_id: string | null; highlight: number; visible: number; smart_id: string | null; created_at: string; updated_at: string }
+
+// A link can be a smart link (server/mini.ts): the item then holds /l/<code> and the smart link's id.
+if (!(db.prepare('PRAGMA table_info(profile_items)').all() as { name: string }[]).some((c) => c.name === 'smart_id')) db.exec('ALTER TABLE profile_items ADD COLUMN smart_id TEXT');
 
 function profileOf(userId: string): ProfileRow {
   let p = db.prepare('SELECT * FROM profiles WHERE user_id=?').get(userId) as ProfileRow | undefined;
@@ -180,22 +185,25 @@ async function downloadImage(src: string): Promise<{ type: string; data: Buffer 
  * At most two ffmpeg runs at once, so a burst of new videos never floods the server. */
 let shrinking = 0;
 const shrinkQueue: (() => void)[] = [];
-async function shrinkImage(data: Buffer): Promise<Buffer | null> {
+const THUMB_ARGS = ['-vf', "scale='min(640,iw)':-2", '-frames:v', '1', '-q:v', '6', '-f', 'image2', '-c:v', 'mjpeg'];
+/** A link's icon: a 128 px square (cropped to fill), PNG so transparency stays. */
+const ICON_ARGS = ['-vf', 'scale=128:128:force_original_aspect_ratio=increase,crop=128:128', '-frames:v', '1', '-f', 'image2', '-c:v', 'png'];
+async function shrinkImage(data: Buffer, args = THUMB_ARGS, minBytes = 500): Promise<Buffer | null> {
   if (shrinking >= 2) await new Promise<void>((go) => shrinkQueue.push(go));
   shrinking++;
-  try { return await shrinkOnce(data); } finally { shrinking--; shrinkQueue.shift()?.(); }
+  try { return await shrinkOnce(data, args, minBytes); } finally { shrinking--; shrinkQueue.shift()?.(); }
 }
-function shrinkOnce(data: Buffer): Promise<Buffer | null> {
+function shrinkOnce(data: Buffer, args: string[], minBytes: number): Promise<Buffer | null> {
   const bin = ffmpegPath();
   if (!bin) return Promise.resolve(null);
   return new Promise((resolve) => {
-    const p = spawn(bin, ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-vf', "scale='min(640,iw)':-2", '-frames:v', '1', '-q:v', '6', '-f', 'image2', '-c:v', 'mjpeg', 'pipe:1'],
+    const p = spawn(bin, ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', ...args, 'pipe:1'],
       { stdio: ['pipe', 'pipe', 'ignore'], windowsHide: true });
     const out: Buffer[] = [];
     const timer = setTimeout(() => p.kill('SIGKILL'), 15_000);
     p.stdout.on('data', (d: Buffer) => out.push(d));
     p.on('error', () => { clearTimeout(timer); resolve(null); });
-    p.on('close', (code) => { clearTimeout(timer); const b = Buffer.concat(out); resolve(code === 0 && b.length > 500 ? b : null); });
+    p.on('close', (code) => { clearTimeout(timer); const b = Buffer.concat(out); resolve(code === 0 && b.length > minBytes ? b : null); });
     p.stdin.on('error', () => { /* ffmpeg stopped reading: close tells */ });
     p.stdin.end(data);
   });
@@ -267,6 +275,182 @@ function sweepThumbs() {
   }
 }
 
+/* ---------------- link icons ----------------
+ * A link on the page shows the site's own icon instead of a letter. Made when the link is saved (older
+ * links get theirs on first view, a few at a time): the page's <link rel=icon|apple-touch-icon>, else
+ * /favicon.ico, fetched by the server over https only (never a private or internal address: the name is
+ * resolved and checked, and that same answer is the one connected to), within 5 s, up to 300 KB, images
+ * only, then made a 128 px PNG with ffmpeg and kept as a small file (DATA_DIR/icons/<itemId>.auto.png).
+ * The owner may upload their own picture instead (<itemId>.own.png, up to 2 MB). Nothing is in the
+ * database, and the files go when the item does. No icon found: the page keeps its letter tile.
+ */
+const ICON_DIR = path.join(config.dataDir, 'icons');
+const ICON_MAX = 300_000;
+const ICON_HTML_MAX = 300_000;
+const ICON_BUDGET_MS = 4800;
+const BLOCKED = new net.BlockList();
+for (const [a, n] of [['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.0.0.0', 24], ['192.0.2.0', 24],
+  ['192.88.99.0', 24], ['192.168.0.0', 16], ['198.18.0.0', 15], ['198.51.100.0', 24], ['203.0.113.0', 24], ['224.0.0.0', 4], ['240.0.0.0', 4]] as [string, number][]) BLOCKED.addSubnet(a, n, 'ipv4');
+for (const [a, n] of [['::', 128], ['::1', 128], ['64:ff9b::', 96], ['100::', 64], ['2001::', 32], ['2001:db8::', 32], ['2002::', 16], ['fc00::', 7], ['fe80::', 10], ['ff00::', 8]] as [string, number][]) BLOCKED.addSubnet(a, n, 'ipv6');
+const isPublicIp = (raw: string): boolean => {
+  // An IPv4 address written the IPv6 way (::ffff:10.0.0.1) is judged as the IPv4 address it holds.
+  const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(raw);
+  if (raw.toLowerCase().startsWith('::ffff:')) return mapped ? isPublicIp(mapped[1]) : false;
+  const f = net.isIP(raw);
+  return f !== 0 && !BLOCKED.check(raw, f === 6 ? 'ipv6' : 'ipv4');
+};
+/** DNS for the icon fetch: refuses any name that has a private address, and the answer checked is the one used. */
+const safeLookup = ((host: string, opts: { all?: boolean }, cb: (...a: unknown[]) => void) => {
+  dns.lookup(host, { all: true, verbatim: true }, (err, addrs) => {
+    if (err) return cb(err);
+    if (!addrs.length || addrs.some((a) => !isPublicIp(a.address))) return cb(new Error('That address is not public.'));
+    return opts?.all ? cb(null, addrs) : cb(null, addrs[0].address, addrs[0].family);
+  });
+}) as unknown as net.LookupFunction;
+
+interface Got { url: URL; type: string; body: Buffer }
+/** One https GET (redirects followed by hand, each checked again). Null unless a 200 of the wanted kind, within the size. */
+async function safeGet(start: string, o: { maxBytes: number; accept: string; kind: 'html' | 'image'; signal: AbortSignal }): Promise<Got | null> {
+  let at = start;
+  for (let hop = 0; hop < 4; hop++) {
+    let u: URL;
+    try { u = new URL(at); } catch { return null; }
+    const host = u.hostname.replace(/^\[|\]$/g, '');
+    if (u.protocol !== 'https:' || (u.port && u.port !== '443') || u.username || u.password) return null;
+    if (net.isIP(host) && !isPublicIp(host)) return null;
+    const step = await new Promise<{ next: string } | Got | null>((resolve) => {
+      const req = https.request(u, { method: 'GET', lookup: safeLookup, signal: o.signal, timeout: 4000, headers: { accept: o.accept, 'user-agent': BOT_UA } }, (res) => {
+        const code = res.statusCode ?? 0;
+        if (code >= 300 && code < 400 && res.headers.location) { res.resume(); try { resolve({ next: new URL(res.headers.location, u).toString() }); } catch { resolve(null); } return; }
+        const type = String(res.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
+        const okType = o.kind === 'html' ? type === 'text/html' || type === 'application/xhtml+xml' : type.startsWith('image/') && !type.includes('svg');
+        if (code !== 200 || !okType || (o.kind === 'image' && Number(res.headers['content-length'] ?? 0) > o.maxBytes)) { res.resume(); resolve(null); return; }
+        const parts: Buffer[] = [];
+        let size = 0;
+        res.on('data', (c: Buffer) => {
+          size += c.length; parts.push(c);
+          if (size > o.maxBytes) {
+            req.destroy();
+            // A page's head is at the top: what came is enough. An image cut short is no image.
+            resolve(o.kind === 'html' ? { url: u, type, body: Buffer.concat(parts).subarray(0, o.maxBytes) } : null);
+          }
+        });
+        res.on('end', () => resolve(size ? { url: u, type, body: Buffer.concat(parts) } : null));
+        res.on('error', () => resolve(null));
+      });
+      req.on('timeout', () => req.destroy());
+      req.on('error', () => resolve(null));
+      req.end();
+    });
+    if (!step) return null;
+    if ('next' in step) { at = step.next; continue; }
+    return step;
+  }
+  return null;
+}
+/** The icon addresses a page names (best first), then /favicon.ico. */
+function iconCandidates(html: string, base: URL): string[] {
+  const found: { href: string; score: number }[] = [];
+  for (const m of html.matchAll(/<link\b[^>]*>/gi)) {
+    const attr = (n: string) => new RegExp(`\\b${n}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i').exec(m[0]);
+    const rel = attr('rel'), href = attr('href');
+    if (!rel || !href) continue;
+    const tokens = (rel[1] ?? rel[2] ?? rel[3] ?? '').toLowerCase().split(/\s+/);
+    const apple = tokens.some((t) => t.startsWith('apple-touch-icon'));
+    if (!apple && !tokens.includes('icon')) continue;
+    const h = decodeEntities(href[1] ?? href[2] ?? href[3] ?? '').trim();
+    const type = (attr('type')?.[1] ?? '').toLowerCase();
+    if (!h || /\.svg(\?|#|$)/i.test(h) || type.includes('svg')) continue;
+    const size = Number(/(\d+)x\d+/.exec(attr('sizes')?.[1] ?? '')?.[1] ?? 0) || 16;
+    let abs: string;
+    try { abs = new URL(h, base).toString(); } catch { continue; }
+    found.push({ href: abs, score: (apple ? 1000 : 0) + Math.min(size, 256) });
+  }
+  const list = [...new Set(found.sort((a, b) => b.score - a.score).map((f) => f.href))].slice(0, 2);
+  const fav = new URL('/favicon.ico', base).toString();
+  if (!list.includes(fav)) list.push(fav);
+  return list;
+}
+type IconKind = 'auto' | 'own';
+const iconPath = (id: string, kind: IconKind) => path.join(ICON_DIR, `${id}.${kind}.png`);
+/** The kept icon for an item (their own picture wins), if there is one. */
+function iconOf(itemId: string): { file: string; kind: IconKind; version: string } | null {
+  if (!safeItemId(itemId)) return null;
+  for (const kind of ['own', 'auto'] as IconKind[]) {
+    const file = iconPath(itemId, kind);
+    try { const st = fs.statSync(file); return { file, kind, version: Math.round(st.mtimeMs).toString(36) }; } catch { /* not this one */ }
+  }
+  return null;
+}
+function removeIcons(itemId: string, kinds: IconKind[] = ['auto', 'own']) {
+  if (!safeItemId(itemId)) return;
+  iconFailed.delete(itemId);
+  for (const k of kinds) fs.rmSync(iconPath(itemId, k), { force: true });
+}
+function writeIcon(itemId: string, kind: IconKind, data: Buffer) {
+  fs.mkdirSync(ICON_DIR, { recursive: true });
+  const file = iconPath(itemId, kind);
+  fs.writeFileSync(file + '.part', data);
+  fs.renameSync(file + '.part', file);
+}
+/** Where a link item goes: a smart link's "everyone else" address, else its own. */
+function destOf(r: Pick<ItemRow, 'url' | 'smart_id'>): string | null {
+  if (r.smart_id) return (db.prepare('SELECT url FROM smart_links WHERE id=?').get(r.smart_id) as { url: string } | undefined)?.url ?? null;
+  return r.url;
+}
+const iconJobs = new Map<string, Promise<void>>();
+const iconFailed = new Map<string, number>();
+const iconDue = (itemId: string) => Date.now() - (iconFailed.get(itemId) ?? 0) > THUMB_RETRY_MS;
+/** Find, shrink and keep the site's icon for one link item (one at a time per item). */
+function storeAutoIcon(itemId: string, dest: string): Promise<void> {
+  const running = iconJobs.get(itemId);
+  if (running) return running;
+  const job = (async () => {
+    if (!safeItemId(itemId) || iconOf(itemId)?.kind === 'own') return;
+    let data: Buffer | null = null;
+    try {
+      const signal = AbortSignal.timeout(ICON_BUDGET_MS);
+      const page = new URL(dest);
+      const doc = await safeGet(`https://${page.host}${page.pathname}${page.search}`, { maxBytes: ICON_HTML_MAX, accept: 'text/html', kind: 'html', signal });
+      const list = doc ? iconCandidates(doc.body.toString('utf8'), doc.url) : [`https://${page.host}/favicon.ico`];
+      for (const c of list) {
+        const img = await safeGet(c, { maxBytes: ICON_MAX, accept: 'image/png,image/*;q=0.8', kind: 'image', signal });
+        if (img) { data = await shrinkImage(img.body, ICON_ARGS, 100); if (data) break; }
+      }
+    } catch { data = null; }
+    // The item may have gone, changed its link, or got its own picture while this ran.
+    const row = db.prepare("SELECT url, smart_id FROM profile_items WHERE id=? AND type='link'").get(itemId) as Pick<ItemRow, 'url' | 'smart_id'> | undefined;
+    if (!row || destOf(row) !== dest || iconOf(itemId)?.kind === 'own') return;
+    if (!data) { if (iconFailed.size > 5000) iconFailed.clear(); iconFailed.set(itemId, Date.now()); return; }
+    writeIcon(itemId, 'auto', data);
+  })().catch(() => { /* never breaks saving */ }).finally(() => iconJobs.delete(itemId));
+  iconJobs.set(itemId, job);
+  return job;
+}
+/** The icon address for a link item on the page, or null (the page then shows its letter). */
+function iconUrl(username: string, r: ItemRow): string | null {
+  const base = `/api/profile/${encodeURIComponent(username)}/icon/${r.id}`;
+  const kept = iconOf(r.id);
+  if (kept) return `${base}?v=${kept.version}`;
+  // Not made yet (a link from before icons): asking for it makes it.
+  return iconDue(r.id) ? base : null;
+}
+/** Icons of items that are gone (an account deleted, say): removed at start. */
+function sweepIcons() {
+  let names: string[] = [];
+  try { names = fs.readdirSync(ICON_DIR); } catch { return; }
+  const has = db.prepare("SELECT 1 FROM profile_items WHERE id=? AND type='link'");
+  for (const n of names) {
+    const id = n.split('.')[0];
+    if (n.endsWith('.part') || !has.get(id)) fs.rmSync(path.join(ICON_DIR, n), { force: true });
+  }
+}
+/** PNG, JPEG, GIF or WEBP by its first bytes. */
+function isPicture(b: Buffer): boolean {
+  return b.length > 12 && ((b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) || (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff)
+    || b.toString('ascii', 0, 4) === 'GIF8' || (b.toString('ascii', 0, 4) === 'RIFF' && b.toString('ascii', 8, 12) === 'WEBP'));
+}
+
 /** A page's text (up to 2 MB), or null when it did not answer 200 in time. */
 function getText(url: string, headers: Record<string, string>): Promise<string | null> {
   return new Promise((resolve) => {
@@ -332,7 +516,7 @@ function publicItems(u: UserRow, rows: ItemRow[], forOwner: boolean) {
     const hidden = !r.visible ? { hidden: true } : {};
     if (r.type === 'header') out.push({ id: r.id, type: 'header', title: r.title, ...hidden });
     else if (r.type === 'text') out.push({ id: r.id, type: 'text', text: r.text ?? '', ...hidden });
-    else if (r.type === 'link' && r.url) out.push({ id: r.id, type: 'link', title: r.title || hostOf(r.url), subtitle: r.subtitle || undefined, href: `/go/${r.id}`, url: r.url, thumb: null, highlight: !!r.highlight, ...hidden });
+    else if (r.type === 'link' && r.url) out.push({ id: r.id, type: 'link', title: r.title || hostOf(r.url), subtitle: r.subtitle || undefined, href: `/go/${r.id}`, url: destOf(r) ?? r.url, thumb: iconUrl(u.username!, r), highlight: !!r.highlight, ...(r.smart_id ? { smart: true } : {}), ...hidden });
     else if (r.type === 'video' && r.url) {
       const embed = embedOf(r.url);
       if (embed) out.push({ id: r.id, type: 'video', title: r.title, embed, href: `/go/${r.id}`, thumb: thumbOf(u.username!, r, embed), ...hidden });
@@ -461,6 +645,7 @@ export function registerProfiles(app: FastifyInstance) {
   const made = db.prepare("INSERT OR IGNORE INTO profiles(user_id, updated_at) SELECT id, created_at FROM users WHERE kind='person' AND username IS NOT NULL").run().changes;
   if (made) console.log(`  Made ${made} people's pages live.`);
   sweepThumbs();
+  sweepIcons();
   /** The public page's data. The owner also gets hidden items (marked), for the editor's preview. */
   app.get('/api/profile/:name', async (req) => {
     limit(req, 'profile-read', 240, 60_000);
@@ -525,6 +710,34 @@ export function registerProfiles(app: FastifyInstance) {
     return reply.type(kept.type).send(fs.createReadStream(kept.file));
   });
 
+  /**
+   * A link's icon, kept on disk. With ?v= (the page adds it once the icon is kept) it never changes, so
+   * browsers and the CDN keep it for good. Links from before icons get theirs here on first view, a few
+   * at a time; when there is none the answer is 404 and the page keeps its letter.
+   */
+  app.get('/api/profile/:name/icon/:id', async (req, reply) => {
+    limit(req, 'profile-icon', 600, 60_000);
+    const { name, id } = req.params as { name: string; id: string };
+    const u = userByName(name);
+    const item = u && safeItemId(id) ? db.prepare("SELECT * FROM profile_items WHERE id=? AND user_id=? AND type='link'").get(id, u.id) as ItemRow | undefined : undefined;
+    const owner = !!u && !!req.user && !req.pub && !req.desk && req.user.id === u.id;
+    if (!u || !item?.url || ((!item.visible || !profileOf(u.id).published) && !owner)) throw new HttpError(404, 'NOT_FOUND', 'No icon.');
+    let kept = iconOf(item.id);
+    const dest = destOf(item);
+    if (!kept && dest && iconDue(item.id) && (iconJobs.has(item.id) || iconJobs.size < BACKFILL_AT_ONCE)) {
+      await storeAutoIcon(item.id, dest);
+      kept = iconOf(item.id);
+    }
+    if (!kept) {
+      reply.header('Cache-Control', 'no-store');
+      throw new HttpError(404, 'NOT_FOUND', 'No icon yet.');
+    }
+    const versioned = (req.query as { v?: string }).v === kept.version;
+    reply.header('Cache-Control', versioned ? 'public, max-age=31536000, immutable' : 'public, max-age=300')
+      .header('X-Content-Type-Options', 'nosniff').header('Content-Security-Policy', "sandbox; default-src 'none'");
+    return reply.type('image/png').send(fs.createReadStream(kept.file));
+  });
+
   /** Every link on a page goes through here: count the click, then go. */
   app.get('/go/:id', async (req, reply) => {
     const id = (req.params as { id: string }).id;
@@ -560,6 +773,32 @@ export function registerProfiles(app: FastifyInstance) {
     if (!u.username) throw new HttpError(409, 'NO_USERNAME', 'Choose a username first (Account → Profile).');
     return u;
   };
+  /** A link item's smart link (the device addresses), for the editor. */
+  const smartOf = (r: ItemRow) => {
+    if (!r.smart_id) return null;
+    const l = db.prepare('SELECT id, code, url, ios, android, windows, mac, clicks, c_ios, c_android, c_desktop FROM smart_links WHERE id=?').get(r.smart_id) as
+      { id: string; code: string; url: string; ios: string | null; android: string | null; windows: string | null; mac: string | null; clicks: number; c_ios: number; c_android: number; c_desktop: number } | undefined;
+    return l ? { id: l.id, code: l.code, url: l.url, ios: l.ios ?? '', android: l.android ?? '', windows: l.windows ?? '', mac: l.mac ?? '', clicks: l.clicks, byDevice: { ios: l.c_ios, android: l.c_android, desktop: l.c_desktop } } : null;
+  };
+  /** The smart-link backend (server/mini.ts) is called as the owner, so it stays the one place that checks and redirects. */
+  const smartCall = async (req: FastifyRequest, method: 'POST' | 'PATCH' | 'DELETE', url: string, payload?: Record<string, unknown>) => {
+    const headers: Record<string, string> = {};
+    for (const k of ['cookie', 'x-csrf-token', 'x-jhino', 'user-agent', 'host', 'origin', 'referer', 'x-forwarded-for', 'x-forwarded-proto']) {
+      const v = req.headers[k];
+      if (typeof v === 'string') headers[k] = v;
+    }
+    if (payload) headers['content-type'] = 'application/json';
+    const r = await app.inject({ method, url, headers, payload: payload ? JSON.stringify(payload) : undefined });
+    let j: { error?: string; message?: string; link?: { id: string; code: string; url: string } } = {};
+    try { j = r.json(); } catch { /* not json */ }
+    if (r.statusCode >= 400) throw new HttpError(r.statusCode, j.error || 'SERVER_ERROR', j.message || 'Could not save the smart link.');
+    return j.link!;
+  };
+  const smartFields = (b: Record<string, unknown>) => {
+    const o: Record<string, unknown> = {};
+    for (const k of ['ios', 'android', 'windows', 'mac']) if (b[k] !== undefined) o[k] = String(b[k] ?? '');
+    return o;
+  };
   const editorView = (u: UserRow) => {
     const p = profileOf(u.id);
     const f = featuresOf(u);
@@ -572,7 +811,8 @@ export function registerProfiles(app: FastifyInstance) {
       username: u.username, page: pageData(u, true),
       usernameNextChange: nextUsernameChange(u), usernameEveryDays: USERNAME_EVERY_DAYS,
       settings: { bio: p.bio, location: p.location, theme: p.theme, layout: p.layout, socials, published: !!p.published, customHtml: p.custom_html ?? '', useCustom: !!p.use_custom, hideBranding: !!p.hide_branding, seoIndex: p.seo_index !== 0, seoDescription: p.seo_description ?? '' },
-      items: items.map((r) => ({ id: r.id, type: r.type, title: r.title, subtitle: r.subtitle, url: r.url, text: r.text, appId: r.app_id, highlight: !!r.highlight, visible: !!r.visible, clicks30: clicks[r.id] ?? 0 })),
+      items: items.map((r) => ({ id: r.id, type: r.type, title: r.title, subtitle: r.subtitle, url: r.url, text: r.text, appId: r.app_id, highlight: !!r.highlight, visible: !!r.visible, clicks30: clicks[r.id] ?? 0,
+        ...(r.type === 'link' ? { smart: smartOf(r), icon: iconOf(r.id)?.kind ?? null } : {}) })),
       features: { themeTier: f.themeTier, branding: brandingOf(u, p), removeBranding: f.removeBranding, customPage: f.customPage, analyticsDays: f.analyticsDays },
       apps: db.prepare('SELECT id, name, slug, access FROM apps WHERE owner_id=? AND deleted_at IS NULL ORDER BY updated_at DESC').all(u.id),
       starter: CUSTOM_STARTER, themeTiers: THEME_TIERS,
@@ -678,27 +918,61 @@ export function registerProfiles(app: FastifyInstance) {
     const u = me(req);
     limit(req, 'page-items', 240, 60_000, u.id);
     if ((db.prepare('SELECT COUNT(*) n FROM profile_items WHERE user_id=?').get(u.id) as { n: number }).n >= 100) throw new HttpError(400, 'VALIDATION_FAILED', 'A page can hold up to 100 items.');
-    const v = await readItem(u, (req.body ?? {}) as Record<string, unknown>);
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const v = await readItem(u, body);
+    let smartId: string | null = null;
+    let dest = v.url;
+    if (v.type === 'link' && body.smart && v.url) {
+      const l = await smartCall(req, 'POST', '/api/smart', { title: v.title || hostOf(v.url), url: v.url, ...smartFields(body) });
+      smartId = l.id;
+      v.url = `/l/${l.code}`;
+    }
     const pos = (db.prepare('SELECT COALESCE(MIN(position),0)-1 n FROM profile_items WHERE user_id=?').get(u.id) as { n: number }).n;
     const t = now();
     const first = (req.body as { position?: string })?.position !== 'end';
     const position = first ? pos : (db.prepare('SELECT COALESCE(MAX(position),0)+1 n FROM profile_items WHERE user_id=?').get(u.id) as { n: number }).n;
     const id = newId('pi');
-    db.prepare('INSERT INTO profile_items(id,user_id,position,type,title,subtitle,url,text,app_id,highlight,visible,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)')
-      .run(id, u.id, position, v.type, v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, t, t);
+    db.prepare('INSERT INTO profile_items(id,user_id,position,type,title,subtitle,url,text,app_id,highlight,visible,smart_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
+      .run(id, u.id, position, v.type, v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, smartId, t, t);
     touchPage(u.id);
     // The video's picture is kept now, so the page shows it at once.
     if (v.type === 'video' && v.url) await storeThumb(id, v.url, v.thumbSrc);
+    if (v.type === 'link' && dest) await storeAutoIcon(id, dest);
     return editorView(u);
   });
   app.patch('/api/me/page/items/:id', async (req) => {
     const u = me(req);
     const cur = db.prepare('SELECT * FROM profile_items WHERE id=? AND user_id=?').get((req.params as { id: string }).id, u.id) as ItemRow | undefined;
     if (!cur) throw new HttpError(404, 'NOT_FOUND', 'That item is not on your page.');
-    const v = await readItem(u, (req.body ?? {}) as Record<string, unknown>, cur);
-    db.prepare('UPDATE profile_items SET title=?, subtitle=?, url=?, text=?, app_id=?, highlight=?, visible=?, updated_at=? WHERE id=?')
-      .run(v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, now(), cur.id);
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const v = await readItem(u, body, cur);
+    const before = cur.type === 'link' ? destOf(cur) : null;
+    let smartId = cur.smart_id, dest = before;
+    if (cur.type === 'link') {
+      const wantSmart = body.smart === undefined ? !!cur.smart_id : !!body.smart;
+      const title = v.title || (v.url ? hostOf(v.url) : '');
+      if (wantSmart && cur.smart_id) {
+        const l = await smartCall(req, 'PATCH', `/api/smart/${encodeURIComponent(cur.smart_id)}`, { title, ...(body.url !== undefined ? { url: v.url } : {}), ...smartFields(body) });
+        v.url = cur.url; dest = l.url;
+      } else if (wantSmart) {
+        dest = v.url;
+        const l = await smartCall(req, 'POST', '/api/smart', { title, url: v.url, ...smartFields(body) });
+        smartId = l.id; v.url = `/l/${l.code}`;
+      } else if (cur.smart_id) {
+        // Smart turned off: the item goes straight to its own address again.
+        if (body.url === undefined) v.url = before;
+        dest = v.url; smartId = null;
+        await smartCall(req, 'DELETE', `/api/smart/${encodeURIComponent(cur.smart_id)}`).catch(() => { /* already gone */ });
+      } else dest = v.url;
+    }
+    db.prepare('UPDATE profile_items SET title=?, subtitle=?, url=?, text=?, app_id=?, highlight=?, visible=?, smart_id=?, updated_at=? WHERE id=?')
+      .run(v.title, v.subtitle, v.url, v.text, v.app_id, v.highlight, v.visible, smartId, now(), cur.id);
     touchPage(u.id);
+    // A new destination: the site's old icon goes, the new one is kept (their own picture stays).
+    if (cur.type === 'link' && dest && dest !== before) {
+      removeIcons(cur.id, ['auto']);
+      await storeAutoIcon(cur.id, dest);
+    }
     // A new link: the old picture goes, the new one is kept.
     if (cur.type === 'video' && v.url !== cur.url) {
       removeThumb(cur.id);
@@ -709,7 +983,44 @@ export function registerProfiles(app: FastifyInstance) {
   app.delete('/api/me/page/items/:id', async (req) => {
     const u = me(req);
     const id = (req.params as { id: string }).id;
-    if (db.prepare('DELETE FROM profile_items WHERE id=? AND user_id=?').run(id, u.id).changes) removeThumb(id);
+    const gone = db.prepare('SELECT smart_id FROM profile_items WHERE id=? AND user_id=?').get(id, u.id) as { smart_id: string | null } | undefined;
+    if (db.prepare('DELETE FROM profile_items WHERE id=? AND user_id=?').run(id, u.id).changes) {
+      removeThumb(id);
+      removeIcons(id);
+      if (gone?.smart_id) await smartCall(req, 'DELETE', `/api/smart/${encodeURIComponent(gone.smart_id)}`).catch(() => { /* already gone */ });
+    }
+    touchPage(u.id);
+    return editorView(u);
+  });
+  /** The owner's own picture for a link (up to 2 MB, made 128 px). Like profile photos, it is not held back by the uploads setting. */
+  const linkItem = (u: UserRow, req: FastifyRequest) => {
+    const item = db.prepare("SELECT * FROM profile_items WHERE id=? AND user_id=? AND type='link'").get((req.params as { id: string }).id, u.id) as ItemRow | undefined;
+    if (!item) throw new HttpError(404, 'NOT_FOUND', 'That link is not on your page.');
+    return item;
+  };
+  app.post('/api/me/page/items/:id/icon', async (req) => {
+    const u = me(req);
+    limit(req, 'page-icon', 30, 3600_000, u.id);
+    const item = linkItem(u, req);
+    const part = (await (req as any).file({ limits: { fileSize: 2 * 1024 * 1024, files: 1, fields: 0 } })) as { toBuffer(): Promise<Buffer>; file: { truncated: boolean } } | undefined;
+    if (!part) throw new HttpError(400, 'VALIDATION_FAILED', 'Choose a picture.');
+    const buf = await part.toBuffer();
+    if (part.file.truncated) throw new HttpError(413, 'TOO_LARGE', 'Use a picture up to 2 MB.');
+    if (!isPicture(buf)) throw new HttpError(400, 'VALIDATION_FAILED', 'Use a JPG, PNG, WEBP or GIF picture.');
+    const png = await shrinkImage(buf, ICON_ARGS, 100);
+    if (!png) throw new HttpError(400, 'VALIDATION_FAILED', 'That picture could not be read. Try another.');
+    writeIcon(item.id, 'own', png);
+    removeIcons(item.id, ['auto']);
+    touchPage(u.id);
+    return editorView(u);
+  });
+  /** Back to the site's own icon. */
+  app.delete('/api/me/page/items/:id/icon', async (req) => {
+    const u = me(req);
+    const item = linkItem(u, req);
+    removeIcons(item.id, ['own']);
+    const dest = destOf(item);
+    if (dest) await storeAutoIcon(item.id, dest);
     touchPage(u.id);
     return editorView(u);
   });

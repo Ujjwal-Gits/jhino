@@ -6,6 +6,8 @@ import { PanelLoader } from '../Loader';
 import { Icon, ago, useToast } from '../ui';
 import { Brand, appPathOf } from './Apps';
 import { HomeApps } from './Tools';
+import { Welcome } from '../Welcome';
+import type { InterestState } from '../appsPrefs';
 
 /*
  * Home: a simple dashboard. A greeting, one notice when something needs you, and two cards: your apps
@@ -28,6 +30,8 @@ export function HomePage() {
   const [pulse, setPulse] = useState<Record<string, Pulse>>({});
   const [day, setDay] = useState<Day | null>(null);
   const [pins, setPins] = useState<string[]>([]);
+  const [welcome, setWelcome] = useState(false);
+  useEffect(() => { if (user.canCreate) get<InterestState>('/api/home/interests').then((r) => setWelcome(r.onboard), () => {}); }, [user.canCreate]);
 
   const load = useCallback(() => {
     get<{ apps: AppSummary[] }>('/api/apps').then((r) => setApps(r.apps), () => setApps([]));
@@ -92,6 +96,7 @@ export function HomePage() {
       )}
 
       {user.canCreate && <HomeApps />}
+      {welcome && <Welcome onClose={() => setWelcome(false)} />}
 
       <div className="hm-grid">
         <section className="hm-card" aria-labelledby="hm-apps">

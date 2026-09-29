@@ -519,25 +519,129 @@ export function ShortLinks() {
 }
 
 /* ---------------- QR maker ---------------- */
-export function QrSvg({ text, fg, bg, size }: { text: string; fg: string; bg: string; size: number }) {
-  const { n, d } = useMemo(() => { const q = qrcode(0, 'M'); q.addData(text || ' '); q.make(); const c = q.getModuleCount(); let d = ''; for (let r = 0; r < c; r++) for (let x = 0; x < c; x++) if (q.isDark(r, x)) d += `M${x + 4} ${r + 4}h1v1h-1z`; return { n: c + 8, d }; }, [text]);
-  return <svg xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${n} ${n}`} width={size} height={size} shapeRendering="crispEdges" role="img" aria-label="QR code"><rect width={n} height={n} fill={bg} /><path d={d} fill={fg} /></svg>;
+export function QrSvg({ text, fg, bg, size, logo }: { text: string; fg: string; bg: string; size: number; logo?: string | null }) {
+  const { n, c, d } = useMemo(() => { const q = qrcode(0, logo ? 'H' : 'M'); q.addData(text || ' '); q.make(); const c = q.getModuleCount(); let d = ''; for (let r = 0; r < c; r++) for (let x = 0; x < c; x++) if (q.isDark(r, x)) d += `M${x + 4} ${r + 4}h1v1h-1z`; return { n: c + 8, c, d }; }, [text, logo]);
+  const box = Math.round(c * 0.2 * 100) / 100, o = (n - box) / 2, pad = box * 0.12;
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox={`0 0 ${n} ${n}`} width={size} height={size} role="img" aria-label="QR code">
+      <rect width={n} height={n} fill={bg} /><path d={d} fill={fg} shapeRendering="crispEdges" />
+      {logo && <><rect x={o} y={o} width={box} height={box} rx={box * 0.2} fill="#ffffff" /><image href={logo} xlinkHref={logo} x={o + pad} y={o + pad} width={box - pad * 2} height={box - pad * 2} preserveAspectRatio="xMidYMid meet" /></>}
+    </svg>
+  );
 }
-export function QrMaker() {
-  const [text, setText] = useState('https://jhino.com');
+/** Picks a logo image for the middle of a QR code. It stays in the browser as a small data URL. */
+export function QrLogoField({ logo, setLogo }: { logo: string | null; setLogo: (v: string | null) => void }) {
+  const toast = useToast();
+  const onFile = (f?: File) => {
+    if (!f) return;
+    if (!f.type.startsWith('image/')) { toast('Pick an image file.', true); return; }
+    const url = URL.createObjectURL(f), img = new Image();
+    img.onload = () => {
+      const m = 256, k = Math.min(1, m / Math.max(img.width, img.height)), w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h; cv.getContext('2d')!.drawImage(img, 0, 0, w, h);
+      setLogo(cv.toDataURL('image/png')); URL.revokeObjectURL(url);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast('Could not read that image.', true); };
+    img.src = url;
+  };
+  return (
+    <div className="qt-logo">
+      <label className="btn sm quiet qt-logo-pick">{logo ? 'Change logo' : 'Add logo'}<input type="file" accept="image/*" hidden onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} /></label>
+      {logo && <><img src={logo} alt="" className="qt-logo-thumb" /><button type="button" className="btn sm quiet" onClick={() => setLogo(null)}>Remove</button></>}
+      <small className="qt-hint">Stays in your browser. Adding one raises error correction so the code still scans.</small>
+    </div>
+  );
+}
+
+/* What each QR type encodes. */
+export type QrKind = 'link' | 'wifi' | 'email' | 'phone' | 'sms' | 'whatsapp' | 'contact' | 'location' | 'text';
+export const QR_KINDS: { value: QrKind; label: string }[] = [
+  { value: 'link', label: 'Link' }, { value: 'wifi', label: 'Wi-Fi' }, { value: 'email', label: 'Email' }, { value: 'phone', label: 'Phone' }, { value: 'sms', label: 'SMS' },
+  { value: 'whatsapp', label: 'WhatsApp' }, { value: 'contact', label: 'Contact card' }, { value: 'location', label: 'Location' }, { value: 'text', label: 'Plain text' },
+];
+type QrForm = Record<string, string>;
+const wifiEsc = (v: string) => v.replace(/([\\;,:"])/g, '\\$1');
+const vEsc = (v: string) => v.replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([;,])/g, '\\$1');
+const digits = (v: string) => v.replace(/[^\d]/g, '');
+const phoneClean = (v: string) => v.replace(/[^\d+]/g, '');
+export function qrPayload(k: QrKind, f: QrForm): string {
+  const g = (x: string) => (f[x] ?? '').trim();
+  switch (k) {
+    case 'link': { const u = g('url'); return u && !/^[a-z][a-z0-9+.-]*:/i.test(u) ? `https://${u}` : u; }
+    case 'wifi': { const enc = f.enc || 'WPA'; return g('ssid') ? `WIFI:T:${enc};S:${wifiEsc(f.ssid)};${enc === 'nopass' ? '' : `P:${wifiEsc(f.pass ?? '')};`}H:${f.hidden === '1' ? 'true' : 'false'};;` : ''; }
+    case 'email': { if (!g('to')) return ''; const q = [g('subject') && `subject=${encodeURIComponent(g('subject'))}`, g('body') && `body=${encodeURIComponent(g('body'))}`].filter(Boolean).join('&'); return `mailto:${g('to')}${q ? `?${q}` : ''}`; }
+    case 'phone': return g('phone') ? `tel:${phoneClean(g('phone'))}` : '';
+    case 'sms': return g('phone') ? `SMSTO:${phoneClean(g('phone'))}:${f.message ?? ''}` : '';
+    case 'whatsapp': return digits(g('phone')) ? `https://wa.me/${digits(g('phone'))}${g('message') ? `?text=${encodeURIComponent(g('message'))}` : ''}` : '';
+    case 'contact': {
+      if (!g('first') && !g('last') && !g('org')) return '';
+      const L = ['BEGIN:VCARD', 'VERSION:3.0', `N:${vEsc(g('last'))};${vEsc(g('first'))};;;`, `FN:${vEsc([g('first'), g('last')].filter(Boolean).join(' ') || g('org'))}`];
+      if (g('org')) L.push(`ORG:${vEsc(g('org'))}`);
+      if (g('phone')) L.push(`TEL;TYPE=CELL:${phoneClean(g('phone'))}`);
+      if (g('email')) L.push(`EMAIL:${vEsc(g('email'))}`);
+      if (g('url')) L.push(`URL:${g('url')}`);
+      L.push('END:VCARD'); return L.join('\r\n');
+    }
+    case 'location': {
+      const v = g('loc');
+      const at = /^https?:/i.test(v) ? (v.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/) ?? v.match(/[?&](?:q|ll|query|destination)=(-?\d+(?:\.\d+)?)(?:,|%2C)(-?\d+(?:\.\d+)?)/i)) : null;
+      const m = at ?? v.match(/^(-?\d{1,3}(?:\.\d+)?)\s*[, ]\s*(-?\d{1,3}(?:\.\d+)?)$/);
+      return m ? `geo:${m[1]},${m[2]}` : '';
+    }
+    default: return f.text ?? '';
+  }
+}
+const QR_LAST = 'jhino-qr-kind';
+const wifiOpts = [{ value: 'WPA', label: 'WPA/WPA2' }, { value: 'WEP', label: 'WEP' }, { value: 'nopass', label: 'No password' }];
+function QrFields({ kind, f, set }: { kind: QrKind; f: QrForm; set: (k: string, v: string) => void }) {
+  const inp = (k: string, label: string, ph = '', type = 'text') => <label className="field sm"><span>{label}</span><input className="input" type={type} value={f[k] ?? ''} placeholder={ph} onChange={(e) => set(k, e.target.value)} /></label>;
+  const area = (k: string, label: string, rows = 3) => <label className="field sm"><span>{label}</span><textarea className="textarea" rows={rows} value={f[k] ?? ''} onChange={(e) => set(k, e.target.value)} /></label>;
+  switch (kind) {
+    case 'link': return inp('url', 'Link', 'https://jhino.com', 'url');
+    case 'wifi': return <>{inp('ssid', 'Network name (SSID)')}
+      <div className="qt-row"><label className="field sm"><span>Security</span><Select label="Security" size="sm" value={f.enc || 'WPA'} options={wifiOpts} onChange={(v) => set('enc', v)} /></label>
+        {f.enc !== 'nopass' && inp('pass', 'Password')}</div>
+      <label className="tp-toggle"><input type="checkbox" checked={f.hidden === '1'} onChange={(e) => set('hidden', e.target.checked ? '1' : '0')} /><i aria-hidden="true" /><span>Hidden network</span></label></>;
+    case 'email': return <>{inp('to', 'To', 'name@example.com', 'email')}{inp('subject', 'Subject')}{area('body', 'Message')}</>;
+    case 'phone': return inp('phone', 'Phone number', '+977 98…', 'tel');
+    case 'sms': return <>{inp('phone', 'Phone number', '+977 98…', 'tel')}{area('message', 'Message', 2)}</>;
+    case 'whatsapp': return <>{inp('phone', 'WhatsApp number with country code', '+977 98…', 'tel')}{area('message', 'Message (optional)', 2)}</>;
+    case 'contact': return <><div className="qt-row">{inp('first', 'First name')}{inp('last', 'Last name')}</div>{inp('org', 'Company')}<div className="qt-row">{inp('phone', 'Phone', '', 'tel')}{inp('email', 'Email', '', 'email')}</div>{inp('url', 'Website', 'https://')}</>;
+    case 'location': return <>{inp('loc', 'Latitude, longitude or a Maps link', '27.7172, 85.3240')}<small className="qt-hint">Paste "27.7172, 85.3240" or a Google Maps link that has the coordinates in it.</small></>;
+    default: return area('text', 'Text', 4);
+  }
+}
+
+/* ---------------- QR maker ---------------- */
+export function QrMaker({ templates }: { templates?: boolean } = {}) {
+  const [kind, setKind] = useState<QrKind>(() => { try { const v = localStorage.getItem(QR_LAST) as QrKind | null; return v && QR_KINDS.some((k) => k.value === v) ? v : 'link'; } catch { return 'link'; } });
+  const [forms, setForms] = useState<Record<string, QrForm>>({ link: { url: 'https://jhino.com' } });
+  const [plain, setPlain] = useState('https://jhino.com');
   const [fg, setFg] = useState('#141414'), [bg, setBg] = useState('#ffffff');
+  const [logo, setLogo] = useState<string | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
+  const f = forms[kind] ?? {};
+  const text = templates ? qrPayload(kind, f) : plain;
   const tooLong = text.length > 1200;
   const svgText = () => wrap.current?.querySelector('svg')?.outerHTML ?? '';
   const download = (href: string, name: string) => { const a = document.createElement('a'); a.href = href; a.download = name; a.click(); };
+  const pickKind = (k: QrKind) => { setKind(k); try { localStorage.setItem(QR_LAST, k); } catch { /* private mode */ } };
   return (
     <>
-      <label className="field sm"><span>Link or text</span><textarea className="textarea" rows={3} value={text} onChange={(e) => setText(e.target.value)} /></label>
+      {templates ? (
+        <>
+          <label className="field sm"><span>Type</span><Select label="QR type" value={kind} options={QR_KINDS} onChange={pickKind} /></label>
+          <QrFields kind={kind} f={f} set={(k, v) => setForms((x) => ({ ...x, [kind]: { ...x[kind], [k]: v } }))} />
+        </>
+      ) : <label className="field sm"><span>Link or text</span><textarea className="textarea" rows={3} value={plain} onChange={(e) => setPlain(e.target.value)} /></label>}
       <div className="qt-row">
         <label className="field sm"><span>Colour</span><input type="color" value={fg} onChange={(e) => setFg(e.target.value)} /></label>
         <label className="field sm"><span>Background</span><input type="color" value={bg} onChange={(e) => setBg(e.target.value)} /></label>
       </div>
-      {tooLong ? <p className="error-text">Too long for one QR code (1,200 characters at most).</p> : <div className="qt-qr" ref={wrap}><QrSvg text={text} fg={fg} bg={bg} size={220} /></div>}
+      <QrLogoField logo={logo} setLogo={setLogo} />
+      {tooLong ? <p className="error-text">Too long for one QR code (1,200 characters at most).</p>
+        : !text ? <p className="qt-hint">Fill in the form and your code shows here.</p>
+        : <div className="qt-qr" ref={wrap}><QrSvg text={text} fg={fg} bg={bg} size={220} logo={logo} /></div>}
       <div className="qt-row">
         <button className="btn sm" disabled={tooLong || !text} onClick={() => download(URL.createObjectURL(new Blob([svgText()], { type: 'image/svg+xml' })), 'qr-code.svg')}>Download SVG</button>
         <button className="btn sm" disabled={tooLong || !text} onClick={() => {
@@ -545,7 +649,7 @@ export function QrMaker() {
           img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText());
         }}>Download PNG</button>
       </div>
-      <p className="qt-hint">This code always opens exactly this text or link. To change where a printed code goes later, point it at a short link.</p>
+      <p className="qt-hint">This code always opens exactly what it holds. To change where a printed code goes later, use a Dynamic QR.</p>
     </>
   );
 }

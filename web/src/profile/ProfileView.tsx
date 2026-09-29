@@ -19,6 +19,14 @@ function hostOf(url: string): string {
   }
 }
 
+/** The site's icon, or the letter tile when there is none (or it fails to load). */
+function LinkIcon({ src, letter }: { src?: string | null; letter: string }) {
+  const [bad, setBad] = useState(false);
+  useEffect(() => setBad(false), [src]);
+  if (src && !bad) return <img src={src} alt="" loading="lazy" width={44} height={44} onError={() => setBad(true)} />;
+  return <span className="pf-letter">{letter || <LinkGlyph />}</span>;
+}
+
 function initialsOf(name: string, username: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   const letters = words.length > 1 ? words[0][0] + words[1][0] : (words[0] || username || '?').slice(0, 1);
@@ -165,7 +173,7 @@ function Item({ item, index, no, preview }: { item: ProfileItem; index: number; 
 
           data-highlight={item.highlight ? '' : undefined} data-hidden={off}>
           <span className="pf-link-icon" aria-hidden="true">
-            {item.thumb ? <img src={item.thumb} alt="" loading="lazy" /> : <span className="pf-letter">{(host[0] || '').toUpperCase() || <LinkGlyph />}</span>}
+            <LinkIcon src={item.thumb} letter={(host[0] || '').toUpperCase()} />
           </span>
           <span className="pf-link-text">
             <b>{item.title}</b>

@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS ask_questions (
 );
 CREATE INDEX IF NOT EXISTS ask_owner ON ask_questions(owner_id, created_at);
 CREATE TABLE IF NOT EXISTS ask_settings (user_id TEXT PRIMARY KEY, enabled INTEGER NOT NULL DEFAULT 1, prompt TEXT NOT NULL DEFAULT '', updated_at TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS user_home_apps (user_id TEXT PRIMARY KEY, ids TEXT NOT NULL, updated_at TEXT NOT NULL);`);
+CREATE TABLE IF NOT EXISTS user_home_apps (user_id TEXT PRIMARY KEY, ids TEXT NOT NULL, updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS user_interests (user_id TEXT PRIMARY KEY, interests TEXT NOT NULL, updated_at TEXT NOT NULL);`);
+  try { db.exec("ALTER TABLE ask_settings ADD COLUMN theme TEXT NOT NULL DEFAULT 'ember'"); } catch { /* column already there */ }
 
 interface SmartRow { id: string; owner_id: string; code: string; kind: string; title: string; url: string; ios: string | null; android: string | null; windows: string | null; mac: string | null; clicks: number; c_ios: number; c_android: number; c_desktop: number; last_click_at: string | null; disabled: number; created_at: string; updated_at: string }
 interface AskRow { id: string; owner_id: string; body: string; answer: string | null; answered_at: string | null; public: number; pinned: number; seen: number; created_at: string }
@@ -60,9 +62,10 @@ function ownSmart(req: FastifyRequest) {
 }
 
 const askView = (q: AskRow) => ({ id: q.id, body: q.body, answer: q.answer ?? '', answeredAt: q.answered_at, public: !!q.public, pinned: !!q.pinned, seen: !!q.seen, createdAt: q.created_at });
+const ASK_THEMES = ['ember', 'tide', 'moss', 'plum', 'sun', 'ink'];
 const settingsOf = (userId: string) => {
-  const r = db.prepare('SELECT enabled, prompt FROM ask_settings WHERE user_id=?').get(userId) as { enabled: number; prompt: string } | undefined;
-  return { enabled: r ? !!r.enabled : true, prompt: r?.prompt || 'Send me an anonymous question' };
+  const r = db.prepare('SELECT enabled, prompt, theme FROM ask_settings WHERE user_id=?').get(userId) as { enabled: number; prompt: string; theme: string } | undefined;
+  return { enabled: r ? !!r.enabled : true, prompt: r?.prompt || 'Send me an anonymous question', theme: r && ASK_THEMES.includes(r.theme) ? r.theme : 'ember' };
 };
 const personByName = (name: string) => (/^[\w-]{1,50}$/.test(name)
   ? db.prepare("SELECT * FROM users WHERE username=? COLLATE NOCASE AND kind='person' AND disabled=0").get(name) as UserRow | undefined : undefined);
@@ -124,7 +127,7 @@ export function registerMini(app: FastifyInstance) {
     return {
       username: p.username, name: p.display_name || p.name,
       avatarUrl: p.avatar ? `/api/profile/${p.username}/avatar?v=${sha256(p.avatar).slice(0, 8)}` : null,
-      enabled: s.enabled, prompt: s.prompt,
+      enabled: s.enabled, prompt: s.prompt, theme: s.theme,
       answered: answered.map((q) => ({ id: q.id, body: q.body, answer: q.answer, answeredAt: q.answered_at, pinned: !!q.pinned })),
     };
   });
@@ -153,10 +156,11 @@ export function registerMini(app: FastifyInstance) {
   });
   app.put('/api/my/ask-settings', async (req) => {
     const u = requireUser(req);
-    const b = (req.body ?? {}) as { enabled?: unknown; prompt?: unknown };
+    const b = (req.body ?? {}) as { enabled?: unknown; prompt?: unknown; theme?: unknown };
     const cur = settingsOf(u.id);
-    db.prepare('INSERT INTO ask_settings(user_id,enabled,prompt,updated_at) VALUES(?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET enabled=excluded.enabled, prompt=excluded.prompt, updated_at=excluded.updated_at')
-      .run(u.id, typeof b.enabled === 'boolean' ? (b.enabled ? 1 : 0) : (cur.enabled ? 1 : 0), typeof b.prompt === 'string' ? b.prompt.trim().slice(0, 120) : cur.prompt, now());
+    db.prepare('INSERT INTO ask_settings(user_id,enabled,prompt,theme,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(user_id) DO UPDATE SET enabled=excluded.enabled, prompt=excluded.prompt, theme=excluded.theme, updated_at=excluded.updated_at')
+      .run(u.id, typeof b.enabled === 'boolean' ? (b.enabled ? 1 : 0) : (cur.enabled ? 1 : 0), typeof b.prompt === 'string' ? b.prompt.trim().slice(0, 120) : cur.prompt,
+        typeof b.theme === 'string' && ASK_THEMES.includes(b.theme) ? b.theme : cur.theme, now());
     return { settings: settingsOf(u.id) };
   });
   app.patch('/api/my/ask/:id', async (req) => {
@@ -190,5 +194,25 @@ export function registerMini(app: FastifyInstance) {
     const ids = [...new Set(Array.isArray(raw) ? raw.filter((x): x is string => typeof x === 'string' && /^[a-z]{2,16}$/.test(x)) : [])].slice(0, 9);
     db.prepare('INSERT INTO user_home_apps(user_id,ids,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET ids=excluded.ids, updated_at=excluded.updated_at').run(u.id, JSON.stringify(ids), now());
     return { ids };
+  });
+
+  /* ---------- what the person uses Jhino for (welcome step) ---------- */
+  const INTERESTS = ['bio', 'hosting', 'domain', 'qr', 'files', 'focus', 'money', 'social'];
+  app.get('/api/home/interests', async (req) => {
+    const u = requireUser(req);
+    const r = db.prepare('SELECT interests FROM user_interests WHERE user_id=?').get(u.id) as { interests: string } | undefined;
+    const made = (db.prepare('SELECT created_at FROM users WHERE id=?').get(u.id) as { created_at: string } | undefined)?.created_at;
+    // Only accounts made in the last week get the welcome; older ones never saw it and should not now.
+    const fresh = !!made && Date.now() - new Date(made).getTime() < 7 * 86400_000;
+    return { interests: r ? (JSON.parse(r.interests) as string[]) : [], done: !!r, onboard: !r && fresh };
+  });
+  app.put('/api/home/interests', async (req) => {
+    const u = requireUser(req);
+    limit(req, 'tools-write', 600, 3600_000, u.id);
+    const raw = (req.body as { interests?: unknown })?.interests;
+    if (!Array.isArray(raw) || raw.length > INTERESTS.length || raw.some((x) => typeof x !== 'string' || !INTERESTS.includes(x))) throw new HttpError(400, 'VALIDATION_FAILED', 'Pick from the list.');
+    const interests = [...new Set(raw as string[])];
+    db.prepare('INSERT INTO user_interests(user_id,interests,updated_at) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET interests=excluded.interests, updated_at=excluded.updated_at').run(u.id, JSON.stringify(interests), now());
+    return { interests, done: true, onboard: false };
   });
 }

@@ -3,9 +3,11 @@ import { ApiError, api, get, post } from '../api';
 import { Link, useRoute, useSession } from '../context';
 import { PanelLoader } from '../Loader';
 import { Icon, ago, bytes, copyText, Modal, useToast } from '../ui';
-import { Calendar, Contacts, Notes, P, QrMaker, QrSvg, TOOLS, Tasks, useTimer } from '../QuickTools';
+import { Calendar, Contacts, Notes, P, QrLogoField, QrMaker, QrSvg, TOOLS, Tasks, useTimer } from '../QuickTools';
 import { Calculator, ColourTool, Encoder, JsonTool, NepaliDate, Passwords, WorldClock } from '../MoreTools';
 import { UploadDialog } from './Shell';
+import { ASK_THEMES, askTheme } from './Ask';
+import { appsForInterests, getRecent, noteRecent, type InterestState } from '../appsPrefs';
 import '../tools.css';
 import '../apps.css';
 
@@ -78,51 +80,72 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const hrefOf = (a: DashApp, username?: string | null) => (a.key === 'bio' ? `/${username ?? ''}` : a.to ?? `/home/${a.key}`);
 const download = (href: string, name: string) => { const a = document.createElement('a'); a.href = href; a.download = name; a.click(); };
 
-/* ---------------- the six cards on Home ---------------- */
+/* ---------------- pinned apps: the server list (max 9, ordered), shared by Home and All apps ---------------- */
+function usePinned() {
+  const toast = useToast();
+  const [pins, setPins] = useState<AppKey[] | null>(null);
+  const [unread, setUnread] = useState(0);
+  const [interests, setInterests] = useState<string[]>([]);
+  const load = () => {
+    get<{ ids: string[] | null; unread: { ask: number } }>('/api/home/apps').then((r) => {
+      setPins((r.ids ?? []).filter((k): k is AppKey => DASH_APPS.some((a) => a.key === k))); setUnread(r.unread.ask);
+    }, () => setPins([]));
+    get<InterestState>('/api/home/interests').then((r) => setInterests(r.interests), () => {});
+  };
+  useEffect(() => { load(); addEventListener('jhino-home-apps', load); return () => removeEventListener('jhino-home-apps', load); }, []);
+  const save = async (next: AppKey[]) => {
+    const before = pins; setPins(next);
+    try { await api('PUT', '/api/home/apps', { ids: next }); } catch (e) { setPins(before); toast(msg(e, 'Could not save your apps.'), true); }
+  };
+  const toggle = (k: AppKey) => {
+    const cur = pins ?? [];
+    if (!cur.includes(k) && cur.length >= MAX) { toast(`Home holds ${MAX} pins. Unpin one first.`, true); return; }
+    save(cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]);
+  };
+  return { pins, unread, interests, save, toggle };
+}
+const PinIcon = ({ on }: { on: boolean }) => <svg viewBox="0 0 24 24" width="16" height="16" fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true"><path d="M9 3h6l-1 6 4 3v2h-5v7l-1 1-1-1v-7H6v-2l4-3z" /></svg>;
+const recentApps = () => getRecent().map((k) => DASH_APPS.find((a) => a.key === k)!).filter(Boolean);
+
+function AppCard({ a, username, pinned, onPin, meta }: { a: DashApp; username?: string | null; pinned: boolean; onPin: () => void; meta?: string }) {
+  return (
+    <li className="ha-item">
+      <Link to={hrefOf(a, username)} className="ha-card" onClick={() => noteRecent(a.key)}>
+        <span className="ha-ic"><Svg d={a.d} /></span>
+        <span className="ha-t"><b>{a.label}</b><small>{a.desc}</small></span>
+        {meta && <span className={`ha-meta ${a.key === 'ask' ? 'hot' : ''}`}>{meta}</span>}
+      </Link>
+      <button className={`ha-pin ${pinned ? 'on' : ''}`} aria-pressed={pinned} aria-label={pinned ? `Unpin ${a.label}` : `Pin ${a.label}`} title={pinned ? 'Unpin' : 'Pin to Home'} onClick={onPin}><PinIcon on={pinned} /></button>
+    </li>
+  );
+}
+
+/* ---------------- the nine cards on Home: pinned, then recently used, then the ones that fit your interests ---------------- */
 export function HomeApps() {
   const { user } = useSession();
-  const toast = useToast();
-  const [ids, setIds] = useState<AppKey[] | null>(null);
-  const [unread, setUnread] = useState(0);
   const [editing, setEditing] = useState(false);
+  const { pins, unread, interests, save, toggle } = usePinned();
   const t = useTimer();
-  useEffect(() => {
-    get<{ ids: string[] | null; unread: { ask: number } }>('/api/home/apps').then((r) => {
-      const known = (r.ids ?? DEFAULT).filter((k): k is AppKey => DASH_APPS.some((a) => a.key === k));
-      setIds(known.length ? known : DEFAULT); setUnread(r.unread.ask);
-    }, () => setIds(DEFAULT));
-  }, []);
-  const save = async (next: AppKey[]) => {
-    const before = ids; setIds(next);
-    try { await api('PUT', '/api/home/apps', { ids: next }); } catch (e) { setIds(before); toast(msg(e, 'Could not save your apps.'), true); }
-  };
   const meta = (k: AppKey) => k === 'ask' && unread > 0 ? `${unread} new ${unread === 1 ? 'question' : 'questions'}`
     : k === 'focus' && t.running ? `${t.mode === 'work' ? 'Focus' : 'Break'} · ${pad(Math.floor(t.left / 60))}:${pad(t.left % 60)} left` : '';
-  const shown = (ids ?? []).map((k) => DASH_APPS.find((a) => a.key === k)!).filter(Boolean);
+  const shown = useMemo(() => {
+    if (!pins) return [];
+    const order = [...pins, ...getRecent(), ...appsForInterests(interests, MAX), ...DEFAULT];
+    return [...new Set(order)].map((k) => DASH_APPS.find((a) => a.key === k)!).filter(Boolean).slice(0, MAX);
+  }, [pins, interests]);
   return (
     <section className="ha" aria-labelledby="ha-h">
       <div className="ha-head">
         <h2 id="ha-h">Your apps</h2>
         <div className="ha-acts">
-          <button className="btn sm quiet" onClick={() => setEditing(true)}><Icon name="settings" size={15} />Choose</button>
+          <button className="btn sm quiet" onClick={() => setEditing(true)}><Icon name="settings" size={15} />Pins</button>
           <Link to="/home/all" className="btn sm">All apps<small className="mono">{DASH_APPS.length}</small></Link>
         </div>
       </div>
-      {!ids ? <PanelLoader /> : (
-        <ul className="ha-grid">{shown.map((a) => {
-          const m = meta(a.key);
-          return (
-            <li key={a.key}>
-              <Link to={hrefOf(a, user.username)} className="ha-card">
-                <span className="ha-ic"><Svg d={a.d} /></span>
-                <span className="ha-t"><b>{a.label}</b><small>{a.desc}</small></span>
-                {m && <span className={`ha-meta ${a.key === 'ask' ? 'hot' : ''}`}>{m}</span>}
-              </Link>
-            </li>
-          );
-        })}</ul>
+      {!pins ? <PanelLoader /> : (
+        <ul className="ha-grid">{shown.map((a) => <AppCard key={a.key} a={a} username={user.username} pinned={pins.includes(a.key)} onPin={() => toggle(a.key)} meta={meta(a.key)} />)}</ul>
       )}
-      {editing && ids && <ChooseApps current={ids} onClose={() => setEditing(false)} onSave={(n) => { save(n); setEditing(false); }} />}
+      {editing && pins && <ChooseApps current={pins} onClose={() => setEditing(false)} onSave={(n) => { save(n); setEditing(false); }} />}
     </section>
   );
 }
@@ -132,12 +155,12 @@ function ChooseApps({ current, onClose, onSave }: { current: AppKey[]; onClose: 
   const flip = (k: AppKey) => setPick((p) => (p.includes(k) ? p.filter((x) => x !== k) : p.length >= MAX ? p : [...p, k]));
   const move = (k: AppKey, by: number) => setPick((p) => { const i = p.indexOf(k), j = i + by; if (j < 0 || j >= p.length) return p; const n = [...p]; [n[i], n[j]] = [n[j], n[i]]; return n; });
   return (
-    <Modal title="Choose your apps for Home" onClose={onClose} footer={<>
-      <button className="btn quiet" onClick={() => setPick(DEFAULT)}>Reset</button>
-      <button className="btn primary" disabled={!pick.length} onClick={() => onSave(pick)}>Save</button>
+    <Modal title="Pinned apps" onClose={onClose} footer={<>
+      <button className="btn quiet" onClick={() => setPick([])}>Clear</button>
+      <button className="btn primary" onClick={() => onSave(pick)}>Save</button>
     </>}>
       <div className="modal-body">
-      <p className="hint">Pick up to nine for Home, in the order you like. Every app stays in All apps. <b className="mono">{pick.length}/{MAX}</b></p>
+      <p className="hint">Pin up to nine and put them in the order you like. They come first on Home. <b className="mono">{pick.length}/{MAX}</b></p>
       <ul className="ha-pick">{DASH_APPS.map((a) => {
         const i = pick.indexOf(a.key), on = i >= 0;
         return (
@@ -164,6 +187,7 @@ export function ToolsPage({ k }: { k: string }) {
   const { user } = useSession();
   const app = DASH_APPS.find((a) => a.key === k);
   const extra = EXTRA.find((t) => t.key === k);
+  useEffect(() => { if (app) noteRecent(app.key); }, [app]);
   if (!app && !extra) return <AllApps username={user.username} />;
   return <ToolFrame k={k} app={app} extra={extra} />;
 }
@@ -194,25 +218,63 @@ const Narrow = ({ children }: { children: ReactNode }) => <div className="tp-nar
 
 function AllApps({ username }: { username?: string | null }) {
   useEffect(() => { document.title = 'All apps | Jhino'; }, []);
+  const { pins, interests, toggle } = usePinned();
+  const [q, setQ] = useState('');
+  const { go } = useRoute();
+  const box = useRef<HTMLInputElement>(null);
+  const query = q.trim().toLowerCase();
+  const fits = (a: DashApp) => !query || `${a.label} ${a.desc}`.toLowerCase().includes(query);
+  const mine = new Set(appsForInterests(interests, 40));
+  const byFit = (list: DashApp[]) => [...list].sort((x, y) => Number(mine.has(y.key)) - Number(mine.has(x.key)));
+  const pinned = (pins ?? []).map((k) => DASH_APPS.find((a) => a.key === k)!).filter(Boolean);
+  const recent = recentApps();
+  const results = byFit(DASH_APPS.filter(fits));
+  const extras = EXTRA.filter((t) => !query || `${t.label} ${t.desc}`.toLowerCase().includes(query));
+  const grid = (list: DashApp[]) => (
+    <ul className="ha-grid all">{list.map((a) => <AppCard key={a.key} a={a} username={username} pinned={!!pins?.includes(a.key)} onPin={() => toggle(a.key)} />)}</ul>
+  );
+  const sec = (title: string, list: DashApp[], note?: string) => list.length > 0 && (
+    <section key={title} className="tp-group" aria-label={title}>
+      <h2 className="tp-sub">{title}{note && <small>{note}</small>}</h2>
+      {grid(list)}
+    </section>
+  );
   return (
     <main className="page tp">
       <div className="tp-head">
         <Link to="/home" className="icon-btn" aria-label="Home"><Icon name="back" size={18} /></Link>
-        <div><h1>All apps</h1><p>Twenty apps, each on its own page. Choose which nine sit on Home with Home's Choose button.</p></div>
+        <div><h1>All apps</h1><p>Pin up to nine to keep them first on Home.</p></div>
       </div>
-      {GROUPS.map((g) => (
-        <section key={g} className="tp-group">
-          <h2 className="tp-sub">{g}</h2>
-          <ul className="ha-grid all">{DASH_APPS.filter((a) => a.group === g).map((a) => (
-            <li key={a.key}><Link to={hrefOf(a, username)} className="ha-card"><span className="ha-ic"><Svg d={a.d} /></span><span className="ha-t"><b>{a.label}</b><small>{a.desc}</small></span></Link></li>
-          ))}</ul>
-        </section>
-      ))}
+      <form className="tp-find" role="search" onSubmit={(e) => { e.preventDefault(); const f = results[0]; if (f) { noteRecent(f.key); go(hrefOf(f, username)); } }}>
+        <Icon name="search" size={16} />
+        <input ref={box} className="input" type="search" value={q} placeholder="Search apps" aria-label="Search apps" autoComplete="off" enterKeyHint="go"
+          onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape' && q) { e.preventDefault(); setQ(''); } }} />
+      </form>
+      {query ? (
+        <>
+          {sec(`${results.length} ${results.length === 1 ? 'result' : 'results'}`, results)}
+          {extras.length > 0 && <MoreTools list={extras} />}
+          {!results.length && !extras.length && <p className="tp-empty">No app matches "{q.trim()}". <button className="link" onClick={() => { setQ(''); box.current?.focus(); }}>Clear search</button></p>}
+        </>
+      ) : (
+        <>
+          {sec('Pinned', pinned, `${pinned.length} of ${MAX}`)}
+          {sec('Recently used', recent)}
+          {GROUPS.map((g) => sec(g, byFit(DASH_APPS.filter((a) => a.group === g))))}
+          <MoreTools list={EXTRA} />
+        </>
+      )}
+    </main>
+  );
+}
+function MoreTools({ list }: { list: typeof EXTRA }) {
+  return (
+    <section className="tp-group" aria-label="More tools">
       <h2 className="tp-sub">More tools</h2>
-      <ul className="tp-list">{EXTRA.map((t) => (
+      <ul className="tp-list">{list.map((t) => (
         <li key={t.key}><Link to={`/home/${t.key}`}><span className="ha-ic sm"><Svg d={P[t.key]} size={18} /></span><span className="ha-t"><b>{t.label}</b><small>{t.desc}</small></span></Link></li>
       ))}</ul>
-    </main>
+    </section>
   );
 }
 
@@ -348,16 +410,18 @@ function SmartLinks({ kind }: { kind: 'smart' }) {
 
 function QrCard({ text, name, big }: { text: string; name: string; big?: boolean }) {
   const [fg, setFg] = useState('#141414'), [bg, setBg] = useState('#ffffff');
+  const [logo, setLogo] = useState<string | null>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const svg = () => wrap.current?.querySelector('svg')?.outerHTML ?? '';
   return (
     <div className="tp-qr">
-      <div ref={wrap} className="tp-qr-img"><QrSvg text={text} fg={fg} bg={bg} size={big ? 200 : 240} /></div>
+      <div ref={wrap} className="tp-qr-img"><QrSvg text={text} fg={fg} bg={bg} size={big ? 200 : 240} logo={logo} /></div>
       <div className="tp-qr-side">
         <div className="qt-row">
           <label className="field sm"><span>Colour</span><input type="color" value={fg} onChange={(e) => setFg(e.target.value)} /></label>
           <label className="field sm"><span>Background</span><input type="color" value={bg} onChange={(e) => setBg(e.target.value)} /></label>
         </div>
+        <QrLogoField logo={logo} setLogo={setLogo} />
         <div className="actions-row">
           <button className="btn sm" onClick={() => download(URL.createObjectURL(new Blob([svg()], { type: 'image/svg+xml' })), `qr-${name}.svg`)}><Icon name="download" size={15} />SVG</button>
           <button className="btn sm" onClick={() => { const img = new Image(); img.onload = () => { const c = document.createElement('canvas'); c.width = c.height = 1200; c.getContext('2d')!.drawImage(img, 0, 0, 1200, 1200); download(c.toDataURL('image/png'), `qr-${name}.png`); }; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg()); }}><Icon name="download" size={15} />PNG</button>
@@ -379,7 +443,7 @@ function DynamicQr() {
         <button role="tab" aria-selected={tab === 'dynamic'} onClick={() => setTab('dynamic')}>Dynamic</button>
         <button role="tab" aria-selected={tab === 'static'} onClick={() => setTab('static')}>Plain</button>
       </div>
-      {tab === 'static' ? <div className="tp-narrow qt-body"><QrMaker /></div> : (
+      {tab === 'static' ? <div className="tp-narrow qt-body"><QrMaker templates /></div> : (
         <div className="tp-split">
           <section className="tp-card">
             <h2>New dynamic QR</h2>
@@ -422,7 +486,7 @@ function DynamicQr() {
 interface Q { id: string; body: string; answer: string; answeredAt: string | null; public: boolean; pinned: boolean; seen: boolean; createdAt: string }
 function AskInbox() {
   const toast = useToast();
-  const [d, setD] = useState<{ questions: Q[]; settings: { enabled: boolean; prompt: string }; username: string | null } | null>(null);
+  const [d, setD] = useState<{ questions: Q[]; settings: { enabled: boolean; prompt: string; theme: string }; username: string | null } | null>(null);
   const [tab, setTab] = useState<'new' | 'answered'>('new');
   const [prompt, setPrompt] = useState('');
   useEffect(() => { get<NonNullable<typeof d>>('/api/my/ask').then((r) => { setD(r); setPrompt(r.settings.prompt); }, (e) => toast(msg(e, 'Could not load.'), true)); }, [toast]);
@@ -449,6 +513,10 @@ function AskInbox() {
           <input className="input" maxLength={120} value={prompt} onChange={(e) => setPrompt(e.target.value)} aria-label="What your page asks" />
           <button className="btn sm" disabled={prompt === d.settings.prompt}>Save</button>
         </form>
+        <div className="ask-themes" role="group" aria-label="Page theme">
+          <span className="ask-themes-l">Page theme</span>
+          {ASK_THEMES.map((t) => <button key={t.id} type="button" className="ask-swatch" style={{ background: t.bg }} aria-label={t.name} title={t.name} aria-pressed={d.settings.theme === t.id} onClick={() => d.settings.theme !== t.id && setS({ theme: t.id })} />)}
+        </div>
         <label className="tp-toggle"><input type="checkbox" checked={d.settings.enabled} onChange={(e) => setS({ enabled: e.target.checked })} /><i aria-hidden="true" /><span>{d.settings.enabled ? 'Taking questions' : 'Paused: new questions are turned away'}</span></label>
       </section>
       <section>
@@ -457,13 +525,13 @@ function AskInbox() {
           <button role="tab" aria-selected={tab === 'answered'} onClick={() => setTab('answered')}>Answered <small className="mono">{done.length}</small></button>
         </div>
         {!shown.length ? <p className="tp-empty">{tab === 'new' ? 'No questions waiting. Share your link to get some.' : 'Answers you post show on your question page for everyone.'}</p> : (
-          <ul className="tp-items">{shown.map((q) => <Question key={q.id} q={q} username={d.username!} patch={patch} del={del} />)}</ul>
+          <ul className="tp-items">{shown.map((q) => <Question key={q.id} q={q} username={d.username!} theme={d.settings.theme} patch={patch} del={del} />)}</ul>
         )}
       </section>
     </div>
   );
 }
-function Question({ q, username, patch, del }: { q: Q; username: string; patch: (id: string, b: Record<string, unknown>) => Promise<boolean>; del: (id: string) => void }) {
+function Question({ q, username, theme, patch, del }: { q: Q; username: string; theme: string; patch: (id: string, b: Record<string, unknown>) => Promise<boolean>; del: (id: string) => void }) {
   const [a, setA] = useState(q.answer);
   const [editing, setEditing] = useState(!q.answer);
   return (
@@ -476,7 +544,7 @@ function Question({ q, username, patch, del }: { q: Q; username: string; patch: 
           <div className="actions-row">
             <button className="btn sm primary" disabled={!a.trim()}>Post answer</button>
             <button type="button" className="btn sm quiet" disabled={!a.trim()} onClick={async () => { if (await patch(q.id, { answer: a, public: false })) setEditing(false); }}>Answer privately</button>
-            <button type="button" className="btn sm quiet" onClick={() => storyImage(q.body, username)}><Icon name="image" size={15} />Story image</button>
+            <button type="button" className="btn sm quiet" onClick={() => storyImage(q.body, username, undefined, theme)}><Icon name="image" size={15} />Story image</button>
             {q.answer && <button type="button" className="btn sm quiet" onClick={() => { setA(q.answer); setEditing(false); }}>Cancel</button>}
             <button type="button" className="btn sm quiet danger" onClick={() => del(q.id)}>Delete</button>
           </div>
@@ -487,7 +555,7 @@ function Question({ q, username, patch, del }: { q: Q; username: string; patch: 
           <button className="btn sm quiet" onClick={() => setEditing(true)}>Edit</button>
           <button className="btn sm quiet" onClick={() => patch(q.id, { pinned: !q.pinned })}>{q.pinned ? 'Unpin' : 'Pin'}</button>
           <button className="btn sm quiet" onClick={() => patch(q.id, { public: !q.public })}>{q.public ? 'Hide from page' : 'Show on page'}</button>
-          <button className="btn sm quiet" onClick={() => storyImage(q.body, username, q.answer)}><Icon name="image" size={15} />Story image</button>
+          <button className="btn sm quiet" onClick={() => storyImage(q.body, username, q.answer, theme)}><Icon name="image" size={15} />Story image</button>
           <button className="btn sm quiet danger" onClick={() => del(q.id)}>Delete</button>
         </div>
       </>}
@@ -495,21 +563,35 @@ function Question({ q, username, patch, del }: { q: Q; username: string; patch: 
   );
 }
 /** A 1080×1920 picture of the question (and answer) to post as a story. */
-function storyImage(question: string, username: string, answer?: string) {
+function storyImage(question: string, username: string, answer?: string, themeId?: string) {
+  const t = askTheme(themeId);
   const c = document.createElement('canvas'); c.width = 1080; c.height = 1920;
   const x = c.getContext('2d')!;
   const font = getComputedStyle(document.body).fontFamily;
-  x.fillStyle = '#efeeeb'; x.fillRect(0, 0, 1080, 1920);
-  const wrap = (s: string, size: number, max: number) => { x.font = `600 ${size}px ${font}`; const out: string[] = []; for (const para of s.split('\n')) { let line = ''; for (const w of para.split(/\s+/)) { const t = line ? `${line} ${w}` : w; if (x.measureText(t).width > max && line) { out.push(line); line = w; } else line = t; } out.push(line); } return out.slice(0, 12); };
-  const q = wrap(question, 62, 800), an = answer ? wrap(answer, 48, 800) : [];
-  const h = 200 + q.length * 78 + (an.length ? 80 + an.length * 62 : 0);
-  const top = Math.max(260, (1920 - h) / 2);
-  x.fillStyle = '#ffffff'; x.beginPath(); x.roundRect(90, top, 900, h, 36); x.fill();
-  x.fillStyle = '#141414'; x.fillRect(90, top, 900, 110); x.beginPath(); x.roundRect(90, top, 900, 110, [36, 36, 0, 0]); x.fill();
-  x.fillStyle = '#ffffff'; x.font = `600 40px ${font}`; x.fillText('Ask me anything', 140, top + 70);
-  x.fillStyle = '#141414'; q.forEach((l, i) => { x.font = `600 62px ${font}`; x.fillText(l, 140, top + 200 + i * 78); });
-  if (an.length) { x.fillStyle = '#e0461f'; x.fillRect(140, top + 170 + q.length * 78, 60, 6); x.fillStyle = '#4b4a47'; an.forEach((l, i) => { x.font = `400 48px ${font}`; x.fillText(l, 140, top + 250 + q.length * 78 + i * 62); }); }
-  x.fillStyle = '#4b4a47'; x.font = `500 40px ${font}`; x.textAlign = 'center'; x.fillText(`${location.host}/${username}/ask`, 540, 1920 - 200);
+  x.fillStyle = t.bg; x.fillRect(0, 0, 1080, 1920);
+  x.fillStyle = t.ink; x.globalAlpha = 0.09;
+  for (const [cx, cy, r] of [[1000, 160, 340], [60, 1700, 420], [900, 1500, 160]]) { x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); }
+  x.globalAlpha = 1;
+  const wrap = (s: string, size: number, weight: number, max: number) => { x.font = `${weight} ${size}px ${font}`; const out: string[] = []; for (const para of s.split('\n')) { let line = ''; for (const w of para.split(/\s+/)) { const tt = line ? `${line} ${w}` : w; if (x.measureText(tt).width > max && line) { out.push(line); line = w; } else line = tt; } out.push(line); } return out.slice(0, 12); };
+  const q = wrap(question, 68, 700, 800), an = answer ? wrap(answer, 50, 400, 800) : [];
+  const h = 210 + q.length * 84 + (an.length ? 90 + an.length * 66 : 0) + 40;
+  const top = Math.max(250, (1920 - h) / 2 - 60);
+  x.save(); x.shadowColor = 'rgba(0,0,0,0.28)'; x.shadowBlur = 60; x.shadowOffsetY = 24;
+  x.fillStyle = '#ffffff'; x.beginPath(); x.roundRect(90, top, 900, h, 48); x.fill(); x.restore();
+  x.fillStyle = t.btn; x.beginPath(); x.roundRect(90, top, 900, 120, [48, 48, 0, 0]); x.fill();
+  x.fillStyle = t.btnInk; x.font = `700 42px ${font}`; x.textAlign = 'left'; x.fillText('Anonymous question', 140, top + 76);
+  x.textAlign = 'right'; x.font = `500 36px ${font}`; x.fillText(`@${username}`, 940, top + 74); x.textAlign = 'left';
+  x.fillStyle = '#141414'; x.font = `700 68px ${font}`; q.forEach((l, i) => x.fillText(l, 140, top + 235 + i * 84));
+  if (an.length) {
+    const ay = top + 235 + (q.length - 1) * 84 + 60;
+    x.fillStyle = t.btn; x.fillRect(140, ay, 64, 8);
+    x.fillStyle = '#3a3936'; x.font = `400 50px ${font}`; an.forEach((l, i) => x.fillText(l, 140, ay + 80 + i * 66));
+  }
+  const url = `${location.host}/${username}/ask`;
+  x.font = `700 44px ${font}`; const pw = Math.min(940, x.measureText(url).width + 100);
+  x.fillStyle = '#ffffff'; x.beginPath(); x.roundRect(540 - pw / 2, 1920 - 300, pw, 96, 48); x.fill();
+  x.fillStyle = '#141414'; x.textAlign = 'center'; x.fillText(url, 540, 1920 - 300 + 62);
+  x.fillStyle = t.ink; x.font = `500 38px ${font}`; x.fillText('Send me an anonymous question', 540, 1920 - 140);
   download(c.toDataURL('image/png'), 'question.png');
 }
 

@@ -2,6 +2,7 @@ import { Wordmark } from '../Logo';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, api, avatarUrl, get, post, type PlanFeatures } from '../api';
 import { Link, applyTheme, readTheme, useRoute, useSession, type Theme } from '../context';
+import { Welcome } from '../Welcome';
 import { Avatar, Icon, Select, ago, copyText, useToast } from '../ui';
 import { DateField } from '../DateField';
 import { Qr } from '../Qr';
@@ -296,7 +297,10 @@ function AccountSection({ data, reload }: { data: AccountData; reload: () => voi
 
 function Appearance() {
   const [theme, setTheme] = useState<Theme>(readTheme());
+  const { user } = useSession();
+  const [welcome, setWelcome] = useState(false);
   return (
+    <>
     <Section title="Appearance" lede="On this device only.">
       <div className="seg" role="group" aria-label="Appearance" style={{ marginLeft: 0, width: 'max-content' }}>
         {(['light', 'dark', 'system'] as Theme[]).map((t) => (
@@ -306,6 +310,13 @@ function Appearance() {
         ))}
       </div>
     </Section>
+    {user.canCreate && (
+      <Section title="Your interests" lede="What you use Jhino for. It decides which apps come first on Home.">
+        <button className="btn" onClick={() => setWelcome(true)}>Change what I use Jhino for</button>
+        {welcome && <Welcome onClose={() => setWelcome(false)} />}
+      </Section>
+    )}
+    </>
   );
 }
 
