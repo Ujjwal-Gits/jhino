@@ -298,3 +298,12 @@
 .se-top-end .btn[aria-disabled='true'] { opacity: 0.45; cursor: not-allowed; }
 @media (max-width: 1320px) { .se-hide-m { display: none !important; } }
 @media (max-width: 960px) { .se-hist { display: none; } .se-prev-note span { display: none; } .se-prev-note { justify-content: flex-end; } }
+
+/* Template previews at full length: the big preview scrolls like the real site; hovering a card glides down it. */
+.ss-mini-in { position: relative; }
+.ss-mini-in iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; pointer-events: none; }
+.ss-mini.scroll { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.ss-mini.glide .ss-mini-in { transition: transform 700ms var(--ease); }
+.ss-tpls button:hover .ss-mini.glide .ss-mini-in, .ss-tpls button:focus-visible .ss-mini.glide .ss-mini-in { transform: translateY(var(--travel)); transition: transform var(--dur) linear; }
+.ss-preview-hint { font-size: 12.5px; color: var(--ink-3); }
+@media (prefers-reduced-motion: reduce) { .ss-mini.glide .ss-mini-in, .ss-tpls button:hover .ss-mini.glide .ss-mini-in { transition: none; transform: none; } }

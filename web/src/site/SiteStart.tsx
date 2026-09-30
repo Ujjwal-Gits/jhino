@@ -23,14 +23,16 @@ function previewHtml(site: Site, pageIdx = 0) {
     mode: 'preview', appId: 'preview', site, page, formAction: '#',
     pageHref: () => '#',
     asset: (src) => (src.startsWith('lib:') ? libraryAsset(src.slice(4)) : /^https:\/\//.test(src) ? { url: src } : null),
-  }, { extraHead: '<style>html{scrollbar-width:none}body::-webkit-scrollbar{display:none}</style>' });
+  }, { extraHead: '<style>html{scrollbar-width:none}body::-webkit-scrollbar{display:none}.rv::after{display:none!important}.rv>img{transform:none!important}</style>' });
 }
 
-/** A site drawn small: the real page at desktop width, scaled to fit its box. */
-function Miniature({ site, page = 0, width = 1280, label }: { site: Site; page?: number; width?: number; label: string }) {
+/** A site drawn small: the real page at desktop width, at its full length, scaled to fit the box's width.
+ * scroll: the box scrolls the whole page (the big preview). Otherwise hovering the card glides down the page. */
+function Miniature({ site, page = 0, width = 1280, label, scroll = false }: { site: Site; page?: number; width?: number; label: string; scroll?: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(300);
   const [h, setH] = useState(200);
+  const [docH, setDocH] = useState(0);
   useEffect(() => {
     const el = box.current!;
     const ro = new ResizeObserver(() => { setW(el.clientWidth); setH(el.clientHeight); });
@@ -38,10 +40,21 @@ function Miniature({ site, page = 0, width = 1280, label }: { site: Site; page?:
     return () => ro.disconnect();
   }, []);
   const html = useMemo(() => previewHtml(site, page), [site, page]);
+  useEffect(() => { setDocH(0); box.current?.scrollTo({ top: 0 }); }, [html]);
+  // The page's real height, measured once it has loaded and again after its photos settle.
+  const onLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
+    const d = e.currentTarget.contentDocument; if (!d) return;
+    const measure = () => setDocH(Math.max(d.documentElement.scrollHeight, d.body?.scrollHeight ?? 0));
+    measure(); setTimeout(measure, 700); setTimeout(measure, 2000);
+  };
   const k = w / width;
+  const fullH = docH || h / k;
+  const travel = Math.max(0, fullH * k - h);
   return (
-    <div className="ss-mini" ref={box}>
-      <iframe title={label} srcDoc={html} tabIndex={-1} aria-hidden="true" loading="lazy" style={{ width, height: h / k, transform: `scale(${k})` }} />
+    <div className={`ss-mini ${scroll ? 'scroll' : 'glide'}`} ref={box} style={{ ['--travel' as string]: `${-travel}px`, ['--dur' as string]: `${Math.max(4, travel / 110)}s` }}>
+      <div className="ss-mini-in" style={{ height: fullH * k }}>
+        <iframe title={label} srcDoc={html} tabIndex={-1} aria-hidden="true" onLoad={onLoad} style={{ width, height: fullH, transform: `scale(${k})` }} />
+      </div>
     </div>
   );
 }
@@ -153,7 +166,7 @@ export function SiteStart() {
               </div>
             )}
           </div>
-          <div className="ss-preview-frame"><Miniature site={previewSite} page={previewPage} width={1280} label="Preview of the website" /></div>
+          <div className="ss-preview-frame"><Miniature site={previewSite} page={previewPage} width={1280} label="Preview of the website" scroll /></div>
         </aside>
       </div>
     </div>
