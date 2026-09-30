@@ -69,7 +69,7 @@
     "blocks": [
      {
       "type": "hero",
-      "variant": "stacked",
+      "variant": "text",
       "props": {
        "title": "Books, tax and audit for businesses that would rather be doing business",
        "text": "We keep the accounts of shops, workshops, clinics and young companies across the valley. Your VAT, TDS and income tax go in on time, and you get one clear page of numbers every month.",
@@ -91,22 +91,6 @@
        },
        "eyebrow": "Chartered accountants · New Baneshwor, since 2068",
        "video": ""
-      }
-     },
-     {
-      "type": "quote",
-      "variant": "large",
-      "props": {
-       "quote": "Most tax trouble in Nepal does not start with fraud. It starts with a shoebox of bills nobody opened until Asoj.",
-       "name": "Rajendra Acharya, FCA",
-       "detail": "Founding partner",
-       "image": {
-        "src": "",
-        "alt": ""
-       }
-      },
-      "style": {
-       "bg": "surface"
       }
      },
      {
@@ -201,40 +185,31 @@
          "detail": "Rs 250 per employee"
         }
        ]
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
-      "type": "sticky",
-      "variant": "left",
+      "type": "countdown",
+      "variant": "split",
       "props": {
-       "heading": "From the khata to proper books, in one quarter",
-       "intro": "How we take on a business that has only ever kept a handwritten ledger.",
-       "image": {
-        "src": "lib:ca-khata",
-        "alt": "Old handwritten account books open on a table"
+       "heading": "Income tax returns for 2082/83 are due in",
+       "text": "If yours is not started, book a consultation this week. We can still file on time, or apply for the extension to Poush.",
+       "date": "2026-10-17",
+       "time": "17:00",
+       "calendar": "bs",
+       "after": "The Asoj deadline has passed. Ask us about the extension to Poush.",
+       "link": {
+        "label": "Book a consultation",
+        "href": "page:book"
        },
-       "items": [
-        {
-         "label": "Week 1",
-         "title": "We sit with your khata",
-         "text": "At your shop or ours. We read the last year of entries with you and list what is missing: bills, bank statements, loan papers."
-        },
-        {
-         "label": "Weeks 2 to 4",
-         "title": "We rebuild the year",
-         "text": "Opening balances, stock, what you owe and what you are owed. Any late returns are filed, and penalties kept as small as the law allows."
-        },
-        {
-         "label": "Month 2",
-         "title": "Billing you can keep up with",
-         "text": "An approved billing system or IRD-registered invoice book, and a ten-minute routine for your staff each evening."
-        },
-        {
-         "label": "Month 3",
-         "title": "Your first clean month",
-         "text": "Returns filed on time, and a one-page summary you can read over tea: sales, costs, tax due, cash in the bank."
-        }
-       ]
+       "image": {
+        "src": "",
+        "alt": ""
+       }
       }
      },
      {
@@ -370,7 +345,9 @@
        ]
       },
       "style": {
-       "bg": "surface"
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -401,10 +378,10 @@
      },
      {
       "type": "cta",
-      "variant": "band",
+      "variant": "boxed",
       "props": {
-       "title": "Income tax returns for 2082/83 are due by the end of Asoj",
-       "text": "If yours is not started, book a consultation this week. We can still file on time, or apply for the extension to Poush.",
+       "title": "An hour with a partner, free",
+       "text": "Bring last year’s return and your bank statements. You leave with a written quote.",
        "primary": {
         "label": "Book a consultation",
         "href": "page:book"

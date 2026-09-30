@@ -91,14 +91,6 @@
       }
      },
      {
-      "type": "richtext",
-      "variant": "split",
-      "props": {
-       "heading": "A one-architect studio, on purpose",
-       "body": "<p>I work with one assistant and a model-maker, so the person who walks your plot is the one who draws every sheet and signs the naksa. That limits me to about six projects a year.</p><p>Most clients are families building on inherited land: a narrow plot in Kirtipur, a field in Bungamati, a crumbling house in a Patan bahal that three brothers want to share. The brief is usually more about the people than the building. That is where I like to start.</p>"
-      }
-     },
-     {
       "type": "work",
       "variant": "feature",
       "props": {
@@ -178,6 +170,51 @@
       }
      },
      {
+      "type": "richtext",
+      "variant": "split",
+      "props": {
+       "heading": "A one-architect studio, on purpose",
+       "body": "<p>I work with one assistant and a model-maker, so the person who walks your plot is the one who draws every sheet and signs the naksa. That limits me to about six projects a year.</p><p>Most clients are families building on inherited land: a narrow plot in Kirtipur, a field in Bungamati, a crumbling house in a Patan bahal that three brothers want to share. The brief is usually more about the people than the building. That is where I like to start.</p>"
+      }
+     },
+     {
+      "type": "hotspots",
+      "variant": "legend",
+      "props": {
+       "heading": "One house, up close",
+       "intro": "What the photograph does not tell you.",
+       "image": {
+        "src": "lib:arch-house",
+        "alt": "A brick house with a glass-block wall and tall windows"
+       },
+       "points": [
+        {
+         "title": "The glass-block wall",
+         "text": "Light for the stair, and no view into it from the lane.",
+         "x": 30,
+         "y": 45
+        },
+        {
+         "title": "Tall windows on the north",
+         "text": "Even daylight for the rooms people work in, and no glare after lunch.",
+         "x": 72,
+         "y": 52
+        },
+        {
+         "title": "Brick from a kiln in Bhaktapur",
+         "text": "Laid in lime mortar, so the wall can breathe and be repaired.",
+         "x": 55,
+         "y": 82
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
+      }
+     },
+     {
       "type": "quote",
       "variant": "image",
       "props": {
@@ -195,40 +232,6 @@
       },
       "style": {
        "bg": "surface"
-      }
-     },
-     {
-      "type": "sticky",
-      "variant": "right",
-      "props": {
-       "heading": "How a house gets drawn",
-       "intro": "About four months from the first walk on site to drawings a contractor can price.",
-       "image": {
-        "src": "lib:arch-plan",
-        "alt": "A hand drawing a floor plan in pencil with a scale ruler"
-       },
-       "items": [
-        {
-         "label": "Week 1",
-         "title": "We walk the plot together",
-         "text": "I measure it, note where the sun rises and sets, which neighbour will build next, and where the water sits after rain."
-        },
-        {
-         "label": "Weeks 2 to 4",
-         "title": "Three rough ideas, by hand",
-         "text": "Pencil plans and a card model of each. You pick one, or the best parts of two. Nothing is drawn on a computer yet."
-        },
-        {
-         "label": "Weeks 5 to 10",
-         "title": "The design, room by room",
-         "text": "Plans, sections and a finished model. We agree on brick, timber and windows, and I give you a first cost estimate."
-        },
-        {
-         "label": "Weeks 11 to 16",
-         "title": "Naksa and working drawings",
-         "text": "The municipal approval set, structural drawings from our engineer, and the sheets your contractor will build from."
-        }
-       ]
       }
      },
      {
@@ -318,23 +321,6 @@
       },
       "style": {
        "bg": "surface"
-      }
-     },
-     {
-      "type": "imagetext",
-      "variant": "left",
-      "props": {
-       "image": {
-        "src": "lib:arch-model",
-        "alt": "A white card model of a house with an outside stair"
-       },
-       "eyebrow": "",
-       "heading": "You will hold the house before you pay for it",
-       "body": "<p>Every design comes with a card model at 1:50, with a roof that lifts off. Families understand a model in five minutes; a plan can take five meetings.</p><p>Grandparents walk their fingers up the stairs. Children find their room. Arguments about the kitchen get settled at the table, not on site.</p>",
-       "link": {
-        "label": "How a project runs",
-        "href": "page:services"
-       }
       }
      },
      {

@@ -150,16 +150,37 @@
       }
      },
      {
-      "type": "quote",
-      "variant": "large",
+      "type": "marquee",
+      "variant": "small",
       "props": {
-       "quote": "Nobody remembers the posed photo at the stage. They remember their aunt crying at the kanyadan, and the cousin asleep on the chairs at two in the morning.",
-       "name": "Sagun Shakya",
-       "detail": "Photographer",
-       "image": {
-        "src": "",
-        "alt": ""
-       }
+       "items": [
+        {
+         "text": "Swayambar"
+        },
+        {
+         "text": "Mehendi"
+        },
+        {
+         "text": "Bihe"
+        },
+        {
+         "text": "Ihi and Barha"
+        },
+        {
+         "text": "Pasni"
+        },
+        {
+         "text": "Bratabandha"
+        },
+        {
+         "text": "Family portraits"
+        }
+       ]
+      },
+      "style": {
+       "bg": "accent",
+       "space": "s",
+       "hide": ""
       }
      },
      {
@@ -250,56 +271,21 @@
       }
      },
      {
-      "type": "marquee",
-      "variant": "small",
+      "type": "quote",
+      "variant": "large",
       "props": {
-       "items": [
-        {
-         "text": "Swayambar"
-        },
-        {
-         "text": "Mehendi"
-        },
-        {
-         "text": "Bihe"
-        },
-        {
-         "text": "Ihi and Barha"
-        },
-        {
-         "text": "Pasni"
-        },
-        {
-         "text": "Bratabandha"
-        },
-        {
-         "text": "Family portraits"
-        }
-       ]
+       "quote": "Nobody remembers the posed photo at the stage. They remember their aunt crying at the kanyadan, and the cousin asleep on the chairs at two in the morning.",
+       "name": "Sagun Shakya",
+       "detail": "Photographer",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
       },
       "style": {
-       "bg": "accent"
-      }
-     },
-     {
-      "type": "imagetext",
-      "variant": "left",
-      "props": {
-       "image": {
-        "src": "lib:photo-aama",
-        "alt": "An older woman smiling in a red blouse in a narrow street",
-        "focal": [
-         50,
-         30
-        ]
-       },
-       "eyebrow": "",
-       "heading": "Portraits of the people who hold a family together",
-       "body": "<p>Every wedding has someone who has been to sixty of them. We always ask for twenty minutes with the grandparents, away from the stage, in good light.</p><p>We also photograph elders at home, on their own or with the family, for the wall and for the day they are not with you any more.</p>",
-       "link": {
-        "label": "Portraits and family",
-        "href": "page:portraits"
-       }
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -380,6 +366,27 @@
          "detail": "After"
         }
        ]
+      }
+     },
+     {
+      "type": "imagetext",
+      "variant": "left",
+      "props": {
+       "image": {
+        "src": "lib:photo-aama",
+        "alt": "An older woman smiling in a red blouse in a narrow street",
+        "focal": [
+         50,
+         30
+        ]
+       },
+       "eyebrow": "",
+       "heading": "Portraits of the people who hold a family together",
+       "body": "<p>Every wedding has someone who has been to sixty of them. We always ask for twenty minutes with the grandparents, away from the stage, in good light.</p><p>We also photograph elders at home, on their own or with the family, for the wall and for the day they are not with you any more.</p>",
+       "link": {
+        "label": "Portraits and family",
+        "href": "page:portraits"
+       }
       }
      },
      {

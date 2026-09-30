@@ -105,6 +105,81 @@
       }
      },
      {
+      "type": "enquire",
+      "variant": "grid",
+      "props": {
+       "heading": "New on the shelves",
+       "intro": "Each sari is one of a kind. Ask on WhatsApp and we will send a photo in daylight.",
+       "currency": "",
+       "items": [
+        {
+         "image": {
+          "src": "lib:sari-white-sari",
+          "alt": "A cream sari with a red and gold border, worn with a red blouse",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "name": "Cream tissue silk with a temple border",
+         "price": "Rs 18,500",
+         "per": "",
+         "badge": "",
+         "text": "Woven in Varanasi. Red blouse piece included."
+        },
+        {
+         "image": {
+          "src": "lib:sari-pink-sari",
+          "alt": "A magenta silk sari with a black and gold border",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "name": "Magenta raw silk, black pallu",
+         "price": "Rs 14,500",
+         "per": "",
+         "badge": "",
+         "text": "Light enough for a long day of tika."
+        },
+        {
+         "image": {
+          "src": "lib:sari-red-sari",
+          "alt": "A red and gold silk sari, worn by the sea",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "name": "Red and gold Banarasi",
+         "price": "Rs 42,000",
+         "per": "",
+         "badge": "Bridal",
+         "text": "Zari woven through the body, a heavy pallu."
+        },
+        {
+         "image": {
+          "src": "lib:sari-mint-sari",
+          "alt": "A pale mint and silver sari against a red wall",
+          "focal": [
+           50,
+           30
+          ]
+         },
+         "name": "Mint cotton silk with silver butti",
+         "price": "Rs 7,800",
+         "per": "",
+         "badge": "",
+         "text": "For office days and daytime weddings."
+        }
+       ],
+       "button": "Ask about this sari",
+       "via": "whatsapp",
+       "whatsapp": "",
+       "message": "Namaste, is this sari still available:"
+      }
+     },
+     {
       "type": "marquee",
       "variant": "large",
       "props": {
@@ -127,106 +202,9 @@
        ]
       },
       "style": {
-       "bg": "page",
-       "space": "s"
-      }
-     },
-     {
-      "type": "work",
-      "variant": "grid",
-      "props": {
-       "heading": "New on the shelves",
-       "intro": "Arrived this month. Each piece is one of a few; ask on Viber if you want one kept for a day.",
-       "items": [
-        {
-         "image": {
-          "src": "lib:sari-white-sari",
-          "alt": "A cream sari with a red and gold border, worn with a red blouse",
-          "focal": [
-           50,
-           30
-          ]
-         },
-         "title": "Cream tissue silk with a temple border",
-         "tag": "Silk · Rs 18,500",
-         "text": "Woven in Varanasi. Red blouse piece included.",
-         "link": {
-          "label": "",
-          "href": ""
-         }
-        },
-        {
-         "image": {
-          "src": "lib:sari-pink-sari",
-          "alt": "A magenta silk sari with a black and gold border",
-          "focal": [
-           50,
-           30
-          ]
-         },
-         "title": "Magenta raw silk, black pallu",
-         "tag": "Silk · Rs 14,500",
-         "text": "Light enough for a long day of tika.",
-         "link": {
-          "label": "",
-          "href": ""
-         }
-        },
-        {
-         "image": {
-          "src": "lib:sari-red-sari",
-          "alt": "A red and gold silk sari, worn by the sea",
-          "focal": [
-           50,
-           30
-          ]
-         },
-         "title": "Red and gold Banarasi",
-         "tag": "Bridal · Rs 42,000",
-         "text": "Zari woven through the body, a heavy pallu.",
-         "link": {
-          "label": "",
-          "href": ""
-         }
-        },
-        {
-         "image": {
-          "src": "lib:sari-mint-sari",
-          "alt": "A pale mint and silver sari against a red wall",
-          "focal": [
-           50,
-           30
-          ]
-         },
-         "title": "Mint cotton silk with silver butti",
-         "tag": "Cotton silk · Rs 7,800",
-         "text": "For office days and daytime weddings.",
-         "link": {
-          "label": "",
-          "href": ""
-         }
-        }
-       ],
-       "link": {
-        "label": "See all saris",
-        "href": "page:saris"
-       }
-      }
-     },
-     {
-      "type": "quote",
-      "variant": "large",
-      "props": {
-       "quote": "My grandfather sold cloth from a wooden box on this corner. We still unfold every sari on the floor for you, the way he did.",
-       "name": "Kamala Tuladhar",
-       "detail": "Owner, third generation",
-       "image": {
-        "src": "",
-        "alt": ""
-       }
-      },
-      "style": {
-       "bg": "surface"
+       "bg": "ink",
+       "space": "s",
+       "hide": ""
       }
      },
      {
@@ -284,6 +262,24 @@
       }
      },
      {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "My grandfather sold cloth from a wooden box on this corner. We still unfold every sari on the floor for you, the way he did.",
+       "name": "Kamala Tuladhar",
+       "detail": "Owner, third generation",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
+      }
+     },
+     {
       "type": "features",
       "variant": "compact",
       "props": {
@@ -319,39 +315,6 @@
       },
       "style": {
        "bg": "surface"
-      }
-     },
-     {
-      "type": "sticky",
-      "variant": "right",
-      "props": {
-       "heading": "A blouse in three days",
-       "intro": "Order on a Sunday, wear it on Wednesday.",
-       "image": {
-        "src": "lib:sari-border",
-        "alt": "Close-up of red silk with a woven gold border",
-        "focal": [
-         50,
-         40
-        ]
-       },
-       "items": [
-        {
-         "label": "Day 1",
-         "title": "Measure and choose",
-         "text": "Maya takes twelve measurements, or copies a blouse you love. You choose the neck, the sleeve and the lining from the pattern book."
-        },
-        {
-         "label": "Day 2",
-         "title": "Cut and stitch",
-         "text": "Cut from the blouse piece of your sari, or from our matching cloth. Lined blouses are stitched and pressed the same day."
-        },
-        {
-         "label": "Day 3",
-         "title": "Try it on",
-         "text": "A fitting in the trial room upstairs. Small changes are made while you wait, so you leave with it."
-        }
-       ]
       }
      },
      {
@@ -427,19 +390,17 @@
       }
      },
      {
-      "type": "map",
-      "variant": "location",
+      "type": "visit",
+      "variant": "split",
       "props": {
        "heading": "The green door on Indra Chowk",
+       "text": "Walk from Basantapur towards Asan; we are the green door three shops past the Akash Bhairav temple. Parking at Basantapur, a five-minute walk.",
        "address": "Indra Chowk, on the Makhan Tole side, Kathmandu 44600",
-       "hours": "Sunday to Friday, 10:00 to 20:00\nSaturday, 12:00 to 18:00",
        "phone": "",
-       "note": "Walk from Basantapur towards Asan; we are the green door three shops past the Akash Bhairav temple. Parking at Basantapur, a five-minute walk.",
+       "hours": "Sunday to Friday, 10:00 to 20:00\nSaturday, 12:00 to 18:00",
        "query": "Indra Chowk, Kathmandu",
-       "link": ""
-      },
-      "style": {
-       "bg": "surface"
+       "link": "",
+       "askPhone": true
       }
      },
      {

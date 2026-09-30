@@ -109,32 +109,6 @@
       }
      },
      {
-      "type": "marquee",
-      "variant": "small",
-      "props": {
-       "items": [
-        {
-         "text": "Rice, dal and tarkari"
-        },
-        {
-         "text": "An egg on Fridays"
-        },
-        {
-         "text": "Cooked by mothers from the village"
-        },
-        {
-         "text": "Vegetables from farms within walking distance"
-        },
-        {
-         "text": "Served at 11:30 sharp"
-        }
-       ]
-      },
-      "style": {
-       "bg": "accent"
-      }
-     },
-     {
       "type": "quote",
       "variant": "large",
       "props": {
@@ -145,6 +119,58 @@
         "src": "",
         "alt": ""
        }
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "columns",
+      "props": {
+       "heading": "What your gift pays for",
+       "intro": "Every rupee below is spent in the schools. Office costs are covered separately by two family foundations.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "One month of lunches",
+         "price": "1080",
+         "period": "child",
+         "note": "24 school days at Rs 45.",
+         "features": "Rice, dal and a seasonal vegetable\nAn egg every Friday\nA photo from the school each term",
+         "cta": {
+          "label": "Give a month",
+          "href": "page:give"
+         },
+         "featured": false
+        },
+        {
+         "name": "A whole school year",
+         "price": "9000",
+         "period": "child",
+         "note": "About 200 school days.",
+         "features": "Every school lunch from Baisakh to Chaitra\nThe child’s first name and class, if the parents agree\nA letter from the school at the end of the year",
+         "cta": {
+          "label": "Give a year",
+          "href": "page:give"
+         },
+         "featured": true
+        },
+        {
+         "name": "A cook’s monthly wage",
+         "price": "17300",
+         "period": "month",
+         "note": "The national minimum wage.",
+         "features": "Paid into the cook’s own account\nOne of eight cooks across the four schools",
+         "cta": {
+          "label": "Pay a wage",
+          "href": "page:give"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -236,113 +262,49 @@
       }
      },
      {
-      "type": "pricing",
-      "variant": "columns",
+      "type": "payment",
+      "variant": "cards",
       "props": {
-       "heading": "What your gift pays for",
-       "intro": "Every rupee below is spent in the schools. Office costs are covered separately by two family foundations.",
-       "currency": "NPR",
-       "plans": [
+       "heading": "Give from your phone",
+       "intro": "Scan with your wallet or banking app, or copy the details. Every rupee goes to the kitchens.",
+       "methods": [
         {
-         "name": "One month of lunches",
-         "price": "1080",
-         "period": "child",
-         "note": "24 school days at Rs 45.",
-         "features": "Rice, dal and a seasonal vegetable\nAn egg every Friday\nA photo from the school each term",
-         "cta": {
-          "label": "Give a month",
-          "href": "page:give"
+         "name": "eSewa",
+         "qr": {
+          "src": "",
+          "alt": ""
          },
-         "featured": false
+         "holder": "Bhansa Nepal",
+         "number": "98XXXXXXXX",
+         "details": ""
         },
         {
-         "name": "A whole school year",
-         "price": "9000",
-         "period": "child",
-         "note": "About 200 school days.",
-         "features": "Every school lunch from Baisakh to Chaitra\nThe child’s first name and class, if the parents agree\nA letter from the school at the end of the year",
-         "cta": {
-          "label": "Give a year",
-          "href": "page:give"
+         "name": "Khalti",
+         "qr": {
+          "src": "",
+          "alt": ""
          },
-         "featured": true
+         "holder": "Bhansa Nepal",
+         "number": "98XXXXXXXX",
+         "details": ""
         },
         {
-         "name": "A cook’s monthly wage",
-         "price": "17300",
-         "period": "month",
-         "note": "The national minimum wage.",
-         "features": "Paid into the cook’s own account\nOne of eight cooks across the four schools",
-         "cta": {
-          "label": "Pay a wage",
-          "href": "page:give"
+         "name": "Bank transfer",
+         "qr": {
+          "src": "",
+          "alt": ""
          },
-         "featured": false
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
-      }
-     },
-     {
-      "type": "gallery",
-      "variant": "bento",
-      "props": {
-       "heading": "This term in Melamchi",
-       "intro": "Taken by teachers and our field officer, with parents’ permission.",
-       "images": [
-        {
-         "image": {
-          "src": "lib:ngo-boys",
-          "alt": "Three schoolboys sitting close together in a classroom corner",
-          "focal": [
-           50,
-           35
-          ]
-         },
-         "caption": "Grade 4, after lunch"
-        },
-        {
-         "image": {
-          "src": "lib:ngo-dalbhat",
-          "alt": "Rice, dal and sautéed greens in brass bowls"
-         },
-         "caption": "Tuesday: dal, rice and rayo saag"
-        },
-        {
-         "image": {
-          "src": "lib:ngo-line",
-          "alt": "Children sitting in a long row outdoors in morning light"
-         },
-         "caption": "Assembly, Talamarang"
-        },
-        {
-         "image": {
-          "src": "lib:ngo-desk",
-          "alt": "Boys at a school desk in a blue-painted classroom"
-         },
-         "caption": "The new water bottles"
-        },
-        {
-         "image": {
-          "src": "lib:ngo-nutrition",
-          "alt": "Children looking at a nutrition corner display with Nepali signs"
-         },
-         "caption": "The nutrition corner"
-        },
-        {
-         "image": {
-          "src": "lib:ngo-desks",
-          "alt": "Young children sitting at green desks in a classroom"
-         },
-         "caption": "Grade 1, Bhotang"
+         "holder": "Bhansa Nepal",
+         "number": "Account number",
+         "details": "Bank and branch\nSWIFT code, for gifts from abroad"
         }
        ],
-       "link": {
-        "label": "",
-        "href": ""
-       }
+       "note": "Write your name in the remarks and we will send a receipt, and a letter from the school at the end of term."
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -373,39 +335,6 @@
          "detail": "131 children"
         }
        ]
-      }
-     },
-     {
-      "type": "steps",
-      "variant": "columns",
-      "props": {
-       "heading": "How a school joins",
-       "intro": "We add one school a year, when the money for three years of lunches is already in the bank.",
-       "items": [
-        {
-         "title": "The school asks",
-         "text": "A head teacher or parents’ committee writes to us. We never approach a school first.",
-         "detail": ""
-        },
-        {
-         "title": "We visit and count",
-         "text": "Two days at the school: attendance, the kitchen, the water, the road for deliveries.",
-         "detail": ""
-        },
-        {
-         "title": "Parents choose the cooks",
-         "text": "At an open meeting, with the ward chair present.",
-         "detail": ""
-        },
-        {
-         "title": "The first lunch",
-         "text": "Usually at the start of a new term, with everyone’s families invited.",
-         "detail": ""
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
       }
      },
      {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ApiError, uploadWithProgress } from '../api';
 import { Icon, Modal, Select } from '../ui';
+import { DateField, TimeField } from '../DateField';
 import {
   BLOCKS, CATEGORIES, LIBRARY, cleanImage, safeHref, sanitizeInline, sanitizeRich, textOf,
   type Field, type ImageRef, type LinkRef, type Site,
@@ -115,6 +116,14 @@ export function FieldEditor({ f, value, onChange, ctx, path }: { f: Field; value
       return <div className="field"><span className="se-flabel">{f.label}</span><ImageThumb appId={ctx.appId} label={f.label} value={value ?? { src: '', alt: '' }} onPick={() => ctx.pickImage(value ?? { src: '', alt: '' }, onChange)} onClear={() => onChange({ src: '', alt: '' })} /></div>;
     case 'link':
       return <div className="field"><span className="se-flabel">{f.label}</span><LinkFields value={value ?? { label: '', href: '' }} onChange={onChange} site={ctx.site} /></div>;
+    case 'number':
+      return <div className="field">{head()}<input id={id} className="input" type="number" inputMode="decimal" min={f.lo} max={f.hi} step="any" value={value ?? ''}
+        onChange={(e) => onChange(e.target.value === '' ? '' : Number(e.target.value))}
+        onBlur={(e) => { const n = Number(e.target.value); onChange(e.target.value !== '' && isFinite(n) ? Math.min(f.hi ?? 100, Math.max(f.lo ?? 0, n)) : Math.round(((f.lo ?? 0) + (f.hi ?? 100)) / 2)); }} />{f.hint && <small className="hint">{f.hint}</small>}</div>;
+    case 'date':
+      return <div className="field"><span className="se-flabel">{f.label}</span><DateField label={f.label} value={value ?? ''} onChange={onChange} />{f.hint && <small className="hint">{f.hint}</small>}</div>;
+    case 'time':
+      return <div className="field"><span className="se-flabel">{f.label}</span><TimeField label={f.label} value={value ?? ''} onChange={onChange} />{f.hint && <small className="hint">{f.hint}</small>}</div>;
     case 'list':
       return <ListEditor f={f} value={Array.isArray(value) ? value : []} onChange={onChange} ctx={ctx} path={path} />;
   }
@@ -130,7 +139,7 @@ const summary = (f: Field, it: any, i: number) => {
 };
 function blankItem(f: Field) {
   const o: Record<string, any> = {};
-  for (const x of f.of!) o[x.key] = x.type === 'list' ? [] : x.type === 'image' ? { src: '', alt: '' } : x.type === 'link' ? { label: '', href: '' } : x.type === 'bool' ? false : x.type === 'select' ? x.options![0].value : '';
+  for (const x of f.of!) o[x.key] = x.type === 'list' ? [] : x.type === 'image' ? { src: '', alt: '' } : x.type === 'link' ? { label: '', href: '' } : x.type === 'bool' ? false : x.type === 'select' ? x.options![0].value : x.type === 'number' ? Math.round(((x.lo ?? 0) + (x.hi ?? 100)) / 2) : '';
   return o;
 }
 export function ListEditor({ f, value, onChange, ctx, path }: { f: Field; value: any[]; onChange: (v: any[]) => void; ctx: FieldCtx; path: string }) {
@@ -311,6 +320,18 @@ const THUMB: Record<string, string> = {
   steps: '<path d="M8 22h8M44 22h8M80 22h8" class="w a2"/><path d="M8 34h28M44 34h28M80 34h28M8 42h24M44 42h22M80 42h26" /><path d="M8 14h28M44 14h28M80 14h28" class="t"/>',
   work: '<rect x="8" y="8" width="50" height="34" rx="2" class="f"/><rect x="64" y="18" width="50" height="34" rx="2" class="f"/><path d="M8 48h30M8 54h20M64 58h30M64 64h20"/>',
   press: '<path d="M8 16h104M8 34h104M8 52h104" class="t"/><path d="M8 25h30M56 25h36M8 43h24M56 43h40" /><circle cx="106" cy="25" r="4"/><circle cx="106" cy="43" r="4"/>',
+  announce: '<rect x="4" y="8" width="112" height="12" rx="1" class="f"/><path d="M30 14h44" class="w"/><path d="M82 14h14" class="a2"/><path d="M106 11l6 6M112 11l-6 6"/><path d="M8 30h22M76 30h8M90 30h8M104 30h8" class="t"/><rect x="8" y="42" width="60" height="7" rx="1"/><path d="M8 56h44"/>',
+  tabs: '<path d="M8 22h104" class="t"/><path d="M8 16h18M38 16h18M68 16h18"/><path d="M8 22h18" class="a2"/><rect x="8" y="30" width="42" height="34" rx="2" class="f"/><rect x="58" y="32" width="36" height="6" rx="1"/><path d="M58 46h50M58 52h50M58 58h44" class="t"/>',
+  compare: '<path d="M8 20h104M8 32h104M8 44h104M8 56h104" class="t"/><rect x="66" y="10" width="22" height="54" rx="2" class="f"/><path d="M8 14h20M44 14h14M70 14h14M96 14h14M8 26h28M8 38h24M8 50h30M8 62h22"/><path d="M47 25l3 3 5-6M73 25l3 3 5-6M99 25l3 3 5-6M73 37l3 3 5-6M99 37l3 3 5-6M99 49l3 3 5-6" class="a2"/><path d="M47 36l6 6M53 36l-6 6M47 48l6 6M53 48l-6 6"/>',
+  countdown: '<path d="M8 22h104M8 54h104" class="t"/><path d="M36 26v24M64 26v24M92 26v24" class="t"/><rect x="12" y="30" width="16" height="14" rx="1"/><rect x="40" y="30" width="16" height="14" rx="1"/><rect x="68" y="30" width="16" height="14" rx="1"/><rect x="96" y="30" width="12" height="14" rx="1" class="a"/><path d="M8 12h50M8 62h28"/>',
+  voices: '<rect x="8" y="10" width="36" height="46" rx="2" class="f"/><path d="M54 16c-3 3-3 8 1 8M62 16c-3 3-3 8 1 8" class="a2"/><path d="M54 32h56M54 39h52M54 46h40"/><path d="M54 56h20" class="t"/><circle cx="96" cy="64" r="4"/><circle cx="108" cy="64" r="4"/>',
+  hotspots: '<rect x="8" y="8" width="104" height="58" rx="2" class="f"/><circle cx="34" cy="28" r="5" class="a"/><circle cx="78" cy="22" r="5"/><circle cx="62" cy="48" r="5"/><rect x="40" y="30" width="34" height="18" rx="2"/><path d="M44 36h24M44 42h18" class="t"/>',
+  expand: '<path d="M8 12h104M8 28h104M8 60h104" class="t"/><path d="M8 20h40M8 36h46M8 66h36"/><path d="M104 18l3 3 3-3M104 66l3-3 3 3"/><path d="M104 34l6 0" class="a2"/><rect x="8" y="41" width="30" height="16" rx="2" class="f"/><path d="M44 45h40M44 51h30"/>',
+  enquire: '<rect x="8" y="8" width="30" height="34" rx="2" class="f"/><rect x="45" y="8" width="30" height="34" rx="2" class="f"/><rect x="82" y="8" width="30" height="34" rx="2" class="f"/><rect x="11" y="11" width="10" height="5" rx="2" class="a"/><path d="M8 48h18M45 48h20M82 48h16M30 48h8M67 48h8M104 48h8"/><rect x="8" y="56" width="18" height="8" rx="2"/><rect x="45" y="56" width="18" height="8" rx="2"/><rect x="82" y="56" width="18" height="8" rx="2"/>',
+  payment: '<rect x="8" y="8" width="32" height="56" rx="2"/><rect x="44" y="8" width="32" height="56" rx="2"/><rect x="80" y="8" width="32" height="56" rx="2"/><rect x="13" y="18" width="22" height="22" rx="1" class="f"/><rect x="49" y="18" width="22" height="22" rx="1" class="f"/><rect x="85" y="18" width="22" height="22" rx="1" class="f"/><path d="M13 13h12M49 13h12M85 13h12M13 48h22M49 48h22M85 48h22"/><path d="M13 56h10M49 56h10M85 56h10" class="a2"/>',
+  videofeature: '<rect x="4" y="8" width="112" height="58" rx="2" class="f"/><path d="M56 26l14 9-14 9z" class="a"/><rect x="12" y="48" width="40" height="7" rx="1"/><path d="M12 60h28"/>',
+  share: '<rect x="8" y="12" width="44" height="7" rx="1"/><path d="M8 26h40M8 32h34"/><rect x="8" y="44" width="30" height="10" rx="2" class="a"/><rect x="66" y="22" width="20" height="9" rx="4"/><rect x="90" y="22" width="22" height="9" rx="4"/><rect x="66" y="36" width="24" height="9" rx="4"/><path d="M66 14h22" class="t"/>',
+  visit: '<rect x="8" y="10" width="44" height="7" rx="1"/><path d="M8 24h34M8 30h28M8 36h30" class="t"/><rect x="8" y="44" width="44" height="22" rx="2" class="f"/><path d="M30 52c0-4 6-4 6 0 0 4-3 7-3 7s-3-3-3-7z" class="a"/><rect x="60" y="10" width="52" height="56" rx="2" class="f"/><rect x="66" y="16" width="40" height="7" rx="1"/><rect x="66" y="27" width="40" height="7" rx="1"/><rect x="66" y="38" width="40" height="14" rx="1"/><rect x="66" y="56" width="16" height="6" rx="1" class="a"/>',
 };
 export function BlockThumb({ type }: { type: string }) {
   return <svg className="se-thumb" viewBox="0 0 120 72" aria-hidden="true" dangerouslySetInnerHTML={{ __html: THUMB[type] ?? '' }} />;

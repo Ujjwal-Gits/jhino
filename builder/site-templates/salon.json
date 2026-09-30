@@ -69,7 +69,7 @@
     "blocks": [
      {
       "type": "hero",
-      "variant": "split",
+      "variant": "stacked",
       "props": {
        "title": "Hair, skin and bridal mornings in Jawalakhel",
        "text": "Cuts and colour by stylists who ask first and cut second. Threading in ten minutes, facials in an hour, and brides dressed before the sun is up.",
@@ -94,139 +94,60 @@
       }
      },
      {
-      "type": "marquee",
-      "variant": "small",
+      "type": "tabs",
+      "variant": "pills",
       "props": {
-       "items": [
+       "heading": "Prices, by chair",
+       "intro": "Prices include a wash and a finish. Ask at the desk if you are not sure what you need.",
+       "tabs": [
         {
-         "text": "Cut and blow-dry"
-        },
-        {
-         "text": "Colour by consultation"
-        },
-        {
-         "text": "Threading in ten minutes"
-        },
-        {
-         "text": "Bridal from 5 am"
-        },
-        {
-         "text": "Mehndi by hand"
-        }
-       ]
-      },
-      "style": {
-       "bg": "accent"
-      }
-     },
-     {
-      "type": "rows",
-      "variant": "alternate",
-      "props": {
-       "heading": "Three rooms, three kinds of care",
-       "intro": "",
-       "items": [
-        {
+         "label": "Hair",
+         "title": "Cuts and styling",
+         "text": "Every cut starts with a wash and a talk about how you wear your hair on a normal day.",
+         "points": "Women’s cut and blow-dry – Rs 1,200 to 1,600\nFringe trim – Rs 250\nMen’s cut – Rs 600\nChildren’s cut, under 10 – Rs 450\nBlow-dry – Rs 700 to 1,000\nHair spa – Rs 1,800\nKeratin smoothing – From Rs 9,000\nParty or festival styling – Rs 1,500",
          "image": {
-          "src": "lib:bloom-styling",
-          "alt": "A stylist finishing a client’s hair on the sunny cutting floor",
-          "focal": [
-           55,
-           45
-          ]
+          "src": "lib:bloom-cut",
+          "alt": ""
          },
-         "title": "The cutting floor",
-         "text": "Five chairs by the window. Every cut starts with ten minutes of talk: how you wear it, how long you have in the morning, what went wrong last time. Then a wash, the cut, and a blow-dry you can copy at home.",
          "link": {
-          "label": "Hair prices",
-          "href": "page:services"
+          "label": "Book a time",
+          "href": "page:book"
          }
         },
         {
+         "label": "Colour",
+         "title": "Colour",
+         "text": "A strand test first, always, and a colour you can keep up at home.",
+         "points": "Root touch-up – Rs 2,200\nGlobal colour – Rs 4,500 to 6,500\nHighlights or balayage – From Rs 6,500\nColour correction – Ask us",
          "image": {
           "src": "lib:bloom-colour",
-          "alt": "Two colourists brushing colour through a client’s hair"
+          "alt": ""
          },
-         "title": "Colour, mixed for you",
-         "text": "Global colour, balayage, grey coverage and colour correction, with a strand test first if you have hennaed hair. We use ammonia-free colour and tell you the total before we open a tube.",
          "link": {
-          "label": "Colour prices",
-          "href": "page:services"
+          "label": "Book a time",
+          "href": "page:book"
          }
         },
         {
+         "label": "Skin and nails",
+         "title": "Skin, brows and nails",
+         "text": "Quiet rooms upstairs, clean tools for every guest.",
+         "points": "Eyebrow threading – Rs 120\nUpper lip or forehead – Rs 80\nClean-up – Rs 1,500\nHydrating facial – Rs 2,800\nFull arms and legs wax – Rs 2,000\nClassic lash set – Rs 3,500\nGel manicure – Rs 1,800\nPedicure – Rs 1,600",
          "image": {
           "src": "lib:bloom-facial",
-          "alt": "A client lying back with a white face mask and a teal headband",
-          "focal": [
-           40,
-           50
-          ]
+          "alt": ""
          },
-         "title": "The quiet room upstairs",
-         "text": "Facials, clean-ups, waxing and lash work in a room with no dryer noise. Pooja checks your skin before choosing a product, and the room is for women only, every day.",
          "link": {
-          "label": "Skin prices",
-          "href": "page:services"
+          "label": "Book a time",
+          "href": "page:book"
          }
-        }
-       ]
-      }
-     },
-     {
-      "type": "features",
-      "variant": "compact",
-      "props": {
-       "heading": "The everyday list",
-       "intro": "Prices include VAT. Long or very thick hair may cost a little more; we say so before we start.",
-       "items": [
-        {
-         "title": "Women’s cut and blow-dry",
-         "text": "Wash, consultation, cut and finish.",
-         "detail": "Rs 1,200"
-        },
-        {
-         "title": "Men’s cut",
-         "text": "Scissor or clipper, with a wash.",
-         "detail": "Rs 600"
-        },
-        {
-         "title": "Blow-dry",
-         "text": "Straight, soft waves or volume.",
-         "detail": "Rs 700"
-        },
-        {
-         "title": "Eyebrow threading",
-         "text": "About ten minutes.",
-         "detail": "Rs 120"
-        },
-        {
-         "title": "Hydrating facial",
-         "text": "Cleanse, steam, mask and massage, 60 minutes.",
-         "detail": "Rs 2,800"
-        },
-        {
-         "title": "Gel manicure",
-         "text": "Shape, cuticle care and gel colour.",
-         "detail": "Rs 1,800"
         }
        ]
       },
       "style": {
-       "bg": "surface"
-      }
-     },
-     {
-      "type": "quote",
-      "variant": "large",
-      "props": {
-       "quote": "I trained in a salon where nobody asked the client anything. Here the first question is always: how do you want to feel when you walk out?",
-       "name": "Rojina Shakya",
-       "detail": "Founder and colourist",
-       "image": {
-        "src": "",
-        "alt": ""
-       }
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -291,6 +212,24 @@
       }
      },
      {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "I trained in a salon where nobody asked the client anything. Here the first question is always: how do you want to feel when you walk out?",
+       "name": "Rojina Shakya",
+       "detail": "Founder and colourist",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "accent",
+       "space": "m",
+       "hide": ""
+      }
+     },
+     {
       "type": "sticky",
       "variant": "right",
       "props": {
@@ -326,6 +265,58 @@
          "text": "We drape the sari, set the jewellery and the pote, and stay until the car leaves. The touch-up kit goes with your sister."
         }
        ]
+      }
+     },
+     {
+      "type": "pricing",
+      "variant": "columns",
+      "props": {
+       "heading": "Bridal packages",
+       "intro": "Each includes a trial two to six weeks before. Travel inside the valley is included; outside it, we charge the bus or flight at cost.",
+       "currency": "NPR",
+       "plans": [
+        {
+         "name": "Engagement or reception",
+         "price": "12000",
+         "period": "one look",
+         "note": "For the tika, the engagement or the reception night.",
+         "features": "Trial make-up\nHD make-up and lashes\nHair styling\nDraping",
+         "cta": {
+          "label": "Ask for a date",
+          "href": "page:bridal"
+         },
+         "featured": false
+        },
+        {
+         "name": "Wedding day",
+         "price": "25000",
+         "period": "the day",
+         "note": "Our most booked package.",
+         "features": "Trial make-up and hair\nSkin prep on the morning\nHD make-up, lashes, hair and flowers\nSari draping and jewellery setting\nTouch-up kit",
+         "cta": {
+          "label": "Ask for a date",
+          "href": "page:bridal"
+         },
+         "featured": true
+        },
+        {
+         "name": "Wedding week",
+         "price": "48000",
+         "period": "three looks",
+         "note": "Mehndi, wedding and reception.",
+         "features": "Everything in Wedding day\nBridal mehndi, both arms and feet\nReception make-up and restyle\nOne facial the week before",
+         "cta": {
+          "label": "Ask for a date",
+          "href": "page:bridal"
+         },
+         "featured": false
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -384,56 +375,6 @@
       }
      },
      {
-      "type": "pricing",
-      "variant": "columns",
-      "props": {
-       "heading": "Bridal packages",
-       "intro": "Each includes a trial two to six weeks before. Travel inside the valley is included; outside it, we charge the bus or flight at cost.",
-       "currency": "NPR",
-       "plans": [
-        {
-         "name": "Engagement or reception",
-         "price": "12000",
-         "period": "one look",
-         "note": "For the tika, the engagement or the reception night.",
-         "features": "Trial make-up\nHD make-up and lashes\nHair styling\nDraping",
-         "cta": {
-          "label": "Ask for a date",
-          "href": "page:bridal"
-         },
-         "featured": false
-        },
-        {
-         "name": "Wedding day",
-         "price": "25000",
-         "period": "the day",
-         "note": "Our most booked package.",
-         "features": "Trial make-up and hair\nSkin prep on the morning\nHD make-up, lashes, hair and flowers\nSari draping and jewellery setting\nTouch-up kit",
-         "cta": {
-          "label": "Ask for a date",
-          "href": "page:bridal"
-         },
-         "featured": true
-        },
-        {
-         "name": "Wedding week",
-         "price": "48000",
-         "period": "three looks",
-         "note": "Mehndi, wedding and reception.",
-         "features": "Everything in Wedding day\nBridal mehndi, both arms and feet\nReception make-up and restyle\nOne facial the week before",
-         "cta": {
-          "label": "Ask for a date",
-          "href": "page:bridal"
-         },
-         "featured": false
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
-      }
-     },
-     {
       "type": "faq",
       "variant": "split",
       "props": {
@@ -464,19 +405,17 @@
       }
      },
      {
-      "type": "map",
-      "variant": "location",
+      "type": "visit",
+      "variant": "split",
       "props": {
        "heading": "Find us at Jawalakhel Chowk",
+       "text": "The stairs are beside the bangle shop, on the zoo side of the chowk. Scooter parking in front; cars at the Jawalakhel ground.",
        "address": "First floor, Jawalakhel Chowk, above the bangle shop, Lalitpur 44700",
-       "hours": "Sunday to Friday, 10:00 to 19:00\nSaturday, 9:00 to 19:00\nBridal mornings from 5:00 by booking",
        "phone": "",
-       "note": "The stairs are beside the bangle shop, on the zoo side of the chowk. Scooter parking in front; cars at the Jawalakhel ground.",
+       "hours": "Sunday to Friday, 10:00 to 19:00\nSaturday, 9:00 to 19:00\nBridal mornings from 5:00 by booking",
        "query": "Jawalakhel Chowk, Lalitpur",
-       "link": ""
-      },
-      "style": {
-       "bg": "surface"
+       "link": "",
+       "askPhone": true
       }
      },
      {

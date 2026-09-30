@@ -94,30 +94,6 @@
       }
      },
      {
-      "type": "marquee",
-      "variant": "large",
-      "props": {
-       "items": [
-        {
-         "text": "Everest Base Camp"
-        },
-        {
-         "text": "Gokyo Lakes"
-        },
-        {
-         "text": "Three Passes"
-        },
-        {
-         "text": "Langtang Valley"
-        }
-       ]
-      },
-      "style": {
-       "bg": "accent",
-       "space": "s"
-      }
-     },
-     {
       "type": "work",
       "variant": "grid",
       "props": {
@@ -184,6 +160,99 @@
       }
      },
      {
+      "type": "compare",
+      "variant": "table",
+      "props": {
+       "heading": "Four treks, side by side",
+       "intro": "Group prices per person, with a licensed guide, porters, permits, lodges and three meals a day.",
+       "columns": [
+        {
+         "name": "Everest Base Camp",
+         "note": "US$ 1,590",
+         "featured": true
+        },
+        {
+         "name": "Gokyo Lakes",
+         "note": "US$ 1,490",
+         "featured": false
+        },
+        {
+         "name": "Three Passes",
+         "note": "US$ 2,150",
+         "featured": false
+        },
+        {
+         "name": "Langtang Valley",
+         "note": "US$ 790",
+         "featured": false
+        }
+       ],
+       "rows": [
+        {
+         "label": "Days, Kathmandu to Kathmandu",
+         "v1": "14",
+         "v2": "13",
+         "v3": "19",
+         "v4": "9"
+        },
+        {
+         "label": "Private trip, per person",
+         "v1": "US$ 1,830",
+         "v2": "US$ 1,720",
+         "v3": "US$ 2,470",
+         "v4": "US$ 910"
+        },
+        {
+         "label": "Flight to Lukla",
+         "v1": "yes",
+         "v2": "yes",
+         "v3": "yes",
+         "v4": "no"
+        },
+        {
+         "label": "High passes",
+         "v1": "no",
+         "v2": "no",
+         "v3": "Three",
+         "v4": "no"
+        },
+        {
+         "label": "Good first trek",
+         "v1": "yes",
+         "v2": "yes",
+         "v3": "no",
+         "v4": "yes"
+        }
+       ],
+       "note": "Langtang starts with a jeep from Kathmandu, so there are no flights to cancel."
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
+      }
+     },
+     {
+      "type": "countdown",
+      "variant": "image",
+      "props": {
+       "heading": "The next Everest group leaves in",
+       "text": "Fourteen days, two places left. Ask before the flights to Lukla fill up.",
+       "date": "2026-10-18",
+       "time": "06:00",
+       "calendar": "both",
+       "after": "The October Everest group is on the trail. The next one leaves on 15 November.",
+       "link": {
+        "label": "Ask for a place",
+        "href": "page:plan"
+       },
+       "image": {
+        "src": "lib:trek-amadablam",
+        "alt": "Trekkers on the valley trail below Ama Dablam"
+       }
+      }
+     },
+     {
       "type": "quote",
       "variant": "image",
       "props": {
@@ -204,78 +273,35 @@
       }
      },
      {
-      "type": "features",
-      "variant": "grid",
+      "type": "timeline",
+      "variant": "horizontal",
       "props": {
-       "heading": "In every trek",
-       "intro": "One price, agreed before you fly. No surprise fees in Namche.",
+       "heading": "Autumn 2026 group departures",
        "items": [
         {
-         "title": "A licensed guide",
-         "text": "Trained in first aid and altitude sickness, with at least eight seasons on the route.",
-         "detail": "One per group"
+         "date": "11 October",
+         "title": "Langtang Valley",
+         "text": "9 days. Four places left."
         },
         {
-         "title": "Porters, paid properly",
-         "text": "One porter for every two trekkers, carrying no more than 20 kilos, with boots, a jacket and insurance.",
-         "detail": "One per two guests"
+         "date": "18 October",
+         "title": "Everest Base Camp",
+         "text": "14 days. Two places left."
         },
         {
-         "title": "Rooms and three meals",
-         "text": "Teahouse rooms with two beds, and whatever you want from the menu at breakfast, lunch and dinner.",
-         "detail": "Every night"
+         "date": "25 October",
+         "title": "Gokyo Lakes",
+         "text": "13 days. Open."
         },
         {
-         "title": "Flights and permits",
-         "text": "Kathmandu to Lukla and back, the national park fee and the local area permit.",
-         "detail": "Booked for you"
+         "date": "1 November",
+         "title": "Three Passes",
+         "text": "19 days. Open."
         },
         {
-         "title": "Twice-daily checks",
-         "text": "Pulse and blood oxygen every morning and evening above 3,500 metres, written in a log.",
-         "detail": "Above Namche"
-        },
-        {
-         "title": "A plan for bad days",
-         "text": "Spare days built in, and a helicopter evacuation arranged through your travel insurance.",
-         "detail": "Always"
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
-      }
-     },
-     {
-      "type": "sticky",
-      "variant": "left",
-      "props": {
-       "heading": "A day on the trail",
-       "intro": "Most days are five to six hours of walking, with long stops.",
-       "image": {
-        "src": "lib:trek-rest",
-        "alt": "Trekkers resting on rocks facing Ama Dablam"
-       },
-       "items": [
-        {
-         "label": "6:30",
-         "title": "Tea at your door",
-         "text": "Your guide knocks with a cup of tea and asks how you slept. Porters are already packing."
-        },
-        {
-         "label": "7:30",
-         "title": "Walk in the cold, clear morning",
-         "text": "The best light and the best views are before ten. We walk at the pace of the slowest person, and nobody minds."
-        },
-        {
-         "label": "12:00",
-         "title": "Lunch at a teahouse",
-         "text": "Dal bhat, Sherpa stew or noodle soup. An hour to eat, sit in the sun and refill bottles."
-        },
-        {
-         "label": "15:00",
-         "title": "Arrive, rest, walk high",
-         "text": "On acclimatisation days we climb 300 metres after lunch and sleep low. Dinner by the yak-dung stove at six."
+         "date": "15 November",
+         "title": "Everest Base Camp",
+         "text": "14 days. Open."
         }
        ]
       }
@@ -334,73 +360,6 @@
         "label": "",
         "href": ""
        }
-      }
-     },
-     {
-      "type": "timeline",
-      "variant": "horizontal",
-      "props": {
-       "heading": "Autumn 2026 group departures",
-       "items": [
-        {
-         "date": "11 October",
-         "title": "Langtang Valley",
-         "text": "9 days. Four places left."
-        },
-        {
-         "date": "18 October",
-         "title": "Everest Base Camp",
-         "text": "14 days. Two places left."
-        },
-        {
-         "date": "25 October",
-         "title": "Gokyo Lakes",
-         "text": "13 days. Open."
-        },
-        {
-         "date": "1 November",
-         "title": "Three Passes",
-         "text": "19 days. Open."
-        },
-        {
-         "date": "15 November",
-         "title": "Everest Base Camp",
-         "text": "14 days. Open."
-        }
-       ]
-      }
-     },
-     {
-      "type": "steps",
-      "variant": "columns",
-      "props": {
-       "heading": "From first message to Lukla",
-       "intro": "",
-       "items": [
-        {
-         "title": "Tell us your dates",
-         "text": "And how much walking you have done. We reply within a day with an honest suggestion.",
-         "detail": "Day 1"
-        },
-        {
-         "title": "Hold your place",
-         "text": "A 20% deposit by card or bank transfer. We book flights and permits.",
-         "detail": "Within a week"
-        },
-        {
-         "title": "Meet in Thamel",
-         "text": "A briefing and a gear check at our office, the afternoon before you fly.",
-         "detail": "Day before"
-        },
-        {
-         "title": "Fly to Lukla",
-         "text": "Your guide meets you at the hotel at 5:30 with your boarding passes.",
-         "detail": "Day 1 of the trek"
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
       }
      },
      {

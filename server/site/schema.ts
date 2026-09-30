@@ -127,7 +127,7 @@ export interface SiteSettings {
 export interface Site { v: 1; name: string; theme: Theme; settings: SiteSettings; header: Block | null; footer: Block | null; pages: Page[] }
 
 /* ---------------- fields: how each prop is edited and checked ---------------- */
-export type FieldType = 'text' | 'para' | 'rich' | 'plain' | 'url' | 'image' | 'link' | 'bool' | 'select' | 'list';
+export type FieldType = 'text' | 'para' | 'rich' | 'plain' | 'url' | 'image' | 'link' | 'bool' | 'select' | 'list' | 'number' | 'date' | 'time';
 export interface Field {
   key: string; label: string; type: FieldType;
   /** Longest text allowed (characters). */
@@ -136,6 +136,8 @@ export interface Field {
   /** For lists: the fields of each item, the most items, and what one item is called. */
   of?: Field[]; maxItems?: number; item?: string;
   hint?: string;
+  /** For numbers: the smallest and largest value. */
+  lo?: number; hi?: number;
 }
 const text = (key: string, label: string, max = 160, hint?: string): Field => ({ key, label, type: 'text', max, hint });
 const para = (key: string, label: string, max = 900, hint?: string): Field => ({ key, label, type: 'para', max, hint });
@@ -147,6 +149,10 @@ const link = (key: string, label: string): Field => ({ key, label, type: 'link' 
 const bool = (key: string, label: string, hint?: string): Field => ({ key, label, type: 'bool', hint });
 const select = (key: string, label: string, options: [string, string][]): Field => ({ key, label, type: 'select', options: options.map(([value, l]) => ({ value, label: l })) });
 const list = (key: string, label: string, item: string, of: Field[], maxItems = 40): Field => ({ key, label, type: 'list', item, of, maxItems });
+const num = (key: string, label: string, lo: number, hi: number, hint?: string): Field => ({ key, label, type: 'number', lo, hi, hint });
+/** A day, stored as YYYY-MM-DD (AD). The editor shows the Nepali (BS) date beside it. */
+const date = (key: string, label: string, hint?: string): Field => ({ key, label, type: 'date', hint });
+const time = (key: string, label: string, hint?: string): Field => ({ key, label, type: 'time', hint });
 
 export const CURRENCIES: [string, string][] = [['NPR', 'NPR (रू)'], ['INR', 'INR (₹)'], ['USD', 'USD ($)'], ['EUR', 'EUR (€)'], ['GBP', 'GBP (£)'], ['AUD', 'AUD (A$)'], ['', 'No currency']];
 export const NETWORKS: [string, string][] = [['facebook', 'Facebook'], ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'], ['x', 'X'], ['linkedin', 'LinkedIn'], ['whatsapp', 'WhatsApp'], ['viber', 'Viber'], ['pinterest', 'Pinterest'], ['behance', 'Behance'], ['website', 'Website']];
@@ -166,10 +172,14 @@ export interface BlockDef {
   global?: 'header' | 'footer';
   /** Words the block picker search also matches. */
   keywords?: string;
+  /** Section style a new block of this type starts with. */
+  style?: Partial<BlockStyle>;
 }
 const v = (...pairs: [string, string][]) => pairs.map(([id, name]) => ({ id, name }));
 const lib = (name: string, alt: string): ImageRef => ({ src: `lib:${name}`, alt });
 const noImage = (): ImageRef => ({ src: '', alt: '' });
+/** A day some weeks from now (YYYY-MM-DD), so a new countdown has something to count to. */
+const inDays = (n: number) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
 
 export const BLOCKS: BlockDef[] = [
   /* ---- page structure ---- */
@@ -193,6 +203,14 @@ export const BLOCKS: BlockDef[] = [
     variants: v(['rich', 'Full: a closing line, columns and hours'], ['columns', 'Columns'], ['simple', 'One quiet line'], ['big', 'Large name']),
     fields: [text('headline', 'Closing line', 140, 'A last sentence in large type, like "Come in for a cup". Full footer only.'), link('cta', 'Button'), para('about', 'About line', 300), para('hours', 'Hours', 300, 'One line per row, like "Sun to Fri, 7:30 to 21:00". Full footer only.'), text('note', 'Small print', 160), bool('showPages', 'List the pages'), bool('showContact', 'Show phone, email and address'), bool('showSocial', 'Show social links')],
     defaults: () => ({ headline: '', cta: { label: '', href: '' }, about: '', hours: '', note: '', showPages: true, showContact: true, showSocial: true }),
+  },
+  {
+    type: 'announce', name: 'Announcement bar', category: 'structure', keywords: 'notice banner top bar news offer holiday closed alert strip',
+    description: 'One short line at the very top: a holiday, an offer, new hours. Visitors can close it.',
+    variants: v(['bar', 'One centred line'], ['split', 'Message left, link right']),
+    fields: [text('text', 'Message', 200), plain('label', 'Small tag', 30, 'Optional, like "New" or "Tihar hours".'), link('link', 'Link'), bool('dismiss', 'Visitors can close it', 'Once closed it stays closed for them until you change the message.')],
+    defaults: () => ({ text: 'Open every day through Tihar, 8 in the morning to 9 at night.', label: 'Tihar hours', link: { label: 'Plan your visit', href: '' }, dismiss: true }),
+    style: { bg: 'ink', space: 's' },
   },
   /* ---- text and media ---- */
   {
@@ -257,6 +275,41 @@ export const BLOCKS: BlockDef[] = [
     variants: v(['wide', 'Wide'], ['contained', 'Narrow'], ['split', 'Text beside it']),
     fields: [url('url', 'YouTube or Vimeo link'), text('heading', 'Heading'), para('text', 'Text', 600), text('caption', 'Caption', 200)],
     defaults: () => ({ url: '', heading: '', text: '', caption: '' }),
+  },
+  {
+    type: 'videofeature', name: 'Video feature', category: 'media', keywords: 'film reel tiktok instagram youtube vimeo showreel poster big video',
+    description: 'A big video with your own poster photo and words on it. YouTube, Vimeo, TikTok or Instagram; it loads only when pressed.',
+    variants: v(['overlay', 'Words over the video'], ['split', 'Words beside it (best for phone videos)'], ['cinema', 'Wide, on a dark band']),
+    fields: [url('url', 'Video link', 'A YouTube, Vimeo, TikTok or Instagram link to one video or reel.'), image('image', 'Poster photo'), text('heading', 'Heading', 140), para('text', 'Text', 500), link('link', 'Button'), text('caption', 'Caption', 200)],
+    defaults: () => ({ url: '', image: noImage(), heading: 'Two minutes in our kitchen', text: 'Watch the morning batch of momo being folded, steamed and sent out, start to finish.', link: { label: '', href: '' }, caption: '' }),
+  },
+  {
+    type: 'tabs', name: 'Tabs', category: 'media', keywords: 'tabbed categories services by category menu by meal switch sections',
+    description: 'A few groups of the same thing behind tabs: services by category, a menu by meal, rooms by floor.',
+    variants: v(['top', 'Tabs above'], ['pills', 'Rounded tabs, centred'], ['side', 'Tabs down the side']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500), list('tabs', 'Tabs', 'tab', [plain('label', 'Tab name', 40), text('title', 'Heading', 120), para('text', 'Text', 700), para('points', 'List (one per line)', 1500, 'Put a price or time after a dash, like "Blow-dry – 900".'), image('image', 'Photo'), link('link', 'Link')], 8)],
+    defaults: () => ({
+      heading: 'What we do, by chair', intro: '',
+      tabs: [
+        { label: 'Hair', title: 'Cuts, colour and care', text: 'Every cut starts with a wash and a proper talk about how you wear your hair on a normal day.', points: 'Cut and blow-dry – 1,200\nFringe trim – 300\nRoot colour – 2,800\nKeratin smoothing – 7,500', image: noImage(), link: { label: '', href: '' } },
+        { label: 'Skin', title: 'Facials and threading', text: 'Quiet rooms, clean tools for every guest, and products we are happy to name.', points: 'Threading, brows – 150\nClean-up facial – 1,500\nHydrating facial – 2,800', image: noImage(), link: { label: '', href: '' } },
+        { label: 'Bridal', title: 'Bridal and party make-up', text: 'A trial two weeks before, then the full look on the day, at the salon or at your venue.', points: 'Trial session – 3,500\nBridal make-up and hair – 18,000\nParty make-up – 4,500', image: noImage(), link: { label: 'Ask for a date', href: '' } },
+      ],
+    }),
+  },
+  {
+    type: 'hotspots', name: 'Photo with notes', category: 'media', keywords: 'hotspots points pins numbered image room product tour details',
+    description: 'One photo with numbered points on it. Each point opens a short note: a room, a product, a site.',
+    variants: v(['pins', 'Notes open on the photo'], ['legend', 'Numbered notes beside the photo']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500), image('image', 'Photo'), list('points', 'Points', 'point', [text('title', 'Title', 100), para('text', 'Note', 400), num('x', 'Across, from the left (%)', 0, 100, '0 is the left edge, 100 the right.'), num('y', 'Down, from the top (%)', 0, 100, '0 is the top edge, 100 the bottom.')], 12)],
+    defaults: () => ({
+      heading: 'A look around the corner room', intro: 'Tap a number to read about it.', image: noImage(),
+      points: [
+        { title: 'Window onto the hills', text: 'Faces east, so the first light reaches the bed a little after six.', x: 70, y: 32 },
+        { title: 'Handwoven dhaka throws', text: 'Made by a weavers’ group in Tehrathum; there is an extra one in the chest.', x: 38, y: 64 },
+        { title: 'Reading lamp and desk', text: 'Two plug points and a USB port by the desk, and the Wi-Fi password on the lamp.', x: 16, y: 48 },
+      ],
+    }),
   },
   /* ---- business ---- */
   {
@@ -332,6 +385,92 @@ export const BLOCKS: BlockDef[] = [
     fields: [text('heading', 'Heading'), para('text', 'Text', 500), list('items', 'Numbers', 'number', [plain('value', 'Number', 20, 'Only a number you can stand behind.'), text('label', 'What it counts', 80)], 8)],
     defaults: () => ({ heading: '', text: '', items: [{ value: '', label: 'What this number counts' }] }),
   },
+  {
+    type: 'compare', name: 'Comparison table', category: 'business', keywords: 'compare plans packages table features check cross ticks membership versus',
+    description: 'Plans or packages side by side, with a tick, a cross or a short value on every row.',
+    variants: v(['table', 'Table'], ['cards', 'A card for each plan']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500),
+      list('columns', 'Plans', 'plan', [text('name', 'Name', 60), plain('note', 'Price or short line', 60), bool('featured', 'Point this one out')], 4),
+      list('rows', 'Rows', 'row', [text('label', 'What is compared', 140), plain('v1', 'First plan', 60, 'Type yes for a tick, no for a cross, or a short value like "2 hours".'), plain('v2', 'Second plan', 60), plain('v3', 'Third plan', 60), plain('v4', 'Fourth plan', 60)], 30),
+      para('note', 'Small print', 400)],
+    defaults: () => ({
+      heading: 'Choose a membership', intro: 'All plans include the open gym floor. Pay monthly at the desk or by eSewa.',
+      columns: [{ name: 'Open gym', note: 'Rs 3,000 a month', featured: false }, { name: 'Coached', note: 'Rs 5,500 a month', featured: true }, { name: 'Personal', note: 'Rs 12,000 a month', featured: false }],
+      rows: [
+        { label: 'Gym floor, 5:30 am to 9 pm', v1: 'yes', v2: 'yes', v3: 'yes', v4: '' },
+        { label: 'Group classes a week', v1: 'no', v2: '4', v3: 'Unlimited', v4: '' },
+        { label: 'Programme written for you', v1: 'no', v2: 'yes', v3: 'yes', v4: '' },
+        { label: 'One-to-one sessions', v1: 'no', v2: 'no', v3: '12 a month', v4: '' },
+        { label: 'Body check every month', v1: 'no', v2: 'yes', v3: 'yes', v4: '' },
+        { label: 'Locker and towel', v1: 'no', v2: 'yes', v3: 'yes', v4: '' },
+      ],
+      note: 'Prices include VAT. Freeze your plan for up to a month when you travel.',
+    }),
+  },
+  {
+    type: 'voices', name: 'Customer stories', category: 'business', keywords: 'testimonials reviews carousel slider quotes photos customers clients',
+    description: 'Words customers really said, with their photo and who they are. No star ratings: only what they wrote.',
+    variants: v(['slider', 'One at a time, with the photo'], ['cards', 'Photos and words in a grid'], ['wall', 'Quotes in columns']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 400), list('items', 'Stories', 'story', [para('quote', 'Their words', 700), text('name', 'Name', 80), text('role', 'Who they are', 120, 'Like "Came for the bridal package" or "Owner, a bakery in Patan".'), image('image', 'Photo')], 16)],
+    defaults: () => ({
+      heading: 'In their words', intro: '',
+      items: [
+        { quote: 'Paste what a customer wrote to you, word for word, and ask them first if you may use it here with their photo.', name: 'Their name', role: 'What they came for, or where they are from', image: noImage() },
+        { quote: 'A second story works best when it is about something different: another service, another kind of customer.', name: 'Another name', role: 'Who they are', image: noImage() },
+      ],
+    }),
+  },
+  {
+    type: 'expand', name: 'Expanding list', category: 'business', keywords: 'accordion rooms services list photos open close details collapsible',
+    description: 'Rooms, services or courses as a list; each opens to show its photo, a few lines and a link.',
+    variants: v(['rows', 'The photo opens inside the row'], ['split', 'One photo beside the list']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500), list('items', 'Items', 'item', [text('title', 'Name', 100), plain('detail', 'Price, size or time', 60), para('text', 'Text', 700), image('image', 'Photo'), link('link', 'Link')], 12)],
+    defaults: () => ({
+      heading: 'Rooms', intro: 'Every room has hot water all day, a heater in winter and breakfast on the terrace.',
+      items: [
+        { title: 'Garden double', detail: 'Rs 3,800 a night', text: 'A queen bed, a bench under the window and a door straight onto the garden. Quiet side of the house.', image: noImage(), link: { label: 'Ask about dates', href: '' } },
+        { title: 'Corner room with a view', detail: 'Rs 4,600 a night', text: 'Windows on two sides, a writing desk and the best morning light in the house.', image: noImage(), link: { label: 'Ask about dates', href: '' } },
+        { title: 'Family room', detail: 'Rs 6,200 a night', text: 'A double and two singles, a wide bathroom and space for a cot. Sleeps four.', image: noImage(), link: { label: 'Ask about dates', href: '' } },
+      ],
+    }),
+  },
+  {
+    type: 'enquire', name: 'Products and rooms', category: 'business', keywords: 'products shop catalogue rooms prices enquire whatsapp order buy badge grid',
+    description: 'Things or rooms with a photo, price and tag. Each has a button that opens WhatsApp or your form with its name filled in.',
+    variants: v(['grid', 'Cards in a grid'], ['wide', 'Two large a row'], ['rows', 'Rows with a small photo']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500), select('currency', 'Currency', CURRENCIES),
+      list('items', 'Items', 'item', [image('image', 'Photo'), text('name', 'Name', 90), plain('price', 'Price', 30, 'Numbers only, like 4500, or words like "On request".'), plain('per', 'Per', 30, 'Like night, piece or metre. Optional.'), plain('badge', 'Tag', 24, 'Like New, Popular or Sold out. Optional.'), para('text', 'Short description', 300)], 24),
+      plain('button', 'Button on each', 30),
+      select('via', 'The button opens', [['whatsapp', 'A WhatsApp message'], ['form', 'The contact or booking form on this page'], ['email', 'An email']]),
+      plain('whatsapp', 'WhatsApp number', 40, 'Empty: the phone from Site settings.'),
+      plain('message', 'Message starts with', 160, 'The item’s name is added after it.')],
+    defaults: () => ({
+      heading: 'From the loom', intro: 'Each piece is woven by hand, so colours vary a little. Ask and we will send photos of the one you will get.', currency: 'NPR',
+      items: [
+        { image: noImage(), name: 'Dhaka shawl, madder red', price: '4800', per: '', badge: 'New', text: 'Cotton, 190 by 70 cm, with a hand-knotted fringe.' },
+        { image: noImage(), name: 'Nettle-fibre tote', price: '2200', per: '', badge: '', text: 'Allo fibre from Sankhuwasabha, lined, with an inside pocket.' },
+        { image: noImage(), name: 'Pashmina stole, undyed', price: '9500', per: '', badge: 'Popular', text: 'Soft, warm and light enough to wear in spring.' },
+      ],
+      button: 'Enquire', via: 'whatsapp', whatsapp: '', message: 'Namaste, I would like to ask about',
+    }),
+  },
+  {
+    type: 'payment', name: 'Payment details', category: 'business', keywords: 'pay qr esewa khalti fonepay bank transfer account number copy deposit',
+    description: 'eSewa, Khalti or bank QR codes with the account details, which visitors copy with one tap.',
+    variants: v(['cards', 'Side by side'], ['list', 'Rows']),
+    fields: [text('heading', 'Heading'), para('intro', 'Intro', 500),
+      list('methods', 'Ways to pay', 'way to pay', [plain('name', 'Name', 40, 'Like eSewa, Khalti or the bank’s name.'), image('qr', 'QR code'), plain('holder', 'Account name', 80), plain('number', 'ID or account number', 60, 'Visitors can copy it with one tap.'), para('details', 'Other details', 300, 'Bank branch, SWIFT code; one per line.')], 6),
+      para('note', 'After paying', 500, 'What visitors do next, like sending a screenshot.')],
+    defaults: () => ({
+      heading: 'Pay online', intro: 'Scan with your wallet or banking app, or copy the details.',
+      methods: [
+        { name: 'eSewa', qr: noImage(), holder: 'Your business name', number: '98XXXXXXXX', details: '' },
+        { name: 'Khalti', qr: noImage(), holder: 'Your business name', number: '98XXXXXXXX', details: '' },
+        { name: 'Bank transfer', qr: noImage(), holder: 'Your business name', number: 'Account number', details: 'Your bank, branch\nSWIFT code, for payments from abroad' },
+      ],
+      note: 'After paying, send a screenshot to our WhatsApp with your name, and we will confirm within the hour.',
+    }),
+  },
   /* ---- engagement ---- */
   {
     type: 'faq', name: 'Questions', category: 'engagement', keywords: 'faq accordion questions answers',
@@ -348,11 +487,28 @@ export const BLOCKS: BlockDef[] = [
     defaults: () => ({ title: 'Ready when you are', text: '', primary: { label: 'Get in touch', href: '' }, secondary: { label: '', href: '' }, image: noImage() }),
   },
   {
+    type: 'countdown', name: 'Countdown', category: 'engagement', keywords: 'timer countdown event launch sale opening date festival dashain tihar',
+    description: 'Days, hours and minutes to an event, a launch or a sale. The date shows in Nepali (BS) or English (AD).',
+    variants: v(['band', 'Large numbers in a row'], ['split', 'Text beside the numbers'], ['image', 'Over a photo']),
+    fields: [text('heading', 'Heading', 140), para('text', 'Text', 500), date('date', 'Date', 'Pick the day in English (AD); the Nepali date shows beside it.'), time('time', 'Time', 'Nepal time. Empty: midnight at the start of the day.'),
+      select('calendar', 'Show the date as', [['bs', 'Nepali date (BS)'], ['ad', 'English date (AD)'], ['both', 'Both']]),
+      text('after', 'Shown once the time comes', 200, 'Replaces the numbers, like "The sale is on now".'), link('link', 'Button'), image('image', 'Background photo')],
+    defaults: () => ({ heading: 'The Dashain sale starts in', text: 'Twenty percent off everything in the shop for five days, in store and on phone orders.', date: inDays(21), time: '10:00', calendar: 'both', after: 'The Dashain sale is on now. Come in, or call to order.', link: { label: 'See what is in the sale', href: '' }, image: noImage() }),
+  },
+  {
     type: 'contact', name: 'Contact form', category: 'engagement', keywords: 'form message email phone enquiry',
     description: 'A short form. Messages arrive in Submissions, and your details sit beside it.',
     variants: v(['split', 'Details beside the form'], ['form', 'Form only'], ['stacked', 'Details above']),
     fields: [text('heading', 'Heading'), para('text', 'Text', 400), para('address', 'Address', 200, 'Empty: the address from Site settings.'), plain('phone', 'Phone', 40, 'Empty: the phone from Site settings.'), plain('email', 'Email', 120, 'Empty: the email from Site settings.'), bool('askPhone', 'Ask for a phone number'), plain('button', 'Button', 40), plain('success', 'Message after sending', 200)],
     defaults: () => ({ heading: 'Write to us', text: '', address: '', phone: '', email: '', askPhone: true, button: 'Send message', success: 'Thank you. We will reply within a day.' }),
+    form: { fields: [{ name: 'name', label: 'Name', required: true, max: 120 }, { name: 'email', label: 'Email', kind: 'email', max: 200 }, { name: 'phone', label: 'Phone', kind: 'tel', max: 40 }, { name: 'message', label: 'Message', required: true, kind: 'long', max: 5000 }] },
+  },
+  {
+    type: 'visit', name: 'Contact, map and form', category: 'engagement', keywords: 'contact map form address directions visit find us phone whatsapp hours',
+    description: 'Everything for getting in touch in one block: the form, your phone, WhatsApp and hours, and a map.',
+    variants: v(['split', 'Details beside the form and map'], ['map', 'Map across the top']),
+    fields: [text('heading', 'Heading'), para('text', 'Text', 400), para('address', 'Address', 200, 'Empty: the address from Site settings.'), plain('phone', 'Phone', 40, 'Empty: the phone from Site settings.'), plain('whatsapp', 'WhatsApp number', 40, 'Optional. Adds a "Message on WhatsApp" link.'), plain('email', 'Email', 120, 'Empty: the email from Site settings.'), para('hours', 'Hours', 300, 'Optional. One line per row.'), plain('query', 'Place on the map', 200, 'A place name or address as you would type it into Google Maps. Empty: the address.'), url('link', 'Google Maps link', 'The share link from Google Maps, for directions.'), bool('askPhone', 'Ask for a phone number'), plain('button', 'Button', 40), plain('success', 'Message after sending', 200)],
+    defaults: () => ({ heading: 'Come by, call or write', text: 'We reply to messages the same day, and to WhatsApp faster.', address: '', phone: '', whatsapp: '', email: '', hours: 'Sunday to Friday, 9:00 to 18:00\nSaturday closed', query: '', link: '', askPhone: true, button: 'Send message', success: 'Thank you. We will reply within a day.' }),
     form: { fields: [{ name: 'name', label: 'Name', required: true, max: 120 }, { name: 'email', label: 'Email', kind: 'email', max: 200 }, { name: 'phone', label: 'Phone', kind: 'tel', max: 40 }, { name: 'message', label: 'Message', required: true, kind: 'long', max: 5000 }] },
   },
   {
@@ -405,6 +561,13 @@ export const BLOCKS: BlockDef[] = [
     variants: v(['list', 'List'], ['cards', 'Tiles']),
     fields: [text('heading', 'Heading'), list('items', 'Links', 'link', [text('label', 'Label', 100), url('url', 'Link'), plain('note', 'Note', 80, 'Like PDF, 2 pages.')], 30)],
     defaults: () => ({ heading: 'Downloads', items: [{ label: 'Price list', url: '', note: 'PDF' }] }),
+  },
+  {
+    type: 'share', name: 'Brochure and share', category: 'engagement', keywords: 'download pdf menu brochure catalogue share whatsapp facebook copy link',
+    description: 'A download button for your menu or brochure, and buttons to share this page on WhatsApp, Facebook or by link.',
+    variants: v(['band', 'Download and share side by side'], ['card', 'With a cover photo'], ['inline', 'One quiet row']),
+    fields: [text('heading', 'Heading', 140), para('text', 'Text', 400), url('file', 'Menu or brochure link', 'A link to the PDF, for example from Google Drive or Dropbox.'), plain('fileLabel', 'Download button', 50), plain('fileNote', 'About the file', 60, 'Like PDF, 4 pages.'), image('image', 'Cover photo'), bool('showShare', 'Show share buttons'), plain('shareLabel', 'Above the share buttons', 60)],
+    defaults: () => ({ heading: 'Take the menu with you', text: 'The full menu with prices, to keep on your phone or send to whoever is choosing tonight.', file: '', fileLabel: 'Download the menu', fileNote: 'PDF, 4 pages', image: noImage(), showShare: true, shareLabel: 'Share this page' }),
   },
   {
     type: 'social', name: 'Social links', category: 'engagement', keywords: 'instagram facebook tiktok follow',
@@ -816,6 +979,14 @@ function cleanValue(f: Field, raw: any, dflt: any): any {
     case 'link': return cleanLink(raw ?? dflt);
     case 'bool': return raw === undefined ? !!dflt : !!raw;
     case 'select': { const val = raw === undefined ? dflt : String(raw); return f.options!.some((o) => o.value === val) ? val : f.options![0].value; }
+    case 'number': {
+      const lo = f.lo ?? 0, hi = f.hi ?? 100;
+      const n = typeof raw === 'number' ? raw : raw === undefined || raw === null || raw === '' ? NaN : Number(String(raw).trim());
+      const d = typeof dflt === 'number' && isFinite(dflt) ? dflt : Math.round((lo + hi) / 2);
+      return isFinite(n) ? Math.min(hi, Math.max(lo, Math.round(n * 10) / 10)) : d;
+    }
+    case 'date': { const s = String(raw === undefined ? dflt ?? '' : raw ?? '').trim(); return /^(19|20)\d\d-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(s) ? s : ''; }
+    case 'time': { const s = String(raw === undefined ? dflt ?? '' : raw ?? '').trim(); return /^([01]\d|2[0-3]):[0-5]\d$/.test(s) ? s : ''; }
     case 'list': {
       const arr = Array.isArray(raw) ? raw : Array.isArray(dflt) ? dflt : [];
       return arr.slice(0, f.maxItems ?? 40).map((it: any) => cleanProps(f.of!, it && typeof it === 'object' ? it : {}, {}));
@@ -920,7 +1091,7 @@ export function cleanSite(raw: any): Site {
 /** A new block of a type, with its first variant and example text. */
 export function makeBlock(type: string): Block {
   const def = blockDef(type)!;
-  return { id: newBlockId(), type, variant: def.variants[0].id, props: def.defaults(), style: { bg: 'page', space: 'm', hide: '' } };
+  return { id: newBlockId(), type, variant: def.variants[0].id, props: def.defaults(), style: { bg: 'page', space: 'm', hide: '', ...def.style } };
 }
 
 /** A blank site: header, one hero, footer, one theme. */

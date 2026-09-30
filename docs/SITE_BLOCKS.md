@@ -57,6 +57,16 @@ The three flagship templates (`cafe`, `clinic`, `agency`) are the reference. Ope
   then a band of `marquee` words on `accent`, a `quote`, `rows` with big photos, a text-dense `features` list on
   `surface`, a `sticky` photo story, a `gallery` mosaic, and so on. Never put two blocks with the same layout
   next to each other. Use `style.bg` (`surface`, `accent`, `ink`) to separate sections instead of lines.
+- **A home page of its own.** Each category opens differently (hero type and what follows it) and carries one or
+  two signature blocks that only fit that business: the menu with photos and an `announce` bar for today's
+  special (café), prices in `tabs` (salon), a `compare` table of memberships and the week in `tabs` (gym),
+  treks side by side and a `countdown` to the next departure (trekking), listings in `enquire` and a
+  `hotspots` look inside (real estate), rooms in `expand` (homestay), the wedding week in `tabs` (wedding),
+  `payment` for gifts (NGO). Do not copy one home page's order into another template.
+- **Signature blocks carry the business's own facts.** A `countdown` counts to a date the template already
+  names (a deadline, a departure, a course start); `compare` rows restate prices and inclusions from the
+  pricing page; `payment` numbers stay as placeholders (`98XXXXXXXX`) for the owner to replace; `voices` keeps
+  its instructive defaults until the owner has real words. Hotspot points must sit on the thing they describe.
 - **No eyebrows.** The small line above headings is gone; the hero's `eyebrow` prop is now a *detail line*
   shown under the buttons (hours, neighbourhood). Headings carry themselves.
 - **Numbers only where order matters.** `steps` is numbered because the order is the point. Lists of services
@@ -72,8 +82,28 @@ The three flagship templates (`cafe`, `clinic`, `agency`) are the reference. Ope
 
 One signature motion only, and it is automatic: photos inside most photo blocks are *unveiled* as they scroll
 into view (a panel in the section colour slides away while the photo settles from 1.08 to 1; transform only).
-It is off in the editor, in print, without JavaScript and for visitors who turn motion off. The `marquee`
+It is off in the editor (Edit and Preview), in print, without JavaScript and for visitors who turn motion off.
+Nothing is ever left covered: photos already in view show at once, a scroll check backs up the observer, a
+timer sweeps again after load, and a shown photo's panel is removed from the page. Tabs, the story slider,
+photo notes and opening rows fade in over 0.2 to 0.4 s (opacity and transform only), and not at all for
+visitors who turn motion off. The `marquee`
 block moves slowly and stands still for those visitors too. Do not ask for more.
+
+### Themes differ in manner, not only colour
+
+Each preset also sets how cards and panels are drawn, how the menu is set and how the header meets the page
+(`PERSONA` in render.ts): Roast and Bloom fill cards with the panel colour, Salt and Monolith draw only a rule
+along the top, Kora lifts cards with a soft shadow, Counsel draws a hairline box with a dark rule along the top, Nocturne
+frames photos with a thin offset line, Summit sets buttons and the menu in capitals. Keep a template on the
+theme whose manner suits it.
+
+### Scripts and embeds
+
+`runtime/site.js` is the only script. It adds tabs (arrow keys, Home and End), the story slider, photo notes
+(Escape closes them), countdown ticks, closable announcements (remembered per message), copy buttons, share
+links and the `enquire` form prefill, all delegated from the document. The `videofeature` block plays
+YouTube, Vimeo, TikTok and Instagram through their own players, only after a click; the site's
+`frame-src` allows exactly those hosts and Google Maps.
 
 ### Adding library photos
 
@@ -214,6 +244,20 @@ Props:
 
 Defaults: `{"headline":"","cta":{"label":"","href":""},"about":"","hours":"","note":"","showPages":true,"showContact":true,"showSocial":true}`
 
+#### `announce`: Announcement bar
+
+One short line at the very top: a holiday, an offer, new hours. Visitors can close it.
+
+Variants: `bar` (One centred line), `split` (Message left, link right). The first is the default.
+
+Props:
+- `text` (Message): inline text (bold, italic, links), up to 200 characters.
+- `label` (Small tag): plain text, up to 30 characters. Optional, like "New" or "Tihar hours".
+- `link` (Link): button `{ label, href, newTab? }`.
+- `dismiss` (Visitors can close it): true / false. Once closed it stays closed for them until you change the message.
+
+Defaults: `{"text":"Open every day through Tihar, 8 in the morning to 9 at night.","label":"Tihar hours","link":{"label":"Plan your visit","href":""},"dismiss":true}`
+
 ### Text and media
 
 #### `richtext`: Text
@@ -344,6 +388,59 @@ Props:
 - `caption` (Caption): inline text (bold, italic, links), up to 200 characters.
 
 Defaults: `{"url":"","heading":"","text":"","caption":""}`
+
+#### `videofeature`: Video feature
+
+A big video with your own poster photo and words on it. YouTube, Vimeo, TikTok or Instagram; it loads only when pressed.
+
+Variants: `overlay` (Words over the video), `split` (Words beside it (best for phone videos)), `cinema` (Wide, on a dark band). The first is the default.
+
+Props:
+- `url` (Video link): link (https:, mailto:, tel:, page:<id>, #anchor). A YouTube, Vimeo, TikTok or Instagram link to one video or reel.
+- `image` (Poster photo): image `{ src, alt, focal? }`.
+- `heading` (Heading): inline text (bold, italic, links), up to 140 characters.
+- `text` (Text): inline text, several lines, up to 500 characters.
+- `link` (Button): button `{ label, href, newTab? }`.
+- `caption` (Caption): inline text (bold, italic, links), up to 200 characters.
+
+Defaults: `{"url":"","image":{"src":"","alt":""},"heading":"Two minutes in our kitchen","text":"Watch the morning batch of momo being folded, steamed and sent out, start to finish.","link":{"label":"","href":""},"caption":""}`
+
+#### `tabs`: Tabs
+
+A few groups of the same thing behind tabs: services by category, a menu by meal, rooms by floor.
+
+Variants: `top` (Tabs above), `pills` (Rounded tabs, centred), `side` (Tabs down the side). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `tabs` (Tabs): list of items. Up to 8 tabs, each:
+  - `label` (Tab name): plain text, up to 40 characters.
+  - `title` (Heading): inline text (bold, italic, links), up to 120 characters.
+  - `text` (Text): inline text, several lines, up to 700 characters.
+  - `points` (List (one per line)): inline text, several lines, up to 1500 characters. Put a price or time after a dash, like "Blow-dry – 900".
+  - `image` (Photo): image `{ src, alt, focal? }`.
+  - `link` (Link): button `{ label, href, newTab? }`.
+
+Defaults: `{"heading":"What we do, by chair","intro":"","tabs":[{"label":"Hair","title":"Cuts, colour and care","text":"Every cut starts with a wash and a proper talk about how you wear your hair on a normal day.","points":"Cut and blow-dry – 1,200\nFringe trim – 300\nRoot colour – 2,800\nKeratin smoothing – 7,500","image":{"src":"","alt":""},"link":{"label":"","href":""}},{"label":"Skin","title":"Facials and threading","text":"Quiet rooms, clean tools for every guest, and products we are happy to name.","points":"Threading, brows – 150\nClean-up facial – 1,500\nHydrating facial – 2,800","image":{"src":"","alt":""},"link":{"label":"","href":""}},{"label":"Bridal","title":"Bridal and party make-up","text":"A trial two weeks before, then the full look on the day, at the salon or at your venue.","points":"Trial session – 3,500\nBridal make-up and hair – 18,000\nParty make-up – 4,500","image":{"src":"","alt":""},"link":{"label":"Ask for a date","href":""}}]}`
+
+#### `hotspots`: Photo with notes
+
+One photo with numbered points on it. Each point opens a short note: a room, a product, a site.
+
+Variants: `pins` (Notes open on the photo), `legend` (Numbered notes beside the photo). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `image` (Photo): image `{ src, alt, focal? }`.
+- `points` (Points): list of items. Up to 12 points, each:
+  - `title` (Title): inline text (bold, italic, links), up to 100 characters.
+  - `text` (Note): inline text, several lines, up to 400 characters.
+  - `x` (Across, from the left (%)): number from 0 to 100. 0 is the left edge, 100 the right.
+  - `y` (Down, from the top (%)): number from 0 to 100. 0 is the top edge, 100 the bottom.
+
+Defaults: `{"heading":"A look around the corner room","intro":"Tap a number to read about it.","image":{"src":"","alt":""},"points":[{"title":"Window onto the hills","text":"Faces east, so the first light reaches the bed a little after six.","x":70,"y":32},{"title":"Handwoven dhaka throws","text":"Made by a weavers’ group in Tehrathum; there is an extra one in the chest.","x":38,"y":64},{"title":"Reading lamp and desk","text":"Two plug points and a USB port by the desk, and the Wi-Fi password on the lamp.","x":16,"y":48}]}`
 
 ### Business
 
@@ -519,6 +616,107 @@ Props:
 
 Defaults: `{"heading":"","text":"","items":[{"value":"","label":"What this number counts"}]}`
 
+#### `compare`: Comparison table
+
+Plans or packages side by side, with a tick, a cross or a short value on every row.
+
+Variants: `table` (Table), `cards` (A card for each plan). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `columns` (Plans): list of items. Up to 4 plans, each:
+  - `name` (Name): inline text (bold, italic, links), up to 60 characters.
+  - `note` (Price or short line): plain text, up to 60 characters.
+  - `featured` (Point this one out): true / false.
+- `rows` (Rows): list of items. Up to 30 rows, each:
+  - `label` (What is compared): inline text (bold, italic, links), up to 140 characters.
+  - `v1` (First plan): plain text, up to 60 characters. Type yes for a tick, no for a cross, or a short value like "2 hours".
+  - `v2` (Second plan): plain text, up to 60 characters.
+  - `v3` (Third plan): plain text, up to 60 characters.
+  - `v4` (Fourth plan): plain text, up to 60 characters.
+- `note` (Small print): inline text, several lines, up to 400 characters.
+
+Defaults: `{"heading":"Choose a membership","intro":"All plans include the open gym floor. Pay monthly at the desk or by eSewa.","columns":[{"name":"Open gym","note":"Rs 3,000 a month","featured":false},{"name":"Coached","note":"Rs 5,500 a month","featured":true},{"name":"Personal","note":"Rs 12,000 a month","featured":false}],"rows":[{"label":"Gym floor, 5:30 am to 9 pm","v1":"yes","v2":"yes","v3":"yes","v4":""},{"label":"Group classes a week","v1":"no","v2":"4","v3":"Unlimited","v4":""},{"label":"Programme written for you","v1":"no","v2":"yes","v3":"yes","v4":""},{"label":"One-to-one sessions","v1":"no","v2":"no","v3":"12 a month","v4":""},{"label":"Body check every month","v1":"no","v2":"yes","v3":"yes","v4":""},{"label":"Locker and towel","v1":"no","v2":"yes","v3":"yes","v4":""}],"note":"Prices include VAT. Freeze your plan for up to a month when you travel."}`
+
+#### `voices`: Customer stories
+
+Words customers really said, with their photo and who they are. No star ratings: only what they wrote.
+
+Variants: `slider` (One at a time, with the photo), `cards` (Photos and words in a grid), `wall` (Quotes in columns). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 400 characters.
+- `items` (Stories): list of items. Up to 16 storys, each:
+  - `quote` (Their words): inline text, several lines, up to 700 characters.
+  - `name` (Name): inline text (bold, italic, links), up to 80 characters.
+  - `role` (Who they are): inline text (bold, italic, links), up to 120 characters. Like "Came for the bridal package" or "Owner, a bakery in Patan".
+  - `image` (Photo): image `{ src, alt, focal? }`.
+
+Defaults: `{"heading":"In their words","intro":"","items":[{"quote":"Paste what a customer wrote to you, word for word, and ask them first if you may use it here with their photo.","name":"Their name","role":"What they came for, or where they are from","image":{"src":"","alt":""}},{"quote":"A second story works best when it is about something different: another service, another kind of customer.","name":"Another name","role":"Who they are","image":{"src":"","alt":""}}]}`
+
+#### `expand`: Expanding list
+
+Rooms, services or courses as a list; each opens to show its photo, a few lines and a link.
+
+Variants: `rows` (The photo opens inside the row), `split` (One photo beside the list). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `items` (Items): list of items. Up to 12 items, each:
+  - `title` (Name): inline text (bold, italic, links), up to 100 characters.
+  - `detail` (Price, size or time): plain text, up to 60 characters.
+  - `text` (Text): inline text, several lines, up to 700 characters.
+  - `image` (Photo): image `{ src, alt, focal? }`.
+  - `link` (Link): button `{ label, href, newTab? }`.
+
+Defaults: `{"heading":"Rooms","intro":"Every room has hot water all day, a heater in winter and breakfast on the terrace.","items":[{"title":"Garden double","detail":"Rs 3,800 a night","text":"A queen bed, a bench under the window and a door straight onto the garden. Quiet side of the house.","image":{"src":"","alt":""},"link":{"label":"Ask about dates","href":""}},{"title":"Corner room with a view","detail":"Rs 4,600 a night","text":"Windows on two sides, a writing desk and the best morning light in the house.","image":{"src":"","alt":""},"link":{"label":"Ask about dates","href":""}},{"title":"Family room","detail":"Rs 6,200 a night","text":"A double and two singles, a wide bathroom and space for a cot. Sleeps four.","image":{"src":"","alt":""},"link":{"label":"Ask about dates","href":""}}]}`
+
+#### `enquire`: Products and rooms
+
+Things or rooms with a photo, price and tag. Each has a button that opens WhatsApp or your form with its name filled in.
+
+Variants: `grid` (Cards in a grid), `wide` (Two large a row), `rows` (Rows with a small photo). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `currency` (Currency): one of: `NPR`, `INR`, `USD`, `EUR`, `GBP`, `AUD`, ``.
+- `items` (Items): list of items. Up to 24 items, each:
+  - `image` (Photo): image `{ src, alt, focal? }`.
+  - `name` (Name): inline text (bold, italic, links), up to 90 characters.
+  - `price` (Price): plain text, up to 30 characters. Numbers only, like 4500, or words like "On request".
+  - `per` (Per): plain text, up to 30 characters. Like night, piece or metre. Optional.
+  - `badge` (Tag): plain text, up to 24 characters. Like New, Popular or Sold out. Optional.
+  - `text` (Short description): inline text, several lines, up to 300 characters.
+- `button` (Button on each): plain text, up to 30 characters.
+- `via` (The button opens): one of: `whatsapp`, `form`, `email`.
+- `whatsapp` (WhatsApp number): plain text, up to 40 characters. Empty: the phone from Site settings.
+- `message` (Message starts with): plain text, up to 160 characters. The item’s name is added after it.
+
+Defaults: `{"heading":"From the loom","intro":"Each piece is woven by hand, so colours vary a little. Ask and we will send photos of the one you will get.","currency":"NPR","items":[{"image":{"src":"","alt":""},"name":"Dhaka shawl, madder red","price":"4800","per":"","badge":"New","text":"Cotton, 190 by 70 cm, with a hand-knotted fringe."},{"image":{"src":"","alt":""},"name":"Nettle-fibre tote","price":"2200","per":"","badge":"","text":"Allo fibre from Sankhuwasabha, lined, with an inside pocket."},{"image":{"src":"","alt":""},"name":"Pashmina stole, undyed","price":"9500","per":"","badge":"Popular","text":"Soft, warm and light enough to wear in spring."}],"button":"Enquire","via":"whatsapp","whatsapp":"","message":"Namaste, I would like to ask about"}`
+
+#### `payment`: Payment details
+
+eSewa, Khalti or bank QR codes with the account details, which visitors copy with one tap.
+
+Variants: `cards` (Side by side), `list` (Rows). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `intro` (Intro): inline text, several lines, up to 500 characters.
+- `methods` (Ways to pay): list of items. Up to 6 way to pays, each:
+  - `name` (Name): plain text, up to 40 characters. Like eSewa, Khalti or the bank’s name.
+  - `qr` (QR code): image `{ src, alt, focal? }`.
+  - `holder` (Account name): plain text, up to 80 characters.
+  - `number` (ID or account number): plain text, up to 60 characters. Visitors can copy it with one tap.
+  - `details` (Other details): inline text, several lines, up to 300 characters. Bank branch, SWIFT code; one per line.
+- `note` (After paying): inline text, several lines, up to 500 characters. What visitors do next, like sending a screenshot.
+
+Defaults: `{"heading":"Pay online","intro":"Scan with your wallet or banking app, or copy the details.","methods":[{"name":"eSewa","qr":{"src":"","alt":""},"holder":"Your business name","number":"98XXXXXXXX","details":""},{"name":"Khalti","qr":{"src":"","alt":""},"holder":"Your business name","number":"98XXXXXXXX","details":""},{"name":"Bank transfer","qr":{"src":"","alt":""},"holder":"Your business name","number":"Account number","details":"Your bank, branch\nSWIFT code, for payments from abroad"}],"note":"After paying, send a screenshot to our WhatsApp with your name, and we will confirm within the hour."}`
+
 ### Engagement
 
 #### `faq`: Questions
@@ -551,6 +749,24 @@ Props:
 
 Defaults: `{"title":"Ready when you are","text":"","primary":{"label":"Get in touch","href":""},"secondary":{"label":"","href":""},"image":{"src":"","alt":""}}`
 
+#### `countdown`: Countdown
+
+Days, hours and minutes to an event, a launch or a sale. The date shows in Nepali (BS) or English (AD).
+
+Variants: `band` (Large numbers in a row), `split` (Text beside the numbers), `image` (Over a photo). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 140 characters.
+- `text` (Text): inline text, several lines, up to 500 characters.
+- `date` (Date): date `YYYY-MM-DD` (AD; shown in BS or AD on the site). Pick the day in English (AD); the Nepali date shows beside it.
+- `time` (Time): time `HH:MM` (24-hour, Nepal time). Nepal time. Empty: midnight at the start of the day.
+- `calendar` (Show the date as): one of: `bs`, `ad`, `both`.
+- `after` (Shown once the time comes): inline text (bold, italic, links), up to 200 characters. Replaces the numbers, like "The sale is on now".
+- `link` (Button): button `{ label, href, newTab? }`.
+- `image` (Background photo): image `{ src, alt, focal? }`.
+
+Defaults: `{"heading":"The Dashain sale starts in","text":"Twenty percent off everything in the shop for five days, in store and on phone orders.","date":"2026-10-21","time":"10:00","calendar":"both","after":"The Dashain sale is on now. Come in, or call to order.","link":{"label":"See what is in the sale","href":""},"image":{"src":"","alt":""}}`
+
 #### `contact`: Contact form
 
 A short form. Messages arrive in Submissions, and your details sit beside it.
@@ -570,6 +786,30 @@ Props:
 Form fields visitors send: `name` (required), `email`, `phone`, `message` (required).
 
 Defaults: `{"heading":"Write to us","text":"","address":"","phone":"","email":"","askPhone":true,"button":"Send message","success":"Thank you. We will reply within a day."}`
+
+#### `visit`: Contact, map and form
+
+Everything for getting in touch in one block: the form, your phone, WhatsApp and hours, and a map.
+
+Variants: `split` (Details beside the form and map), `map` (Map across the top). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 160 characters.
+- `text` (Text): inline text, several lines, up to 400 characters.
+- `address` (Address): inline text, several lines, up to 200 characters. Empty: the address from Site settings.
+- `phone` (Phone): plain text, up to 40 characters. Empty: the phone from Site settings.
+- `whatsapp` (WhatsApp number): plain text, up to 40 characters. Optional. Adds a "Message on WhatsApp" link.
+- `email` (Email): plain text, up to 120 characters. Empty: the email from Site settings.
+- `hours` (Hours): inline text, several lines, up to 300 characters. Optional. One line per row.
+- `query` (Place on the map): plain text, up to 200 characters. A place name or address as you would type it into Google Maps. Empty: the address.
+- `link` (Google Maps link): link (https:, mailto:, tel:, page:<id>, #anchor). The share link from Google Maps, for directions.
+- `askPhone` (Ask for a phone number): true / false.
+- `button` (Button): plain text, up to 40 characters.
+- `success` (Message after sending): plain text, up to 200 characters.
+
+Form fields visitors send: `name` (required), `email`, `phone`, `message` (required).
+
+Defaults: `{"heading":"Come by, call or write","text":"We reply to messages the same day, and to WhatsApp faster.","address":"","phone":"","whatsapp":"","email":"","hours":"Sunday to Friday, 9:00 to 18:00\nSaturday closed","query":"","link":"","askPhone":true,"button":"Send message","success":"Thank you. We will reply within a day."}`
 
 #### `booking`: Booking form
 
@@ -683,6 +923,24 @@ Props:
 
 Defaults: `{"heading":"Downloads","items":[{"label":"Price list","url":"","note":"PDF"}]}`
 
+#### `share`: Brochure and share
+
+A download button for your menu or brochure, and buttons to share this page on WhatsApp, Facebook or by link.
+
+Variants: `band` (Download and share side by side), `card` (With a cover photo), `inline` (One quiet row). The first is the default.
+
+Props:
+- `heading` (Heading): inline text (bold, italic, links), up to 140 characters.
+- `text` (Text): inline text, several lines, up to 400 characters.
+- `file` (Menu or brochure link): link (https:, mailto:, tel:, page:<id>, #anchor). A link to the PDF, for example from Google Drive or Dropbox.
+- `fileLabel` (Download button): plain text, up to 50 characters.
+- `fileNote` (About the file): plain text, up to 60 characters. Like PDF, 4 pages.
+- `image` (Cover photo): image `{ src, alt, focal? }`.
+- `showShare` (Show share buttons): true / false.
+- `shareLabel` (Above the share buttons): plain text, up to 60 characters.
+
+Defaults: `{"heading":"Take the menu with you","text":"The full menu with prices, to keep on your phone or send to whoever is choosing tonight.","file":"","fileLabel":"Download the menu","fileNote":"PDF, 4 pages","image":{"src":"","alt":""},"showShare":true,"shareLabel":"Share this page"}`
+
 #### `social`: Social links
 
 Where to follow you. Empty: the links from Site settings.
@@ -788,6 +1046,174 @@ Defaults: `{"size":"m"}`
 - `agency-team-2`: Portrait of a smiling man with long dark hair
 - `agency-team-3`: Portrait of a laughing woman in a mustard and navy outfit
 - `agency-meeting`: Two women reviewing colour swatches in front of a moodboard wall
+- `ngo-classroom`: Children in blue school uniforms at their desks in a classroom
+- `ngo-girls`: Two schoolgirls in blue uniforms smiling in their classroom
+- `ngo-boys`: Three schoolboys sitting close together in a classroom corner
+- `ngo-school`: A hill school’s buildings and dirt courtyard in low evening sun
+- `ngo-kitchen`: Two women sifting rice and cooking in a smoky village kitchen
+- `ngo-dalbhat`: Rice, dal and sautéed greens in brass bowls
+- `ngo-pot`: A cook stirring a big pot of vegetable curry over a wood fire
+- `ngo-washing`: A woman washing large cooking pots in a yard
+- `ngo-desk`: Boys at a school desk in a blue-painted classroom
+- `ngo-desks`: Young children sitting at green desks in a classroom
+- `ngo-line`: Children sitting in a long row outdoors in morning light
+- `ngo-market`: Women selling vegetables and marigolds from baskets by a brick wall
+- `ngo-nutrition`: Schoolchildren looking at a nutrition corner display with Nepali signs
+- `ngo-walk`: Children in grey school uniforms and ties standing on the road
+- `ngo-meal`: Children in blue uniforms eating a midday meal sitting on the floor
+- `trek-everest`: A stupa and prayer flags on a ridge below Everest and Lhotse
+- `trek-amadablam`: Trekkers on the valley trail below Ama Dablam
+- `trek-namche`: Namche Bazaar’s houses on a hillside under snow peaks
+- `trek-tengboche`: The painted gate of Tengboche monastery with peaks behind
+- `trek-porter`: A porter carrying a load over rocks below a snow face
+- `trek-rest`: Trekkers resting on rocks facing Ama Dablam
+- `trek-bridge`: A suspension bridge hung with prayer flags over a forested gorge
+- `trek-porter-bridge`: A porter crossing a steel suspension bridge with a heavy load
+- `trek-yak`: A yak grazing beside a frozen lake below the peaks
+- `trek-gokyo`: Gokyo lakes and the glacier seen from above
+- `trek-ebc`: The Everest Base Camp rock with prayer flags and the icefall behind
+- `trek-glacier`: A group of trekkers crossing glacier moraine
+- `trek-langtang`: Kyanjin Gompa’s lodges in the Langtang valley under snow peaks
+- `trek-maniwall`: A trekker walking beside a mani wall in a green valley
+- `trek-gorakshep`: Blue-roofed lodges at the edge of the moraine below snow peaks
+- `stay-house`: A stone village house at dusk with Annapurna South lit pink behind
+- `stay-village`: Slate-roofed houses of a Gurung village on a hillside
+- `stay-cloud`: Village rooftops with cloud rolling over the hills
+- `stay-night`: The village’s slate roofs and lit windows at night
+- `stay-alpenglow`: Last light on Annapurna South and Machhapuchhre
+- `stay-steps`: Stone steps climbing through a mossy forest
+- `stay-stone`: Two stone houses with slate roofs beside a field
+- `stay-family`: A family sitting in the doorway of their stone house
+- `stay-room`: A small timber-lined room with a window onto the mountains
+- `stay-bed`: A wood-panelled guest room with a made bed
+- `stay-thali`: A brass plate of rice, dal and vegetable curries on a woven dhaka cloth
+- `stay-aama`: An elderly woman in a red vest sitting on a porch
+- `stay-stove`: A kettle on a wood-fired clay stove
+- `stay-chiya`: Milk tea being poured into a glass
+- `stay-fields`: People working a green field below a snow peak
+- `ca-partner`: A man in a suit at his office desk with a laptop
+- `ca-partner-2`: A woman in a cream blazer at an office desk
+- `ca-partner-3`: A woman in a white blazer and glasses at her desk
+- `ca-calc`: Hands working a calculator at a desk
+- `ca-desk`: A calculator, glasses, printed charts and binders on a desk
+- `ca-review`: Hands going through printed forms with a calculator and coffee
+- `ca-ledger`: A calculator and pen on a ledger page
+- `ca-khata`: Old handwritten account books open on a table
+- `ca-shop`: A shopkeeper in a small kiosk hung with snacks
+- `ca-workshop`: A carpenter cutting timber in his workshop
+- `ca-meeting`: Two people going through documents at a table
+- `ca-training`: A training session around a long meeting table
+- `ca-office`: A woman smiling at her desk in a busy office
+- `photo-bride`: A bride in a red and gold sari looking down, against a dark wall
+- `photo-bride-2`: A bride in red with hennaed hands raised
+- `photo-couple`: A couple in wedding clothes walking down a hillside path
+- `photo-henna`: Two hennaed hands holding each other, with red bangles
+- `photo-bangles`: Hennaed hands with gold bangles resting on an orange sari
+- `photo-doorway`: A woman in a red and black sari standing in a carved doorway
+- `photo-headpiece`: A woman in a golden headpiece and red beads at a festival
+- `photo-aama`: An older woman smiling in a red blouse in a narrow street
+- `photo-girl`: A young girl in red and gold with a festival crowd behind
+- `photo-lamps`: A woman sitting among hundreds of lit oil lamps
+- `photo-family`: A family in festival clothes walking down a busy street
+- `photo-garlands`: Newlyweds laughing in flower garlands and a dhaka topi
+- `photo-outdoors`: A bride and groom face to face outdoors
+- `photo-mirror`: A bride checking her reflection in a mirror
+- `photo-garland-exchange`: A couple exchanging garlands in front of red and gold drapes
+- `arch-house`: A brick house with a glass-block wall and tall windows
+- `arch-gable`: The brick gable and deep eave of a house against a blue sky
+- `arch-lightwell`: A light well with a brick wall, a young tree and timber shelving
+- `arch-walkway`: A steel walkway crossing a tall brick courtyard
+- `arch-courtyard`: A courtyard with timber balconies around a tree
+- `arch-balcony`: Carved timber balconies under a tiled roof, seen from a courtyard
+- `arch-window`: A carved timber window on an old brick facade
+- `arch-hall`: Sunlight falling between brick columns in a long hall
+- `arch-model`: A white card model of a house with a stair
+- `arch-plan`: A hand drawing a floor plan with a pencil and scale
+- `arch-sketch`: Someone sketching the temples of a durbar square
+- `arch-jali`: A terracotta breeze-block screen
+- `arch-portrait`: Portrait of a woman with glasses in a checked shirt
+- `arch-site`: Masons stacking bricks on a building site
+- `arch-night`: A dark brick house with lit windows at night
+- `bloom-room`: A bright white salon with plants, styling chairs and a stylist at work by the window
+- `bloom-styling`: A stylist finishing a client’s hair in a sunny white salon
+- `bloom-cut`: A stylist trimming long dark wet hair with scissors
+- `bloom-colour`: Two colourists in gloves brushing colour through a client’s hair
+- `bloom-bride`: A bride in a red and gold veil and heavy gold jewellery, smiling down
+- `bloom-bride-2`: Close-up of bridal make-up: shimmer eyes, a pink lip and a nose ring with a chain
+- `bloom-mehndi`: A bride’s hands and wrists covered in fine mehndi over a red carpet
+- `bloom-threading`: A woman having her eyebrows shaped with a twisted thread
+- `bloom-lashes`: A beautician in a mask applying lash extensions to a client lying back
+- `bloom-facial`: A woman lying back with a white face mask and a teal headband
+- `bloom-nails`: A nail technician filing a client’s nails over a dust extractor
+- `bloom-blowdry`: A young woman with glossy, loose black waves
+- `bloom-wash`: Two stylists washing clients’ hair at the basins
+- `lift-deadlift`: A man in a black vest holding a barbell with green plates in a dark gym
+- `lift-press`: A man pressing two dumbbells on an incline bench
+- `lift-pulldown`: A bearded man in a turban pulling down on a lat machine
+- `lift-coach`: Portrait of a smiling coach in a yellow T-shirt on the gym floor
+- `lift-rest`: A man in a green vest resting on a bench between sets
+- `lift-squat`: A woman doing a split squat with a barbell in a squat rack
+- `lift-pt`: A coach correcting a man’s push-up position on the turf
+- `lift-boxing`: Two women laughing in boxing gloves by a heavy bag
+- `lift-plate`: A lifter’s hand on a loaded barbell on a rubber floor
+- `lift-floor`: Squat racks with coloured bumper plates under a skylit roof
+- `lift-pull`: A lifter’s hands and feet set for a deadlift on a rubber floor
+- `lift-dumbbells`: Two rows of dumbbells on a rack against a block wall
+- `lift-bells`: Rows of black kettlebells on a gym floor
+- `study-physics`: A teacher drawing a physics diagram on a green chalkboard
+- `study-lab`: A student looking through a microscope in a science lab
+- `study-microscopes`: A row of microscopes on a lab bench
+- `study-desk`: A study desk at night with a scientific calculator and pages of worked problems
+- `study-lecture`: A teacher talking to a small class seated at long desks
+- `study-board`: A schoolgirl in a white uniform writing on a blackboard
+- `study-class`: Schoolgirls in white uniforms listening in a classroom
+- `study-test`: A boy in glasses thinking over his exam paper at a wooden desk
+- `study-library`: A student reading at a long table in a wood-panelled library
+- `study-room`: An empty science classroom with benches and a green board
+- `study-revision`: A student reading her notes at a table in a quiet classroom
+- `study-notes`: A girl writing in her exercise book with a pencil
+- `sari-green-sari`: A woman in a green silk sari with a long gold and ruby necklace
+- `sari-white-sari`: A woman in a cream sari with a red and gold border and a red blouse
+- `sari-red-sari`: A woman in a red and gold silk sari by the sea
+- `sari-mint-sari`: A woman in a pale mint and silver sari against a red wall
+- `sari-border`: Close-up of red silk with a woven gold border
+- `sari-cloth`: Folded lengths of lime and magenta cloth with tassels
+- `sari-pink-sari`: A smiling woman in a magenta silk sari with a black and gold border
+- `sari-kurta`: A red block-printed kurta on a mannequin in a shop
+- `sari-white-kurta`: A woman in a white embroidered cotton kurta
+- `sari-mens-kurta`: A man in a pale yellow kurta against a warm wall
+- `sari-loom`: A weaver at a handloom working a black, white and red cloth
+- `sari-sewing`: Hands guiding cloth under a sewing machine needle
+- `sari-folds`: Rolled lengths of cloth in mustard, grey and maroon
+- `sari-shop`: A small shop with shelves stacked with folded printed cloth
+- `estate-bungalow`: A white housing-colony building with red roofs and arched windows
+- `estate-lane`: A quiet residential lane of Kathmandu houses with a parked car
+- `estate-valley`: Houses climbing a green hillside on the edge of Kathmandu
+- `estate-modern`: A white modern house with deep window boxes under a blue sky
+- `estate-townhouse`: A three-storey white house with balconies at dusk
+- `estate-house`: A single-storey white house with a stone path, lawn and two planters
+- `estate-living`: A bright living room with a vaulted ceiling and wood floor
+- `estate-kitchen`: A white kitchen with an island, bar stools and pendant lamps
+- `estate-bedroom`: A calm bedroom with a large bed, a bench and a tall window
+- `estate-sunroom`: A sunny living room with a sofa and a balcony door onto the city
+- `estate-plans`: Two people marking up house plans with a ruler and calculator
+- `estate-keys`: A hand holding up house keys in an open doorway
+- `estate-dining`: A dining area with a black table by an open staircase
+- `vivah-bride`: A Nepali bride in a red and white sari with a tall garland, standing on a terrace
+- `vivah-garlands`: A bride and groom in marigold and flower garlands, holding hands
+- `vivah-pote`: A bride in pink with a green and red pote necklace on a balcony
+- `vivah-ceremony`: A bride and groom seated before the fire at their wedding rites
+- `vivah-swagat`: A groom in a dhaka topi and garlands welcomed with fruit and flowers
+- `vivah-rites`: The couple’s hands during an offering among rice, fruit and flowers
+- `vivah-mehndi`: Several hands with fresh mehndi held together over yellow and green clothes
+- `vivah-marigold`: A heap of bright orange marigolds
+- `vivah-garland-strings`: Strings of marigold and white jasmine hanging as a curtain
+- `vivah-lights`: A garden aisle lit by string lights, between rows of white chairs
+- `vivah-mandap`: A white floral mandap at the end of an aisle, with hills behind
+- `vivah-bouquet`: A Nepali bride in red holding a bouquet and smiling
+- `vivah-ring`: The groom slipping a ring onto the bride’s finger at the ceremony
+- `vivah-pair`: A bride and groom sitting cross-legged side by side during the rites
+- `vivah-haldi`: A woman in a yellow sari and flower jewellery beside marigold strings
 - `salon-chairs`: A bright hair salon with styling chairs and a long mirror
 - `salon-mirrors`: Salon chairs facing round mirrors on a dark wall
 - `salon-facial`: A therapist giving a facial to a woman lying back

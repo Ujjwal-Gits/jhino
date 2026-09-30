@@ -123,110 +123,11 @@
          "detail": "Sessions of 45 minutes"
         }
        ]
-      }
-     },
-     {
-      "type": "rows",
-      "variant": "alternate",
-      "props": {
-       "heading": "",
-       "intro": "",
-       "items": [
-        {
-         "image": {
-          "src": "lib:clinic-consult",
-          "alt": "A doctor taking notes while a patient talks",
-          "focal": [
-           45,
-           50
-          ]
-         },
-         "title": "Twenty minutes, not five",
-         "text": "Every first consultation is booked for twenty minutes, so there is time to tell the whole story. You leave with a written note of what we found and what to do next, in Nepali or English.",
-         "link": {
-          "label": "Meet the doctors",
-          "href": "page:doctors"
-         }
-        },
-        {
-         "image": {
-          "src": "lib:clinic-child",
-          "alt": "A paediatrician listening to a young child’s chest",
-          "focal": [
-           60,
-           45
-          ]
-         },
-         "title": "Children seen by a paediatrician",
-         "text": "Dr. Prabin Karki runs the children’s clinic on Tuesday and Friday afternoons, with a separate waiting corner and vaccines kept at the right temperature, logged twice a day.",
-         "link": {
-          "label": "Children’s services",
-          "href": "page:services"
-         }
-        },
-        {
-         "image": {
-          "src": "lib:clinic-scan",
-          "alt": "An expectant mother holding her ultrasound print"
-         },
-         "title": "Pregnancy care from the first scan",
-         "text": "Antenatal visits, ultrasound and blood tests in one place, and a written referral to the maternity hospital you choose when the time comes.",
-         "link": {
-          "label": "Women’s health",
-          "href": "page:services"
-         }
-        }
-       ]
-      }
-     },
-     {
-      "type": "quote",
-      "variant": "large",
-      "props": {
-       "quote": "Most visits need a good conversation more than a new medicine.",
-       "name": "Dr. Anjana Shrestha",
-       "detail": "Family physician and founder",
-       "image": {
-        "src": "",
-        "alt": ""
-       }
       },
       "style": {
-       "bg": "surface"
-      }
-     },
-     {
-      "type": "sticky",
-      "variant": "right",
-      "props": {
-       "heading": "A lab downstairs, results the same afternoon",
-       "intro": "No second trip across town. Blood is drawn in the clinic and tested on our own analysers.",
-       "image": {
-        "src": "lib:clinic-lab",
-        "alt": "Blood samples in labelled tubes in the clinic laboratory"
-       },
-       "items": [
-        {
-         "label": "Before 11:00",
-         "title": "Sample taken",
-         "text": "Fasting tests are drawn from 7:00. Bring your previous reports if you have them."
-        },
-        {
-         "label": "By 15:00",
-         "title": "Results ready",
-         "text": "Most blood and urine tests are reported the same day, checked by our pathologist."
-        },
-        {
-         "label": "Same evening",
-         "title": "Explained by your doctor",
-         "text": "Your doctor reads the results with you, in person or by phone, and writes what changes."
-        },
-        {
-         "label": "Always",
-         "title": "Yours to keep",
-         "text": "Reports come as a PDF on Viber or email and on paper, so your next doctor sees them too."
-        }
-       ]
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -312,6 +213,40 @@
       }
      },
      {
+      "type": "sticky",
+      "variant": "right",
+      "props": {
+       "heading": "A lab downstairs, results the same afternoon",
+       "intro": "No second trip across town. Blood is drawn in the clinic and tested on our own analysers.",
+       "image": {
+        "src": "lib:clinic-lab",
+        "alt": "Blood samples in labelled tubes in the clinic laboratory"
+       },
+       "items": [
+        {
+         "label": "Before 11:00",
+         "title": "Sample taken",
+         "text": "Fasting tests are drawn from 7:00. Bring your previous reports if you have them."
+        },
+        {
+         "label": "By 15:00",
+         "title": "Results ready",
+         "text": "Most blood and urine tests are reported the same day, checked by our pathologist."
+        },
+        {
+         "label": "Same evening",
+         "title": "Explained by your doctor",
+         "text": "Your doctor reads the results with you, in person or by phone, and writes what changes."
+        },
+        {
+         "label": "Always",
+         "title": "Yours to keep",
+         "text": "Reports come as a PDF on Viber or email and on paper, so your next doctor sees them too."
+        }
+       ]
+      }
+     },
+     {
       "type": "pricing",
       "variant": "table",
       "props": {
@@ -356,6 +291,11 @@
          "featured": false
         }
        ]
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -389,19 +329,17 @@
       }
      },
      {
-      "type": "map",
-      "variant": "location",
+      "type": "visit",
+      "variant": "split",
       "props": {
        "heading": "Find the clinic",
+       "text": "Wheelchair access from the side ramp. Free parking for patients in the basement; the Baneshwor micro stop is a two-minute walk.",
        "address": "Madan Bhandari Road, New Baneshwor, Kathmandu 44600. Ground floor of the Sahara Building, opposite Everest Bank.",
-       "hours": "Sunday to Friday, 7:00 to 19:00\nSaturday, 9:00 to 13:00 (GP and lab only)\nWalk-ins until 11:00 every morning",
        "phone": "",
-       "note": "Wheelchair access from the side ramp. Free parking for patients in the basement; the Baneshwor micro stop is a two-minute walk.",
+       "hours": "Sunday to Friday, 7:00 to 19:00\nSaturday, 9:00 to 13:00 (GP and lab only)\nWalk-ins until 11:00 every morning",
        "query": "Madan Bhandari Road, New Baneshwor, Kathmandu",
-       "link": ""
-      },
-      "style": {
-       "bg": "surface"
+       "link": "",
+       "askPhone": true
       }
      },
      {

@@ -116,47 +116,122 @@
        ]
       },
       "style": {
-       "bg": "accent"
+       "bg": "accent",
+       "space": "s",
+       "hide": ""
       }
      },
      {
-      "type": "features",
-      "variant": "grid",
+      "type": "compare",
+      "variant": "table",
       "props": {
-       "heading": "What is on the floor",
-       "intro": "One big room on the ground floor, open to the street, with the shutters up in summer.",
-       "items": [
+       "heading": "Memberships",
+       "intro": "No joining fee and no contract. Pay at the desk, by eSewa or by bank transfer.",
+       "columns": [
         {
-         "title": "Six racks and platforms",
-         "text": "Calibrated plates, bumpers and three women’s bars. Deadlift on the platforms, not on the tiles.",
-         "detail": ""
+         "name": "Monthly",
+         "note": "Rs 4,500",
+         "featured": false
         },
         {
-         "title": "Dumbbells to 50 kg",
-         "text": "In 2.5 kg steps, on two racks by the wall.",
-         "detail": ""
+         "name": "Three months",
+         "note": "Rs 12,000",
+         "featured": true
         },
         {
-         "title": "Kettlebells, 8 to 32 kg",
-         "text": "Enough pairs for a full class of twelve.",
-         "detail": ""
+         "name": "Year",
+         "note": "Rs 39,000",
+         "featured": false
+        }
+       ],
+       "rows": [
+        {
+         "label": "Open gym, 5:30 to 21:30",
+         "v1": "yes",
+         "v2": "yes",
+         "v3": "yes",
+         "v4": ""
         },
         {
-         "title": "Rowers and air bikes",
-         "text": "Four of each, for warm-ups and the Friday conditioning class.",
-         "detail": ""
+         "label": "All group classes",
+         "v1": "yes",
+         "v2": "yes",
+         "v3": "yes",
+         "v4": ""
         },
         {
-         "title": "Boxing corner",
-         "text": "Three heavy bags, pads and gloves you can borrow.",
-         "detail": ""
+         "label": "Programme card and logbook",
+         "v1": "yes",
+         "v2": "yes",
+         "v3": "yes",
+         "v4": ""
         },
         {
-         "title": "Showers that work",
-         "text": "Hot water all year, lockers, and a separate women’s changing room.",
-         "detail": ""
+         "label": "Strength assessments",
+         "v1": "no",
+         "v2": "At 12 weeks",
+         "v3": "Four a year",
+         "v4": ""
+        },
+        {
+         "label": "Freezing your membership",
+         "v1": "no",
+         "v2": "Once, 2 weeks",
+         "v3": "Twice, a month",
+         "v4": ""
+        },
+        {
+         "label": "Personal session",
+         "v1": "no",
+         "v2": "no",
+         "v3": "One a quarter",
+         "v4": ""
+        }
+       ],
+       "note": "Your first class is free, whichever membership you choose afterwards."
+      }
+     },
+     {
+      "type": "tabs",
+      "variant": "side",
+      "props": {
+       "heading": "The week",
+       "intro": "Every class is coached. Come ten minutes early the first time.",
+       "tabs": [
+        {
+         "label": "Mornings",
+         "title": "Before work",
+         "text": "The floor is quietest at 5:30. Classes start on the hour.",
+         "points": "Strength basics – Sun to Fri, 6:00\nWomen’s strength – Sun, Tue, Thu, 7:00\nConditioning – Mon, Wed, Fri, 7:00",
+         "image": {
+          "src": "lib:lift-squat",
+          "alt": "A woman doing a split squat with a barbell in a squat rack"
+         },
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "label": "Evenings",
+         "title": "After work",
+         "text": "The busiest hours. Book a class at the desk if you want a rack to yourself.",
+         "points": "Mobility – Friday, 17:00\nStrength basics – Sun to Fri, 18:00\nBarbell club – Friday, 18:00\nConditioning – Mon, Wed, Fri, 19:00\nBoxing – Sun, Tue, Thu, 19:00",
+         "image": {
+          "src": "lib:lift-boxing",
+          "alt": "Two women laughing in boxing gloves by a heavy bag"
+         },
+         "link": {
+          "label": "What happens in each class",
+          "href": "page:classes"
+         }
         }
        ]
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -214,57 +289,29 @@
       }
      },
      {
-      "type": "quote",
-      "variant": "large",
+      "type": "imagetext",
+      "variant": "left",
       "props": {
-       "quote": "Most people who walk in here have been told they are doing it wrong. We would rather show them how to do it right, one rep at a time.",
-       "name": "Kiran Thapa",
-       "detail": "Head coach and owner",
        "image": {
-        "src": "",
-        "alt": ""
+        "src": "lib:lift-coach",
+        "alt": "Portrait of Kiran Thapa, head coach, in a yellow club T-shirt",
+        "focal": [
+         50,
+         25
+        ]
+       },
+       "eyebrow": "",
+       "heading": "Coached by people who lift",
+       "body": "<p>Kiran has coached strength for eleven years and competes in powerlifting. The three coaches with him are all certified, first-aid trained and on the floor, not behind the desk.</p><p>There is always a coach on the floor. If you are unsure about a lift, ask; that is what they are there for.</p>",
+       "link": {
+        "label": "Meet the coaches",
+        "href": "page:coaches"
        }
       },
       "style": {
-       "bg": "surface"
-      }
-     },
-     {
-      "type": "sticky",
-      "variant": "left",
-      "props": {
-       "heading": "Your first four weeks",
-       "intro": "Everyone starts the same way, whether you have lifted for years or never touched a bar.",
-       "image": {
-        "src": "lib:lift-squat",
-        "alt": "A member doing a split squat with a barbell in a squat rack",
-        "focal": [
-         55,
-         45
-        ]
-       },
-       "items": [
-        {
-         "label": "Week 1",
-         "title": "Assessment",
-         "text": "Thirty minutes with a coach: old injuries, how you move, what you want. We film a squat and a hinge so you can see where you start."
-        },
-        {
-         "label": "Week 2",
-         "title": "The basic lifts",
-         "text": "Squat, hinge, push and pull with a bar or a kettlebell. Light weights, many small corrections."
-        },
-        {
-         "label": "Week 3",
-         "title": "Your programme",
-         "text": "A written three-day plan, logged in a notebook we keep at the desk. Weights go up only when the coach says the form is ready."
-        },
-        {
-         "label": "Week 4",
-         "title": "Retest",
-         "text": "The same film as week one, side by side. Then you choose a membership, or you do not. No hard sell."
-        }
-       ]
+       "bg": "ink",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -325,74 +372,6 @@
        "link": {
         "label": "",
         "href": ""
-       }
-      }
-     },
-     {
-      "type": "pricing",
-      "variant": "columns",
-      "props": {
-       "heading": "Memberships",
-       "intro": "All classes and open gym included. A one-time joining fee of Rs 1,500 covers your assessment and a locker key.",
-       "currency": "NPR",
-       "plans": [
-        {
-         "name": "Monthly",
-         "price": "4500",
-         "period": "month",
-         "note": "Pay as you go. Stop any time.",
-         "features": "Open gym, 5:30 to 21:30\nAll group classes\nProgramme card and logbook",
-         "cta": {
-          "label": "Start with a free class",
-          "href": "page:join"
-         },
-         "featured": false
-        },
-        {
-         "name": "Three months",
-         "price": "12000",
-         "period": "3 months",
-         "note": "Most members start here.",
-         "features": "Everything in Monthly\nAssessment again at 12 weeks\nOne freeze of up to two weeks",
-         "cta": {
-          "label": "Start with a free class",
-          "href": "page:join"
-         },
-         "featured": true
-        },
-        {
-         "name": "Year",
-         "price": "39000",
-         "period": "year",
-         "note": "Works out to Rs 3,250 a month.",
-         "features": "Everything in Three months\nFour assessments a year\nTwo freezes of up to a month\nOne personal session a quarter",
-         "cta": {
-          "label": "Start with a free class",
-          "href": "page:join"
-         },
-         "featured": false
-        }
-       ]
-      }
-     },
-     {
-      "type": "imagetext",
-      "variant": "left",
-      "props": {
-       "image": {
-        "src": "lib:lift-coach",
-        "alt": "Portrait of Kiran Thapa, head coach, in a yellow club T-shirt",
-        "focal": [
-         50,
-         25
-        ]
-       },
-       "eyebrow": "",
-       "heading": "Coached by people who lift",
-       "body": "<p>Kiran has coached strength for eleven years and competes in powerlifting. The three coaches with him are all certified, first-aid trained and on the floor, not behind the desk.</p><p>There is always a coach on the floor. If you are unsure about a lift, ask; that is what they are there for.</p>",
-       "link": {
-        "label": "Meet the coaches",
-        "href": "page:coaches"
        }
       }
      },

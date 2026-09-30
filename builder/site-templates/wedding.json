@@ -94,36 +94,6 @@
       }
      },
      {
-      "type": "marquee",
-      "variant": "large",
-      "props": {
-       "items": [
-        {
-         "text": "Swagat"
-        },
-        {
-         "text": "Janti"
-        },
-        {
-         "text": "Kanyadan"
-        },
-        {
-         "text": "Sindoor"
-        },
-        {
-         "text": "Bidai"
-        },
-        {
-         "text": "Reception"
-        }
-       ]
-      },
-      "style": {
-       "bg": "page",
-       "space": "s"
-      }
-     },
-     {
       "type": "quote",
       "variant": "large",
       "props": {
@@ -134,6 +104,77 @@
         "src": "",
         "alt": ""
        }
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
+      }
+     },
+     {
+      "type": "tabs",
+      "variant": "top",
+      "props": {
+       "heading": "The wedding week",
+       "intro": "Four days, planned to the hour and printed for both families.",
+       "tabs": [
+        {
+         "label": "Day 1",
+         "title": "Mehndi",
+         "text": "At the bride’s home, with seating and marigolds set up by three.",
+         "points": "Mehndi at the bride’s home – 16:00",
+         "image": {
+          "src": "lib:vivah-mehndi",
+          "alt": "Hands with fresh mehndi held together"
+         },
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "label": "Day 2",
+         "title": "Haldi and puja",
+         "text": "Turmeric at both homes in the morning, then the purohit in the afternoon.",
+         "points": "Haldi – 8:00\nPurbanga puja – 14:00",
+         "image": {
+          "src": "lib:vivah-haldi",
+          "alt": "A woman in a yellow sari beside marigold strings"
+         },
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "label": "Day 3",
+         "title": "The wedding day",
+         "text": "The janti, the swagat, the rites at the mandap and the bidai.",
+         "points": "Janti leaves – 10:00\nSwagat and jaimala – 12:00\nKanyadan, sindoor and pote – 14:00\nBidai – 18:00",
+         "image": {
+          "src": "lib:vivah-ceremony",
+          "alt": "A bride and groom seated before the fire"
+         },
+         "link": {
+          "label": "",
+          "href": ""
+         }
+        },
+        {
+         "label": "Day 4",
+         "title": "Reception",
+         "text": "The couple takes the stage at seven; dinner from half past.",
+         "points": "Reception – 18:00",
+         "image": {
+          "src": "lib:vivah-lights",
+          "alt": "A garden aisle lit by string lights"
+         },
+         "link": {
+          "label": "The whole schedule",
+          "href": "page:week"
+         }
+        }
+       ]
       }
      },
      {
@@ -182,87 +223,6 @@
           "label": "See packages",
           "href": "page:packages"
          }
-        }
-       ]
-      }
-     },
-     {
-      "type": "features",
-      "variant": "compact",
-      "props": {
-       "heading": "What we take off your hands",
-       "intro": "Choose all of it, or only the parts your family does not have time for.",
-       "items": [
-        {
-         "title": "Purohit and sait",
-         "text": "Dates and times checked with your family priest, and every ritual timed on a written schedule.",
-         "detail": ""
-        },
-        {
-         "title": "Venue and catering",
-         "text": "Shortlist, visits and a tasting. Veg and non-veg menus priced per plate.",
-         "detail": ""
-        },
-        {
-         "title": "Janti",
-         "text": "Cars, band baja, the route and the arrival time, so the swagat happens on the sait.",
-         "detail": ""
-        },
-        {
-         "title": "Decor",
-         "text": "Mandap, stage, entrance and marigold for the house, designed and built by our own team.",
-         "detail": ""
-        },
-        {
-         "title": "Guests",
-         "text": "Invitations, the guest list, hotel rooms for relatives from outside the valley.",
-         "detail": ""
-        },
-        {
-         "title": "The day itself",
-         "text": "Four of us on site, with a timeline, a kit and the phone numbers of everyone.",
-         "detail": ""
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
-      }
-     },
-     {
-      "type": "sticky",
-      "variant": "left",
-      "props": {
-       "heading": "The wedding week",
-       "intro": "A typical four-day wedding in the valley. Every family is different; we write yours down together.",
-       "image": {
-        "src": "lib:vivah-bride",
-        "alt": "A Nepali bride in a red and white sari with a tall garland",
-        "focal": [
-         50,
-         30
-        ]
-       },
-       "items": [
-        {
-         "label": "Two days before",
-         "title": "Mehndi",
-         "text": "An evening at the bride’s home: mehndi artists, songs and dinner for the women of the family."
-        },
-        {
-         "label": "The day before",
-         "title": "Haldi and the purbanga",
-         "text": "Turmeric in the morning, the purbanga puja with the purohit in the afternoon, marigold on every door."
-        },
-        {
-         "label": "The wedding day",
-         "title": "Janti, kanyadan, sindoor and bidai",
-         "text": "The janti arrives on the sait for the swagat. Kanyadan, sindoor and the pote follow at the mandap, and the bidai at dusk."
-        },
-        {
-         "label": "The day after",
-         "title": "Reception",
-         "text": "Dinner for four hundred at a party palace, with a stage for photographs and a quiet table for the grandparents."
         }
        ]
       }
@@ -377,39 +337,11 @@
          "featured": false
         }
        ]
-      }
-     },
-     {
-      "type": "steps",
-      "variant": "columns",
-      "props": {
-       "heading": "How we begin",
-       "intro": "",
-       "items": [
-        {
-         "title": "A first meeting",
-         "text": "At your home or our office in Sanepa, with the people who will decide. About an hour.",
-         "detail": "Free"
-        },
-        {
-         "title": "Budget and schedule",
-         "text": "A written budget and a day-by-day plan, within a week.",
-         "detail": "Week 1"
-        },
-        {
-         "title": "Bookings",
-         "text": "Venue, caterer and decor confirmed, and a 30% advance paid to us.",
-         "detail": "Weeks 2 to 4"
-        },
-        {
-         "title": "The week",
-         "text": "We move in. You receive guests.",
-         "detail": "The wedding"
-        }
-       ]
       },
       "style": {
-       "bg": "surface"
+       "bg": "ink",
+       "space": "m",
+       "hide": ""
       }
      },
      {

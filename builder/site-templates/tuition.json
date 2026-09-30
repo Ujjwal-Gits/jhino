@@ -69,7 +69,7 @@
     "blocks": [
      {
       "type": "hero",
-      "variant": "split",
+      "variant": "text",
       "props": {
        "title": "Maths and science tuition, twenty to a class",
        "text": "SEE preparation, +2 Science, the bridge course and entrance classes, taught by subject teachers who mark every Friday test themselves.",
@@ -134,19 +134,28 @@
       }
      },
      {
-      "type": "quote",
-      "variant": "large",
+      "type": "countdown",
+      "variant": "band",
       "props": {
-       "quote": "A student who is afraid to ask in a class of sixty will ask in a class of twenty. That is the whole idea.",
-       "name": "Hari Prasad Adhikari",
-       "detail": "Founder and Physics teacher",
+       "heading": "The next bridge course starts in",
+       "text": "Eight weeks in Baisakh and Jestha, for +2 Science entrance tests. Rs 9,500 for the whole course.",
+       "date": "2027-04-18",
+       "time": "07:00",
+       "calendar": "bs",
+       "after": "The bridge course has started. Ask at the desk about joining in the first week.",
+       "link": {
+        "label": "Reserve a seat",
+        "href": "page:bridge"
+       },
        "image": {
         "src": "",
         "alt": ""
        }
       },
       "style": {
-       "bg": "surface"
+       "bg": "ink",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -208,77 +217,6 @@
       }
      },
      {
-      "type": "steps",
-      "variant": "columns",
-      "props": {
-       "heading": "How a term runs",
-       "intro": "",
-       "items": [
-        {
-         "title": "Placement test",
-         "text": "A short test and a talk with the student and a parent, so we put them in the right batch.",
-         "detail": "Week 1"
-        },
-        {
-         "title": "Classes begin",
-         "text": "Morning, day or evening batch, never more than twenty students.",
-         "detail": "Week 1"
-        },
-        {
-         "title": "Friday tests",
-         "text": "Marked, returned and gone through in class.",
-         "detail": "Every week"
-        },
-        {
-         "title": "Report to parents",
-         "text": "Marks and attendance on Viber at the end of each month, and a meeting each term.",
-         "detail": "Monthly"
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
-      }
-     },
-     {
-      "type": "sticky",
-      "variant": "left",
-      "props": {
-       "heading": "The bridge course, week by week",
-       "intro": "For students waiting for SEE results who want to start +2 Science ahead, and sit a college entrance test.",
-       "image": {
-        "src": "lib:study-desk",
-        "alt": "A study desk with a scientific calculator and pages of worked problems",
-        "focal": [
-         50,
-         55
-        ]
-       },
-       "items": [
-        {
-         "label": "Weeks 1 and 2",
-         "title": "Maths and Physics foundations",
-         "text": "Sets, functions, trigonometry and vectors; units, motion and forces. The topics +2 assumes you already know."
-        },
-        {
-         "label": "Weeks 3 and 4",
-         "title": "Chemistry and Biology",
-         "text": "Mole concept, periodic table and bonding; cells, classification and the human body."
-        },
-        {
-         "label": "Weeks 5 and 6",
-         "title": "English and model tests",
-         "text": "Grammar and comprehension, then two full model tests in the format colleges use."
-        },
-        {
-         "label": "Weeks 7 and 8",
-         "title": "Entrance practice and advice",
-         "text": "Timed papers every other day, and a one-to-one talk about which colleges and which stream suit each student."
-        }
-       ]
-      }
-     },
-     {
       "type": "team",
       "variant": "monogram",
       "props": {
@@ -331,67 +269,11 @@
          }
         }
        ]
-      }
-     },
-     {
-      "type": "gallery",
-      "variant": "bento",
-      "props": {
-       "heading": "Inside the centre",
-       "intro": "Three classrooms, a lab and a reading room, on the second and third floors.",
-       "images": [
-        {
-         "image": {
-          "src": "lib:study-class",
-          "alt": "Schoolgirls in white uniforms listening in a classroom",
-          "focal": [
-           45,
-           45
-          ]
-         },
-         "caption": "SEE morning batch"
-        },
-        {
-         "image": {
-          "src": "lib:study-physics",
-          "alt": "A teacher drawing a physics diagram on a green chalkboard",
-          "focal": [
-           55,
-           40
-          ]
-         },
-         "caption": "Physics, +2 evening batch"
-        },
-        {
-         "image": {
-          "src": "lib:study-microscopes",
-          "alt": "A row of microscopes on a lab bench"
-         },
-         "caption": "The Biology lab"
-        },
-        {
-         "image": {
-          "src": "lib:study-revision",
-          "alt": "A student reading her notes at a table in a quiet classroom",
-          "focal": [
-           45,
-           45
-          ]
-         },
-         "caption": "Revision week"
-        },
-        {
-         "image": {
-          "src": "lib:study-notes",
-          "alt": "A girl writing in her exercise book with a pencil"
-         },
-         "caption": "Friday test"
-        }
-       ],
-       "link": {
-        "label": "",
-        "href": ""
-       }
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {

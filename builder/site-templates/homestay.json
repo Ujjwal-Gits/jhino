@@ -69,7 +69,7 @@
     "blocks": [
      {
       "type": "hero",
-      "variant": "image",
+      "variant": "stacked",
       "props": {
        "title": "A stone house in Ghandruk, with Annapurna South at the window",
        "text": "Four rooms in our family home at the top of the village. Dal bhat at seven, milk tea at dawn, and the mountain turning pink while you drink it.",
@@ -107,24 +107,104 @@
       }
      },
      {
-      "type": "imagetext",
+      "type": "expand",
+      "variant": "split",
+      "props": {
+       "heading": "Rooms and rates",
+       "intro": "Every rate includes dinner and breakfast. Hot water all day; heaters from Kartik.",
+       "items": [
+        {
+         "title": "The corner double",
+         "detail": "Rs 5,600 a night",
+         "text": "A double bed under the widest window in the house, a bathroom with a hot shower, and a low table for tea. The first room to see the sun.",
+         "image": {
+          "src": "lib:stay-room",
+          "alt": "The corner double room, its window framing the mountains"
+         },
+         "link": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         }
+        },
+        {
+         "title": "Twin rooms",
+         "detail": "Rs 4,400 a night",
+         "text": "Two of them, each with two single beds, hooks for wet jackets and a shelf of paperbacks left by earlier guests. They share a bathroom across the landing.",
+         "image": {
+          "src": "lib:stay-bed",
+          "alt": "A wood-panelled twin room with a made bed"
+         },
+         "link": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         }
+        },
+        {
+         "title": "Family attic",
+         "detail": "Rs 8,800 a night",
+         "text": "The whole top floor under the slate roof, with a double and two mattresses. Low beams; mind your head.",
+         "image": {
+          "src": "lib:stay-house",
+          "alt": "The stone house at dusk with the mountain behind"
+         },
+         "link": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         }
+        },
+        {
+         "title": "Single traveller",
+         "detail": "Rs 2,800 a night",
+         "text": "One of the twin rooms, for walkers on their own. Same dinner, same view.",
+         "image": {
+          "src": "lib:stay-bed",
+          "alt": "A wood-panelled guest room with a made bed"
+         },
+         "link": {
+          "label": "Ask for dates",
+          "href": "page:book"
+         }
+        }
+       ]
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
+      }
+     },
+     {
+      "type": "sticky",
       "variant": "right",
       "props": {
+       "heading": "A day at Aangan",
+       "intro": "Nothing is scheduled except dinner. This is what most guests end up doing.",
        "image": {
-        "src": "lib:stay-room",
-        "alt": "A small timber-lined room with a window framing the mountains",
-        "focal": [
-         50,
-         45
-        ]
+        "src": "lib:stay-chiya",
+        "alt": "Milk tea being poured into a glass"
        },
-       "eyebrow": "",
-       "heading": "Every room faces the mountain",
-       "body": "<p>Pine-lined walls, thick cotton quilts and a window that looks straight up the Modi Khola to Annapurna South and Hiunchuli. Two rooms share a bathroom; two have their own.</p><p>The hot water is from the solar panel on the roof, and from the kitchen fire on cloudy days.</p>",
-       "link": {
-        "label": "Rooms and rates",
-        "href": "page:rooms"
-       }
+       "items": [
+        {
+         "label": "5:45",
+         "title": "Tea on the terrace",
+         "text": "Aama puts a glass of milk tea in your hand and points at the mountain. On clear mornings the sun reaches the summit about twenty minutes before it reaches us."
+        },
+        {
+         "label": "7:30",
+         "title": "Breakfast",
+         "text": "Gurung bread with honey from the hives below the school, eggs, and more tea."
+        },
+        {
+         "label": "Daytime",
+         "title": "Walk, or don’t",
+         "text": "Up to Komrong Danda, across to Landruk, round the museum, or a book in the sun on the roof."
+        },
+        {
+         "label": "19:00",
+         "title": "Dal bhat by the fire",
+         "text": "Everyone eats together in the kitchen. Seconds arrive whether you ask or not."
+        }
+       ]
       }
      },
      {
@@ -177,90 +257,6 @@
       }
      },
      {
-      "type": "sticky",
-      "variant": "right",
-      "props": {
-       "heading": "A day at Aangan",
-       "intro": "Nothing is scheduled except dinner. This is what most guests end up doing.",
-       "image": {
-        "src": "lib:stay-chiya",
-        "alt": "Milk tea being poured into a glass"
-       },
-       "items": [
-        {
-         "label": "5:45",
-         "title": "Tea on the terrace",
-         "text": "Aama puts a glass of milk tea in your hand and points at the mountain. On clear mornings the sun reaches the summit about twenty minutes before it reaches us."
-        },
-        {
-         "label": "7:30",
-         "title": "Breakfast",
-         "text": "Gurung bread with honey from the hives below the school, eggs, and more tea."
-        },
-        {
-         "label": "Daytime",
-         "title": "Walk, or don’t",
-         "text": "Up to Komrong Danda, across to Landruk, round the museum, or a book in the sun on the roof."
-        },
-        {
-         "label": "19:00",
-         "title": "Dal bhat by the fire",
-         "text": "Everyone eats together in the kitchen. Seconds arrive whether you ask or not."
-        }
-       ]
-      }
-     },
-     {
-      "type": "pricing",
-      "variant": "list",
-      "props": {
-       "heading": "Rooms and rates",
-       "intro": "Per night, for the room, with dinner and breakfast for everyone in it. Children under six stay free.",
-       "currency": "NPR",
-       "plans": [
-        {
-         "name": "Twin room",
-         "price": "4400",
-         "period": "night",
-         "note": "Two single beds, shared bathroom with a hot shower.",
-         "features": "",
-         "cta": {
-          "label": "Ask for dates",
-          "href": "page:book"
-         },
-         "featured": false
-        },
-        {
-         "name": "Double room with bathroom",
-         "price": "5600",
-         "period": "night",
-         "note": "The corner room, with the widest window.",
-         "features": "",
-         "cta": {
-          "label": "Ask for dates",
-          "href": "page:book"
-         },
-         "featured": true
-        },
-        {
-         "name": "Family attic",
-         "price": "8800",
-         "period": "night",
-         "note": "Sleeps four under the roof beams, with its own bathroom.",
-         "features": "",
-         "cta": {
-          "label": "Ask for dates",
-          "href": "page:book"
-         },
-         "featured": false
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
-      }
-     },
-     {
       "type": "imagetext",
       "variant": "left",
       "props": {
@@ -275,36 +271,11 @@
         "label": "Food and the village",
         "href": "page:village"
        }
-      }
-     },
-     {
-      "type": "features",
-      "variant": "grid",
-      "props": {
-       "heading": "Walks from the door",
-       "intro": "Times are at an easy pace, there and back.",
-       "items": [
-        {
-         "title": "Komrong Danda at sunrise",
-         "text": "A steep path through rhododendron to the ridge above the village. Take a torch and a jacket.",
-         "detail": "1 hour 30 minutes"
-        },
-        {
-         "title": "The Gurung Museum",
-         "text": "Old tools, clothes and a real kitchen, in a house like ours. Open from ten.",
-         "detail": "10 minutes"
-        },
-        {
-         "title": "Across to Landruk",
-         "text": "Down to the Modi Khola bridge and up the other side. Lunch in Landruk, jeep back if your knees ask.",
-         "detail": "5 hours"
-        },
-        {
-         "title": "Tadapani forest",
-         "text": "Moss, stone steps and langur monkeys, on the trail towards Ghorepani.",
-         "detail": "7 hours"
-        }
-       ]
+      },
+      "style": {
+       "bg": "ink",
+       "space": "m",
+       "hide": ""
       }
      },
      {

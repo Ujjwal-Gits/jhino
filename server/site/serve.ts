@@ -3,7 +3,7 @@
 /** The rules a site page is served under: its own files and Jhino's, plus video and map embeds. */
 export const siteCsp = (secure: boolean) => [
   "default-src 'self'", "script-src 'self'", "style-src 'self' 'unsafe-inline'", "img-src 'self' data: https:", "font-src 'self'",
-  "media-src 'self' https:", 'frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.google.com', "connect-src 'self'",
+  "media-src 'self' https:", 'frame-src https://www.youtube-nocookie.com https://player.vimeo.com https://www.tiktok.com https://www.instagram.com https://www.google.com', "connect-src 'self'",
   "form-action 'self'", "base-uri 'self'", "object-src 'none'", "frame-ancestors 'self'",
 ].join('; ') + (secure ? '; upgrade-insecure-requests' : '');
 

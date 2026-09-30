@@ -64,6 +64,24 @@
     "seoDescription": "A café in Jhamsikhel, Lalitpur. Hand-folded momo, coffee from Nuwakot and Gulmi roasted in-house every Tuesday, Thakali set on Saturdays. Open daily from 7:30.",
     "blocks": [
      {
+      "type": "announce",
+      "variant": "split",
+      "props": {
+       "text": "Today’s special: a Thakali set with local chicken and gundruk, Rs 650, from noon until it runs out.",
+       "label": "Today",
+       "link": {
+        "label": "See the menu",
+        "href": "page:menu"
+       },
+       "dismiss": false
+      },
+      "style": {
+       "bg": "accent",
+       "space": "s",
+       "hide": ""
+      }
+     },
+     {
       "type": "hero",
       "variant": "image",
       "props": {
@@ -86,29 +104,203 @@
       }
      },
      {
-      "type": "marquee",
-      "variant": "small",
+      "type": "menu",
+      "variant": "photo",
       "props": {
-       "items": [
+       "heading": "Order these first",
+       "intro": "The dishes regulars order without looking. The whole menu is on the menu page.",
+       "currency": "NPR",
+       "sections": [
         {
-         "text": "Roasted every Tuesday"
+         "title": "Momo",
+         "note": "Ten pieces. Steamed, jhol in sesame broth, or kothey pan-fried on one side.",
+         "items": [
+          {
+           "name": "Buff momo",
+           "desc": "Minced buffalo, onion, ginger and coriander.",
+           "price": "280",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-momo",
+            "alt": "Steamed buff momo"
+           }
+          },
+          {
+           "name": "Chicken momo",
+           "desc": "Free-range chicken from Dhading with spring onion.",
+           "price": "300",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Mushroom and cheese",
+           "desc": "Oyster mushroom, yak cheese and garlic chive.",
+           "price": "290",
+           "tag": "Veg",
+           "image": {
+            "src": "lib:cafe-momo-2",
+            "alt": "Mushroom and cheese momo with spinach wrappers"
+           }
+          },
+          {
+           "name": "Jhol momo, any filling",
+           "desc": "In a warm tomato, sesame and timur broth.",
+           "price": "320",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          }
+         ]
         },
         {
-         "text": "Momo folded from 6 am"
+         "title": "Coffee",
+         "note": "Nuwakot or Gulmi beans, roasted every Tuesday. Oat milk is Rs 60.",
+         "items": [
+          {
+           "name": "Espresso",
+           "desc": "A double, always.",
+           "price": "180",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Flat white",
+           "desc": "Double shot, silky milk.",
+           "price": "260",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-latte",
+            "alt": "A flat white with latte art"
+           }
+          },
+          {
+           "name": "Pour-over",
+           "desc": "Brewed to order, about four minutes.",
+           "price": "380",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-pourover",
+            "alt": "Pour-over coffee brewing"
+           }
+          },
+          {
+           "name": "Iced honey latte",
+           "desc": "Chitwan wild honey, April to September.",
+           "price": "320",
+           "tag": "Season",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          }
+         ]
         },
         {
-         "text": "Chiya until close"
+         "title": "Chiya and tea",
+         "note": "",
+         "items": [
+          {
+           "name": "Masala chiya",
+           "desc": "Ginger, cardamom, black pepper, full-cream milk.",
+           "price": "110",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-chiya",
+            "alt": "Masala chiya in glasses"
+           }
+          },
+          {
+           "name": "Ilam first flush",
+           "desc": "Light and floral, served in a pot for two.",
+           "price": "240",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Lemon, honey and ginger",
+           "desc": "For the winter throat.",
+           "price": "160",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          }
+         ]
         },
         {
-         "text": "Thakali set on Saturdays"
-        },
-        {
-         "text": "In Jhamsikhel since 2076"
+         "title": "All day and bakes",
+         "note": "Plates until 20:30; bakes until they run out.",
+         "items": [
+          {
+           "name": "Sel roti and aloo achar",
+           "desc": "With a glass of chiya.",
+           "price": "260",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Chicken choila",
+           "desc": "Grilled, dressed in mustard oil and timur, with beaten rice.",
+           "price": "420",
+           "tag": "Spicy",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Egg and saag on toast",
+           "desc": "Sourdough from Patan, mustard greens, soft egg.",
+           "price": "360",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          },
+          {
+           "name": "Butter croissant",
+           "desc": "Laminated with butter from Kavre, out of the oven at seven.",
+           "price": "220",
+           "tag": "",
+           "image": {
+            "src": "lib:cafe-pastry",
+            "alt": "Croissants fresh from the oven"
+           }
+          },
+          {
+           "name": "Cardamom bun",
+           "desc": "Usually gone by eleven.",
+           "price": "180",
+           "tag": "",
+           "image": {
+            "src": "",
+            "alt": ""
+           }
+          }
+         ]
         }
        ]
       },
       "style": {
-       "bg": "accent"
+       "bg": "page",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -122,6 +314,11 @@
         "src": "",
         "alt": ""
        }
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -172,168 +369,6 @@
          }
         }
        ]
-      }
-     },
-     {
-      "type": "features",
-      "variant": "rows",
-      "props": {
-       "heading": "Order these first",
-       "intro": "Prices include 13% VAT. We do not add a service charge.",
-       "items": [
-        {
-         "title": "Buff jhol momo",
-         "text": "Ten pieces in a warm sesame and tomato broth, with a squeeze of lime.",
-         "detail": "Rs 320"
-        },
-        {
-         "title": "Gulmi pour-over",
-         "text": "Brewed to order at the bar, about four minutes. Ask for the tasting notes card.",
-         "detail": "Rs 380"
-        },
-        {
-         "title": "Thakali set, Saturdays",
-         "text": "Rice, black dal, gundruk, saag, timur achar and chicken or mutton curry, refilled until you stop us.",
-         "detail": "Rs 690"
-        },
-        {
-         "title": "Sel roti and aloo achar",
-         "text": "Rice-flour rings fried to order, with spiced potato and a glass of chiya.",
-         "detail": "Rs 260"
-        },
-        {
-         "title": "Cardamom bun",
-         "text": "Baked at seven and usually gone by eleven.",
-         "detail": "Rs 180"
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
-      }
-     },
-     {
-      "type": "sticky",
-      "variant": "left",
-      "props": {
-       "heading": "From cherry to cup in about nine days",
-       "intro": "Most coffee sold in Kathmandu left the farm a year ago. Ours left in the last month.",
-       "image": {
-        "src": "lib:cafe-roaster",
-        "alt": "Freshly roasted coffee beans tumbling out of a drum roaster into the cooling tray"
-       },
-       "items": [
-        {
-         "label": "November to February",
-         "title": "Picked ripe on the ridge",
-         "text": "The cooperative in Nuwakot picks only red cherries, by hand, over three or four passes of each tree."
-        },
-        {
-         "label": "Days one to four",
-         "title": "Pulped, washed and dried",
-         "text": "Fruit is pulped the same evening, fermented overnight, washed and laid on raised beds. It is turned every hour of sun."
-        },
-        {
-         "label": "Every Tuesday",
-         "title": "Roasted here, twelve kilos at a time",
-         "text": "Sarita roasts in the back room from eight. If you are in early you will smell it from Sanepa Chowk."
-        },
-        {
-         "label": "Five days later",
-         "title": "Rested, then ground to order",
-         "text": "Beans rest for five days before we brew them, and we grind each bag for your filter, press or moka pot while you wait."
-        }
-       ]
-      }
-     },
-     {
-      "type": "gallery",
-      "variant": "bento",
-      "props": {
-       "heading": "From the kitchen this week",
-       "intro": "The board changes on Mondays. These are the ones people ask about.",
-       "images": [
-        {
-         "image": {
-          "src": "lib:cafe-latte",
-          "alt": "A flat white with a rosetta in the milk"
-         },
-         "caption": "Flat white, Nuwakot beans"
-        },
-        {
-         "image": {
-          "src": "lib:cafe-momo-2",
-          "alt": "Plates of steamed, spinach and kothey momo with a bowl of jhol"
-         },
-         "caption": "Steamed, spinach and kothey"
-        },
-        {
-         "image": {
-          "src": "lib:cafe-pastry",
-          "alt": "Croissants and buns on the bakery counter"
-         },
-         "caption": "Out of the oven at seven"
-        },
-        {
-         "image": {
-          "src": "lib:cafe-thali",
-          "alt": "A brass thali with rice, dal, greens, pickle and curry"
-         },
-         "caption": "Saturday Thakali set"
-        },
-        {
-         "image": {
-          "src": "lib:cafe-beans",
-          "alt": "Close-up of medium-roasted coffee beans"
-         },
-         "caption": "Tuesday’s roast"
-        }
-       ],
-       "link": {
-        "label": "",
-        "href": ""
-       }
-      }
-     },
-     {
-      "type": "hours",
-      "variant": "split",
-      "props": {
-       "heading": "Open every day",
-       "note": "The kitchen closes at 20:30. We close on Dashain Tika and Laxmi Puja, and open at 10:00 the day after.",
-       "days": [
-        {
-         "day": "Sunday",
-         "hours": "07:30 – 21:00"
-        },
-        {
-         "day": "Monday",
-         "hours": "07:30 – 21:00"
-        },
-        {
-         "day": "Tuesday",
-         "hours": "07:30 – 21:00"
-        },
-        {
-         "day": "Wednesday",
-         "hours": "07:30 – 21:00"
-        },
-        {
-         "day": "Thursday",
-         "hours": "07:30 – 21:00"
-        },
-        {
-         "day": "Friday",
-         "hours": "07:30 – 21:00"
-        },
-        {
-         "day": "Saturday",
-         "hours": "08:30 – 21:00"
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
       }
      },
      {
@@ -405,6 +440,49 @@
         "href": "https://www.instagram.com/ghumticafe",
         "newTab": true
        }
+      }
+     },
+     {
+      "type": "hours",
+      "variant": "split",
+      "props": {
+       "heading": "Open every day",
+       "note": "The kitchen closes at 20:30. We close on Dashain Tika and Laxmi Puja, and open at 10:00 the day after.",
+       "days": [
+        {
+         "day": "Sunday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Monday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Tuesday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Wednesday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Thursday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Friday",
+         "hours": "07:30 – 21:00"
+        },
+        {
+         "day": "Saturday",
+         "hours": "08:30 – 21:00"
+        }
+       ]
+      },
+      "style": {
+       "bg": "ink",
+       "space": "m",
+       "hide": ""
       }
      },
      {

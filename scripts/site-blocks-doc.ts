@@ -9,12 +9,13 @@ import { BLOCKS, CATEGORIES, FONTS, LIBRARY, PRESETS, type Field } from '../serv
 const TYPE: Record<string, string> = {
   text: 'inline text (bold, italic, links)', para: 'inline text, several lines', rich: 'rich text (paragraphs, lists, h3, bold, italic, links)',
   plain: 'plain text', url: 'link (https:, mailto:, tel:, page:<id>, #anchor)', image: 'image `{ src, alt, focal? }`', link: 'button `{ label, href, newTab? }`',
-  bool: 'true / false', select: 'one of', list: 'list of items',
+  bool: 'true / false', select: 'one of', list: 'list of items', number: 'number', date: 'date `YYYY-MM-DD` (AD; shown in BS or AD on the site)', time: 'time `HH:MM` (24-hour, Nepal time)',
 };
 const fieldLine = (f: Field, indent = ''): string => {
   let t = TYPE[f.type];
   if (f.type === 'select') t += ': ' + f.options!.map((o) => `\`${o.value}\``).join(', ');
   if (f.max) t += `, up to ${f.max} characters`;
+  if (f.type === 'number') t += ` from ${f.lo} to ${f.hi}`;
   let line = `${indent}- \`${f.key}\` (${f.label}): ${t}.${f.hint ? ` ${f.hint}` : ''}`;
   if (f.type === 'list') {
     line += ` Up to ${f.maxItems} ${f.item}s, each:\n` + f.of!.map((x) => fieldLine(x, indent + '  ')).join('\n');

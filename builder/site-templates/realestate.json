@@ -69,7 +69,7 @@
     "blocks": [
      {
       "type": "hero",
-      "variant": "stacked",
+      "variant": "split",
       "props": {
        "title": "Houses, flats and land in the north of the valley, with the papers checked first",
        "text": "We sell homes in Budhanilkantha, Tokha, Dhapasi and Bhaisepati. Before anything is listed here, we have read the lalpurja, walked the road and seen the approved naksha.",
@@ -94,37 +94,12 @@
       }
      },
      {
-      "type": "marquee",
-      "variant": "small",
-      "props": {
-       "items": [
-        {
-         "text": "Lalpurja read before listing"
-        },
-        {
-         "text": "Road width measured"
-        },
-        {
-         "text": "Naksha pass seen"
-        },
-        {
-         "text": "Two per cent, paid at transfer"
-        },
-        {
-         "text": "Free for buyers"
-        }
-       ]
-      },
-      "style": {
-       "bg": "accent"
-      }
-     },
-     {
-      "type": "work",
-      "variant": "feature",
+      "type": "enquire",
+      "variant": "wide",
       "props": {
        "heading": "For sale now",
-       "intro": "Prices are what the owner is asking. Every listing has been visited by us in the last month.",
+       "intro": "Every listing has clean papers, a site visit and a measured plot. Prices are what the owner will accept.",
+       "currency": "",
        "items": [
         {
          "image": {
@@ -135,13 +110,11 @@
            60
           ]
          },
-         "title": "Single-storey house, Narayanthan",
-         "tag": "House · Rs 3.25 crore",
-         "text": "6 aana, 3 bedrooms, garden on two sides. 20 ft road, 400 m from the Narayanthan bus stop.",
-         "link": {
-          "label": "Details",
-          "href": "page:listings"
-         }
+         "name": "Single-storey house, Narayanthan",
+         "price": "Rs 3.25 crore",
+         "per": "",
+         "badge": "House",
+         "text": "6 aana, 3 bedrooms, garden on two sides. 20 ft road, 400 m from the Narayanthan bus stop."
         },
         {
          "image": {
@@ -152,13 +125,11 @@
            45
           ]
          },
-         "title": "Three-storey house, Bhaisepati",
-         "tag": "House · Rs 2.10 crore",
-         "text": "3.5 aana, 4 bedrooms, roof terrace. Completion certificate issued 2078.",
-         "link": {
-          "label": "Details",
-          "href": "page:listings"
-         }
+         "name": "Three-storey house, Bhaisepati",
+         "price": "Rs 2.10 crore",
+         "per": "",
+         "badge": "House",
+         "text": "3.5 aana, 4 bedrooms, roof terrace. Completion certificate issued 2078."
         },
         {
          "image": {
@@ -169,35 +140,17 @@
            40
           ]
          },
-         "title": "Three-bedroom flat, Dhapasi",
-         "tag": "Flat · Rs 1.65 crore",
-         "text": "1,450 sq ft on the fourth floor of a gated colony, lift and backup power, one covered parking.",
-         "link": {
-          "label": "Details",
-          "href": "page:listings"
-         }
+         "name": "Three-bedroom flat, Dhapasi",
+         "price": "Rs 1.65 crore",
+         "per": "",
+         "badge": "Flat",
+         "text": "1,450 sq ft on the fourth floor of a gated colony, lift and backup power, one covered parking."
         }
        ],
-       "link": {
-        "label": "All listings",
-        "href": "page:listings"
-       }
-      }
-     },
-     {
-      "type": "quote",
-      "variant": "large",
-      "props": {
-       "quote": "Half the calls we get are from people who bought land with no road. We would rather lose a sale than list one of those.",
-       "name": "Suman Khadka",
-       "detail": "Founder",
-       "image": {
-        "src": "",
-        "alt": ""
-       }
-      },
-      "style": {
-       "bg": "surface"
+       "button": "Ask for a viewing",
+       "via": "whatsapp",
+       "whatsapp": "",
+       "message": "Namaste, I would like to see"
       }
      },
      {
@@ -238,6 +191,11 @@
          "detail": ""
         }
        ]
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -279,59 +237,40 @@
       }
      },
      {
-      "type": "gallery",
-      "variant": "bento",
+      "type": "hotspots",
+      "variant": "pins",
       "props": {
        "heading": "Inside the Narayanthan house",
-       "intro": "Bright rooms, wood floors and a south-facing garden. Viewings on Saturday by appointment.",
-       "images": [
+       "intro": "Tap a number. Viewings on Saturdays, or any evening by arrangement.",
+       "image": {
+        "src": "lib:estate-living",
+        "alt": "A bright living room with a vaulted ceiling and wood floor"
+       },
+       "points": [
         {
-         "image": {
-          "src": "lib:estate-living",
-          "alt": "A bright living room with a vaulted ceiling and wood floor"
-         },
-         "caption": "Living room, 18 by 16 ft"
+         "title": "A vaulted ceiling",
+         "text": "The living room is open to the roof, with a timber beam along the ridge. Bright all day.",
+         "x": 45,
+         "y": 24
         },
         {
-         "image": {
-          "src": "lib:estate-kitchen",
-          "alt": "A white kitchen with an island and bar stools"
-         },
-         "caption": "Kitchen with an island"
+         "title": "The fireplace wall",
+         "text": "Built-in shelves on both sides, and power points for a television.",
+         "x": 70,
+         "y": 58
         },
         {
-         "image": {
-          "src": "lib:estate-bedroom",
-          "alt": "A calm bedroom with a large bed and a tall window"
-         },
-         "caption": "Main bedroom"
-        },
-        {
-         "image": {
-          "src": "lib:estate-sunroom",
-          "alt": "A sunny living room with a balcony door",
-          "focal": [
-           40,
-           50
-          ]
-         },
-         "caption": "Sitting room onto the balcony"
-        },
-        {
-         "image": {
-          "src": "lib:estate-dining",
-          "alt": "A dining area by an open staircase"
-         },
-         "caption": "Dining by the stairs"
+         "title": "A glass door to the garden",
+         "text": "Opens onto the lawn on the east side of the house.",
+         "x": 12,
+         "y": 50
         }
-       ],
-       "link": {
-        "label": "",
-        "href": ""
-       }
+       ]
       },
       "style": {
-       "bg": "surface"
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
       }
      },
      {
@@ -412,6 +351,11 @@
         "label": "How selling works",
         "href": "page:selling"
        }
+      },
+      "style": {
+       "bg": "ink",
+       "space": "m",
+       "hide": ""
       }
      },
      {

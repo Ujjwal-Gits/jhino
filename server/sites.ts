@@ -277,7 +277,7 @@ export function registerSites(app: FastifyInstance) {
     const p = hit.block.props;
     const data: Record<string, string> = {};
     for (const fd of def.form.fields) {
-      if (fd.name === 'phone' && def.type === 'contact' && !p.askPhone) continue;
+      if (fd.name === 'phone' && (def.type === 'contact' || def.type === 'visit') && !p.askPhone) continue;
       if (fd.name === 'time' && def.type === 'booking' && !p.askTime) continue;
       let val = fd.kind === 'long' ? cleanLong(b[fd.name], fd.max) : cleanPlain(b[fd.name], fd.max);
       if (fd.kind === 'email' && val && !EMAIL.test(val)) return done(400, 'Check the email address.');
@@ -288,7 +288,7 @@ export function registerSites(app: FastifyInstance) {
       if (fd.required && !val) return done(400, `Please fill in: ${fd.label}.`);
       if (val) data[fd.name] = val;
     }
-    if (def.type === 'contact' && !data.email && !data.phone) return done(400, 'Leave an email or a phone number so they can reply.');
+    if ((def.type === 'contact' || def.type === 'visit') && !data.email && !data.phone) return done(400, 'Leave an email or a phone number so they can reply.');
     const pageTitle = hit.page?.title ?? '';
     const id = newId('sub');
     db.prepare('INSERT INTO site_submissions(id,app_id,form,block_id,page,data,created_at) VALUES(?,?,?,?,?,?,?)').run(id, appId, def.type, blockId, pageTitle, JSON.stringify(data), now());

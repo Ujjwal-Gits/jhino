@@ -66,7 +66,7 @@
     "blocks": [
      {
       "type": "hero",
-      "variant": "stacked",
+      "variant": "text",
       "props": {
        "title": "Identity, websites and film for Nepali companies with something to say",
        "text": "A studio of nine in Jhamsikhel. Since 2074 we have named, drawn and launched brands for tea estates, hotels, banks and schools from Ilam to Pokhara.",
@@ -88,36 +88,6 @@
        },
        "eyebrow": "Now booking projects for Shrawan",
        "video": ""
-      }
-     },
-     {
-      "type": "marquee",
-      "variant": "large",
-      "props": {
-       "items": [
-        {
-         "text": "Identity"
-        },
-        {
-         "text": "Packaging"
-        },
-        {
-         "text": "Websites"
-        },
-        {
-         "text": "Film"
-        },
-        {
-         "text": "Wayfinding"
-        },
-        {
-         "text": "Type"
-        }
-       ]
-      },
-      "style": {
-       "bg": "page",
-       "space": "s"
       }
      },
      {
@@ -204,19 +174,34 @@
       }
      },
      {
-      "type": "quote",
+      "type": "marquee",
       "variant": "large",
       "props": {
-       "quote": "A logo is the smallest part of a brand. The rest is every decision somebody makes after we leave.",
-       "name": "Rojina Tamang",
-       "detail": "Creative director",
-       "image": {
-        "src": "",
-        "alt": ""
-       }
+       "items": [
+        {
+         "text": "Identity"
+        },
+        {
+         "text": "Packaging"
+        },
+        {
+         "text": "Websites"
+        },
+        {
+         "text": "Film"
+        },
+        {
+         "text": "Wayfinding"
+        },
+        {
+         "text": "Type"
+        }
+       ]
       },
       "style": {
-       "bg": "surface"
+       "bg": "accent",
+       "space": "s",
+       "hide": ""
       }
      },
      {
@@ -260,6 +245,24 @@
       }
      },
      {
+      "type": "quote",
+      "variant": "large",
+      "props": {
+       "quote": "A logo is the smallest part of a brand. The rest is every decision somebody makes after we leave.",
+       "name": "Rojina Tamang",
+       "detail": "Creative director",
+       "image": {
+        "src": "",
+        "alt": ""
+       }
+      },
+      "style": {
+       "bg": "surface",
+       "space": "m",
+       "hide": ""
+      }
+     },
+     {
       "type": "steps",
       "variant": "stack",
       "props": {
@@ -292,91 +295,6 @@
          "detail": "After"
         }
        ]
-      }
-     },
-     {
-      "type": "sticky",
-      "variant": "left",
-      "props": {
-       "heading": "Inside the studio",
-       "intro": "A first-floor room above a bakery, with the best light in Jhamsikhel after two o’clock.",
-       "image": {
-        "src": "lib:agency-desk",
-        "alt": "A designer sketching screens with a pen",
-        "focal": [
-         65,
-         35
-        ]
-       },
-       "items": [
-        {
-         "label": "Morning",
-         "title": "Pencils first",
-         "text": "Every mark starts on paper. We scan the good ones at eleven."
-        },
-        {
-         "label": "Afternoon",
-         "title": "Everything on the wall",
-         "text": "Work in progress is printed and pinned, so clients see it the way customers will."
-        },
-        {
-         "label": "Friday",
-         "title": "Crit and momo",
-         "text": "The whole studio reviews the week’s work over lunch from the bakery downstairs."
-        }
-       ]
-      },
-      "style": {
-       "bg": "surface"
-      }
-     },
-     {
-      "type": "gallery",
-      "variant": "bento",
-      "props": {
-       "heading": "Pinned up this month",
-       "intro": "",
-       "images": [
-        {
-         "image": {
-          "src": "lib:agency-posters",
-          "alt": "Printed posters pinned to a studio wall"
-         },
-         "caption": "Poster tests, Tihar campaign"
-        },
-        {
-         "image": {
-          "src": "lib:agency-stationery",
-          "alt": "Business cards and letterheads on a table"
-         },
-         "caption": "Stationery proofs"
-        },
-        {
-         "image": {
-          "src": "lib:agency-shoot",
-          "alt": "Lights and a camera set up for a product shoot"
-         },
-         "caption": "Product shoot, Himali Organics"
-        },
-        {
-         "image": {
-          "src": "lib:agency-meeting",
-          "alt": "The team looking over printed layouts on a table"
-         },
-         "caption": "Reviewing layouts"
-        },
-        {
-         "image": {
-          "src": "lib:agency-patan",
-          "alt": "Carved windows in Patan"
-         },
-         "caption": "Research walk, Patan"
-        }
-       ],
-       "link": {
-        "label": "",
-        "href": ""
-       }
       }
      },
      {
@@ -475,7 +393,7 @@
      },
      {
       "type": "cta",
-      "variant": "image",
+      "variant": "split",
       "props": {
        "title": "Have a brief, or only a hunch?",
        "text": "Tell us what you are making. We reply within two working days, with honest advice even when it is not us.",

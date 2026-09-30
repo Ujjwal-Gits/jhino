@@ -84,7 +84,7 @@ app.addHook('onSend', async (req, reply) => {
   reply.header('Referrer-Policy', 'same-origin');
   if (!req.url.startsWith('/api/') && !req.url.startsWith('/_jhino/')) {
     reply.header('Content-Security-Policy',
-      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self'; frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com https://www.tiktok.com https://www.instagram.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self'; frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com https://www.tiktok.com https://www.instagram.com https://www.google.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
     reply.header('X-Frame-Options', 'DENY');
   }
   reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
