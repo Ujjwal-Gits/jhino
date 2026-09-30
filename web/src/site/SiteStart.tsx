@@ -23,12 +23,12 @@ function previewHtml(site: Site, pageIdx = 0) {
     mode: 'preview', appId: 'preview', site, page, formAction: '#',
     pageHref: () => '#',
     asset: (src) => (src.startsWith('lib:') ? libraryAsset(src.slice(4)) : /^https:\/\//.test(src) ? { url: src } : null),
-  }, { extraHead: '<style>html{scrollbar-width:none}body::-webkit-scrollbar{display:none}.rv::after{display:none!important}.rv>img{transform:none!important}</style>' });
+  }, { extraHead: '<style>html{scrollbar-width:none}body::-webkit-scrollbar{display:none}.rv::after{display:none!important}.rv>img{transform:none!important}a,button,input,textarea,select,label,summary,iframe{pointer-events:none!important}</style>' });
 }
 
 /** A site drawn small: the real page at desktop width in a normal-height window (so "one screen tall" sections
- * stay the right size), scaled to fit the box. scroll: the wheel or a finger scrolls the page inside it (the big
- * preview). Otherwise hovering the template card scrolls smoothly down the page and back to the top on leave. */
+ * stay the right size), scaled to fit the box. scroll: the page scrolls natively inside it, like any web page (the big
+ * preview); its links and forms do nothing. Otherwise hovering the template card scrolls smoothly down the page and back to the top on leave. */
 function Miniature({ site, page = 0, width = 1280, label, scroll = false }: { site: Site; page?: number; width?: number; label: string; scroll?: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLIFrameElement>(null);
@@ -45,29 +45,7 @@ function Miniature({ site, page = 0, width = 1280, label, scroll = false }: { si
   const win = () => frame.current?.contentWindow ?? null;
   useEffect(() => {
     const el = box.current!;
-    if (scroll) {
-      let y0 = 0, target = -1, raf = 0;
-      // The wheel sets where to go; each frame moves part of the way there, so scrolling glides like a page.
-      const glideTo = () => {
-        const v = win(); if (!v) return;
-        const d = target - v.scrollY;
-        if (Math.abs(d) < 0.5) { v.scrollTo(0, target); target = -1; return; }
-        v.scrollTo(0, v.scrollY + d * 0.2);
-        raf = requestAnimationFrame(glideTo);
-      };
-      const wheel = (e: WheelEvent) => {
-        const v = win(); if (!v) return; e.preventDefault();
-        const max = v.document.documentElement.scrollHeight - v.innerHeight;
-        const dy = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * v.innerHeight : e.deltaY;
-        target = Math.max(0, Math.min(max, (target < 0 ? v.scrollY : target) + dy / k));
-        if (matchMedia('(prefers-reduced-motion: reduce)').matches) { v.scrollTo(0, target); target = -1; return; }
-        cancelAnimationFrame(raf); raf = requestAnimationFrame(glideTo);
-      };
-      const ts = (e: TouchEvent) => { cancelAnimationFrame(raf); target = -1; y0 = e.touches[0].clientY; };
-      const tm = (e: TouchEvent) => { const v = win(); if (!v) return; const y = e.touches[0].clientY; v.scrollBy({ top: (y0 - y) / k }); y0 = y; e.preventDefault(); };
-      el.addEventListener('wheel', wheel, { passive: false }); el.addEventListener('touchstart', ts, { passive: true }); el.addEventListener('touchmove', tm, { passive: false });
-      return () => { cancelAnimationFrame(raf); el.removeEventListener('wheel', wheel); el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); };
-    }
+    if (scroll) return; // the big preview scrolls natively (the iframe takes the wheel and touch itself)
     const card = el.closest('button') ?? el;
     let raf = 0;
     const enter = () => {
@@ -82,7 +60,7 @@ function Miniature({ site, page = 0, width = 1280, label, scroll = false }: { si
   }, [scroll, k]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className={`ss-mini ${scroll ? 'scroll' : ''}`} ref={box}>
-      <iframe ref={frame} title={label} srcDoc={html} tabIndex={-1} aria-hidden="true" style={{ width, height: h / k, transform: `scale(${k})` }} />
+      <iframe ref={frame} title={label} srcDoc={html} tabIndex={-1} aria-hidden={scroll ? undefined : true} style={{ width, height: h / k, transform: `scale(${k})`, pointerEvents: scroll ? 'auto' : 'none' }} />
     </div>
   );
 }

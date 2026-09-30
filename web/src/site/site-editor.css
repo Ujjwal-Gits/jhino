@@ -300,5 +300,5 @@
 @media (max-width: 960px) { .se-hist { display: none; } .se-prev-note span { display: none; } .se-prev-note { justify-content: flex-end; } }
 
 /* The big preview takes the wheel and touch to scroll the site inside it. */
-.ss-mini.scroll { touch-action: none; }
+
 .ss-preview-hint { font-size: 12.5px; color: var(--ink-3); }
