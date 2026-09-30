@@ -46,12 +46,27 @@ function Miniature({ site, page = 0, width = 1280, label, scroll = false }: { si
   useEffect(() => {
     const el = box.current!;
     if (scroll) {
-      let y0 = 0;
-      const wheel = (e: WheelEvent) => { const v = win(); if (!v) return; e.preventDefault(); v.scrollBy({ top: e.deltaY / k }); };
-      const ts = (e: TouchEvent) => { y0 = e.touches[0].clientY; };
+      let y0 = 0, target = -1, raf = 0;
+      // The wheel sets where to go; each frame moves part of the way there, so scrolling glides like a page.
+      const glideTo = () => {
+        const v = win(); if (!v) return;
+        const d = target - v.scrollY;
+        if (Math.abs(d) < 0.5) { v.scrollTo(0, target); target = -1; return; }
+        v.scrollTo(0, v.scrollY + d * 0.2);
+        raf = requestAnimationFrame(glideTo);
+      };
+      const wheel = (e: WheelEvent) => {
+        const v = win(); if (!v) return; e.preventDefault();
+        const max = v.document.documentElement.scrollHeight - v.innerHeight;
+        const dy = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * v.innerHeight : e.deltaY;
+        target = Math.max(0, Math.min(max, (target < 0 ? v.scrollY : target) + dy / k));
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) { v.scrollTo(0, target); target = -1; return; }
+        cancelAnimationFrame(raf); raf = requestAnimationFrame(glideTo);
+      };
+      const ts = (e: TouchEvent) => { cancelAnimationFrame(raf); target = -1; y0 = e.touches[0].clientY; };
       const tm = (e: TouchEvent) => { const v = win(); if (!v) return; const y = e.touches[0].clientY; v.scrollBy({ top: (y0 - y) / k }); y0 = y; e.preventDefault(); };
       el.addEventListener('wheel', wheel, { passive: false }); el.addEventListener('touchstart', ts, { passive: true }); el.addEventListener('touchmove', tm, { passive: false });
-      return () => { el.removeEventListener('wheel', wheel); el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); };
+      return () => { cancelAnimationFrame(raf); el.removeEventListener('wheel', wheel); el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); };
     }
     const card = el.closest('button') ?? el;
     let raf = 0;
