@@ -959,7 +959,7 @@ const CSS: Record<string, string> = {
 .h-cta{min-height:44px;padding:0 1.2em;font-size:.92rem}
 .nav-t{display:none;align-items:center;gap:8px;min-height:44px;padding:0 14px;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:var(--rb);background:transparent;color:inherit;font:600 .95rem var(--f-b);cursor:pointer}
 .nav-i,.nav-i::before{display:block;width:16px;height:1.5px;background:currentColor;position:relative}.nav-i::before{content:"";position:absolute;top:5px}.nav-i{top:-2.5px}
-.v-centered .h-in{flex-direction:column;gap:6px;padding:14px 0}.v-centered .brand{margin:0}
+.v-centered .h-in{flex-direction:column;gap:6px;padding:14px 0}.v-centered .brand{margin:0}@media (min-width:760px){.v-centered .h-in{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:'brand brand brand' '. nav cta';align-items:center;row-gap:8px}.v-centered .brand{grid-area:brand;justify-self:center}.v-centered .h-nav{grid-area:nav;justify-self:center}.v-centered .h-cta{grid-area:cta;justify-self:end}}
 .nav-cta{display:none}html:not(.js) .nav-cta{display:none!important}
 .site-h::before{content:"";position:absolute;inset:0;background:var(--bg);z-index:-1}
 .site-h.over{position:absolute;left:0;right:0;top:0;border-bottom-color:transparent;--text:#fff;color:#fff;background:transparent}.site-h.over.sticky{position:fixed}.site-h.over::before{opacity:0;transition:opacity .3s ${EASE};border-bottom:1px solid var(--line)}
