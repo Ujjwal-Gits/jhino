@@ -26,13 +26,14 @@ function previewHtml(site: Site, pageIdx = 0) {
   }, { extraHead: '<style>html{scrollbar-width:none}body::-webkit-scrollbar{display:none}.rv::after{display:none!important}.rv>img{transform:none!important}</style>' });
 }
 
-/** A site drawn small: the real page at desktop width, at its full length, scaled to fit the box's width.
- * scroll: the box scrolls the whole page (the big preview). Otherwise hovering the card glides down the page. */
+/** A site drawn small: the real page at desktop width in a normal-height window (so "one screen tall" sections
+ * stay the right size), scaled to fit the box. scroll: the wheel or a finger scrolls the page inside it (the big
+ * preview). Otherwise hovering the template card scrolls smoothly down the page and back to the top on leave. */
 function Miniature({ site, page = 0, width = 1280, label, scroll = false }: { site: Site; page?: number; width?: number; label: string; scroll?: boolean }) {
   const box = useRef<HTMLDivElement>(null);
+  const frame = useRef<HTMLIFrameElement>(null);
   const [w, setW] = useState(300);
   const [h, setH] = useState(200);
-  const [docH, setDocH] = useState(0);
   useEffect(() => {
     const el = box.current!;
     const ro = new ResizeObserver(() => { setW(el.clientWidth); setH(el.clientHeight); });
@@ -40,21 +41,33 @@ function Miniature({ site, page = 0, width = 1280, label, scroll = false }: { si
     return () => ro.disconnect();
   }, []);
   const html = useMemo(() => previewHtml(site, page), [site, page]);
-  useEffect(() => { setDocH(0); box.current?.scrollTo({ top: 0 }); }, [html]);
-  // The page's real height, measured once it has loaded and again after its photos settle.
-  const onLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
-    const d = e.currentTarget.contentDocument; if (!d) return;
-    const measure = () => setDocH(Math.max(d.documentElement.scrollHeight, d.body?.scrollHeight ?? 0));
-    measure(); setTimeout(measure, 700); setTimeout(measure, 2000);
-  };
   const k = w / width;
-  const fullH = docH || h / k;
-  const travel = Math.max(0, fullH * k - h);
+  const win = () => frame.current?.contentWindow ?? null;
+  useEffect(() => {
+    const el = box.current!;
+    if (scroll) {
+      let y0 = 0;
+      const wheel = (e: WheelEvent) => { const v = win(); if (!v) return; e.preventDefault(); v.scrollBy({ top: e.deltaY / k }); };
+      const ts = (e: TouchEvent) => { y0 = e.touches[0].clientY; };
+      const tm = (e: TouchEvent) => { const v = win(); if (!v) return; const y = e.touches[0].clientY; v.scrollBy({ top: (y0 - y) / k }); y0 = y; e.preventDefault(); };
+      el.addEventListener('wheel', wheel, { passive: false }); el.addEventListener('touchstart', ts, { passive: true }); el.addEventListener('touchmove', tm, { passive: false });
+      return () => { el.removeEventListener('wheel', wheel); el.removeEventListener('touchstart', ts); el.removeEventListener('touchmove', tm); };
+    }
+    const card = el.closest('button') ?? el;
+    let raf = 0;
+    const enter = () => {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      cancelAnimationFrame(raf);
+      const step = () => { const v = win(); if (!v) return; const d = v.document.documentElement; if (v.scrollY + v.innerHeight >= d.scrollHeight - 2) return; v.scrollBy(0, 9); raf = requestAnimationFrame(step); };
+      raf = requestAnimationFrame(step);
+    };
+    const leave = () => { cancelAnimationFrame(raf); win()?.scrollTo({ top: 0, behavior: 'smooth' }); };
+    card.addEventListener('mouseenter', enter); card.addEventListener('mouseleave', leave); card.addEventListener('focus', enter); card.addEventListener('blur', leave);
+    return () => { cancelAnimationFrame(raf); card.removeEventListener('mouseenter', enter); card.removeEventListener('mouseleave', leave); card.removeEventListener('focus', enter); card.removeEventListener('blur', leave); };
+  }, [scroll, k]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <div className={`ss-mini ${scroll ? 'scroll' : 'glide'}`} ref={box} style={{ ['--travel' as string]: `${-travel}px`, ['--dur' as string]: `${Math.max(4, travel / 110)}s` }}>
-      <div className="ss-mini-in" style={{ height: fullH * k }}>
-        <iframe title={label} srcDoc={html} tabIndex={-1} aria-hidden="true" onLoad={onLoad} style={{ width, height: fullH, transform: `scale(${k})` }} />
-      </div>
+    <div className={`ss-mini ${scroll ? 'scroll' : ''}`} ref={box}>
+      <iframe ref={frame} title={label} srcDoc={html} tabIndex={-1} aria-hidden="true" style={{ width, height: h / k, transform: `scale(${k})` }} />
     </div>
   );
 }
