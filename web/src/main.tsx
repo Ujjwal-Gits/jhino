@@ -33,6 +33,16 @@ const reloadForUpdate = () => {
   try { const last = Number(sessionStorage.getItem('jhino-chunk-reload') || 0); if (Date.now() - last < 30_000) return false; sessionStorage.setItem('jhino-chunk-reload', String(Date.now())); } catch { /* private mode */ }
   location.reload(); return true;
 };
+// A new version was deployed while this tab stayed open: offer a reload (checked on focus and every 10 minutes).
+const myBuild = /\/assets\/(index-[\w-]+\.js)/.exec([...document.scripts].map((x) => x.src).join(' '))?.[1] ?? '';
+const checkBuild = () => { if (!myBuild || document.getElementById('jh-update')) return; fetch('/api/version', { cache: 'no-store' }).then((r) => r.json()).then((v: { build?: string }) => {
+  if (!v.build || v.build === myBuild) return;
+  const bar = document.createElement('div'); bar.id = 'jh-update'; bar.setAttribute('role', 'status');
+  bar.innerHTML = '<span>Jhino was updated.</span><button type="button">Reload</button>';
+  bar.querySelector('button')!.addEventListener('click', () => location.reload());
+  document.body.appendChild(bar);
+}).catch(() => {}); };
+addEventListener('focus', checkBuild); setInterval(checkBuild, 600_000);
 addEventListener('vite:preloadError', (e) => { if (reloadForUpdate()) e.preventDefault(); });
 addEventListener('unhandledrejection', (e) => { if (/dynamically imported module|Importing a module script failed|error loading dynamically imported module/i.test(String((e.reason as Error)?.message ?? e.reason))) reloadForUpdate(); });
 

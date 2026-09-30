@@ -169,6 +169,11 @@ if (fs.existsSync(path.join(webDir, 'index.html'))) {
     }
     return shell.html;
   };
+  // Which build is live (its main script's name), so an open tab can notice an update and offer to reload.
+  app.get('/api/version', async (_req, reply) => {
+    const build = /\/assets\/(index-[\w-]+\.js)/.exec(indexHtml())?.[1] ?? '';
+    return reply.header('Cache-Control', 'no-store').send({ build });
+  });
   // The home page: before the static files (a folder there answers 403), through the page writer.
   app.addHook('onRequest', async (req, reply) => {
     if ((req.method !== 'GET' && req.method !== 'HEAD') || !/^\/(\?|$)/.test(req.url)) return;
