@@ -14,10 +14,10 @@ import { startTicket, twoFactorOn, useTicket } from './twofactor.js';
 export { HttpError };
 
 export const COOKIE = 'jhino_sid';
-// Sign in once: a session lasts 60 days and renews itself while it is used.
-const SESSION_DAYS = 60;
-const ADMIN_SESSION_HOURS = 72;
-const RENEW_BELOW_DAYS = 45;
+// Sign in once: a session lasts 30 days and renews itself while it is used.
+const SESSION_DAYS = 30;
+const ADMIN_SESSION_HOURS = 30 * 24;
+const RENEW_BELOW_DAYS = 25;
 // Sensitive changes without a password (accounts that sign in with Google/Apple only) need a sign-in this recent.
 const REAUTH_MINUTES = 10;
 
@@ -223,7 +223,7 @@ export function registerAuth(app: FastifyInstance) {
     const s = db.prepare(`SELECT s.csrf, s.expires_at, s.last_seen_at, s.created_at session_at, u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id_hash=?`)
       .get(h) as (UserRow & { csrf: string; expires_at: string; last_seen_at: string | null; session_at: string }) | undefined;
     if (!s || s.disabled || s.kind === 'visitor' || Date.parse(s.expires_at) < Date.now()) return;
-    // A super admin signs in again every 3 days, however active the session.
+    // A super admin signs in again every 30 days, however active the session.
     if (s.is_admin && Date.parse(s.session_at) < Date.now() - ADMIN_SESSION_HOURS * 3600e3) { db.prepare('DELETE FROM sessions WHERE id_hash=?').run(h); return; }
     const { csrf, expires_at: exp, last_seen_at: seen, session_at: _sa, ...user } = s;
     void _sa;

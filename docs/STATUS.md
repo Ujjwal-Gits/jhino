@@ -25,7 +25,7 @@ Measured against the product brief plus the owner's direction:
 | My apps | One quiet list, apps with news first; each row: name, latest work line, people, new count and time; search, All/Created/Uploaded, sort, row menu |
 | Download as HTML file | Player menu, My apps row menu, Share dialog. The file signs in once (a key for that one app, kept on that computer), then opens the same app live over the internet; removing the person, a new password or "Sign out of this file" ends the key |
 | Hand-written HTML | samples/ticket-rail.html: plain HTML/CSS/JS with localStorage and FileReader, its own design kept exactly; live between web, phone and the downloaded file (tests/handwritten.spec.ts) |
-| Stay signed in | Web sessions last 60 days and renew themselves while used |
+| Stay signed in | Web sessions last 30 days and renew themselves while used; super admins sign in again every 30 days |
 | Open in a new tab | Opens only that item or document at `/apps/:id/view#…` (no dashboard), with "Open in the app"; long documents never scroll past their content |
 | Phone layout | Bottom bar with the first four sections (short names), More and the menu button open every section, a renamed section keeps its name |
 | Create HTML | Who it is for (client name fills the HTML name), ticking feature cards, live preview, create, opens directly, purpose and client shown, saving works, changing features later keeps data |

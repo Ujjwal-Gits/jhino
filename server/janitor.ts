@@ -33,7 +33,7 @@ const pause = (ms = 2) => new Promise<void>((ok) => setTimeout(ok, ms));
 
 /** How long things are kept. Shown to super admins with the janitor's report. */
 export const RULES = {
-  sessions: 'deleted when expired (web sessions last 60 days and renew while used)',
+  sessions: 'deleted when expired (web sessions last 30 days and renew while used)',
   runs: 'app launch tokens: deleted when expired',
   pub_sessions: 'link-visitor sessions: deleted when expired',
   domain_sessions: 'sign-ins with a custom domain\'s email and password logins: deleted when expired (30 days, renewed while used)',
