@@ -206,6 +206,15 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
       {error && <p className="error-text" role="alert" style={{ marginBottom: 16 }}>{error} <button className="btn sm" onClick={load}>Try again</button></p>}
 
       {apps && inView.length === 0 && view === 'mine' ? (
+        <>
+        {/* None of their own yet, but apps are shared with them (a client's sign-in made a creator or super admin): show those first. */}
+        {apps.some((a) => a.role !== 'owner') && (
+          <section className="ix-shared" aria-labelledby="shared-first" style={{ marginBottom: 32 }}>
+            <h2 id="shared-first" style={{ marginBottom: 12 }}>Shared with you</h2>
+            <ul className="ix" role="list">{apps.filter((a) => a.role !== 'owner').map(row)}</ul>
+            <p className="hint" style={{ marginTop: 10 }}>These stay under <Link to="/shared" className="link">Shared with me</Link>. Apps you make yourself show here.</p>
+          </section>
+        )}
         <section className="start" aria-labelledby="first-app">
           <h2 id="first-app">Put your first app online.</h2>
           <p className="lede">Upload your HTML, or create one for a client. Share it with a sign-in, and both of you see the same data, photos and videos, live.</p>
@@ -231,6 +240,7 @@ export function AppsPage({ view }: { view: 'mine' | 'shared' | 'trash' }) {
           </div>
           <p className="hint" style={{ marginTop: 14 }}>You can also drop an .html or .zip file anywhere on this page.</p>
         </section>
+        </>
       ) : apps && inView.length === 0 ? (
         <p className="empty-line">
           {view === 'shared' ? (user.canCreate ? 'Nothing is shared with you yet. When someone adds you to an app, it shows up here.' : 'No apps are shared with you right now. Ask the person who gave you your sign-in.') : 'Trash is empty. Apps you move here stay until you delete them for good.'}

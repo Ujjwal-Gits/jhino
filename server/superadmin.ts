@@ -241,6 +241,9 @@ export function registerSuperAdmin(app: FastifyInstance) {
     if (b.superAdmin !== undefined) {
       if (self && !b.superAdmin) throw new HttpError(400, 'VALIDATION_FAILED', 'You cannot remove your own super admin access.');
       db.prepare('UPDATE users SET is_admin=? WHERE id=?').run(b.superAdmin ? 1 : 0, u.id);
+      // A client's sign-in made into a super admin now has the full dashboard: it needs a username for Home and My page.
+      // Their apps stay as they were (shared with them); nothing is moved or lost.
+      if (b.superAdmin && !u.username) assignUsername(u.id, null, /@/.test(u.email) ? u.email : u.name, true);
       audit(req, b.superAdmin ? 'user.make_super_admin' : 'user.remove_super_admin', 'user', u.id, u.email);
     }
     if (b.emailVerified !== undefined) {
