@@ -6,6 +6,7 @@ import { ShareOut } from './ShareOut';
 import { downloadHtml } from './Player';
 import { AddressField, HOST, PlanTag, addrBase, slugify, useNameCheck } from './Address';
 import { CustomDomainSection } from './Domains';
+import { SeoFields } from './Seo';
 
 interface InviteRow { id: string; role: Role; createdAt: string; expiresAt: string; usedAt: string | null; revokedAt: string | null; usedBy: string | null }
 interface Member { id: string; name: string; email: string; username?: string | null; role: Role; madeByMe?: boolean; guest?: boolean; viaLink?: boolean }
@@ -546,18 +547,6 @@ interface SeoT {
   on: boolean; live: boolean; title: string; description: string; keyword: string; slug: string | null; rootSlug: string | null;
   username: string | null; path: string | null; url: string | null; allowed: boolean; limit: number | null; used: number; access: string; suffix: string;
 }
-/** How a page looks in Google's results: the address, the title, the description. */
-export function SerpPreview({ path, title, description }: { path: string; title: string; description: string }) {
-  const crumbs = path.split('/').filter(Boolean);
-  const cut = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, '') + ' …' : s);
-  return (
-    <div className="serp" aria-label="How it may look on Google">
-      <span className="serp-site"><span className="serp-fav" aria-hidden="true" /><span><b>Jhino</b><small>{location.host}{crumbs.length ? ` › ${crumbs.join(' › ')}` : ''}</small></span></span>
-      <span className="serp-title">{cut(title, 62)}</span>
-      <span className="serp-desc">{description ? cut(description, 160) : 'Write a description: it shows here.'}</span>
-    </div>
-  );
-}
 function SeoSection({ appId, appName, onShared }: { appId: string; appName: string; onShared: () => void }) {
   const toast = useToast();
   const [s, setS] = useState<SeoT | null>(null);
@@ -582,15 +571,6 @@ function SeoSection({ appId, appName, onShared }: { appId: string; appName: stri
     setBusy(false);
   };
   const path = s.rootSlug ? `/${s.rootSlug}` : `/${s.username ?? ''}/${f.slug}`;
-  const kw = f.keyword.trim().toLowerCase();
-  const titleLen = f.title.trim().length + s.suffix.length;
-  const checks: [boolean, string][] = [
-    [titleLen >= 30 && titleLen <= 60, `Title: ${titleLen} of 30 to 60 characters, "| Jhino" included`],
-    [f.description.trim().length >= 120 && f.description.trim().length <= 160, `Description: ${f.description.trim().length} of 120 to 160 characters`],
-    [!!kw && f.title.toLowerCase().includes(kw), 'The keyword is in the title'],
-    [!!kw && f.description.toLowerCase().includes(kw), 'The keyword is in the description'],
-    [!!kw && path.includes(slugify(kw)), 'The keyword is in the address'],
-  ];
   return (
     <div className="seo-sec">
       <p className="section-title">Show on Google {!s.allowed && <PlanTag plan="Pro" />}</p>
@@ -614,19 +594,7 @@ function SeoSection({ appId, appName, onShared }: { appId: string; appName: stri
               ? <span className="mono seo-fixed">{location.host}/{s.rootSlug}</span>
               : <div className="linkbox"><span className="addr-host mono">{location.host}/{s.username}/</span><input className="input mono" required value={f.slug} onChange={(e) => setF({ ...f, slug: slugify(e.target.value) })} aria-label="Address" /></div>}
           </div>
-          <label className="field"><span>Page title <em>{titleLen}/60</em></span>
-            <span className="seo-title-in"><input className="input" required minLength={3} maxLength={70} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Wedding photographer in Kathmandu" /><span className="mono">{s.suffix.trim()}</span></span>
-          </label>
-          <label className="field"><span>Meta description <em>{f.description.trim().length}/160</em></span>
-            <textarea className="textarea" rows={3} required minLength={50} maxLength={200} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} placeholder="What the page offers, for whom and where, in one or two sentences. Search results show about 160 characters." />
-          </label>
-          <label className="field"><span>Primary keyword</span>
-            <input className="input" required minLength={2} maxLength={60} value={f.keyword} onChange={(e) => setF({ ...f, keyword: e.target.value })} placeholder="The words people type into Google to find this" />
-          </label>
-          <ul className="seo-checks" aria-label="Checks">
-            {checks.map(([ok, t]) => <li key={t} className={ok ? 'ok' : ''}><Icon name={ok ? 'check' : 'info'} size={13} />{t}</li>)}
-          </ul>
-          <SerpPreview path={path} title={`${f.title.trim() || appName}${s.suffix}`} description={f.description.trim()} />
+          <SeoFields value={f} onChange={(n) => setF({ ...f, ...n })} path={path} fallbackTitle={appName} suffix={s.suffix} />
           <div className="actions-row">
             <button className="btn sm primary" disabled={busy}>{busy && <span className="spin" />}{s.on ? 'Save changes' : 'Publish on Google'}</button>
             {s.live && s.url && <a className="btn sm" href={s.path ?? '#'} target="_blank" rel="noopener"><Icon name="external" size={14} />Open page</a>}

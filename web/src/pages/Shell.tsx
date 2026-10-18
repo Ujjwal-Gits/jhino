@@ -20,9 +20,10 @@ import { useEffect, useRef, useState, type ReactNode, Suspense } from 'react';
 import { ApiError, api, avatarUrl, get, post, type AppSummary } from '../api';
 import { Link, useRoute, useSession, applyTheme } from '../context';
 import { live } from '../live';
-import { Avatar, Icon, Menu, Modal, ago, useToast } from '../ui';
+import { Avatar, Icon, Menu, Modal, Select, ago, useToast } from '../ui';
 import { VerifyGate } from './VerifyGate';
-import { AddressField, OpenChoice, addrBase, addressPayload, openReady, slugify, useNameCheck, type OpenSettings } from './Address';
+import { AddressField, HOST, OpenChoice, PlanTag, addrBase, addressPayload, openReady, slugify, useNameCheck, type OpenSettings } from './Address';
+import { SeoFields, emptySeo, seoReady, type SeoDraft } from './Seo';
 
 /* ---------- upload ---------- */
 export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: File | null; onClose: () => void; replaceAppId?: string }) {
@@ -35,11 +36,22 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
   const [limitHit, setLimitHit] = useState(false);
   const [slug, setSlug] = useState('');
   const [open, setOpen] = useState<OpenSettings>({ access: 'public', password: '' });
-  const check = useNameCheck(slug);
+  const { user } = useSession();
+  // Super admins can give it a direct address (jhino.com/<name>) instead of one under their username.
+  const [mode, setMode] = useState<'standard' | 'root'>(user.isAdmin ? 'root' : 'standard');
+  const direct = user.isAdmin && mode === 'root';
+  const check = useNameCheck(slug, { top: direct });
   const input = useRef<HTMLInputElement>(null);
   const suggest = (f: File | null) => { if (f && !slug && !replaceAppId) setSlug(''); };
+  const base = direct ? HOST() : addrBase(user.username);
+  // Show on Google: only if they choose it. It needs an address, and makes the app public to view.
+  const seoAllowed = user.isAdmin || (user.features?.seoPages ?? 0) > 0;
+  const [google, setGoogle] = useState(false);
+  const [seo, setSeo] = useState<SeoDraft>(emptySeo());
+  const onGoogle = google && !!slug && seoAllowed;
+  const access: OpenSettings = onGoogle ? { access: 'public', password: '' } : open;
+  const guessTitle = () => name.trim() || (file ? file.name.replace(/\.(zip|html?)$/i, '').replace(/[-_]+/g, ' ') : '');
 
-  const { user } = useSession();
   const maxMB = user.isAdmin ? null : user.features?.maxUploadMB ?? null;
   const submit = async () => {
     if (!file) return;
@@ -49,14 +61,25 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
     if (!replaceAppId) {
       // Fields go before the file: the server reads them first.
       fd.append('name', name);
-      if (slug) { const a = addressPayload(slug, open); fd.append('slug', slug); fd.append('access', a.access); if (a.password) fd.append('password', a.password); }
+      if (slug) { const a = addressPayload(slug, access); fd.append('slug', slug); if (direct) fd.append('mode', 'root'); fd.append('access', a.access); if (a.password) fd.append('password', a.password); }
     }
     fd.append('file', file);
     try {
       const r = await api<{ app: AppSummary }>('POST', replaceAppId ? `/api/apps/${replaceAppId}/versions` : '/api/apps', fd);
       onClose();
       if (replaceAppId) toast(`Version ${r.app.liveVersion} is live. Saved data was kept.`);
-      else { toast(`${r.app.name} is live.`); go(`/apps/${r.app.id}`); }
+      else {
+        let note = `${r.app.name} is live.`;
+        if (onGoogle) {
+          try {
+            await api('PUT', `/api/apps/${r.app.id}/seo`, { on: true, ...seo, slug: direct ? undefined : slug });
+            note = `${r.app.name} is live and listed for Google.`;
+          } catch (e) {
+            note = `${r.app.name} is live, but not on Google yet: ${e instanceof ApiError ? e.message : 'could not save.'} Try again in Share.`;
+          }
+        }
+        toast(note); go(`/apps/${r.app.id}`);
+      }
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Upload failed.');
       setLimitHit(e instanceof ApiError && e.code === 'LIMIT_REACHED');
@@ -70,7 +93,7 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
       onClose={onClose}
       footer={<>
         <button className="btn" onClick={onClose}>Cancel</button>
-        <button className="btn primary" onClick={submit} disabled={!file || busy || (!replaceAppId && !openReady(slug, check, open))}>
+        <button className="btn primary" onClick={submit} disabled={!file || busy || (!replaceAppId && (!openReady(slug, check, access) || (onGoogle && !seoReady(seo))))}>
           {busy && <span className="spin" />}{replaceAppId ? 'Publish version' : 'Upload and publish'}
         </button>
       </>}
@@ -103,9 +126,39 @@ export function UploadDialog({ file: initial, onClose, replaceAppId }: { file?: 
               <span>Name <span className="muted" style={{ fontWeight: 400 }}>(optional)</span></span>
               <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Uses the page title" />
             </label>
-            <AddressField value={slug} onChange={setSlug} check={check} />
-            {!slug && file && <button type="button" className="link addr-suggest" onClick={() => setSlug(slugify(name || file.name.replace(/\.(zip|html?)$/i, '')))}>Use {addrBase(user.username)}/{slugify(name || file.name.replace(/\.(zip|html?)$/i, '')) || 'my-app'}</button>}
-            {slug && <OpenChoice value={open} onChange={setOpen} compact />}
+            {user.isAdmin && (
+              <div className="field">
+                <span>Format</span>
+                <Select<'standard' | 'root'>
+                  label="Format"
+                  value={mode}
+                  options={[
+                    { value: 'root', label: 'Direct' },
+                    { value: 'standard', label: 'Standard' },
+                  ]}
+                  onChange={setMode}
+                />
+              </div>
+            )}
+            <AddressField value={slug} onChange={setSlug} check={check} mode={direct ? 'root' : 'standard'} />
+            {!slug && file && <button type="button" className="link addr-suggest" onClick={() => setSlug(slugify(name || file.name.replace(/\.(zip|html?)$/i, '')))}>Use {base}/{slugify(name || file.name.replace(/\.(zip|html?)$/i, '')) || 'my-app'}</button>}
+            {slug && !onGoogle && <OpenChoice value={open} onChange={setOpen} compact />}
+            {slug && (
+              <div className="field">
+                <span>Show on Google {!seoAllowed && <PlanTag plan="Pro" />}</span>
+                <label className="check-row">
+                  <input type="checkbox" checked={onGoogle} disabled={!seoAllowed}
+                    onChange={(e) => { setGoogle(e.target.checked); if (e.target.checked && !seo.title) setSeo({ ...seo, title: guessTitle() }); }} />
+                  <span>Make it a public page people can find on Google</span>
+                </label>
+                {onGoogle && <p className="hint">Anyone can open it without signing in, to view. Its title ends in "| Jhino".</p>}
+              </div>
+            )}
+            {onGoogle && (
+              <div className="seo-form">
+                <SeoFields value={seo} onChange={setSeo} path={`/${base.split('/').slice(1).concat(slug).join('/')}`} fallbackTitle={guessTitle() || 'My app'} />
+              </div>
+            )}
           </>
         )}
         {replaceAppId && <p className="hint">Everyone gets the new version. Saved data stays as it is.</p>}

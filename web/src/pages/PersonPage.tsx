@@ -7,7 +7,7 @@ import { Shell } from './Shell';
 import { PanelLoader } from '../Loader';
 import { PublicApp } from './PublicApp';
 import { PlanTag } from './Address';
-import { SerpPreview } from './Share';
+import { SerpPreview } from './Seo';
 import { ProfileView } from '../profile/ProfileView';
 import { ThemeThumb } from '../profile/ThemeThumb';
 import { THEMES, canUseTheme } from '../profile/themes';
